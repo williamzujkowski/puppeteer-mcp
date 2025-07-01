@@ -56,11 +56,11 @@ expect.extend({
           ) {
             // eslint-disable-next-line security/detect-object-injection
             const expectedValue = Object.prototype.hasOwnProperty.call(expectedObj, key)
-              ? expectedObj[key]
+              ? expectedObj[key] // eslint-disable-line security/detect-object-injection
               : undefined;
             // eslint-disable-next-line security/detect-object-injection
             const argValue = Object.prototype.hasOwnProperty.call(argObj, key)
-              ? argObj[key]
+              ? argObj[key] // eslint-disable-line security/detect-object-injection
               : undefined;
             if (expectedValue !== argValue) {
               return false;
