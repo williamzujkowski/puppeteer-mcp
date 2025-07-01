@@ -97,7 +97,7 @@ export class InMemoryContextStore implements ContextStore {
     // Don't allow updating certain fields
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { id: _id, createdAt, ...allowedUpdates } = updates;
-    
+
     const updatedContext = {
       ...context,
       ...allowedUpdates,
@@ -155,21 +155,77 @@ export class InMemoryContextStore implements ContextStore {
     let contexts = Array.from(this.contexts.values());
 
     if (filter) {
-      if (filter.sessionId !== null && filter.sessionId !== '') {
-        contexts = contexts.filter(ctx => ctx.sessionId === filter.sessionId);
-      }
-      if (filter.userId !== null && filter.userId !== '') {
-        contexts = contexts.filter(ctx => ctx.userId === filter.userId);
-      }
-      if (filter.types !== null && filter.types !== undefined && filter.types.length > 0) {
-        contexts = contexts.filter(ctx => filter.types!.includes(ctx.type));
-      }
-      if (filter.statuses !== null && filter.statuses !== undefined && filter.statuses.length > 0) {
-        contexts = contexts.filter(ctx => filter.statuses!.includes(ctx.status));
-      }
+      contexts = this.applyFilters(contexts, filter);
     }
 
     return Promise.resolve(contexts);
+  }
+
+  /**
+   * Apply filters to context list
+   * @private
+   */
+  private applyFilters(
+    contexts: Context[],
+    filter: {
+      sessionId?: string;
+      userId?: string;
+      types?: string[];
+      statuses?: string[];
+    },
+  ): Context[] {
+    let filteredContexts = contexts;
+
+    filteredContexts = this.filterBySessionId(filteredContexts, filter.sessionId);
+    filteredContexts = this.filterByUserId(filteredContexts, filter.userId);
+    filteredContexts = this.filterByTypes(filteredContexts, filter.types);
+    filteredContexts = this.filterByStatuses(filteredContexts, filter.statuses);
+
+    return filteredContexts;
+  }
+
+  /**
+   * Filter contexts by session ID
+   * @private
+   */
+  private filterBySessionId(contexts: Context[], sessionId?: string): Context[] {
+    if (sessionId !== undefined && sessionId !== null && sessionId !== '') {
+      return contexts.filter((ctx) => ctx.sessionId === sessionId);
+    }
+    return contexts;
+  }
+
+  /**
+   * Filter contexts by user ID
+   * @private
+   */
+  private filterByUserId(contexts: Context[], userId?: string): Context[] {
+    if (userId !== undefined && userId !== null && userId !== '') {
+      return contexts.filter((ctx) => ctx.userId === userId);
+    }
+    return contexts;
+  }
+
+  /**
+   * Filter contexts by types
+   * @private
+   */
+  private filterByTypes(contexts: Context[], types?: string[]): Context[] {
+    if (types && types.length > 0) {
+      return contexts.filter((ctx) => types.includes(ctx.type));
+    }
+    return contexts;
+  }
+
+  /**
+   * Filter contexts by statuses
+   * @private
+   */
+  private filterByStatuses(contexts: Context[], statuses?: string[]): Context[] {
+    if (statuses && statuses.length > 0) {
+      return contexts.filter((ctx) => statuses.includes(ctx.status));
+    }
+    return contexts;
   }
 
   /**

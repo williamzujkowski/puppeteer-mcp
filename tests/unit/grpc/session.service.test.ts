@@ -19,15 +19,14 @@ describe('SessionService', () => {
   let sessionStore: InMemorySessionStore;
   let logger: pino.Logger;
   let mockCall: any;
-  let mockCallback: jest.Mock;
 
   // Helper function to promisify callback-based service calls
   const callServiceMethod = <T>(
     method: (call: any, callback: any) => void,
-    call: any
+    call: any,
   ): Promise<{ error: any; response: T }> => {
     return new Promise((resolve) => {
-      const callback = (error: any, response: T) => {
+      const callback = (error: any, response: T): void => {
         resolve({ error, response });
       };
       method.call(service, call, callback);
@@ -38,8 +37,6 @@ describe('SessionService', () => {
     logger = pino({ level: 'silent' });
     sessionStore = new InMemorySessionStore(logger);
     service = new SessionServiceImpl(logger, sessionStore);
-
-    mockCallback = jest.fn();
     mockCall = {
       request: {},
       metadata: new grpc.Metadata(),
@@ -76,7 +73,10 @@ describe('SessionService', () => {
         ttl_seconds: 3600,
       };
 
-      const { error, response } = await callServiceMethod(service.createSession, mockCall);
+      const { error, response } = await callServiceMethod(
+        (call, callback) => service.createSession(call, callback),
+        mockCall,
+      );
 
       expect(error).toBeNull();
       expect(response).toEqual(
@@ -97,7 +97,10 @@ describe('SessionService', () => {
         username: 'testuser',
       };
 
-      const { error, response } = await callServiceMethod(service.createSession, mockCall);
+      const { error, response } = await callServiceMethod(
+        (call, callback) => service.createSession(call, callback),
+        mockCall,
+      );
 
       expect(error).toEqual(
         expect.objectContaining({
@@ -113,7 +116,10 @@ describe('SessionService', () => {
         username: 'testuser',
       };
 
-      const { error, response } = await callServiceMethod(service.createSession, mockCall);
+      const { error, response } = await callServiceMethod(
+        (call, callback) => service.createSession(call, callback),
+        mockCall,
+      );
 
       expect(error).toBeNull();
       expect(response).toEqual(
@@ -153,7 +159,10 @@ describe('SessionService', () => {
       mockCall.metadata.set('user-id', 'test-user');
       mockCall.metadata.set('user-roles', 'user');
 
-      const { error, response } = await callServiceMethod(service.getSession, mockCall);
+      const { error, response } = await callServiceMethod(
+        (call, callback) => service.getSession(call, callback),
+        mockCall,
+      );
 
       expect(error).toBeNull();
       expect(response).toEqual(
@@ -174,7 +183,10 @@ describe('SessionService', () => {
       mockCall.metadata.set('user-id', 'admin-user');
       mockCall.metadata.set('user-roles', 'admin');
 
-      const { error, response } = await callServiceMethod(service.getSession, mockCall);
+      const { error, response } = await callServiceMethod(
+        (call, callback) => service.getSession(call, callback),
+        mockCall,
+      );
 
       expect(error).toBeNull();
       expect(response).toEqual(
@@ -194,7 +206,10 @@ describe('SessionService', () => {
       mockCall.metadata.set('user-id', 'other-user');
       mockCall.metadata.set('user-roles', 'user');
 
-      const { error, response } = await callServiceMethod(service.getSession, mockCall);
+      const { error, response } = await callServiceMethod(
+        (call, callback) => service.getSession(call, callback),
+        mockCall,
+      );
 
       expect(error).toEqual(
         expect.objectContaining({
@@ -209,7 +224,10 @@ describe('SessionService', () => {
         session_id: 'non-existent',
       };
 
-      const { error, response } = await callServiceMethod(service.getSession, mockCall);
+      const { error, response } = await callServiceMethod(
+        (call, callback) => service.getSession(call, callback),
+        mockCall,
+      );
 
       expect(error).toEqual(
         expect.objectContaining({
@@ -243,7 +261,10 @@ describe('SessionService', () => {
       mockCall.metadata.set('user-id', 'test-user');
       mockCall.metadata.set('user-roles', 'user');
 
-      const { error, response } = await callServiceMethod(service.updateSession, mockCall);
+      const { error, response } = await callServiceMethod(
+        (call, callback) => service.updateSession(call, callback),
+        mockCall,
+      );
 
       expect(error).toBeNull();
       expect(response).toEqual(
@@ -268,7 +289,10 @@ describe('SessionService', () => {
       mockCall.metadata.set('user-id', 'test-user');
       mockCall.metadata.set('user-roles', 'user');
 
-      const { error, response } = await callServiceMethod(service.updateSession, mockCall);
+      const { error, response } = await callServiceMethod(
+        (call, callback) => service.updateSession(call, callback),
+        mockCall,
+      );
 
       expect(error).toBeNull();
       expect(response).toEqual(
@@ -279,7 +303,7 @@ describe('SessionService', () => {
           }),
         }),
       );
-      
+
       const updatedSession = await sessionStore.get(testSessionId);
       expect(updatedSession?.data.metadata).toEqual({ existing: 'data' }); // Data preserved
     });
@@ -307,7 +331,10 @@ describe('SessionService', () => {
       mockCall.metadata.set('user-id', 'test-user');
       mockCall.metadata.set('user-roles', 'user');
 
-      const { error, response } = await callServiceMethod(service.deleteSession, mockCall);
+      const { error, response } = await callServiceMethod(
+        (call, callback) => service.deleteSession(call, callback),
+        mockCall,
+      );
 
       expect(error).toBeNull();
       expect(response).toEqual({ success: true });
@@ -324,7 +351,10 @@ describe('SessionService', () => {
       mockCall.metadata.set('user-id', 'other-user');
       mockCall.metadata.set('user-roles', 'user');
 
-      const { error, response } = await callServiceMethod(service.deleteSession, mockCall);
+      const { error, response } = await callServiceMethod(
+        (call, callback) => service.deleteSession(call, callback),
+        mockCall,
+      );
 
       expect(error).toEqual(
         expect.objectContaining({
@@ -359,7 +389,10 @@ describe('SessionService', () => {
         refresh_token: 'valid-refresh-token',
       };
 
-      const { error, response } = await callServiceMethod(service.refreshSession, mockCall);
+      const { error, response } = await callServiceMethod(
+        (call, callback) => service.refreshSession(call, callback),
+        mockCall,
+      );
 
       expect(error).toBeNull();
       expect(response).toEqual(
@@ -380,7 +413,10 @@ describe('SessionService', () => {
         refresh_token: 'invalid-token',
       };
 
-      const { error, response } = await callServiceMethod(service.refreshSession, mockCall);
+      const { error, response } = await callServiceMethod(
+        (call, callback) => service.refreshSession(call, callback),
+        mockCall,
+      );
 
       expect(error).toEqual(
         expect.objectContaining({
@@ -410,7 +446,10 @@ describe('SessionService', () => {
         session_id: testSessionId,
       };
 
-      const { error, response } = await callServiceMethod(service.validateSession, mockCall);
+      const { error, response } = await callServiceMethod(
+        (call, callback) => service.validateSession(call, callback),
+        mockCall,
+      );
 
       expect(error).toBeNull();
       expect(response).toEqual(
@@ -438,7 +477,10 @@ describe('SessionService', () => {
         session_id: expiredSessionId,
       };
 
-      const { error, response } = await callServiceMethod(service.validateSession, mockCall);
+      const { error, response } = await callServiceMethod(
+        (call, callback) => service.validateSession(call, callback),
+        mockCall,
+      );
 
       expect(error).toBeNull();
       expect(response).toEqual(

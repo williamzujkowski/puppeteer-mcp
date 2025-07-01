@@ -77,9 +77,13 @@ describe('Testing Best Practices Examples', () => {
       const res = createMockResponse();
 
       // Simulate handler logic
-      res.status(200).json({ success: true });
+      const statusResult = res.status(200);
+      statusResult.json({ success: true });
 
+      // Test that methods were called correctly
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(res.status).toHaveBeenCalledWith(200);
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(res.json).toHaveBeenCalledWith({ success: true });
     });
 
@@ -124,7 +128,9 @@ describe('Testing Best Practices Examples', () => {
 
     test.each(testCases)('should classify $input as $expected', ({ input, expected }) => {
       const classify = (n: number): string => {
-        if (n === 0) {return 'zero';}
+        if (n === 0) {
+          return 'zero';
+        }
         return n > 0 ? 'positive' : 'negative';
       };
 

@@ -42,10 +42,10 @@ describe('gRPC Interceptors', () => {
   beforeEach(() => {
     logger = pino({ level: 'silent' });
     sessionStore = new InMemorySessionStore(logger);
-    
+
     mockCallback = jest.fn();
     mockNext = jest.fn();
-    
+
     mockCall = {
       metadata: new grpc.Metadata(),
       handler: {
@@ -61,7 +61,7 @@ describe('gRPC Interceptors', () => {
   });
 
   describe('authInterceptor', () => {
-    const createInterceptor = () => authInterceptor(logger, sessionStore);
+    const createInterceptor = (): any => authInterceptor(logger, sessionStore);
 
     beforeEach(async () => {
       // Create a test session
@@ -83,7 +83,7 @@ describe('gRPC Interceptors', () => {
       // TODO: Fix session store issue - session is not persisting between creation and retrieval
       // This appears to be a complex issue with the in-memory session store in test environment
       // All other auth tests pass (error cases), only the success case fails
-      
+
       // Create session inline to ensure it exists
       await sessionStore.create({
         id: 'test-session-inline',
@@ -133,7 +133,7 @@ describe('gRPC Interceptors', () => {
         expect.objectContaining({
           code: grpc.status.UNAUTHENTICATED,
           message: expect.stringContaining('Missing authentication token'),
-        })
+        }),
       );
       expect(mockNext).not.toHaveBeenCalled();
     });
@@ -149,7 +149,7 @@ describe('gRPC Interceptors', () => {
         expect.objectContaining({
           code: grpc.status.UNAUTHENTICATED,
           message: expect.stringContaining('Authentication failed'),
-        })
+        }),
       );
       expect(mockNext).not.toHaveBeenCalled();
     });
@@ -185,7 +185,7 @@ describe('gRPC Interceptors', () => {
         expect.objectContaining({
           code: grpc.status.UNAUTHENTICATED,
           message: expect.stringContaining('Invalid authentication token'),
-        })
+        }),
       );
       expect(mockNext).not.toHaveBeenCalled();
     });
@@ -200,13 +200,13 @@ describe('gRPC Interceptors', () => {
       expect(mockCallback).toHaveBeenCalledWith(
         expect.objectContaining({
           code: grpc.status.UNAUTHENTICATED,
-        })
+        }),
       );
     });
   });
 
   describe('loggingInterceptor', () => {
-    const createInterceptor = () => loggingInterceptor(logger);
+    const createInterceptor = (): any => loggingInterceptor(logger);
 
     it('should log successful requests', async () => {
       // Mock child logger creation
@@ -217,23 +217,27 @@ describe('gRPC Interceptors', () => {
         child: jest.fn(),
       };
       jest.spyOn(logger, 'child').mockReturnValue(childLogger as any);
-      
+
       // Simulate successful response
       mockNext.mockImplementation((call, callback) => {
-        setTimeout(() => callback(null, { result: 'success' }), 10);
+        void setTimeout(() => {
+          callback(null, { result: 'success' });
+        }, 10);
       });
 
       const interceptor = createInterceptor();
       await interceptor(mockCall, mockCallback, mockNext);
-      
+
       // Wait for async operations
-      await new Promise(resolve => setTimeout(resolve, 20));
+      await new Promise<void>((resolve) => {
+        setTimeout(resolve, 20);
+      });
 
       expect(childLogger.info).toHaveBeenCalledWith(
         expect.objectContaining({
           type: 'grpc_request',
         }),
-        'gRPC request received'
+        'gRPC request received',
       );
 
       expect(mockCallback).toHaveBeenCalledWith(null, { result: 'success' });
@@ -248,20 +252,24 @@ describe('gRPC Interceptors', () => {
         child: jest.fn(),
       };
       jest.spyOn(logger, 'child').mockReturnValue(childLogger as any);
-      
+
       const error = new Error('Test error');
       (error as any).code = grpc.status.INTERNAL;
 
       // Simulate error response
       mockNext.mockImplementation((call, callback) => {
-        setTimeout(() => callback(error), 10);
+        void setTimeout(() => {
+          callback(error);
+        }, 10);
       });
 
       const interceptor = createInterceptor();
       await interceptor(mockCall, mockCallback, mockNext);
-      
+
       // Wait for async operations
-      await new Promise(resolve => setTimeout(resolve, 20));
+      await new Promise<void>((resolve) => {
+        setTimeout(resolve, 20);
+      });
 
       expect(childLogger.error).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -269,31 +277,35 @@ describe('gRPC Interceptors', () => {
           statusCode: grpc.status.INTERNAL,
           error: 'Test error',
         }),
-        'gRPC request failed'
+        'gRPC request failed',
       );
 
       expect(mockCallback).toHaveBeenCalledWith(error, undefined);
     });
 
     it('should add request ID if not present', async () => {
-      // Mock child logger creation  
+      // Mock child logger creation
       const childLogger = {
         info: jest.fn(),
-        error: jest.fn(), 
+        error: jest.fn(),
         debug: jest.fn(),
         child: jest.fn(),
       };
       jest.spyOn(logger, 'child').mockReturnValue(childLogger as any);
-      
+
       mockNext.mockImplementation((call, callback) => {
-        setTimeout(() => callback(null, {}), 10);
+        void setTimeout(() => {
+          callback(null, {});
+        }, 10);
       });
 
       const interceptor = createInterceptor();
       await interceptor(mockCall, mockCallback, mockNext);
-      
+
       // Wait for async operations
-      await new Promise(resolve => setTimeout(resolve, 20));
+      await new Promise<void>((resolve) => {
+        setTimeout(resolve, 20);
+      });
 
       const requestId = mockCall.metadata.get('x-request-id');
       expect(requestId).toBeDefined();
@@ -302,23 +314,23 @@ describe('gRPC Interceptors', () => {
   });
 
   describe('errorInterceptor', () => {
-    const createInterceptor = () => errorInterceptor(logger);
+    const createInterceptor = (): any => errorInterceptor(logger);
 
     it('should handle AppError correctly', () => {
       const appError = new AppError('Validation failed', 400);
-      
+
       mockNext.mockImplementation((call, callback) => {
         callback(appError);
       });
 
       const interceptor = createInterceptor();
-      interceptor(mockCall, mockCallback, mockNext);
+      void interceptor(mockCall, mockCallback, mockNext);
 
       expect(mockCallback).toHaveBeenCalledWith(
         expect.objectContaining({
           code: grpc.status.INVALID_ARGUMENT,
           message: 'Validation failed',
-        })
+        }),
       );
     });
 
@@ -327,19 +339,19 @@ describe('gRPC Interceptors', () => {
       process.env.NODE_ENV = 'production';
 
       const error = new Error('Internal database error');
-      
+
       mockNext.mockImplementation((call, callback) => {
         callback(error);
       });
 
       const interceptor = createInterceptor();
-      interceptor(mockCall, mockCallback, mockNext);
+      void interceptor(mockCall, mockCallback, mockNext);
 
       expect(mockCallback).toHaveBeenCalledWith(
         expect.objectContaining({
           code: grpc.status.INTERNAL,
           message: 'Internal server error', // Generic message in production
-        })
+        }),
       );
 
       process.env.NODE_ENV = originalEnv;
@@ -350,19 +362,19 @@ describe('gRPC Interceptors', () => {
       process.env.NODE_ENV = 'development';
 
       const error = new Error('Detailed error message');
-      
+
       mockNext.mockImplementation((call, callback) => {
         callback(error);
       });
 
       const interceptor = createInterceptor();
-      interceptor(mockCall, mockCallback, mockNext);
+      void interceptor(mockCall, mockCallback, mockNext);
 
       expect(mockCallback).toHaveBeenCalledWith(
         expect.objectContaining({
           code: grpc.status.INTERNAL,
           message: 'Detailed error message', // Actual message in development
-        })
+        }),
       );
 
       process.env.NODE_ENV = originalEnv;
@@ -379,18 +391,18 @@ describe('gRPC Interceptors', () => {
 
       for (const { appCode, grpcCode } of testCases) {
         const error = new AppError('Test error', appCode);
-        
+
         mockNext.mockImplementation((call, callback) => {
           callback(error);
         });
 
         const interceptor = createInterceptor();
-        interceptor(mockCall, mockCallback, mockNext);
+        void interceptor(mockCall, mockCallback, mockNext);
 
         expect(mockCallback).toHaveBeenCalledWith(
           expect.objectContaining({
             code: grpcCode,
-          })
+          }),
         );
 
         mockCallback.mockClear();
