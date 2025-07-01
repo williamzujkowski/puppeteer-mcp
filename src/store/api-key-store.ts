@@ -143,7 +143,7 @@ export class InMemoryApiKeyStore implements ApiKeyStore {
     const keyHash = this.hashApiKey(plainTextKey);
     const id = this.keyHashToId.get(keyHash);
 
-    if (!id) {
+    if (id === null || id === '') {
       await logSecurityEvent(SecurityEventType.INVALID_TOKEN, {
         reason: 'Unknown API key',
         result: 'failure',
@@ -167,7 +167,7 @@ export class InMemoryApiKeyStore implements ApiKeyStore {
     }
 
     // Check expiration
-    if (apiKey.expiresAt && apiKey.expiresAt < Date.now()) {
+    if (apiKey.expiresAt !== null && apiKey.expiresAt > 0 && apiKey.expiresAt < Date.now()) {
       await logSecurityEvent(SecurityEventType.INVALID_TOKEN, {
         userId: apiKey.userId,
         reason: 'API key expired',

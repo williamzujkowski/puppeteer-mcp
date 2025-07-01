@@ -115,7 +115,7 @@ describe('gRPC Interceptors', () => {
       // Check if callback was called instead of next
       if (mockCallback.mock.calls.length > 0) {
         const error = mockCallback.mock.calls[0][0];
-        throw new Error(`Expected success but got error: ${error?.message || error}`);
+        throw new Error(`Expected success but got error: ${error?.message ?? String(error)}`);
       }
 
       expect(mockNext).toHaveBeenCalledWith(mockCall, mockCallback);

@@ -150,7 +150,7 @@ export class WSSubscriptionManager {
   private validateSessionsSubscription(topicParts: string[], connectionState: WSConnectionState): boolean {
     // Users can only subscribe to their own session events
     const targetUserId = topicParts[1];
-    if (targetUserId && targetUserId !== connectionState.userId) {
+    if (targetUserId !== null && targetUserId !== '' && targetUserId !== connectionState.userId) {
       return false;
     }
     return true;

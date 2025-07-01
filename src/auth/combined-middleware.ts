@@ -23,7 +23,7 @@ export const createCombinedAuthMiddleware = (sessionStore: SessionStore) => {
     try {
       // Check for API key first
       const apiKeyHeader = req.headers['x-api-key'] as string | undefined;
-      if (apiKeyHeader) {
+      if (apiKeyHeader !== null && apiKeyHeader !== '') {
         const keyData = await apiKeyStore.verify(apiKeyHeader);
         
         if (!keyData) {
@@ -68,7 +68,7 @@ export const createCombinedAuthMiddleware = (sessionStore: SessionStore) => {
       // Check for JWT token
       const token = extractTokenFromHeader(req.headers.authorization);
       
-      if (!token) {
+      if (token === null || token === '') {
         throw new AppError('No authentication credentials provided', 401);
       }
 
@@ -136,6 +136,6 @@ export const createCombinedAuthMiddleware = (sessionStore: SessionStore) => {
 /**
  * Create a unified requireAuth middleware
  */
-export const createRequireAuth = (sessionStore: SessionStore) => {
+export const createRequireAuth = (sessionStore: SessionStore): ReturnType<typeof createCombinedAuthMiddleware> => {
   return createCombinedAuthMiddleware(sessionStore);
 };

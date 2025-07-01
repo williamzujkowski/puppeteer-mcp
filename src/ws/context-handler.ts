@@ -51,7 +51,7 @@ export class WSContextHandler {
     action: string,
     data: unknown
   ): Promise<unknown> {
-    if (!connectionState.userId) {
+    if (connectionState.userId === null || connectionState.userId === '') {
       throw new AppError('Authentication required', 401);
     }
 
@@ -123,7 +123,7 @@ export class WSContextHandler {
       throw new AppError(`Invalid context type: ${input.type}`, 400);
     }
 
-    if (!state.sessionId) {
+    if (state.sessionId === null || state.sessionId === '') {
       throw new AppError('Session required to create context', 400);
     }
 
@@ -209,7 +209,7 @@ export class WSContextHandler {
   ): Promise<unknown> {
     await this.checkPermission(state, Permission.CONTEXT_LIST);
 
-    if (!state.sessionId) {
+    if (state.sessionId === null || state.sessionId === '') {
       throw new AppError('Session required to list contexts', 400);
     }
 

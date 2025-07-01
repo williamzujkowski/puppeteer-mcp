@@ -67,7 +67,12 @@ export function validateRequest<T extends ZodSchema>(schema: T) {
  * Create request validator for specific fields
  * @nist si-10 "Information input validation"
  */
-export function createValidator<T extends ZodSchema>(schema: T) {
+export function createValidator<T extends ZodSchema>(schema: T): {
+  body: ReturnType<typeof validateRequest>;
+  query: ReturnType<typeof validateRequest>;
+  params: ReturnType<typeof validateRequest>;
+  all: ReturnType<typeof validateRequest>;
+} {
   return {
     body: validateRequest(z.object({ body: schema })),
     query: validateRequest(z.object({ query: schema })),

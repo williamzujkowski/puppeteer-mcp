@@ -83,7 +83,7 @@ export class ContextHandlers {
       }
 
       const { contextId } = req.params;
-      if (!contextId) {
+      if (contextId === null || contextId === '') {
         throw new AppError('Context ID is required', 400);
       }
       const context = await this.storage.getContext(contextId, req.user.userId, req.user.roles);
@@ -110,7 +110,7 @@ export class ContextHandlers {
       }
 
       const { contextId } = req.params;
-      if (!contextId) {
+      if (contextId === null || contextId === '') {
         throw new AppError('Context ID is required', 400);
       }
 
@@ -142,7 +142,7 @@ export class ContextHandlers {
       }
 
       const { contextId } = req.params;
-      if (!contextId) {
+      if (contextId === null || contextId === '') {
         throw new AppError('Context ID is required', 400);
       }
 
@@ -170,7 +170,7 @@ export class ContextHandlers {
       }
 
       const { contextId } = req.params;
-      if (!contextId) {
+      if (contextId === null || contextId === '') {
         throw new AppError('Context ID is required', 400);
       }
 
