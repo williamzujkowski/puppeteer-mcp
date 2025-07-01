@@ -6,7 +6,7 @@
  * @nist ac-3 "Access enforcement"
  */
 
-import { Router } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import { createCombinedAuthMiddleware } from '../auth/combined-middleware.js';
 import { apiKeyStore } from '../store/api-key-store.js';
@@ -33,130 +33,83 @@ const listApiKeysSchema = z.object({
 });
 
 /**
- * Create API key routes with session store dependency
- */
-export function createApiKeyRoutes(sessionStore: SessionStore): Router {
-  const router = Router();
-  const requireAuth = createCombinedAuthMiddleware(sessionStore);
-
-/**
- * Create a new API key
- * @route POST /api/v1/api-keys
+ * Handle API key creation
  * @nist ia-5 "Authenticator management"
  * @nist au-3 "Content of audit records"
  */
-router.post(
-  '/',
-  requireAuth,
-  validateRequest(createApiKeySchema),
-  async (req, res) => {
-    const { name, roles, scopes, expiresIn, metadata } = req.body;
+function createApiKeyHandler(req: Request, res: Response, next: NextFunction): void {
+  void (async () => {
+    try {
+      const { name, roles, scopes, expiresIn, metadata } = req.body;
 
-    // Calculate expiration time if provided
-    const expiresAt = expiresIn 
-      ? Date.now() + expiresIn 
-      : undefined;
+      // Ensure user exists
+      if (!req.user) {
+        throw new AppError('User not authenticated', 401);
+      }
 
-    // Create API key
-    const result = await apiKeyStore.create({
-      userId: req.user!.userId,
-      name,
-      roles: roles ?? req.user!.roles,
-      scopes,
-      expiresAt,
-      metadata,
-    });
+      // Calculate expiration time if provided
+      const expiresAt = expiresIn !== undefined && expiresIn !== null
+        ? Date.now() + expiresIn 
+        : undefined;
 
-    // Return key info (only time plain text key is available)
-    res.status(201).json({
-      apiKey: {
-        id: result.apiKey.id,
-        name: result.apiKey.name,
-        prefix: result.apiKey.prefix,
-        roles: result.apiKey.roles,
-        scopes: result.apiKey.scopes,
-        createdAt: new Date(result.apiKey.createdAt).toISOString(),
-        expiresAt: result.apiKey.expiresAt 
-          ? new Date(result.apiKey.expiresAt).toISOString() 
-          : undefined,
-      },
-      // Only returned on creation!
-      plainTextKey: result.plainTextKey,
-      warning: 'Save this key securely. It will not be shown again.',
-    });
-  }
-);
+      // Create API key
+      const result = await apiKeyStore.create({
+        userId: req.user.userId,
+        name,
+        roles: roles ?? req.user.roles,
+        scopes,
+        expiresAt,
+        metadata,
+      });
+
+      // Return key info (only time plain text key is available)
+      res.status(201).json({
+        apiKey: {
+          id: result.apiKey.id,
+          name: result.apiKey.name,
+          prefix: result.apiKey.prefix,
+          roles: result.apiKey.roles,
+          scopes: result.apiKey.scopes,
+          createdAt: new Date(result.apiKey.createdAt).toISOString(),
+          expiresAt: result.apiKey.expiresAt !== null && result.apiKey.expiresAt !== undefined
+            ? new Date(result.apiKey.expiresAt).toISOString() 
+            : undefined,
+        },
+        // Only returned on creation!
+        plainTextKey: result.plainTextKey,
+        warning: 'Save this key securely. It will not be shown again.',
+      });
+    } catch (error) {
+      next(error);
+    }
+  })();
+}
 
 /**
- * List user's API keys
- * @route GET /api/v1/api-keys
+ * Handle listing API keys
  * @nist ac-3 "Access enforcement"
  */
-router.get(
-  '/',
-  requireAuth,
-  validateRequest(listApiKeysSchema),
-  async (req, res) => {
-    const { active } = req.query;
+function listApiKeysHandler(req: Request, res: Response, next: NextFunction): void {
+  void (async () => {
+    try {
+      const { active } = req.query;
 
-    // Get all keys for user
-    let keys = await apiKeyStore.list(req.user!.userId);
+      // Ensure user exists
+      if (!req.user) {
+        throw new AppError('User not authenticated', 401);
+      }
 
-    // Filter by active status if requested
-    if (active !== undefined) {
-      const isActive = active === 'true';
-      keys = keys.filter(key => key.active === isActive);
-    }
+      // Get all keys for user
+      let keys = await apiKeyStore.list(req.user.userId);
 
-    // Map to response format (never expose key hash)
-    const response = keys.map(key => ({
-      id: key.id,
-      name: key.name,
-      prefix: key.prefix,
-      roles: key.roles,
-      scopes: key.scopes,
-      active: key.active,
-      createdAt: new Date(key.createdAt).toISOString(),
-      lastUsedAt: key.lastUsedAt 
-        ? new Date(key.lastUsedAt).toISOString() 
-        : undefined,
-      expiresAt: key.expiresAt 
-        ? new Date(key.expiresAt).toISOString() 
-        : undefined,
-    }));
+      // Filter by active status if requested
+      if (active !== undefined) {
+        const isActive = active === 'true';
+        keys = keys.filter(key => key.active === isActive);
+      }
 
-    res.json({ apiKeys: response });
-  }
-);
-
-/**
- * Get API key details
- * @route GET /api/v1/api-keys/:id
- * @nist ac-3 "Access enforcement"
- */
-router.get(
-  '/:id',
-  requireAuth,
-  async (req, res) => {
-    const { id } = req.params;
-
-    if (!id) {
-      throw new AppError('API key ID is required', 400);
-    }
-
-    const key = await apiKeyStore.get(id);
-    
-    if (!key) {
-      throw new AppError('API key not found', 404);
-    }
-
-    // Ensure user owns the key
-    if (key.userId !== req.user!.userId && !req.user!.roles.includes('admin')) {
-      throw new AppError('Access denied', 403);
-    }
-
-    res.json({
-      apiKey: {
+      // Map to response format (never expose key hash)
+      const response = keys.map(key => ({
         id: key.id,
         name: key.name,
         prefix: key.prefix,
@@ -164,58 +117,175 @@ router.get(
         scopes: key.scopes,
         active: key.active,
         createdAt: new Date(key.createdAt).toISOString(),
-        lastUsedAt: key.lastUsedAt 
+        lastUsedAt: key.lastUsedAt !== null && key.lastUsedAt !== undefined
           ? new Date(key.lastUsedAt).toISOString() 
           : undefined,
-        expiresAt: key.expiresAt 
+        expiresAt: key.expiresAt !== null && key.expiresAt !== undefined
           ? new Date(key.expiresAt).toISOString() 
           : undefined,
-        metadata: key.metadata,
-      },
-    });
-  }
-);
+      }));
+
+      res.json({ apiKeys: response });
+    } catch (error) {
+      next(error);
+    }
+  })();
+}
 
 /**
- * Revoke an API key
- * @route DELETE /api/v1/api-keys/:id
+ * Validate API key ID parameter
+ */
+function validateApiKeyId(id: string | undefined): void {
+  if (id === undefined || id === null || id === '') {
+    throw new AppError('API key ID is required', 400);
+  }
+}
+
+/**
+ * Check if user can access API key
+ */
+function checkApiKeyAccess(key: { userId: string }, user: { userId: string; roles: string[] }): void {
+  if (key.userId !== user.userId && !user.roles.includes('admin')) {
+    throw new AppError('Access denied', 403);
+  }
+}
+
+/**
+ * Handle getting API key details
+ * @nist ac-3 "Access enforcement"
+ */
+function getApiKeyHandler(req: Request, res: Response, next: NextFunction): void {
+  void (async () => {
+    try {
+      const { id } = req.params;
+      validateApiKeyId(id);
+
+      // Ensure user exists
+      if (!req.user) {
+        throw new AppError('User not authenticated', 401);
+      }
+
+      const key = await apiKeyStore.get(id);
+      
+      if (!key) {
+        throw new AppError('API key not found', 404);
+      }
+
+      // Ensure user owns the key
+      checkApiKeyAccess(key, req.user);
+
+      res.json({
+        apiKey: {
+          id: key.id,
+          name: key.name,
+          prefix: key.prefix,
+          roles: key.roles,
+          scopes: key.scopes,
+          active: key.active,
+          createdAt: new Date(key.createdAt).toISOString(),
+          lastUsedAt: key.lastUsedAt !== null && key.lastUsedAt !== undefined
+            ? new Date(key.lastUsedAt).toISOString() 
+            : undefined,
+          expiresAt: key.expiresAt !== null && key.expiresAt !== undefined
+            ? new Date(key.expiresAt).toISOString() 
+            : undefined,
+          metadata: key.metadata,
+        },
+      });
+    } catch (error) {
+      next(error);
+    }
+  })();
+}
+
+/**
+ * Handle revoking API key
  * @nist ia-5 "Authenticator management"
  * @nist au-3 "Content of audit records"
  */
-router.delete(
-  '/:id',
-  requireAuth,
-  async (req, res) => {
-    const { id } = req.params;
+function revokeApiKeyHandler(req: Request, res: Response, next: NextFunction): void {
+  void (async () => {
+    try {
+      const { id } = req.params;
+      validateApiKeyId(id);
 
-    if (!id) {
-      throw new AppError('API key ID is required', 400);
+      // Ensure user exists
+      if (!req.user) {
+        throw new AppError('User not authenticated', 401);
+      }
+
+      const key = await apiKeyStore.get(id);
+      
+      if (!key) {
+        throw new AppError('API key not found', 404);
+      }
+
+      // Ensure user owns the key
+      checkApiKeyAccess(key, req.user);
+
+      // Revoke the key
+      await apiKeyStore.revoke(id);
+
+      res.json({
+        message: 'API key revoked successfully',
+        apiKey: {
+          id: key.id,
+          name: key.name,
+          revokedAt: new Date().toISOString(),
+        },
+      });
+    } catch (error) {
+      next(error);
     }
+  })();
+}
 
-    const key = await apiKeyStore.get(id);
-    
-    if (!key) {
-      throw new AppError('API key not found', 404);
-    }
+/**
+ * Create API key routes with session store dependency
+ */
+export function createApiKeyRoutes(sessionStore: SessionStore): Router {
+  const router = Router();
+  const requireAuth = createCombinedAuthMiddleware(sessionStore);
 
-    // Ensure user owns the key
-    if (key.userId !== req.user!.userId && !req.user!.roles.includes('admin')) {
-      throw new AppError('Access denied', 403);
-    }
+  // Wrapper to handle async requireAuth middleware
+  const authWrapper = (req: Request, res: Response, next: NextFunction): void => {
+    void requireAuth(req, res, next);
+  };
 
-    // Revoke the key
-    await apiKeyStore.revoke(id);
+  // Wrapper to handle async validateRequest middleware
+  const validationWrapper = (schema: z.ZodSchema) => (req: Request, res: Response, next: NextFunction): void => {
+    void validateRequest(schema)(req, res, next);
+  };
 
-    res.json({
-      message: 'API key revoked successfully',
-      apiKey: {
-        id: key.id,
-        name: key.name,
-        revokedAt: new Date().toISOString(),
-      },
-    });
-  }
-);
+  // Create a new API key
+  router.post(
+    '/',
+    authWrapper,
+    validationWrapper(createApiKeySchema),
+    createApiKeyHandler
+  );
+
+  // List user's API keys
+  router.get(
+    '/',
+    authWrapper,
+    validationWrapper(listApiKeysSchema),
+    listApiKeysHandler
+  );
+
+  // Get API key details
+  router.get(
+    '/:id',
+    authWrapper,
+    getApiKeyHandler
+  );
+
+  // Revoke an API key
+  router.delete(
+    '/:id',
+    authWrapper,
+    revokeApiKeyHandler
+  );
 
   return router;
 }
