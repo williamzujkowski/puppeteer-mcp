@@ -1,0 +1,139 @@
+version: '3.8'
+
+# Production docker-compose configuration
+# Following CN:DOCKER standards with security hardening
+# @nist cm-2 "Baseline Configuration"
+# @nist sc-7 "Boundary Protection"
+# @nist ac-3 "Access Enforcement"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runner
+    image: puppeteer-mcp:latest
+    container_name: puppeteer-mcp
+    ports:
+      - "8443:8443"
+    environment:
+      - NODE_ENV=production
+      - PORT=8443
+      - LOG_LEVEL=info
+      - JWT_SECRET=${JWT_SECRET:?JWT_SECRET is required}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379}
+      - DATABASE_URL=${DATABASE_URL:-}
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:8443/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1))"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - mcp-network
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /var/run
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+
+  # Redis for session storage
+  redis:
+    image: redis:7-alpine
+    container_name: puppeteer-mcp-redis
+    expose:
+      - "6379"
+    volumes:
+      - redis-data:/data:rw
+    command: >
+      redis-server
+      --appendonly yes
+      --requirepass ${REDIS_PASSWORD:?REDIS_PASSWORD is required}
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
+      --protected-mode yes
+      --bind 0.0.0.0
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "ping"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+    networks:
+      - mcp-network
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 256M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+
+  # PostgreSQL for data storage (future use)
+  # postgres:
+  #   image: postgres:15-alpine
+  #   container_name: puppeteer-mcp-postgres
+  #   ports:
+  #     - "5432:5432"
+  #   environment:
+  #     - POSTGRES_USER=mcp
+  #     - POSTGRES_PASSWORD=mcp-password
+  #     - POSTGRES_DB=puppeteer_mcp
+  #   volumes:
+  #     - postgres-data:/var/lib/postgresql/data
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U mcp"]
+  #     interval: 30s
+  #     timeout: 3s
+  #     retries: 3
+  #   networks:
+  #     - mcp-network
+
+networks:
+  mcp-network:
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.name: br-mcp-prod
+      com.docker.network.bridge.enable_icc: "false"  # Disable inter-container communication
+      com.docker.network.bridge.enable_ip_masquerade: "true"
+    ipam:
+      config:
+        - subnet: 172.29.0.0/16
+
+volumes:
+  redis-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${REDIS_DATA_PATH:-/var/lib/puppeteer-mcp/redis}
+  postgres-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${POSTGRES_DATA_PATH:-/var/lib/puppeteer-mcp/postgres}

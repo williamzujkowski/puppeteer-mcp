@@ -1,0 +1,15 @@
+{
+  "*.{ts,tsx}": [
+    "eslint --fix",
+    "prettier --write"
+  ],
+  "*.{js,jsx}": [
+    "prettier --write"
+  ],
+  "*.{json,md,yml,yaml}": [
+    "prettier --write"
+  ],
+  "*.proto": [
+    "prettier --write --parser yaml"
+  ]
+}

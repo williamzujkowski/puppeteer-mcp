@@ -1,0 +1,51 @@
+# Dependencies
+node_modules/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Build output
+dist/
+build/
+coverage/
+*.tsbuildinfo
+
+# Generated files
+src/grpc/generated/
+*.d.ts
+
+# IDE
+.vscode/
+.idea/
+
+# Environment
+.env
+.env.*
+
+# Logs
+*.log
+logs/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Documentation build
+docs/.vitepress/dist/
+docs/.vitepress/cache/
+
+# Git
+.git/
+.gitignore
+
+# Markdown files with special formatting
+CHANGELOG.md

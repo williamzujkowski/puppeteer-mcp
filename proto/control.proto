@@ -1,0 +1,427 @@
+syntax = "proto3";
+
+package mcp.control.v1;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/field_mask.proto";
+
+// ===========================
+// Session Management Service
+// ===========================
+
+// Service for managing user sessions across all protocols
+service SessionService {
+  // Create a new session
+  rpc CreateSession(CreateSessionRequest) returns (CreateSessionResponse);
+  
+  // Get session details
+  rpc GetSession(GetSessionRequest) returns (GetSessionResponse);
+  
+  // Update session data
+  rpc UpdateSession(UpdateSessionRequest) returns (UpdateSessionResponse);
+  
+  // Delete a session
+  rpc DeleteSession(DeleteSessionRequest) returns (DeleteSessionResponse);
+  
+  // List sessions with filtering
+  rpc ListSessions(ListSessionsRequest) returns (ListSessionsResponse);
+  
+  // Batch get sessions
+  rpc BatchGetSessions(BatchGetSessionsRequest) returns (BatchGetSessionsResponse);
+  
+  // Stream session events in real-time
+  rpc StreamSessionEvents(StreamSessionEventsRequest) returns (stream SessionEvent);
+  
+  // Refresh session token
+  rpc RefreshSession(RefreshSessionRequest) returns (RefreshSessionResponse);
+  
+  // Validate session
+  rpc ValidateSession(ValidateSessionRequest) returns (ValidateSessionResponse);
+}
+
+// ===========================
+// Context Management Service
+// ===========================
+
+// Service for managing execution contexts
+service ContextService {
+  // Create a new context
+  rpc CreateContext(CreateContextRequest) returns (CreateContextResponse);
+  
+  // Get context details
+  rpc GetContext(GetContextRequest) returns (GetContextResponse);
+  
+  // Update context
+  rpc UpdateContext(UpdateContextRequest) returns (UpdateContextResponse);
+  
+  // Delete context
+  rpc DeleteContext(DeleteContextRequest) returns (DeleteContextResponse);
+  
+  // List contexts for a session
+  rpc ListContexts(ListContextsRequest) returns (ListContextsResponse);
+  
+  // Stream context events
+  rpc StreamContextEvents(StreamContextEventsRequest) returns (stream ContextEvent);
+  
+  // Execute command in context
+  rpc ExecuteCommand(ExecuteCommandRequest) returns (ExecuteCommandResponse);
+  
+  // Stream command execution
+  rpc StreamCommand(StreamCommandRequest) returns (stream CommandOutput);
+}
+
+// ===========================
+// Health and Status Service
+// ===========================
+
+// Service for monitoring health and status
+service HealthService {
+  // Check service health
+  rpc Check(HealthCheckRequest) returns (HealthCheckResponse);
+  
+  // Watch health status changes
+  rpc Watch(HealthCheckRequest) returns (stream HealthCheckResponse);
+}
+
+// ===========================
+// Common Messages
+// ===========================
+
+// Error details for structured error reporting
+message ErrorDetail {
+  string code = 1;
+  string message = 2;
+  map<string, string> metadata = 3;
+}
+
+// Pagination request
+message PaginationRequest {
+  int32 page_size = 1;
+  string page_token = 2;
+}
+
+// Pagination response
+message PaginationResponse {
+  string next_page_token = 1;
+  int32 total_size = 2;
+}
+
+// ===========================
+// Session Messages
+// ===========================
+
+message CreateSessionRequest {
+  string user_id = 1;
+  string username = 2;
+  repeated string roles = 3;
+  map<string, string> data = 4;
+  map<string, string> metadata = 5;
+  int32 ttl_seconds = 6; // Time to live in seconds
+}
+
+message CreateSessionResponse {
+  Session session = 1;
+  string access_token = 2;
+  string refresh_token = 3;
+}
+
+message GetSessionRequest {
+  string session_id = 1;
+}
+
+message GetSessionResponse {
+  Session session = 1;
+}
+
+message UpdateSessionRequest {
+  string session_id = 1;
+  map<string, string> data = 2;
+  repeated string roles = 3;
+  google.protobuf.FieldMask update_mask = 4;
+}
+
+message UpdateSessionResponse {
+  Session session = 1;
+}
+
+message DeleteSessionRequest {
+  string session_id = 1;
+}
+
+message DeleteSessionResponse {
+  bool success = 1;
+}
+
+message ListSessionsRequest {
+  string user_id = 1;
+  repeated string session_ids = 2;
+  SessionFilter filter = 3;
+  PaginationRequest pagination = 4;
+}
+
+message ListSessionsResponse {
+  repeated Session sessions = 1;
+  PaginationResponse pagination = 2;
+}
+
+message BatchGetSessionsRequest {
+  repeated string session_ids = 1;
+}
+
+message BatchGetSessionsResponse {
+  repeated Session sessions = 1;
+  repeated string not_found = 2;
+}
+
+message StreamSessionEventsRequest {
+  string user_id = 1;
+  repeated string session_ids = 2;
+  repeated SessionEventType event_types = 3;
+}
+
+message RefreshSessionRequest {
+  string refresh_token = 1;
+}
+
+message RefreshSessionResponse {
+  Session session = 1;
+  string access_token = 2;
+  string refresh_token = 3;
+}
+
+message ValidateSessionRequest {
+  string session_id = 1;
+  string access_token = 2;
+}
+
+message ValidateSessionResponse {
+  bool valid = 1;
+  Session session = 2;
+  ErrorDetail error = 3;
+}
+
+// Session data model
+message Session {
+  string id = 1;
+  string user_id = 2;
+  string username = 3;
+  repeated string roles = 4;
+  map<string, string> data = 5;
+  map<string, string> metadata = 6;
+  google.protobuf.Timestamp created_at = 7;
+  google.protobuf.Timestamp expires_at = 8;
+  google.protobuf.Timestamp last_accessed_at = 9;
+  SessionStatus status = 10;
+}
+
+// Session status
+enum SessionStatus {
+  SESSION_STATUS_UNSPECIFIED = 0;
+  SESSION_STATUS_ACTIVE = 1;
+  SESSION_STATUS_EXPIRED = 2;
+  SESSION_STATUS_REVOKED = 3;
+}
+
+// Session filter
+message SessionFilter {
+  repeated SessionStatus statuses = 1;
+  google.protobuf.Timestamp created_after = 2;
+  google.protobuf.Timestamp created_before = 3;
+  google.protobuf.Timestamp expires_after = 4;
+  google.protobuf.Timestamp expires_before = 5;
+}
+
+// Session event types
+enum SessionEventType {
+  SESSION_EVENT_TYPE_UNSPECIFIED = 0;
+  SESSION_EVENT_TYPE_CREATED = 1;
+  SESSION_EVENT_TYPE_UPDATED = 2;
+  SESSION_EVENT_TYPE_DELETED = 3;
+  SESSION_EVENT_TYPE_EXPIRED = 4;
+  SESSION_EVENT_TYPE_ACCESSED = 5;
+  SESSION_EVENT_TYPE_REFRESHED = 6;
+}
+
+// Session event
+message SessionEvent {
+  string id = 1;
+  SessionEventType type = 2;
+  string session_id = 3;
+  string user_id = 4;
+  google.protobuf.Timestamp timestamp = 5;
+  map<string, string> data = 6;
+  Session session = 7;
+}
+
+// ===========================
+// Context Messages
+// ===========================
+
+message CreateContextRequest {
+  string session_id = 1;
+  string name = 2;
+  ContextType type = 3;
+  map<string, string> config = 4;
+  map<string, string> metadata = 5;
+}
+
+message CreateContextResponse {
+  Context context = 1;
+}
+
+message GetContextRequest {
+  string context_id = 1;
+}
+
+message GetContextResponse {
+  Context context = 1;
+}
+
+message UpdateContextRequest {
+  string context_id = 1;
+  map<string, string> config = 2;
+  map<string, string> metadata = 3;
+  google.protobuf.FieldMask update_mask = 4;
+}
+
+message UpdateContextResponse {
+  Context context = 1;
+}
+
+message DeleteContextRequest {
+  string context_id = 1;
+}
+
+message DeleteContextResponse {
+  bool success = 1;
+}
+
+message ListContextsRequest {
+  string session_id = 1;
+  ContextFilter filter = 2;
+  PaginationRequest pagination = 3;
+}
+
+message ListContextsResponse {
+  repeated Context contexts = 1;
+  PaginationResponse pagination = 2;
+}
+
+message StreamContextEventsRequest {
+  string session_id = 1;
+  repeated string context_ids = 2;
+  repeated ContextEventType event_types = 3;
+}
+
+message ExecuteCommandRequest {
+  string context_id = 1;
+  string command = 2;
+  repeated string args = 3;
+  map<string, string> env = 4;
+  string working_dir = 5;
+  int32 timeout_seconds = 6;
+}
+
+message ExecuteCommandResponse {
+  int32 exit_code = 1;
+  string stdout = 2;
+  string stderr = 3;
+  bool timed_out = 4;
+}
+
+message StreamCommandRequest {
+  string context_id = 1;
+  string command = 2;
+  repeated string args = 3;
+  map<string, string> env = 4;
+  string working_dir = 5;
+}
+
+message CommandOutput {
+  oneof output {
+    string stdout = 1;
+    string stderr = 2;
+    int32 exit_code = 3;
+    ErrorDetail error = 4;
+  }
+}
+
+// Context data model
+message Context {
+  string id = 1;
+  string session_id = 2;
+  string name = 3;
+  ContextType type = 4;
+  map<string, string> config = 5;
+  map<string, string> metadata = 6;
+  google.protobuf.Timestamp created_at = 7;
+  google.protobuf.Timestamp updated_at = 8;
+  ContextStatus status = 9;
+}
+
+// Context types
+enum ContextType {
+  CONTEXT_TYPE_UNSPECIFIED = 0;
+  CONTEXT_TYPE_BROWSER = 1;
+  CONTEXT_TYPE_SHELL = 2;
+  CONTEXT_TYPE_DOCKER = 3;
+  CONTEXT_TYPE_KUBERNETES = 4;
+}
+
+// Context status
+enum ContextStatus {
+  CONTEXT_STATUS_UNSPECIFIED = 0;
+  CONTEXT_STATUS_ACTIVE = 1;
+  CONTEXT_STATUS_PAUSED = 2;
+  CONTEXT_STATUS_TERMINATED = 3;
+  CONTEXT_STATUS_ERROR = 4;
+}
+
+// Context filter
+message ContextFilter {
+  repeated ContextType types = 1;
+  repeated ContextStatus statuses = 2;
+  google.protobuf.Timestamp created_after = 3;
+  google.protobuf.Timestamp created_before = 4;
+}
+
+// Context event types
+enum ContextEventType {
+  CONTEXT_EVENT_TYPE_UNSPECIFIED = 0;
+  CONTEXT_EVENT_TYPE_CREATED = 1;
+  CONTEXT_EVENT_TYPE_UPDATED = 2;
+  CONTEXT_EVENT_TYPE_DELETED = 3;
+  CONTEXT_EVENT_TYPE_COMMAND_EXECUTED = 4;
+  CONTEXT_EVENT_TYPE_STATUS_CHANGED = 5;
+}
+
+// Context event
+message ContextEvent {
+  string id = 1;
+  ContextEventType type = 2;
+  string context_id = 3;
+  string session_id = 4;
+  google.protobuf.Timestamp timestamp = 5;
+  map<string, string> data = 6;
+  Context context = 7;
+}
+
+// ===========================
+// Health Messages
+// ===========================
+
+message HealthCheckRequest {
+  string service = 1;
+}
+
+message HealthCheckResponse {
+  enum ServingStatus {
+    UNKNOWN = 0;
+    SERVING = 1;
+    NOT_SERVING = 2;
+    SERVICE_UNKNOWN = 3;
+  }
+  ServingStatus status = 1;
+  map<string, string> metadata = 2;
+}
