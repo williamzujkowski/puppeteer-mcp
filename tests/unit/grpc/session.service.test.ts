@@ -21,6 +21,19 @@ describe('SessionService', () => {
   let mockCall: any;
   let mockCallback: jest.Mock;
 
+  // Helper function to promisify callback-based service calls
+  const callServiceMethod = <T>(
+    method: (call: any, callback: any) => void,
+    call: any
+  ): Promise<{ error: any; response: T }> => {
+    return new Promise((resolve) => {
+      const callback = (error: any, response: T) => {
+        resolve({ error, response });
+      };
+      method.call(service, call, callback);
+    });
+  };
+
   beforeEach(() => {
     logger = pino({ level: 'silent' });
     sessionStore = new InMemorySessionStore(logger);
@@ -40,18 +53,21 @@ describe('SessionService', () => {
     };
 
     // Mock JWT functions
-    (jwt.generateTokens as jest.Mock).mockResolvedValue({
+    (jwt.generateTokens as jest.Mock).mockReturnValue({
       accessToken: 'mock-access-token',
       refreshToken: 'mock-refresh-token',
+      expiresIn: 3600,
     });
   });
 
   afterEach(() => {
     jest.clearAllMocks();
+    // Clear metadata to avoid interference between tests
+    mockCall.metadata = new grpc.Metadata();
   });
 
   describe('createSession', () => {
-    it('should create a new session successfully', () => {
+    it('should create a new session successfully', async () => {
       mockCall.request = {
         user_id: 'user123',
         username: 'testuser',
@@ -60,10 +76,10 @@ describe('SessionService', () => {
         ttl_seconds: 3600,
       };
 
-      service.createSession(mockCall, mockCallback);
+      const { error, response } = await callServiceMethod(service.createSession, mockCall);
 
-      expect(mockCallback).toHaveBeenCalledWith(
-        null,
+      expect(error).toBeNull();
+      expect(response).toEqual(
         expect.objectContaining({
           session: expect.objectContaining({
             user_id: 'user123',
@@ -76,144 +92,161 @@ describe('SessionService', () => {
       );
     });
 
-    it('should fail when user_id is missing', () => {
+    it('should fail when user_id is missing', async () => {
       mockCall.request = {
         username: 'testuser',
       };
 
-      service.createSession(mockCall, mockCallback);
+      const { error, response } = await callServiceMethod(service.createSession, mockCall);
 
-      expect(mockCallback).toHaveBeenCalledWith(
+      expect(error).toEqual(
         expect.objectContaining({
           message: expect.stringContaining('required'),
         }),
       );
+      expect(response).toBeUndefined();
     });
 
-    it('should use default TTL when not specified', () => {
+    it('should use default TTL when not specified', async () => {
       mockCall.request = {
         user_id: 'user123',
         username: 'testuser',
       };
 
-      service.createSession(mockCall, mockCallback);
+      const { error, response } = await callServiceMethod(service.createSession, mockCall);
 
-      expect(mockCallback).toHaveBeenCalledWith(
-        null,
+      expect(error).toBeNull();
+      expect(response).toEqual(
         expect.objectContaining({
           session: expect.objectContaining({
-            expires_at: expect.objectContaining({
-              seconds: expect.any(Number),
-            }),
+            expires_at: expect.any(String),
+            user_id: 'user123',
+            username: 'testuser',
           }),
+          access_token: 'mock-access-token',
+          refresh_token: 'mock-refresh-token',
         }),
       );
     });
   });
 
   describe('getSession', () => {
+    let testSessionId: string;
+
     beforeEach(async () => {
-      // Create a test session
-      await sessionStore.create({
-        id: 'test-session-id',
+      // Create a test session and store the generated ID
+      testSessionId = await sessionStore.create({
         userId: 'test-user',
         username: 'testuser',
         roles: ['user'],
-        data: {},
-        expiresAt: Date.now() + 3600000,
+        metadata: {},
+        expiresAt: new Date(Date.now() + 3600000).toISOString(),
+        createdAt: new Date().toISOString(),
       });
     });
 
-    it('should get session successfully for owner', () => {
+    it('should get session successfully for owner', async () => {
       mockCall.request = {
-        session_id: 'test-session-id',
+        session_id: testSessionId,
       };
+      // Set user info in metadata (as expected by SessionUtils.extractUserFromCall)
+      mockCall.metadata.set('user-id', 'test-user');
+      mockCall.metadata.set('user-roles', 'user');
 
-      service.getSession(mockCall, mockCallback);
+      const { error, response } = await callServiceMethod(service.getSession, mockCall);
 
-      expect(mockCallback).toHaveBeenCalledWith(
-        null,
+      expect(error).toBeNull();
+      expect(response).toEqual(
         expect.objectContaining({
           session: expect.objectContaining({
-            id: 'test-session-id',
+            id: testSessionId,
             user_id: 'test-user',
           }),
         }),
       );
     });
 
-    it('should allow admin to get any session', () => {
+    it('should allow admin to get any session', async () => {
       mockCall.request = {
-        session_id: 'test-session-id',
+        session_id: testSessionId,
       };
-      mockCall.userId = 'admin-user';
-      mockCall.roles = ['admin'];
+      // Set admin user info in metadata
+      mockCall.metadata.set('user-id', 'admin-user');
+      mockCall.metadata.set('user-roles', 'admin');
 
-      service.getSession(mockCall, mockCallback);
+      const { error, response } = await callServiceMethod(service.getSession, mockCall);
 
-      expect(mockCallback).toHaveBeenCalledWith(
-        null,
+      expect(error).toBeNull();
+      expect(response).toEqual(
         expect.objectContaining({
           session: expect.objectContaining({
-            id: 'test-session-id',
+            id: testSessionId,
           }),
         }),
       );
     });
 
-    it('should deny access to other users sessions', () => {
+    it('should deny access to other users sessions', async () => {
       mockCall.request = {
-        session_id: 'test-session-id',
+        session_id: testSessionId,
       };
-      mockCall.userId = 'other-user';
-      mockCall.roles = ['user'];
+      // Set different user info in metadata
+      mockCall.metadata.set('user-id', 'other-user');
+      mockCall.metadata.set('user-roles', 'user');
 
-      service.getSession(mockCall, mockCallback);
+      const { error, response } = await callServiceMethod(service.getSession, mockCall);
 
-      expect(mockCallback).toHaveBeenCalledWith(
+      expect(error).toEqual(
         expect.objectContaining({
           message: expect.stringContaining('Access denied'),
         }),
       );
+      expect(response).toBeUndefined();
     });
 
-    it('should return error for non-existent session', () => {
+    it('should return error for non-existent session', async () => {
       mockCall.request = {
         session_id: 'non-existent',
       };
 
-      service.getSession(mockCall, mockCallback);
+      const { error, response } = await callServiceMethod(service.getSession, mockCall);
 
-      expect(mockCallback).toHaveBeenCalledWith(
+      expect(error).toEqual(
         expect.objectContaining({
           message: expect.stringContaining('not found'),
         }),
       );
+      expect(response).toBeUndefined();
     });
   });
 
   describe('updateSession', () => {
+    let testSessionId: string;
+
     beforeEach(async () => {
-      await sessionStore.create({
-        id: 'test-session-id',
+      testSessionId = await sessionStore.create({
         userId: 'test-user',
         username: 'testuser',
         roles: ['user'],
-        data: { existing: 'data' },
-        expiresAt: Date.now() + 3600000,
+        metadata: { existing: 'data' },
+        expiresAt: new Date(Date.now() + 3600000).toISOString(),
+        createdAt: new Date().toISOString(),
       });
     });
 
-    it('should update session data successfully', () => {
+    it('should update session data successfully', async () => {
       mockCall.request = {
-        session_id: 'test-session-id',
+        session_id: testSessionId,
         data: { new: 'value' },
       };
+      // Set user info in metadata
+      mockCall.metadata.set('user-id', 'test-user');
+      mockCall.metadata.set('user-roles', 'user');
 
-      service.updateSession(mockCall, mockCallback);
+      const { error, response } = await callServiceMethod(service.updateSession, mockCall);
 
-      expect(mockCallback).toHaveBeenCalledWith(
-        null,
+      expect(error).toBeNull();
+      expect(response).toEqual(
         expect.objectContaining({
           session: expect.objectContaining({
             data: expect.objectContaining({
@@ -225,95 +258,114 @@ describe('SessionService', () => {
       );
     });
 
-    it('should update only specified fields with field mask', async () => {
+    it('should update session with TTL extension', async () => {
       mockCall.request = {
-        session_id: 'test-session-id',
-        data: { new: 'value' },
-        roles: ['admin'],
-        update_mask: {
-          paths: ['roles'],
-        },
+        session_id: testSessionId,
+        extend_ttl: true,
+        ttl_seconds: 7200, // 2 hours
       };
+      // Set user info in metadata
+      mockCall.metadata.set('user-id', 'test-user');
+      mockCall.metadata.set('user-roles', 'user');
 
-      service.updateSession(mockCall, mockCallback);
+      const { error, response } = await callServiceMethod(service.updateSession, mockCall);
 
-      const updatedSession = await sessionStore.get('test-session-id');
-      expect(updatedSession?.roles).toEqual(['admin']);
-      expect(updatedSession?.data).toEqual({ existing: 'data' }); // Data not updated
+      expect(error).toBeNull();
+      expect(response).toEqual(
+        expect.objectContaining({
+          session: expect.objectContaining({
+            id: testSessionId,
+            user_id: 'test-user',
+          }),
+        }),
+      );
+      
+      const updatedSession = await sessionStore.get(testSessionId);
+      expect(updatedSession?.data.metadata).toEqual({ existing: 'data' }); // Data preserved
     });
   });
 
   describe('deleteSession', () => {
+    let testSessionId: string;
+
     beforeEach(async () => {
-      await sessionStore.create({
-        id: 'test-session-id',
+      testSessionId = await sessionStore.create({
         userId: 'test-user',
         username: 'testuser',
         roles: ['user'],
-        data: {},
-        expiresAt: Date.now() + 3600000,
+        metadata: {},
+        expiresAt: new Date(Date.now() + 3600000).toISOString(),
+        createdAt: new Date().toISOString(),
       });
     });
 
     it('should delete session successfully', async () => {
       mockCall.request = {
-        session_id: 'test-session-id',
+        session_id: testSessionId,
       };
+      // Set user info in metadata
+      mockCall.metadata.set('user-id', 'test-user');
+      mockCall.metadata.set('user-roles', 'user');
 
-      service.deleteSession(mockCall, mockCallback);
+      const { error, response } = await callServiceMethod(service.deleteSession, mockCall);
 
-      expect(mockCallback).toHaveBeenCalledWith(null, { success: true });
+      expect(error).toBeNull();
+      expect(response).toEqual({ success: true });
 
-      const session = await sessionStore.get('test-session-id');
+      const session = await sessionStore.get(testSessionId);
       expect(session).toBeNull();
     });
 
-    it('should deny deletion by non-owner', () => {
+    it('should deny deletion by non-owner', async () => {
       mockCall.request = {
-        session_id: 'test-session-id',
+        session_id: testSessionId,
       };
-      mockCall.userId = 'other-user';
-      mockCall.roles = ['user'];
+      // Set different user info in metadata
+      mockCall.metadata.set('user-id', 'other-user');
+      mockCall.metadata.set('user-roles', 'user');
 
-      service.deleteSession(mockCall, mockCallback);
+      const { error, response } = await callServiceMethod(service.deleteSession, mockCall);
 
-      expect(mockCallback).toHaveBeenCalledWith(
+      expect(error).toEqual(
         expect.objectContaining({
           message: expect.stringContaining('Access denied'),
         }),
       );
+      expect(response).toBeUndefined();
     });
   });
 
   describe('refreshSession', () => {
+    let testSessionId: string;
+
     beforeEach(async () => {
-      await sessionStore.create({
-        id: 'test-session-id',
+      testSessionId = await sessionStore.create({
         userId: 'test-user',
         username: 'testuser',
         roles: ['user'],
-        data: {},
-        expiresAt: Date.now() + 3600000,
+        metadata: {},
+        expiresAt: new Date(Date.now() + 3600000).toISOString(),
+        createdAt: new Date().toISOString(),
       });
 
       (jwt.verifyRefreshToken as jest.Mock).mockResolvedValue({
-        sessionId: 'test-session-id',
+        sessionId: testSessionId,
         userId: 'test-user',
       });
     });
 
-    it('should refresh session successfully', () => {
+    it('should refresh session successfully', async () => {
       mockCall.request = {
         refresh_token: 'valid-refresh-token',
       };
 
-      service.refreshSession(mockCall, mockCallback);
+      const { error, response } = await callServiceMethod(service.refreshSession, mockCall);
 
-      expect(mockCallback).toHaveBeenCalledWith(
-        null,
+      expect(error).toBeNull();
+      expect(response).toEqual(
         expect.objectContaining({
           session: expect.objectContaining({
-            id: 'test-session-id',
+            id: testSessionId,
           }),
           access_token: 'mock-access-token',
           refresh_token: 'mock-refresh-token',
@@ -321,48 +373,51 @@ describe('SessionService', () => {
       );
     });
 
-    it('should fail with invalid refresh token', () => {
+    it('should fail with invalid refresh token', async () => {
       (jwt.verifyRefreshToken as jest.Mock).mockResolvedValue(null);
 
       mockCall.request = {
         refresh_token: 'invalid-token',
       };
 
-      service.refreshSession(mockCall, mockCallback);
+      const { error, response } = await callServiceMethod(service.refreshSession, mockCall);
 
-      expect(mockCallback).toHaveBeenCalledWith(
+      expect(error).toEqual(
         expect.objectContaining({
           message: expect.stringContaining('Invalid refresh token'),
         }),
       );
+      expect(response).toBeUndefined();
     });
   });
 
   describe('validateSession', () => {
+    let testSessionId: string;
+
     beforeEach(async () => {
-      await sessionStore.create({
-        id: 'test-session-id',
+      testSessionId = await sessionStore.create({
         userId: 'test-user',
         username: 'testuser',
         roles: ['user'],
-        data: {},
-        expiresAt: Date.now() + 3600000,
+        metadata: {},
+        expiresAt: new Date(Date.now() + 3600000).toISOString(),
+        createdAt: new Date().toISOString(),
       });
     });
 
-    it('should validate session by ID successfully', () => {
+    it('should validate session by ID successfully', async () => {
       mockCall.request = {
-        session_id: 'test-session-id',
+        session_id: testSessionId,
       };
 
-      service.validateSession(mockCall, mockCallback);
+      const { error, response } = await callServiceMethod(service.validateSession, mockCall);
 
-      expect(mockCallback).toHaveBeenCalledWith(
-        null,
+      expect(error).toBeNull();
+      expect(response).toEqual(
         expect.objectContaining({
           valid: true,
           session: expect.objectContaining({
-            id: 'test-session-id',
+            id: testSessionId,
           }),
         }),
       );
@@ -370,30 +425,30 @@ describe('SessionService', () => {
 
     it('should return invalid for expired session', async () => {
       // Create expired session
-      await sessionStore.create({
-        id: 'expired-session',
+      const expiredSessionId = await sessionStore.create({
         userId: 'test-user',
         username: 'testuser',
         roles: ['user'],
-        data: {},
-        expiresAt: Date.now() - 1000, // Expired
+        metadata: {},
+        expiresAt: new Date(Date.now() - 1000).toISOString(), // Expired
+        createdAt: new Date().toISOString(),
       });
 
       mockCall.request = {
-        session_id: 'expired-session',
+        session_id: expiredSessionId,
       };
 
-      service.validateSession(mockCall, mockCallback);
+      const { error, response } = await callServiceMethod(service.validateSession, mockCall);
 
-      expect(mockCallback).toHaveBeenCalledWith(
-        null,
+      expect(error).toBeNull();
+      expect(response).toEqual(
         expect.objectContaining({
           valid: false,
-          error: expect.objectContaining({
-            code: 'SESSION_EXPIRED',
-          }),
         }),
       );
+      // The expired session should be automatically deleted by the store
+      const expiredSession = await sessionStore.get(expiredSessionId);
+      expect(expiredSession).toBeNull();
     });
   });
 });

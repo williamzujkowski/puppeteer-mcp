@@ -79,8 +79,8 @@ describe('Testing Best Practices Examples', () => {
       // Simulate handler logic
       res.status(200).json({ success: true });
 
-      expect(res.status.bind(res)).toHaveBeenCalledWith(200);
-      expect((res.json as jest.Mock)).toHaveBeenCalledWith({ success: true });
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith({ success: true });
     });
 
     it('should test JWT token creation', () => {
@@ -148,7 +148,7 @@ describe('Testing Best Practices Examples', () => {
       consoleSpy.mockRestore();
     });
 
-    it('should mock module dependencies', () => {
+    it('should mock module dependencies', async () => {
       const mockModule = {
         getData: jest.fn().mockResolvedValue({ id: 1, value: 'test' }),
         saveData: jest.fn().mockResolvedValue(true),
