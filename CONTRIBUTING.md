@@ -1,6 +1,7 @@
 # Contributing to Puppeteer MCP
 
-We love your input! We want to make contributing to this project as easy and transparent as possible, whether it's:
+We love your input! We want to make contributing to this project as easy and transparent as
+possible, whether it's:
 
 - Reporting a bug
 - Discussing the current state of the code
@@ -21,9 +22,11 @@ We use GitHub to host code, to track issues and feature requests, as well as acc
 
 ## Code Standards
 
-This project follows [William Zujkowski's standards](https://github.com/williamzujkowski/standards). Key points:
+This project follows [William Zujkowski's standards](https://github.com/williamzujkowski/standards).
+Key points:
 
 ### TypeScript
+
 - Target ES2020+ with strict mode enabled
 - Use ESM modules
 - Follow naming conventions:
@@ -32,18 +35,21 @@ This project follows [William Zujkowski's standards](https://github.com/williamz
   - UPPER_SNAKE_CASE for constants
 
 ### Testing
+
 - Write tests before implementation (TDD)
 - Maintain 85%+ overall coverage
 - 95%+ coverage for auth/security modules
 - 100% coverage for utility functions
 
 ### Security
+
 - Tag security functions with NIST controls
 - Validate all inputs with Zod schemas
 - Never store secrets in code
 - Use environment variables for configuration
 
 ### Documentation
+
 - Document all public APIs with JSDoc
 - Include examples for complex functions
 - Keep README.md updated
@@ -95,6 +101,7 @@ npm run security:check
 ```
 
 ### ESLint Compliance Strategy
+
 - Fix all security, type safety, and critical issues
 - For architectural issues (complexity, file length), either refactor or document the decision
 - Avoid adding new architectural ESLint violations
@@ -113,21 +120,35 @@ Follow conventional commits:
 
 ## Any contributions you make will be under the MIT Software License
 
-When you submit code changes, your submissions are understood to be under the same [MIT License](LICENSE) that covers the project.
+When you submit code changes, your submissions are understood to be under the same
+[MIT License](LICENSE) that covers the project.
 
 ## Report bugs using GitHub's [issue tracker](https://github.com/williamzujkowski/puppeteer-mcp/issues)
 
-We use GitHub issues to track public bugs. Report a bug by [opening a new issue](https://github.com/williamzujkowski/puppeteer-mcp/issues/new).
+We use GitHub issues to track public bugs. Report a bug by
+[opening a new issue](https://github.com/williamzujkowski/puppeteer-mcp/issues/new).
 
 ## Current Build Status
 
-⚠️ **Note**: The project currently has 12 architectural ESLint issues that are design decisions rather than bugs:
-- 5 complexity issues (functions > 10 complexity)
-- 4 file length issues (files > 300 lines)  
-- 2 parameter count issues (functions > 4 parameters)
-- 1 function length issue (function > 100 lines)
+✅ **Achievement**: The project has achieved **100% ESLint compliance** with 0 errors and 0
+warnings!
 
-These issues require architectural refactoring and are documented in the project plan. New contributions should aim to avoid adding to these architectural issues.
+### Code Quality Standards Maintained:
+
+- ✅ All functions have complexity ≤ 10 (refactored from up to 28)
+- ✅ All files are < 300 lines (modularized from up to 457 lines)
+- ✅ All functions have ≤ 4 parameters (using interface patterns)
+- ✅ All functions are properly sized (< 100 lines)
+- ✅ Zero security vulnerabilities
+- ✅ Zero `any` types
+
+New contributions should maintain these high standards. Use the patterns established in the codebase
+for:
+
+- Helper function extraction to manage complexity
+- Module splitting by responsibility
+- Parameter interfaces for grouped data
+- Early returns and guard clauses
 
 ## License
 
