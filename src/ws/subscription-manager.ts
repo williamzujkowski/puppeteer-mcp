@@ -54,7 +54,7 @@ export class WSSubscriptionManager {
 
     try {
       if (message.type === WSMessageType.SUBSCRIBE) {
-        this.handleSubscribe(ws, connectionId, connectionState, message, topic, filters);
+        this.handleSubscribe({ ws, connectionId, connectionState, message, topic, filters });
       } else {
         this.handleUnsubscribe(ws, connectionId, connectionState, topic);
       }

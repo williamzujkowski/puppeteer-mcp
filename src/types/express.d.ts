@@ -6,7 +6,7 @@ import { Request } from 'express';
 declare module 'express' {
   export interface Request {
     user?: {
-      id: string;
+      userId: string;
       username: string;
       roles: string[];
       sessionId: string;

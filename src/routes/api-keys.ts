@@ -135,7 +135,7 @@ function listApiKeysHandler(req: Request, res: Response, next: NextFunction): vo
 /**
  * Validate API key ID parameter
  */
-function validateApiKeyId(id: string | undefined): void {
+function validateApiKeyId(id: string | undefined): asserts id is string {
   if (id === undefined || id === null || id === '') {
     throw new AppError('API key ID is required', 400);
   }

@@ -96,7 +96,7 @@ export class InMemoryContextStore implements ContextStore {
 
     // Don't allow updating certain fields
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { id, createdAt, ...allowedUpdates } = updates;
+    const { id: _id, createdAt, ...allowedUpdates } = updates;
     
     const updatedContext = {
       ...context,
