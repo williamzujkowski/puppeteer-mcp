@@ -103,16 +103,22 @@ export class WSConnectionManager {
   authenticateConnection(
     connectionId: string,
     userId: string,
-    sessionId: string
+    sessionId: string,
+    roles?: string[],
+    permissions?: string[],
+    scopes?: string[]
   ): void {
     const connection = this.connections.get(connectionId);
     if (connection) {
       // Update connection state
       connection.state.authenticated = true;
       connection.state.userId = userId;
+      connection.state.sessionId = sessionId;
+      connection.state.roles = roles;
+      connection.state.permissions = permissions;
+      connection.state.scopes = scopes;
       connection.state.metadata = {
         ...connection.state.metadata,
-        sessionId,
         authenticatedAt: new Date().toISOString(),
       };
 

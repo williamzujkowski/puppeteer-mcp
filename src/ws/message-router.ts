@@ -115,14 +115,20 @@ export class WSMessageRouter {
     connectionId: string,
     message: WSMessage
   ): Promise<void> {
-    const result = await this.authHandler.handleAuth(ws, connectionId, message as WSAuthMessage);
+    const authResult = await this.authHandler.handleAuth(ws, connectionId, message as WSAuthMessage);
     
-    if (result.success && result.userId !== undefined && result.userId !== null && result.userId.length > 0 && result.sessionId !== undefined && result.sessionId !== null && result.sessionId.length > 0) {
-      // Update connection state
+    if (authResult.success && authResult.userId !== undefined && authResult.userId !== null && authResult.userId.length > 0 && authResult.sessionId !== undefined && authResult.sessionId !== null && authResult.sessionId.length > 0) {
+      // Get connection state to retrieve auth data
+      const connectionState = this.connectionManager.getConnectionState(connectionId);
+      
+      // Update connection state with full auth data
       this.connectionManager.authenticateConnection(
         connectionId,
-        result.userId,
-        result.sessionId
+        authResult.userId,
+        authResult.sessionId,
+        authResult.roles,
+        authResult.permissions,
+        authResult.scopes
       );
     }
   }

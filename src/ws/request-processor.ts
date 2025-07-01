@@ -16,6 +16,7 @@ import { logSecurityEvent, SecurityEventType } from '../utils/logger.js';
 import { sendResponse, sendError } from './message-handler-helpers.js';
 import { AppError } from '../core/errors/app-error.js';
 import { contextStore } from '../store/context-store.js';
+import { Permission, requirePermission } from '../auth/permissions.js';
 import {
   type WSRequestMessage,
   type WSConnectionState,
@@ -38,6 +39,13 @@ interface RouteRequestParams {
   path: string;
   data: unknown;
   headers?: Record<string, string>;
+}
+
+interface AuthHandlerWithPermissions extends WSAuthHandler {
+  validatePermissions(
+    connectionState: { authenticated?: boolean; roles?: string[]; permissions?: string[]; scopes?: string[] },
+    requiredPermission?: Permission
+  ): boolean;
 }
 
 /**
@@ -232,6 +240,15 @@ export class WSRequestProcessor {
     connectionState: WSConnectionState,
     data: unknown
   ): Promise<unknown> {
+    // Check permission
+    await requirePermission(
+      connectionState.userId!,
+      connectionState.roles ?? [],
+      Permission.CONTEXT_CREATE,
+      'context',
+      connectionState.scopes
+    );
+
     // Validate input
     const contextData = data as {
       name?: string;
@@ -285,6 +302,15 @@ export class WSRequestProcessor {
     connectionState: WSConnectionState,
     data: unknown
   ): Promise<unknown> {
+    // Check permission
+    await requirePermission(
+      connectionState.userId!,
+      connectionState.roles ?? [],
+      Permission.CONTEXT_READ,
+      'context',
+      connectionState.scopes
+    );
+
     const { contextId } = data as { contextId: string };
 
     if (!contextId) {
@@ -327,6 +353,15 @@ export class WSRequestProcessor {
     connectionState: WSConnectionState,
     data: unknown
   ): Promise<unknown> {
+    // Check permission
+    await requirePermission(
+      connectionState.userId!,
+      connectionState.roles ?? [],
+      Permission.CONTEXT_UPDATE,
+      'context',
+      connectionState.scopes
+    );
+
     const updateData = data as {
       contextId: string;
       config?: Record<string, unknown>;
@@ -378,6 +413,15 @@ export class WSRequestProcessor {
     connectionState: WSConnectionState,
     data: unknown
   ): Promise<unknown> {
+    // Check permission
+    await requirePermission(
+      connectionState.userId!,
+      connectionState.roles ?? [],
+      Permission.CONTEXT_DELETE,
+      'context',
+      connectionState.scopes
+    );
+
     const { contextId } = data as { contextId: string };
 
     if (!contextId) {
@@ -408,6 +452,15 @@ export class WSRequestProcessor {
     connectionState: WSConnectionState,
     data: unknown
   ): Promise<unknown> {
+    // Check permission
+    await requirePermission(
+      connectionState.userId!,
+      connectionState.roles ?? [],
+      Permission.CONTEXT_LIST,
+      'context',
+      connectionState.scopes
+    );
+
     const listData = data as {
       filter?: {
         types?: string[];

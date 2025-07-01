@@ -16,6 +16,7 @@ import {
   type WSConnectionState,
   WSMessageType,
 } from '../types/websocket.js';
+import { Permission, hasPermission } from '../auth/permissions.js';
 
 /**
  * WebSocket subscription manager
@@ -123,14 +124,19 @@ export class WSSubscriptionManager {
 
       case 'contexts':
         // Users can subscribe to contexts in their sessions
-        // TODO: Implement more granular permission checking
-        break;
+        return hasPermission(
+          connectionState.roles ?? [],
+          Permission.SUBSCRIPTION_READ,
+          connectionState.scopes
+        );
 
       case 'system':
         // System events require admin role
-        // TODO: Add roles to connection state or check via session
-        return false;
-        break;
+        return hasPermission(
+          connectionState.roles ?? [],
+          Permission.ADMIN_ALL,
+          connectionState.scopes
+        );
 
       default:
         // Unknown topics are denied by default

@@ -13,6 +13,7 @@ import type { SessionStore } from '../store/session-store.interface.js';
 import { verifyToken } from '../auth/jwt.js';
 import { logSecurityEvent, SecurityEventType } from '../utils/logger.js';
 import { apiKeyStore } from '../store/api-key-store.js';
+import { hasPermission, Permission, getPermissionsForRoles } from '../auth/permissions.js';
 import { WSMessageType } from '../types/websocket.js';
 
 interface AuthFailureOptions {
@@ -60,7 +61,7 @@ export class WSAuthHandler {
     ws: WebSocket,
     connectionId: string,
     message: WSAuthMessage
-  ): Promise<{ success: boolean; userId?: string; sessionId?: string; error?: string }> {
+  ): Promise<{ success: boolean; userId?: string; sessionId?: string; roles?: string[]; permissions?: string[]; scopes?: string[]; error?: string }> {
     try {
       const { token, apiKey } = message.data;
 
@@ -161,7 +162,7 @@ export class WSAuthHandler {
     connectionId: string,
     messageId: string | undefined,
     token: string
-  ): Promise<{ success: boolean; userId?: string; sessionId?: string; error?: string }> {
+  ): Promise<{ success: boolean; userId?: string; sessionId?: string; roles?: string[]; permissions?: string[]; scopes?: string[]; error?: string }> {
     try {
       // Verify token
       const payload = await verifyToken(token, 'access');
@@ -205,12 +206,15 @@ export class WSAuthHandler {
         userId: session.data.userId,
         username: session.data.username,
         roles: session.data.roles,
+        permissions: getPermissionsForRoles(session.data.roles),
       });
 
       return {
         success: true,
         userId: session.data.userId,
         sessionId: session.id,
+        roles: session.data.roles,
+        permissions: getPermissionsForRoles(session.data.roles),
       };
     } catch (error) {
       this.logger.debug('Token authentication failed:', error);
@@ -227,16 +231,16 @@ export class WSAuthHandler {
     connectionId: string,
     messageId: string | undefined,
     apiKey: string
-  ): Promise<{ success: boolean; userId?: string; sessionId?: string; roles?: string[]; error?: string }> {
+  ): Promise<{ success: boolean; userId?: string; sessionId?: string; roles?: string[]; permissions?: string[]; scopes?: string[]; error?: string }> {
     try {
       // Verify API key
       const keyData = await apiKeyStore.verify(apiKey);
       
       if (!keyData) {
         await logSecurityEvent(SecurityEventType.LOGIN_FAILURE, {
-          method: 'api_key',
           reason: 'Invalid API key',
           result: 'failure',
+          metadata: { method: 'api_key' },
         });
         return { success: false, error: 'Invalid API key' };
       }
@@ -262,12 +266,22 @@ export class WSAuthHandler {
       // Log successful authentication
       await logSecurityEvent(SecurityEventType.LOGIN_SUCCESS, {
         userId: keyData.userId,
-        method: 'api_key',
         result: 'success',
         metadata: {
+          method: 'api_key',
           apiKeyId: keyData.id,
           sessionId: session.id,
         },
+      });
+
+      // Send success response with permissions
+      this.sendAuthSuccess(ws, messageId, {
+        sessionId: session.id,
+        userId: keyData.userId,
+        username: `apikey:${keyData.name}`,
+        roles: keyData.roles,
+        permissions: getPermissionsForRoles(keyData.roles),
+        scopes: keyData.scopes,
       });
 
       return {
@@ -275,6 +289,8 @@ export class WSAuthHandler {
         userId: keyData.userId,
         sessionId: session.id,
         roles: keyData.roles,
+        permissions: getPermissionsForRoles(keyData.roles),
+        scopes: keyData.scopes,
       };
     } catch (error) {
       this.logger.error('API key authentication error:', error);
@@ -328,31 +344,23 @@ export class WSAuthHandler {
    * @nist ac-3 "Access enforcement"
    */
   validatePermissions(
-    connectionState: { authenticated?: boolean; roles?: string[]; permissions?: string[] },
-    requiredRoles?: string[],
-    requiredPermissions?: string[]
+    connectionState: { authenticated?: boolean; roles?: string[]; permissions?: string[]; scopes?: string[] },
+    requiredPermission?: Permission
   ): boolean {
     if (connectionState.authenticated !== true) {
       return false;
     }
 
-    // Check roles
-    if (requiredRoles && requiredRoles.length > 0) {
-      const hasRole = requiredRoles.some(role => 
-        connectionState.roles?.includes(role)
-      );
-      if (!hasRole) {
-        return false;
-      }
+    // If no specific permission required, just check authentication
+    if (!requiredPermission) {
+      return true;
     }
 
-    // Check permissions (if implemented)
-    if (requiredPermissions && requiredPermissions.length > 0) {
-      // TODO: Implement permission checking
-      return false;
-    }
-
-    return true;
+    // Check if user has the required permission
+    const roles = connectionState.roles ?? [];
+    const scopes = connectionState.scopes ?? [];
+    
+    return hasPermission(roles, requiredPermission, scopes);
   }
 
   /**

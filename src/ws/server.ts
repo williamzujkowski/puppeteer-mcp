@@ -189,7 +189,8 @@ export class WSServer extends EventEmitter {
 
     // Send connection acknowledgment
     this.sendMessage(ws, {
-      type: WSMessageType.CONNECT,
+      type: WSMessageType.EVENT,
+      event: 'connection_established',
       id: uuidv4(),
       timestamp: new Date().toISOString(),
       data: {

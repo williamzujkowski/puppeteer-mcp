@@ -41,15 +41,15 @@
   - [x] Integrate with session store
   - [x] Support API keys in both REST and WebSocket protocols
 
-- [ ] **Permission Checking** (`src/ws/auth-handler.ts:307`)
-  - [ ] Implement granular permission checking
-  - [ ] Add role-based access control for WebSocket operations
-  - [ ] Create permission middleware
+- [x] **Permission Checking** (`src/ws/auth-handler.ts:307`)
+  - [x] Implement granular permission checking
+  - [x] Add role-based access control for WebSocket operations
+  - [x] Create permission middleware
 
-- [ ] **Subscription Permissions** (`src/ws/subscription-manager.ts:126-131`)
-  - [ ] Implement granular permission checking for subscriptions
-  - [ ] Add role information to connection state
-  - [ ] Create subscription authorization rules
+- [x] **Subscription Permissions** (`src/ws/subscription-manager.ts:126-131`)
+  - [x] Implement granular permission checking for subscriptions
+  - [x] Add role information to connection state
+  - [x] Create subscription authorization rules
 
 ### gRPC Services
 

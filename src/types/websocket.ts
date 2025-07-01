@@ -159,6 +159,10 @@ export interface WSConnectionState {
   id: string;
   authenticated: boolean;
   userId?: string;
+  sessionId?: string;
+  roles?: string[];
+  permissions?: string[];
+  scopes?: string[];
   subscriptions: Set<string>;
   lastActivity: Date;
   metadata?: Record<string, unknown>;
