@@ -1,9 +1,17 @@
 // Global test setup for all tests
 import { jest } from '@jest/globals';
+import { mkdirSync } from 'fs';
 
 // Set test environment
 process.env.NODE_ENV = 'test';
 process.env.LOG_LEVEL = 'silent';
+
+// Ensure logs directory exists for tests
+try {
+  mkdirSync('logs/audit', { recursive: true });
+} catch (error) {
+  // Directory might already exist, ignore error
+}
 
 // Mock timers for consistent testing
 beforeEach(() => {
