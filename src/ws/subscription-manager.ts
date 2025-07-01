@@ -95,7 +95,7 @@ export class WSSubscriptionManager {
       }
     } catch (error) {
       this.logger.error('Subscription error:', error);
-      this.sendError(ws, message.id ?? undefined, 'SUBSCRIPTION_ERROR', 'Failed to process subscription');
+      this.sendError(ws, message.id ?? '', 'SUBSCRIPTION_ERROR', 'Failed to process subscription');
     }
   }
 

@@ -6,6 +6,7 @@
  */
 
 import * as grpc from '@grpc/grpc-js';
+import { pino } from 'pino';
 import type { SessionStore } from '../../store/session-store.interface.js';
 import type { Session } from '../../types/session.js';
 import { AppError } from '../../core/errors/app-error.js';
@@ -21,6 +22,7 @@ import type {
  */
 export class SessionList {
   constructor(
+    _logger: pino.Logger,
     private sessionStore: SessionStore
   ) {}
 

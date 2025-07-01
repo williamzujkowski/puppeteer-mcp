@@ -41,12 +41,6 @@ interface RouteRequestParams {
   headers?: Record<string, string>;
 }
 
-interface AuthHandlerWithPermissions extends WSAuthHandler {
-  validatePermissions(
-    connectionState: { authenticated?: boolean; roles?: string[]; permissions?: string[]; scopes?: string[] },
-    requiredPermission?: Permission
-  ): boolean;
-}
 
 /**
  * WebSocket request processor
@@ -200,7 +194,7 @@ export class WSRequestProcessor {
    */
   private async handleContextRequest(
     connectionState: WSConnectionState,
-    method: string,
+    _method: string,
     action: string,
     data: unknown
   ): Promise<unknown> {
@@ -242,7 +236,7 @@ export class WSRequestProcessor {
   ): Promise<unknown> {
     // Check permission
     await requirePermission(
-      connectionState.userId!,
+      connectionState.userId,
       connectionState.roles ?? [],
       Permission.CONTEXT_CREATE,
       'context',

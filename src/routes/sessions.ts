@@ -315,7 +315,7 @@ async function handleAdminTerminateSession(
       result: 'success',
       metadata: {
         terminatedSessionId: sessionId,
-        terminatedByAdmin: req.user?.id ?? 'unknown',
+        terminatedByAdmin: req.user?.userId ?? 'unknown',
         action: 'admin_terminate',
         ip: req.ip,
         userAgent: req.headers['user-agent'],

@@ -74,7 +74,7 @@ export class ContextStorage {
       .filter((ctx): ctx is Context => ctx !== undefined);
 
     // Log data access
-    await logDataAccess('read', 'contexts', {
+    await logDataAccess('READ', 'contexts', {
       userId,
       action: 'list_contexts',
       count: userContextList.length,
@@ -103,7 +103,7 @@ export class ContextStorage {
     context.lastUsedAt = new Date().toISOString();
 
     // Log data access
-    await logDataAccess('read', `context/${contextId}`, {
+    await logDataAccess('READ', `context/${contextId}`, {
       userId,
       action: 'get_context',
     });

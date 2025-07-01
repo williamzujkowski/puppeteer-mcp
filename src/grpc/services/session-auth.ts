@@ -26,7 +26,7 @@ import type {
  */
 export class SessionAuth {
   constructor(
-    private logger: pino.Logger,
+    _logger: pino.Logger,
     private sessionStore: SessionStore,
   ) {}
 

@@ -23,7 +23,7 @@ import type {
 export class SessionStream {
   constructor(
     private logger: pino.Logger,
-    private sessionStore: SessionStore
+    _sessionStore: SessionStore
   ) {}
 
   /**
@@ -50,7 +50,7 @@ export class SessionStream {
       }
 
       // Set up event listener
-      const eventHandler = this.createEventHandler(user_id ?? '', session_ids ?? [], event_types ?? [], call);
+      // const eventHandler = this.createEventHandler(user_id ?? '', session_ids ?? [], event_types ?? [], call);
 
       // TODO: Implement event streaming when SessionStore supports events
       // this.sessionStore.on('sessionEvent', eventHandler);

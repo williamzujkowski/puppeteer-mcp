@@ -228,7 +228,7 @@ export class WSAuthHandler {
    */
   private async authenticateWithApiKey(
     ws: WebSocket,
-    connectionId: string,
+    _connectionId: string,
     messageId: string | undefined,
     apiKey: string
   ): Promise<{ success: boolean; userId?: string; sessionId?: string; roles?: string[]; permissions?: string[]; scopes?: string[]; error?: string }> {

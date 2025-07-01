@@ -119,7 +119,7 @@ export class WSMessageRouter {
     
     if (authResult.success && authResult.userId !== undefined && authResult.userId !== null && authResult.userId.length > 0 && authResult.sessionId !== undefined && authResult.sessionId !== null && authResult.sessionId.length > 0) {
       // Get connection state to retrieve auth data
-      const connectionState = this.connectionManager.getConnectionState(connectionId);
+      // const connectionState = this.connectionManager.getConnectionState(connectionId);
       
       // Update connection state with full auth data
       this.connectionManager.authenticateConnection(
