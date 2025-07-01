@@ -14,9 +14,9 @@ import { performance } from 'perf_hooks';
  * @nist si-4 "Information system monitoring"
  */
 export class HealthServiceImpl {
-  [key: string]: (...args: unknown[]) => unknown;
-  private serviceStatus: Map<string, { status: string; metadata: Record<string, unknown> }> = new Map();
-  
+  private serviceStatus: Map<string, { status: string; metadata: Record<string, unknown> }> =
+    new Map();
+
   constructor(private logger: pino.Logger) {
     // Initialize default service status
     this.serviceStatus.set('', {
@@ -34,9 +34,9 @@ export class HealthServiceImpl {
       const hours = Math.floor(uptime / 3600);
       const minutes = Math.floor((uptime % 3600) / 60);
       const seconds = uptime % 60;
-      
+
       const uptimeStr = `${hours}h ${minutes}m ${seconds}s`;
-      
+
       for (const [, status] of this.serviceStatus.entries()) {
         status.metadata.uptime = uptimeStr;
       }
@@ -49,8 +49,11 @@ export class HealthServiceImpl {
    * @evidence code, test
    */
   async check(
-    call: grpc.ServerUnaryCall<{ service?: string }, { status: string; metadata: Record<string, unknown> }>,
-    callback: grpc.sendUnaryData<{ status: string; metadata: Record<string, unknown> }>
+    call: grpc.ServerUnaryCall<
+      { service?: string },
+      { status: string; metadata: Record<string, unknown> }
+    >,
+    callback: grpc.sendUnaryData<{ status: string; metadata: Record<string, unknown> }>,
   ): Promise<void> {
     try {
       const { service } = call.request;
@@ -72,10 +75,10 @@ export class HealthServiceImpl {
 
       // Perform health checks
       const checks = await this.performHealthChecks(service);
-      
+
       // Determine overall status
       const overallStatus = this.determineOverallStatus(checks);
-      
+
       // Add check results to metadata
       const metadata = {
         ...status.metadata,
@@ -105,11 +108,14 @@ export class HealthServiceImpl {
    * @nist si-4 "Information system monitoring"
    */
   watch(
-    call: grpc.ServerWritableStream<{ service?: string }, { status: string; metadata: Record<string, unknown> }>
+    call: grpc.ServerWritableStream<
+      { service?: string },
+      { status: string; metadata: Record<string, unknown> }
+    >,
   ): void {
     try {
       const { service } = call.request;
-      
+
       // Send initial status
       const status = this.serviceStatus.get(service ?? '');
       if (status) {
@@ -125,7 +131,7 @@ export class HealthServiceImpl {
           try {
             const checks = await this.performHealthChecks(service);
             const overallStatus = this.determineOverallStatus(checks);
-            
+
             call.write({
               status: overallStatus,
               metadata: {
@@ -165,7 +171,9 @@ export class HealthServiceImpl {
   /**
    * Perform health checks
    */
-  private async performHealthChecks(service?: string): Promise<Record<string, { status: string; [key: string]: unknown }>> {
+  private async performHealthChecks(
+    service?: string,
+  ): Promise<Record<string, { status: string; [key: string]: unknown }>> {
     const checks: Record<string, { status: string; [key: string]: unknown }> = {};
 
     // Memory check
@@ -188,7 +196,9 @@ export class HealthServiceImpl {
 
     // Event loop check
     const start = performance.now();
-    await new Promise<void>(resolve => { setImmediate(resolve); });
+    await new Promise<void>((resolve) => {
+      setImmediate(resolve);
+    });
     const eventLoopDelay = performance.now() - start;
     checks.eventLoop = {
       status: eventLoopDelay < 100 ? 'healthy' : 'unhealthy',
@@ -216,9 +226,11 @@ export class HealthServiceImpl {
   /**
    * Determine overall status from health checks
    */
-  private determineOverallStatus(checks: Record<string, { status: string; [key: string]: unknown }>): string {
+  private determineOverallStatus(
+    checks: Record<string, { status: string; [key: string]: unknown }>,
+  ): string {
     let hasUnhealthy = false;
-    
+
     for (const check of Object.values(checks)) {
       if (check.status === 'unhealthy') {
         hasUnhealthy = true;

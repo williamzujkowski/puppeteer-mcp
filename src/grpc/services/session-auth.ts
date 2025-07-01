@@ -195,9 +195,3 @@ export class SessionAuth {
     });
   }
 }
-
-// Import verifyAccessToken function
-async function verifyAccessToken(token: string): Promise<{ sub: string; sessionId: string }> {
-  const { verifyAccessToken: verify } = await import('../../auth/jwt.js');
-  return verify(token) as Promise<{ sub: string; sessionId: string }>;
-}

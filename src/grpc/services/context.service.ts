@@ -20,12 +20,30 @@ import {
   shouldIncludeContext,
   toProtoTimestamp,
   parsePagination,
-  createPaginationResponse,
   type ContextFilter,
 } from './context-helpers.js';
 import { CommandExecutor } from './command-executor.js';
-import type { CreateContextRequest, CreateContextResponse } from '../types/context.types.js';
-import type { AuthenticatedServerUnaryCall } from '../interceptors/types.js';
+import type {
+  CreateContextRequest,
+  CreateContextResponse,
+  GetContextRequest,
+  GetContextResponse,
+  UpdateContextRequest,
+  UpdateContextResponse,
+  DeleteContextRequest,
+  DeleteContextResponse,
+  ListContextsRequest,
+  ListContextsResponse,
+  ExecuteCommandRequest,
+  ExecuteCommandResponse,
+  StreamContextEventsRequest,
+  ContextEvent,
+  ContextProto,
+} from '../types/context.types.js';
+import type {
+  AuthenticatedServerUnaryCall,
+  AuthenticatedServerWritableStream,
+} from '../interceptors/types.js';
 
 // Context interface
 export interface Context {
@@ -50,7 +68,6 @@ const contexts = new Map<string, Context>();
  * @nist si-10 "Information input validation"
  */
 export class ContextServiceImpl {
-  [key: string]: (...args: unknown[]) => unknown;
   private commandExecutor: CommandExecutor;
 
   constructor(
@@ -127,8 +144,8 @@ export class ContextServiceImpl {
    * @nist ac-3 "Access enforcement"
    */
   getContext(
-    call: grpc.ServerUnaryCall<unknown, unknown>,
-    callback: grpc.sendUnaryData<unknown>,
+    call: AuthenticatedServerUnaryCall<GetContextRequest, GetContextResponse>,
+    callback: grpc.sendUnaryData<GetContextResponse>,
   ): void {
     try {
       const { context_id } = call.request;
@@ -158,8 +175,8 @@ export class ContextServiceImpl {
    * @nist au-3 "Content of audit records"
    */
   async updateContext(
-    call: grpc.ServerUnaryCall<unknown, unknown>,
-    callback: grpc.sendUnaryData<unknown>,
+    call: AuthenticatedServerUnaryCall<UpdateContextRequest, UpdateContextResponse>,
+    callback: grpc.sendUnaryData<UpdateContextResponse>,
   ): Promise<void> {
     try {
       const { context_id, config, metadata, update_mask } = call.request;
@@ -176,20 +193,16 @@ export class ContextServiceImpl {
       checkContextAccess(context, call.userId, call.roles);
 
       // Apply updates
-      applyFieldUpdates(context.config, config, 'config', update_mask);
-      applyFieldUpdates(context.metadata, metadata, 'metadata', update_mask);
-
-      context.updatedAt = Date.now();
+      applyFieldUpdates(context, { config, metadata }, update_mask);
 
       // Log context update
       await logSecurityEvent(SecurityEventType.RESOURCE_UPDATED, {
-        resource: 'context',
         resource: `context:${context_id}`,
         action: 'update',
         result: 'success',
         metadata: {
           userId: call.userId,
-          updatedFields: update_mask?.paths ?? ['config', 'metadata'],
+          updatedFields: update_mask ?? ['config', 'metadata'],
         },
       });
 
@@ -207,8 +220,8 @@ export class ContextServiceImpl {
    * @nist au-3 "Content of audit records"
    */
   async deleteContext(
-    call: grpc.ServerUnaryCall<unknown, unknown>,
-    callback: grpc.sendUnaryData<unknown>,
+    call: AuthenticatedServerUnaryCall<DeleteContextRequest, DeleteContextResponse>,
+    callback: grpc.sendUnaryData<DeleteContextResponse>,
   ): Promise<void> {
     try {
       const { context_id } = call.request;
@@ -230,7 +243,6 @@ export class ContextServiceImpl {
 
       // Log context deletion
       await logSecurityEvent(SecurityEventType.RESOURCE_DELETED, {
-        resource: 'context',
         resource: `context:${context_id}`,
         action: 'delete',
         result: 'success',
@@ -250,8 +262,8 @@ export class ContextServiceImpl {
    * @nist ac-3 "Access enforcement"
    */
   async listContexts(
-    call: grpc.ServerUnaryCall<unknown, unknown>,
-    callback: grpc.sendUnaryData<unknown>,
+    call: AuthenticatedServerUnaryCall<ListContextsRequest, ListContextsResponse>,
+    callback: grpc.sendUnaryData<ListContextsResponse>,
   ): Promise<void> {
     try {
       const { session_id, filter, pagination } = call.request;
@@ -261,10 +273,10 @@ export class ContextServiceImpl {
       // Verify session access
       const session = await this.sessionStore.get(session_id);
       if (!session) {
-        throw new AppError('Session not found', 'NOT_FOUND');
+        throw new AppError('Session not found', 404);
       }
 
-      checkContextAccess({ userId: session.userId } as Context, call.userId, call.roles);
+      checkContextAccess({ userId: session.data.userId } as Context, call.userId, call.roles);
 
       // Filter contexts
       const allContexts = Array.from(contexts.values())
@@ -277,12 +289,9 @@ export class ContextServiceImpl {
 
       callback(null, {
         contexts: paginatedContexts.map((ctx) => this.mapContextToProto(ctx)),
-        pagination: createPaginationResponse(
-          allContexts.length,
-          offset,
-          pageSize,
-          paginatedContexts.length,
-        ),
+        next_page_token:
+          offset + pageSize < allContexts.length ? String(offset + pageSize) : undefined,
+        total_count: allContexts.length,
       });
     } catch (error) {
       callback(error as grpc.ServiceError);
@@ -293,7 +302,9 @@ export class ContextServiceImpl {
    * Stream context events
    * @nist au-3 "Content of audit records"
    */
-  async streamContextEvents(call: grpc.ServerWritableStream<unknown, unknown>): Promise<void> {
+  async streamContextEvents(
+    call: AuthenticatedServerWritableStream<StreamContextEventsRequest, ContextEvent>,
+  ): Promise<void> {
     try {
       const { session_id } = call.request;
 
@@ -306,7 +317,7 @@ export class ContextServiceImpl {
         }
 
         try {
-          checkContextAccess({ userId: session.userId } as Context, call.userId, call.roles);
+          checkContextAccess({ userId: session.data.userId } as Context, call.userId, call.roles);
         } catch (error) {
           call.emit('error', error);
           return;
@@ -317,14 +328,10 @@ export class ContextServiceImpl {
       // For now, send a test event
       setTimeout(() => {
         call.write({
-          id: uuidv4(),
-          type: 'CONTEXT_EVENT_TYPE_CREATED',
+          event_type: 'CONTEXT_EVENT_TYPE_CREATED',
           context_id: 'test-context',
           session_id: session_id ?? 'test-session',
-          timestamp: {
-            seconds: Math.floor(Date.now() / 1000),
-            nanos: (Date.now() % 1000) * 1000000,
-          },
+          timestamp: new Date().toISOString(),
           data: { test: 'event' },
         });
       }, 1000);
@@ -346,8 +353,8 @@ export class ContextServiceImpl {
    * @nist au-3 "Content of audit records"
    */
   executeCommand(
-    call: grpc.ServerUnaryCall<unknown, unknown>,
-    callback: grpc.sendUnaryData<unknown>,
+    call: AuthenticatedServerUnaryCall<ExecuteCommandRequest, ExecuteCommandResponse>,
+    callback: grpc.sendUnaryData<ExecuteCommandResponse>,
   ): void {
     try {
       const { context_id } = call.request;
@@ -372,7 +379,9 @@ export class ContextServiceImpl {
    * @nist ac-3 "Access enforcement"
    * @nist si-10 "Information input validation"
    */
-  streamCommand(call: grpc.ServerWritableStream<unknown, unknown>): void {
+  streamCommand(
+    call: AuthenticatedServerWritableStream<ExecuteCommandRequest, ExecuteCommandResponse>,
+  ): void {
     try {
       const { context_id } = call.request;
 
@@ -399,7 +408,7 @@ export class ContextServiceImpl {
   /**
    * Map internal context to proto format
    */
-  private mapContextToProto(context: Context): unknown {
+  private mapContextToProto(context: Context): ContextProto {
     return {
       id: context.id,
       session_id: context.sessionId,

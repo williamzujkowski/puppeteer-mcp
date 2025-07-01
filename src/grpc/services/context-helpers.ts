@@ -1,200 +1,155 @@
 /**
- * Helper functions for Context service to reduce complexity
+ * Helper functions for context service
  * @module grpc/services/context-helpers
- * @nist ac-3 "Access enforcement"
- * @nist si-10 "Information input validation"
  */
 
 import { AppError } from '../../core/errors/app-error.js';
-import type { Context } from './context.service.js';
+
+/**
+ * Context filter interface
+ */
+export interface ContextFilter {
+  types?: string[];
+  statuses?: string[];
+}
 
 /**
  * Validate context type
  */
 export function validateContextType(type: string): void {
-  const validTypes = [
-    'CONTEXT_TYPE_BROWSER',
-    'CONTEXT_TYPE_SHELL',
-    'CONTEXT_TYPE_DOCKER',
-    'CONTEXT_TYPE_KUBERNETES'
-  ];
-  
+  const validTypes = ['browser', 'api', 'database', 'custom'];
   if (!validTypes.includes(type)) {
-    throw new AppError('Invalid context type', 400);
-  }
-}
-
-/**
- * Check if user has access to context
- */
-export function checkContextAccess(
-  context: Context,
-  userId?: string,
-  roles?: string[]
-): void {
-  if (context.userId !== userId && roles?.includes('admin') !== true) {
-    throw new AppError('Access denied', 403);
-  }
-}
-
-/**
- * Validate required fields
- */
-export function validateRequiredField(
-  value: unknown,
-  fieldName: string
-): void {
-  if (value === null || value === undefined || value === '') {
-    throw new AppError(`${fieldName} is required`, 400);
-  }
-}
-
-/**
- * Apply field updates based on update mask
- */
-export function applyFieldUpdates(
-  target: Record<string, unknown>,
-  updates: Record<string, unknown> | undefined,
-  fieldName: string,
-  updateMask?: { paths: string[] }
-): void {
-  if (!updates) {
-    return;
-  }
-
-  const shouldUpdate = !updateMask?.paths || 
-                      updateMask.paths.length === 0 || 
-                      updateMask.paths.includes(fieldName);
-
-  if (shouldUpdate) {
-    Object.assign(target, updates);
-  }
-}
-
-/**
- * Filter context based on criteria
- */
-export interface ContextFilter {
-  types?: string[];
-  statuses?: string[];
-  created_after?: { seconds: number };
-  created_before?: { seconds: number };
-}
-
-export function shouldIncludeContext(
-  context: Context,
-  filter?: ContextFilter
-): boolean {
-  if (!filter) {
-    return true;
-  }
-
-  return checkTypeFilter(context, filter) &&
-         checkStatusFilter(context, filter) &&
-         checkCreatedAfterFilter(context, filter) &&
-         checkCreatedBeforeFilter(context, filter);
-}
-
-/**
- * Check if context matches type filter
- */
-function checkTypeFilter(context: Context, filter: ContextFilter): boolean {
-  if (filter.types && filter.types.length > 0 && !filter.types.includes(context.type)) {
-    return false;
-  }
-  return true;
-}
-
-/**
- * Check if context matches status filter
- */
-function checkStatusFilter(context: Context, filter: ContextFilter): boolean {
-  if (filter.statuses && filter.statuses.length > 0 && !filter.statuses.includes(context.status)) {
-    return false;
-  }
-  return true;
-}
-
-/**
- * Check if context was created after filter date
- */
-function checkCreatedAfterFilter(context: Context, filter: ContextFilter): boolean {
-  if (filter.created_after && context.createdAt < filter.created_after.seconds * 1000) {
-    return false;
-  }
-  return true;
-}
-
-/**
- * Check if context was created before filter date
- */
-function checkCreatedBeforeFilter(context: Context, filter: ContextFilter): boolean {
-  if (filter.created_before && context.createdAt > filter.created_before.seconds * 1000) {
-    return false;
-  }
-  return true;
-}
-
-/**
- * Validate command execution context
- */
-export function validateCommandContext(context: Context): void {
-  const commandEnabledTypes = ['CONTEXT_TYPE_SHELL', 'CONTEXT_TYPE_DOCKER'];
-  
-  if (!commandEnabledTypes.includes(context.type)) {
     throw new AppError(
-      'Context type does not support command execution',
-      400
+      `Invalid context type: ${type}. Must be one of: ${validTypes.join(', ')}`,
+      400,
     );
   }
 }
 
 /**
+ * Check context access permissions
+ */
+export function checkContextAccess(
+  context: { userId: string },
+  requestUserId?: string,
+  requestUserRoles?: string[],
+): void {
+  // Admin users can access any context
+  if (requestUserRoles !== undefined && requestUserRoles.includes('admin')) {
+    return;
+  }
+
+  // Regular users can only access their own contexts
+  if (context.userId !== requestUserId) {
+    throw new AppError('Access denied to context', 403);
+  }
+}
+
+/**
+ * Validate required field
+ */
+export function validateRequiredField(value: unknown, fieldName: string): void {
+  if (value === undefined || value === null || value === '') {
+    throw new AppError(`${fieldName} is required`, 400);
+  }
+}
+
+/**
+ * Apply field updates to context
+ */
+export function applyFieldUpdates(
+  context: Record<string, unknown>,
+  updates: {
+    config?: Record<string, unknown>;
+    metadata?: Record<string, unknown>;
+  },
+  updateMask?: { paths?: string[] },
+): void {
+  const allowedFields = updateMask?.paths ?? ['config', 'metadata'];
+
+  if (allowedFields.includes('config') && updates.config) {
+    context.config = { ...(context.config as Record<string, unknown>), ...updates.config };
+  }
+
+  if (allowedFields.includes('metadata') && updates.metadata) {
+    context.metadata = { ...(context.metadata as Record<string, unknown>), ...updates.metadata };
+  }
+
+  context.updatedAt = Date.now();
+}
+
+/**
+ * Check if context should be included based on filter
+ */
+export function shouldIncludeContext(
+  context: { type: string; status: string },
+  filter?: ContextFilter,
+): boolean {
+  if (!filter) {
+    return true;
+  }
+
+  if (filter.types && filter.types.length > 0) {
+    if (!filter.types.includes(context.type)) {
+      return false;
+    }
+  }
+
+  if (filter.statuses && filter.statuses.length > 0) {
+    if (!filter.statuses.includes(context.status)) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+/**
  * Convert timestamp to proto format
  */
-export function toProtoTimestamp(timestamp: number): { seconds: number; nanos: number } {
-  return {
-    seconds: Math.floor(timestamp / 1000),
-    nanos: (timestamp % 1000) * 1000000,
-  };
+export function toProtoTimestamp(timestamp: number): string {
+  return new Date(timestamp).toISOString();
 }
 
 /**
  * Parse pagination parameters
  */
-export interface PaginationParams {
+export function parsePagination(pagination?: { page_token?: string; page_size?: number }): {
   pageSize: number;
   offset: number;
-}
-
-export function parsePagination(pagination?: {
-  page_size?: number;
-  page_token?: string;
-}): PaginationParams {
-  const pageSize = pagination?.page_size ?? 20;
-  const offset = (pagination?.page_token ?? '') !== '' ? parseInt(pagination?.page_token ?? '0') : 0;
-  
+} {
+  const pageSize = Math.min(Math.max(pagination?.page_size ?? 20, 1), 100);
+  const offset =
+    pagination?.page_token !== undefined && pagination.page_token !== ''
+      ? parseInt(pagination.page_token, 10) || 0
+      : 0;
   return { pageSize, offset };
 }
 
 /**
  * Create pagination response
  */
-export interface PaginationResponse {
-  next_page_token?: string;
-  total_size: number;
+export function createPaginationResponse(
+  totalCount: number,
+  offset: number,
+  pageSize: number,
+  returnedCount: number,
+): { next_page_token?: string; total_count: number } {
+  return {
+    next_page_token: offset + returnedCount < totalCount ? String(offset + pageSize) : undefined,
+    total_count: totalCount,
+  };
 }
 
-export function createPaginationResponse(
-  totalSize: number,
-  currentPage: number,
-  pageSize: number,
-  itemsReturned: number
-): PaginationResponse {
-  return {
-    next_page_token: itemsReturned === pageSize 
-      ? String(currentPage + pageSize)
-      : undefined,
-    total_size: totalSize,
-  };
+/**
+ * Validate command execution context
+ */
+export function validateCommandContext(context: { type: string; status: string }): void {
+  if (context.type !== 'browser' && context.type !== 'api') {
+    throw new AppError(`Context type '${context.type}' does not support command execution`, 400);
+  }
+
+  if (context.status !== 'CONTEXT_STATUS_ACTIVE') {
+    throw new AppError('Context is not active', 400);
+  }
 }

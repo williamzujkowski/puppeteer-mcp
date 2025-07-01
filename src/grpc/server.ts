@@ -30,7 +30,7 @@ export class GrpcServer {
   private server: grpc.Server;
   private logger: pino.Logger;
   private sessionStore: SessionStore;
-  
+
   constructor(logger: pino.Logger, sessionStore: SessionStore) {
     this.logger = logger.child({ module: 'grpc-server' });
     this.sessionStore = sessionStore;
@@ -64,7 +64,7 @@ export class GrpcServer {
       });
 
       const proto = grpc.loadPackageDefinition(packageDefinition);
-      
+
       // Create service implementations with interceptors
       const sessionService = new SessionServiceImpl(this.logger, this.sessionStore);
       const contextService = new ContextServiceImpl(this.logger, this.sessionStore);
@@ -76,18 +76,20 @@ export class GrpcServer {
       const wrappedHealthService = this.wrapServiceWithInterceptors(healthService, false); // No auth for health
 
       // Add services to server
-      const mcpProto = proto.mcp as { 
-        control: { 
-          v1: { 
-            SessionService: { service: grpc.ServiceDefinition };
-            ContextService: { service: grpc.ServiceDefinition };
-            HealthService: { service: grpc.ServiceDefinition };
+      const mcpProto = proto as unknown as {
+        mcp: {
+          control: {
+            v1: {
+              SessionService: { service: grpc.ServiceDefinition };
+              ContextService: { service: grpc.ServiceDefinition };
+              HealthService: { service: grpc.ServiceDefinition };
+            };
           };
         };
       };
-      this.server.addService(mcpProto.control.v1.SessionService.service, wrappedSessionService);
-      this.server.addService(mcpProto.control.v1.ContextService.service, wrappedContextService);
-      this.server.addService(mcpProto.control.v1.HealthService.service, wrappedHealthService);
+      this.server.addService(mcpProto.mcp.control.v1.SessionService.service, wrappedSessionService);
+      this.server.addService(mcpProto.mcp.control.v1.ContextService.service, wrappedContextService);
+      this.server.addService(mcpProto.mcp.control.v1.HealthService.service, wrappedHealthService);
 
       this.logger.info('gRPC services initialized successfully');
     } catch (error) {
@@ -102,41 +104,41 @@ export class GrpcServer {
    * @nist au-3 "Content of audit records"
    */
   private wrapServiceWithInterceptors(
-    service: Record<string, (...args: unknown[]) => unknown>,
-    requireAuth = true
+    service: object,
+    requireAuth = true,
   ): Record<string, NextFunction> {
     const wrapped: Record<string, NextFunction> = {};
-    
+
     for (const [methodName, handler] of Object.entries(service)) {
       if (typeof handler === 'function') {
         // Use Object.defineProperty for safe property assignment to prevent object injection
         Object.defineProperty(wrapped, methodName, {
           value: (call: ExtendedCall, callback?: GrpcCallback) => {
-          // Create interceptor chain
-          const interceptorChain = [
-            errorInterceptor(this.logger),
-            loggingInterceptor(this.logger),
-          ];
+            // Create interceptor chain
+            const interceptorChain = [
+              errorInterceptor(this.logger),
+              loggingInterceptor(this.logger),
+            ];
 
-          if (requireAuth) {
-            interceptorChain.unshift(authInterceptor(this.logger, this.sessionStore));
-          }
+            if (requireAuth) {
+              interceptorChain.unshift(authInterceptor(this.logger, this.sessionStore));
+            }
 
-          // Apply interceptors in order
-          let wrappedHandler = handler.bind(service) as NextFunction;
-          
-          for (const interceptor of interceptorChain.reverse()) {
-            const previousHandler = wrappedHandler;
-            wrappedHandler = (call: ExtendedCall, callback?: GrpcCallback) => {
-              void interceptor(call, callback as GrpcCallback, previousHandler);
-            };
-          }
+            // Apply interceptors in order
+            let wrappedHandler = handler.bind(service) as NextFunction;
 
-          void wrappedHandler(call, callback ?? (() => {}));
-        },
+            for (const interceptor of interceptorChain.reverse()) {
+              const previousHandler = wrappedHandler;
+              wrappedHandler = (call: ExtendedCall, callback?: GrpcCallback) => {
+                void interceptor(call, callback as GrpcCallback, previousHandler);
+              };
+            }
+
+            void wrappedHandler(call, callback ?? (() => {}));
+          },
           writable: true,
           enumerable: true,
-          configurable: true
+          configurable: true,
         });
       }
     }
@@ -152,22 +154,22 @@ export class GrpcServer {
     const fs = require('fs') as typeof import('fs');
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const path = require('path') as typeof import('path');
-    
+
     // Helper function to validate and read TLS files safely
     const readTLSFile = (filePath: string, fileType: string): Buffer => {
       // Validate path is a string and not empty
       if (typeof filePath !== 'string' || filePath.trim() === '') {
         throw new Error(`Invalid ${fileType} path`);
       }
-      
+
       // Resolve to absolute path
       const absolutePath = path.resolve(filePath);
-      
+
       // Ensure path doesn't contain null bytes
       if (absolutePath.includes('\0')) {
         throw new Error(`Invalid ${fileType} path: contains null bytes`);
       }
-      
+
       // Check if file exists and is a file (not directory)
       try {
         // eslint-disable-next-line security/detect-non-literal-fs-filename
@@ -178,28 +180,34 @@ export class GrpcServer {
       } catch (error) {
         throw new Error(`${fileType} file not found or inaccessible: ${absolutePath}`);
       }
-      
+
       // Read file with explicit encoding
       // eslint-disable-next-line security/detect-non-literal-fs-filename
       return fs.readFileSync(absolutePath);
     };
-    
+
     // Read TLS files with validation
     const cert = readTLSFile(config.GRPC_TLS_CERT_PATH as string, 'TLS certificate');
     const key = readTLSFile(config.GRPC_TLS_KEY_PATH as string, 'TLS key');
-    
+
     let ca: Buffer | undefined;
-    if (config.GRPC_TLS_CA_PATH !== null && config.GRPC_TLS_CA_PATH !== undefined && config.GRPC_TLS_CA_PATH !== '') {
+    if (
+      config.GRPC_TLS_CA_PATH !== null &&
+      config.GRPC_TLS_CA_PATH !== undefined &&
+      config.GRPC_TLS_CA_PATH !== ''
+    ) {
       ca = readTLSFile(config.GRPC_TLS_CA_PATH, 'TLS CA');
     }
 
     return grpc.ServerCredentials.createSsl(
       ca ?? null,
-      [{
-        cert_chain: cert,
-        private_key: key,
-      }],
-      config.GRPC_TLS_CLIENT_AUTH // Require client certificates if configured
+      [
+        {
+          cert_chain: cert,
+          private_key: key,
+        },
+      ],
+      config.GRPC_TLS_CLIENT_AUTH, // Require client certificates if configured
     );
   }
 
@@ -207,13 +215,15 @@ export class GrpcServer {
    * Check if TLS should be enabled
    */
   private shouldEnableTLS(): boolean {
-    return config.TLS_ENABLED === true && 
-           config.GRPC_TLS_CERT_PATH !== null && 
-           config.GRPC_TLS_CERT_PATH !== undefined && 
-           config.GRPC_TLS_CERT_PATH !== '' && 
-           config.GRPC_TLS_KEY_PATH !== null && 
-           config.GRPC_TLS_KEY_PATH !== undefined && 
-           config.GRPC_TLS_KEY_PATH !== '';
+    return (
+      config.TLS_ENABLED === true &&
+      config.GRPC_TLS_CERT_PATH !== null &&
+      config.GRPC_TLS_CERT_PATH !== undefined &&
+      config.GRPC_TLS_CERT_PATH !== '' &&
+      config.GRPC_TLS_KEY_PATH !== null &&
+      config.GRPC_TLS_KEY_PATH !== undefined &&
+      config.GRPC_TLS_KEY_PATH !== ''
+    );
   }
 
   /**
@@ -243,21 +253,17 @@ export class GrpcServer {
         return;
       }
 
-      this.server.bindAsync(
-        `${host}:${port}`,
-        credentials,
-        (error, port) => {
-          if (error) {
-            this.logger.error('Failed to bind gRPC server:', error);
-            reject(error);
-            return;
-          }
-
-          this.server.start();
-          this.logger.info(`gRPC server started on ${host}:${port}`);
-          resolve();
+      this.server.bindAsync(`${host}:${port}`, credentials, (error, port) => {
+        if (error) {
+          this.logger.error('Failed to bind gRPC server:', error);
+          reject(error);
+          return;
         }
-      );
+
+        this.server.start();
+        this.logger.info(`gRPC server started on ${host}:${port}`);
+        resolve();
+      });
     });
   }
 
@@ -268,13 +274,13 @@ export class GrpcServer {
   shutdown(): Promise<void> {
     return new Promise((resolve) => {
       this.logger.info('Shutting down gRPC server...');
-      
+
       this.server.tryShutdown((error) => {
         if (error) {
           this.logger.warn('Error during graceful shutdown, forcing shutdown:', error);
           this.server.forceShutdown();
         }
-        
+
         this.logger.info('gRPC server shut down successfully');
         resolve();
       });
@@ -299,10 +305,7 @@ export class GrpcServer {
 /**
  * Create and initialize gRPC server
  */
-export function createGrpcServer(
-  logger: pino.Logger,
-  sessionStore: SessionStore
-): GrpcServer {
+export function createGrpcServer(logger: pino.Logger, sessionStore: SessionStore): GrpcServer {
   const server = new GrpcServer(logger, sessionStore);
   server.initialize();
   return server;
