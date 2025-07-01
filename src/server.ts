@@ -13,6 +13,7 @@ import compression from 'compression';
 import rateLimit from 'express-rate-limit';
 import { createServer as createHttpServer, Server as HttpServer } from 'http';
 import { createServer as createHttpsServer, Server as HttpsServer } from 'https';
+import * as https from 'https';
 import { readFileSync } from 'fs';
 import { pino } from 'pino';
 import { config, validateProductionConfig } from './core/config.js';

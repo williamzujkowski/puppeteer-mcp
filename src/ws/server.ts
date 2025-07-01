@@ -210,7 +210,7 @@ export class WSServer extends EventEmitter {
   private setupConnectionHandlers(ws: WebSocket, connectionId: string): void {
     // Handle incoming messages
     ws.on('message', (data: Buffer) => {
-      void (async () => {
+      void (() => {
       try {
         // Update last activity
         const state = this.connectionManager.getConnectionState(connectionId);
@@ -220,7 +220,7 @@ export class WSServer extends EventEmitter {
 
         // Parse and handle message
         const message = JSON.parse(data.toString()) as WSMessage;
-        await this.messageHandler.handleMessage(ws, connectionId, message);
+        this.messageHandler.handleMessage(ws, connectionId, message);
       } catch (error) {
         this.logger.error('Error handling WebSocket message:', error);
         

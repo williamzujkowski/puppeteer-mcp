@@ -48,8 +48,12 @@ expect.extend({
       for (const key in expectedObj) {
         if (Object.prototype.hasOwnProperty.call(expectedObj, key)) {
           const argObj = arg as Record<string, unknown>;
-          if (Object.prototype.hasOwnProperty.call(argObj, key) && expectedObj[key] !== argObj[key]) {
-            return false;
+          if (argObj !== null && typeof argObj === 'object' && Object.prototype.hasOwnProperty.call(argObj, key) && Object.prototype.hasOwnProperty.call(expectedObj, key)) {
+            const expectedValue = Object.prototype.hasOwnProperty.call(expectedObj, key) ? expectedObj[key as keyof typeof expectedObj] : undefined;
+            const argValue = Object.prototype.hasOwnProperty.call(argObj, key) ? argObj[key as keyof typeof argObj] : undefined;
+            if (expectedValue !== argValue) {
+              return false;
+            }
           }
         }
       }

@@ -195,7 +195,7 @@ export const requireRoles = (...requiredRoles: string[]) => {
         throw new AppError('Authentication required', 401);
       }
 
-      const hasRequiredRole = requiredRoles.some((role) => req.user.roles.includes(role));
+      const hasRequiredRole = requiredRoles.some((role) => req.user?.roles.includes(role));
 
       if (!hasRequiredRole) {
         await logSecurityEvent(SecurityEventType.ACCESS_DENIED, {

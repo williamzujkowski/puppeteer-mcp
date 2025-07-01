@@ -5,7 +5,7 @@
 
 import { WebSocket } from 'ws';
 import { v4 as uuidv4 } from 'uuid';
-import { WSMessage, WSMessageType } from '../types/ws.types.js';
+import { WSMessage, WSMessageType } from '../types/websocket.js';
 import { pino } from 'pino';
 
 /**

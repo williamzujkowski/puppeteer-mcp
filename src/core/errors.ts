@@ -285,7 +285,7 @@ const getErrorCode = (error: AppError): string => {
   
   // Use Object.prototype.hasOwnProperty.call for safe property access
   if (Object.prototype.hasOwnProperty.call(STATUS_TO_ERROR_CODE, error.statusCode)) {
-    return STATUS_TO_ERROR_CODE[error.statusCode];
+    return STATUS_TO_ERROR_CODE[error.statusCode] ?? ErrorCodes.INTERNAL_SERVER_ERROR;
   }
   return ErrorCodes.INTERNAL_SERVER_ERROR;
 };

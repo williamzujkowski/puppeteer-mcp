@@ -47,7 +47,7 @@ export const generateToken = (
 ): string => {
   const signOptions: jwt.SignOptions = {
     algorithm: config.JWT_ALGORITHM as jwt.Algorithm,
-    expiresIn,
+    expiresIn: expiresIn as string | number,
   };
   return jwt.sign(payload as object, config.JWT_SECRET, signOptions);
 };

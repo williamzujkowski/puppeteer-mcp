@@ -14,6 +14,7 @@ import { performance } from 'perf_hooks';
  * @nist si-4 "Information system monitoring"
  */
 export class HealthServiceImpl {
+  [key: string]: (...args: unknown[]) => unknown;
   private serviceStatus: Map<string, { status: string; metadata: Record<string, unknown> }> = new Map();
   
   constructor(private logger: pino.Logger) {

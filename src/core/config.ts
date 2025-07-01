@@ -139,7 +139,9 @@ const parseBoolEnv = (value: string | undefined, defaultValue: boolean = false):
 
 // Parse server configuration
 const parseServerConfig = (): Partial<z.infer<typeof configSchema>> => ({
-  NODE_ENV: process.env.NODE_ENV,
+  NODE_ENV: ['development', 'test', 'production'].includes(process.env.NODE_ENV ?? '') 
+    ? process.env.NODE_ENV as 'development' | 'test' | 'production' 
+    : undefined,
   PORT: parseIntEnv(process.env.PORT),
   HOST: process.env.HOST,
 });
@@ -150,13 +152,19 @@ const parseTLSConfig = (): Partial<z.infer<typeof configSchema>> => ({
   TLS_CERT_PATH: process.env.TLS_CERT_PATH,
   TLS_KEY_PATH: process.env.TLS_KEY_PATH,
   TLS_CA_PATH: process.env.TLS_CA_PATH,
-  TLS_MIN_VERSION: process.env.TLS_MIN_VERSION,
+  TLS_MIN_VERSION: ['TLSv1.2', 'TLSv1.3'].includes(process.env.TLS_MIN_VERSION ?? '')
+    ? process.env.TLS_MIN_VERSION as 'TLSv1.2' | 'TLSv1.3'
+    : undefined,
 });
 
 // Parse logging configuration
 const parseLoggingConfig = (): Partial<z.infer<typeof configSchema>> => ({
-  LOG_LEVEL: process.env.LOG_LEVEL,
-  LOG_FORMAT: process.env.LOG_FORMAT,
+  LOG_LEVEL: ['trace', 'debug', 'info', 'warn', 'error', 'fatal'].includes(process.env.LOG_LEVEL ?? '')
+    ? process.env.LOG_LEVEL as 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal'
+    : undefined,
+  LOG_FORMAT: ['json', 'pretty'].includes(process.env.LOG_FORMAT ?? '')
+    ? process.env.LOG_FORMAT as 'json' | 'pretty'
+    : undefined,
   AUDIT_LOG_ENABLED: process.env.AUDIT_LOG_ENABLED !== 'false',
   AUDIT_LOG_PATH: process.env.AUDIT_LOG_PATH,
 });
@@ -166,7 +174,9 @@ const parseSecurityConfig = (): Partial<z.infer<typeof configSchema>> => ({
   JWT_SECRET: generateSecureSecret(),
   JWT_EXPIRY: process.env.JWT_EXPIRY,
   JWT_REFRESH_EXPIRY: process.env.JWT_REFRESH_EXPIRY,
-  JWT_ALGORITHM: process.env.JWT_ALGORITHM,
+  JWT_ALGORITHM: ['HS256', 'HS384', 'HS512', 'RS256', 'RS384', 'RS512'].includes(process.env.JWT_ALGORITHM ?? '')
+    ? process.env.JWT_ALGORITHM as 'HS256' | 'HS384' | 'HS512' | 'RS256' | 'RS384' | 'RS512'
+    : undefined,
   BCRYPT_ROUNDS: parseIntEnv(process.env.BCRYPT_ROUNDS),
 });
 

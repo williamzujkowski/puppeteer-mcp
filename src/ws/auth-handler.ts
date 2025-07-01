@@ -13,6 +13,14 @@ import type { SessionStore } from '../store/session-store.interface.js';
 import { verifyToken } from '../auth/jwt.js';
 import { logSecurityEvent, SecurityEventType } from '../utils/logger.js';
 import { WSMessageType } from '../types/websocket.js';
+
+interface AuthFailureOptions {
+  ws: WebSocket;
+  connectionId: string;
+  messageId: string | undefined;
+  code: string;
+  reason: string;
+}
 import type { WSAuthMessage, WSErrorMessage, WSEventMessage } from '../types/websocket.js';
 
 /**
@@ -56,60 +64,91 @@ export class WSAuthHandler {
       const { token, apiKey } = message.data;
 
       // Validate input
-      if ((token === null || token === undefined || token.length === 0) && (apiKey === null || apiKey === undefined || apiKey.length === 0)) {
-        await logSecurityEvent(SecurityEventType.AUTH_FAILURE, {
-          resource: 'websocket',
-          action: 'authenticate',
-          result: 'failure',
-          reason: 'Missing credentials',
-          metadata: { connectionId },
-        });
-
-        this.sendAuthError(ws, message.id, 'MISSING_CREDENTIALS', 'Token or API key required');
-        return { success: false, error: 'Missing credentials' };
+      const validation = this.validateCredentials(token, apiKey);
+      if (!validation.valid) {
+        return this.handleAuthFailure({ ws, connectionId, messageId: message.id, code: 'MISSING_CREDENTIALS', reason: validation.error ?? 'Missing credentials' });
       }
 
-      // Authenticate with token
-      if (token !== null && token !== undefined && token.length > 0) {
-        const result = await this.authenticateWithToken(ws, connectionId, message.id, token);
+      // Try token authentication first
+      if (this.hasValidToken(token)) {
+        const result = await this.authenticateWithToken(ws, connectionId, message.id, token || '');
         if (result.success) {
           return result;
         }
       }
 
-      // Authenticate with API key
-      if (apiKey !== null && apiKey !== undefined && apiKey.length > 0) {
-        const result = this.authenticateWithApiKey(ws, connectionId, message.id, apiKey);
+      // Try API key authentication
+      if (this.hasValidApiKey(apiKey)) {
+        const result = this.authenticateWithApiKey(ws, connectionId, message.id, apiKey ?? '');
         if (result.success) {
           return result;
         }
       }
 
-      // Authentication failed
-      await logSecurityEvent(SecurityEventType.AUTH_FAILURE, {
-        resource: 'websocket',
-        action: 'authenticate',
-        result: 'failure',
-        reason: 'Invalid credentials',
-        metadata: { connectionId },
-      });
-
-      this.sendAuthError(ws, message.id, 'INVALID_CREDENTIALS', 'Invalid token or API key');
-      return { success: false, error: 'Invalid credentials' };
+      // All authentication methods failed
+      return this.handleAuthFailure({ ws, connectionId, messageId: message.id, code: 'INVALID_CREDENTIALS', reason: 'Invalid token or API key' });
     } catch (error) {
-      this.logger.error('Authentication error:', error);
-      
-      await logSecurityEvent(SecurityEventType.AUTH_FAILURE, {
-        resource: 'websocket',
-        action: 'authenticate',
-        result: 'failure',
-        reason: error instanceof Error ? error.message : 'Unknown error',
-        metadata: { connectionId },
-      });
-
-      this.sendAuthError(ws, message.id, 'AUTH_ERROR', 'Authentication failed');
-      return { success: false, error: 'Authentication error' };
+      return this.handleAuthError(ws, connectionId, message.id, error);
     }
+  }
+
+  /**
+   * Handle authentication failure
+   */
+  private handleAuthFailure(options: AuthFailureOptions): Promise<{ success: boolean; error: string }> {
+    return this.sendAuthFailureResponse(options);
+  }
+
+  private async sendAuthFailureResponse(options: AuthFailureOptions): Promise<{ success: boolean; error: string }> {
+    const { ws, connectionId, messageId, code, reason } = options;
+    await logSecurityEvent(SecurityEventType.AUTH_FAILURE, {
+      resource: 'websocket',
+      action: 'authenticate',
+      result: 'failure',
+      reason,
+      metadata: { connectionId },
+    });
+
+    this.sendAuthError(ws, messageId, code, reason);
+    return { success: false, error: reason };
+  }
+
+  /**
+   * Handle authentication error
+   */
+  private async handleAuthError(
+    ws: WebSocket,
+    connectionId: string,
+    messageId: string | undefined,
+    error: unknown
+  ): Promise<{ success: boolean; error: string }> {
+    this.logger.error('Authentication error:', error);
+    
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    await logSecurityEvent(SecurityEventType.AUTH_FAILURE, {
+      resource: 'websocket',
+      action: 'authenticate',
+      result: 'failure',
+      reason: errorMessage,
+      metadata: { connectionId },
+    });
+
+    this.sendAuthError(ws, messageId, 'AUTH_ERROR', 'Authentication failed');
+    return { success: false, error: 'Authentication error' };
+  }
+
+  /**
+   * Check if token is valid and non-empty
+   */
+  private hasValidToken(token?: string): boolean {
+    return token !== null && token !== undefined && token.length > 0;
+  }
+
+  /**
+   * Check if API key is valid and non-empty
+   */
+  private hasValidApiKey(apiKey?: string): boolean {
+    return apiKey !== null && apiKey !== undefined && apiKey.length > 0;
   }
 
   /**

@@ -48,6 +48,7 @@ const contexts = new Map<string, Context>();
  * @nist si-10 "Information input validation"
  */
 export class ContextServiceImpl {
+  [key: string]: (...args: unknown[]) => unknown;
   private commandExecutor: CommandExecutor;
 
   constructor(

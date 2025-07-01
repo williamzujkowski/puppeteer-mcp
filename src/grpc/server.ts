@@ -76,9 +76,17 @@ export class GrpcServer {
       const wrappedHealthService = this.wrapServiceWithInterceptors(healthService, false); // No auth for health
 
       // Add services to server
-      this.server.addService(proto.mcp.control.v1.SessionService.service, wrappedSessionService);
-      this.server.addService(proto.mcp.control.v1.ContextService.service, wrappedContextService);
-      this.server.addService(proto.mcp.control.v1.HealthService.service, wrappedHealthService);
+      const mcpProto = proto.mcp as { 
+        control: { 
+          v1: { 
+            SessionService: { service: grpc.ServiceDefinition };
+            ContextService: { service: grpc.ServiceDefinition };
+          };
+        };
+      };
+      this.server.addService(mcpProto.control.v1.SessionService.service, wrappedSessionService);
+      this.server.addService(mcpProto.control.v1.ContextService.service, wrappedContextService);
+      this.server.addService(mcpProto.control.v1.HealthService.service, wrappedHealthService);
 
       this.logger.info('gRPC services initialized successfully');
     } catch (error) {
@@ -123,7 +131,7 @@ export class GrpcServer {
             };
           }
 
-          void wrappedHandler(call, callback);
+          void wrappedHandler(call, callback ?? (() => {}));
         },
           writable: true,
           enumerable: true,
@@ -185,7 +193,7 @@ export class GrpcServer {
     }
 
     return grpc.ServerCredentials.createSsl(
-      ca,
+      ca ?? null,
       [{
         cert_chain: cert,
         private_key: key,

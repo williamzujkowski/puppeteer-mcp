@@ -32,7 +32,7 @@ export const requestLogger = (logger: Logger) => {
 
     // Log response on finish
     res.on('finish', () => {
-      const duration = Date.now() - req.startTime;
+      const duration = Date.now() - (req.startTime ?? Date.now());
 
       logger.info({
         type: 'response',
