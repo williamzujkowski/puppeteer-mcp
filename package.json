@@ -23,7 +23,7 @@
     "typecheck": "tsc --noEmit",
     "security:check": "node scripts/security-check.js",
     "standards:check": "node scripts/standards-check.js",
-    "prepare": "node -e \"if(!require('is-ci')) require('child_process').execSync('husky install',{stdio:'inherit'})\"",
+    "prepare": "node -e \"try{if(!require('is-ci')) require('child_process').execSync('husky install',{stdio:'inherit'})}catch(e){}\"",
     "pre-commit": "npm run lint:fix && npm run format && npm run typecheck"
   },
   "keywords": [
