@@ -9,7 +9,7 @@ export default {
     '^@store/(.*)$': '<rootDir>/src/store/$1',
     '^@auth/(.*)$': '<rootDir>/src/auth/$1',
     '^@routes/(.*)$': '<rootDir>/src/routes/$1',
-    '^@grpc/(.*)$': '<rootDir>/src/grpc/$1',
+    '^@grpc/(?!grpc-js)(.*)$': '<rootDir>/src/grpc/$1',
     '^@ws/(.*)$': '<rootDir>/src/ws/$1',
     '^@utils/(.*)$': '<rootDir>/src/utils/$1',
     '^@types/(.*)$': '<rootDir>/src/types/$1',

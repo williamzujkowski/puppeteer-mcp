@@ -120,7 +120,7 @@ describe('Authentication Middleware', () => {
       // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(mockSessionStore.touch).toHaveBeenCalledWith('session-id');
       expect(mockReq.user).toEqual({
-        id: 'user-id',
+        userId: 'user-id',
         username: 'testuser',
         roles: ['user'],
         sessionId: 'session-id',
@@ -233,7 +233,7 @@ describe('Authentication Middleware', () => {
 
       expect(validateApiKey).toHaveBeenCalledWith(mockApiKey);
       expect(mockReq.user).toEqual({
-        id: 'api-key:test-key',
+        userId: 'api-key:test-key',
         username: 'api-key:test-key',
         roles: ['read', 'write'],
         sessionId: 'api-key-session',
@@ -297,7 +297,7 @@ describe('Authentication Middleware', () => {
   describe('requireRoles', () => {
     it('should allow user with required role', async () => {
       mockReq.user = {
-        id: 'user-id',
+        userId: 'user-id',
         username: 'testuser',
         roles: ['user', 'admin'],
         sessionId: 'session-id',
@@ -317,7 +317,7 @@ describe('Authentication Middleware', () => {
 
     it('should allow user with any of the required roles', async () => {
       mockReq.user = {
-        id: 'user-id',
+        userId: 'user-id',
         username: 'testuser',
         roles: ['moderator'],
         sessionId: 'session-id',
@@ -337,7 +337,7 @@ describe('Authentication Middleware', () => {
 
     it('should reject user without required role', async () => {
       mockReq.user = {
-        id: 'user-id',
+        userId: 'user-id',
         username: 'testuser',
         roles: ['user'],
         sessionId: 'session-id',
@@ -382,7 +382,7 @@ describe('Authentication Middleware', () => {
   describe('requirePermissions', () => {
     it('should allow API key with required permissions', async () => {
       mockReq.user = {
-        id: 'api-key:test-key',
+        userId: 'api-key:test-key',
         username: 'api-key:test-key',
         roles: ['read', 'write', 'delete'],
         sessionId: 'api-key-session',
@@ -402,7 +402,7 @@ describe('Authentication Middleware', () => {
 
     it('should reject API key without all required permissions', async () => {
       mockReq.user = {
-        id: 'api-key:test-key',
+        userId: 'api-key:test-key',
         username: 'api-key:test-key',
         roles: ['read'],
         sessionId: 'api-key-session',
@@ -427,7 +427,7 @@ describe('Authentication Middleware', () => {
 
     it('should reject regular user (not API key)', async () => {
       mockReq.user = {
-        id: 'user-id',
+        userId: 'user-id',
         username: 'testuser',
         roles: ['user', 'admin'],
         sessionId: 'session-id',
