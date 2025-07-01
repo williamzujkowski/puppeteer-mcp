@@ -21,19 +21,11 @@ import {
   toProtoTimestamp,
   parsePagination,
   createPaginationResponse,
-  type ContextFilter
+  type ContextFilter,
 } from './context-helpers.js';
 import { CommandExecutor } from './command-executor.js';
-import type {
-  CreateContextRequest,
-  CreateContextResponse,
-  ExecuteCommandRequest,
-  ExecuteCommandResponse,
-  StreamContextEventsRequest,
-  ContextEvent,
-  ContextProto,
-} from '../types/context.types.js';
-import type { AuthenticatedServerUnaryCall, AuthenticatedServerWritableStream } from '../interceptors/types.js';
+import type { CreateContextRequest, CreateContextResponse } from '../types/context.types.js';
+import type { AuthenticatedServerUnaryCall } from '../interceptors/types.js';
 
 // Context interface
 export interface Context {
@@ -63,7 +55,7 @@ export class ContextServiceImpl {
 
   constructor(
     private logger: pino.Logger,
-    private sessionStore: SessionStore
+    private sessionStore: SessionStore,
   ) {
     this.commandExecutor = new CommandExecutor(logger);
   }
@@ -76,7 +68,7 @@ export class ContextServiceImpl {
    */
   async createContext(
     call: AuthenticatedServerUnaryCall<CreateContextRequest, CreateContextResponse>,
-    callback: grpc.sendUnaryData<CreateContextResponse>
+    callback: grpc.sendUnaryData<CreateContextResponse>,
   ): Promise<void> {
     try {
       const { session_id, name, type, config, metadata } = call.request;
@@ -92,7 +84,7 @@ export class ContextServiceImpl {
       // Create context
       const contextId = uuidv4();
       const now = Date.now();
-      
+
       const context: Context = {
         id: contextId,
         sessionId: session_id,
@@ -136,7 +128,7 @@ export class ContextServiceImpl {
    */
   getContext(
     call: grpc.ServerUnaryCall<unknown, unknown>,
-    callback: grpc.sendUnaryData<unknown>
+    callback: grpc.sendUnaryData<unknown>,
   ): void {
     try {
       const { context_id } = call.request;
@@ -167,7 +159,7 @@ export class ContextServiceImpl {
    */
   async updateContext(
     call: grpc.ServerUnaryCall<unknown, unknown>,
-    callback: grpc.sendUnaryData<unknown>
+    callback: grpc.sendUnaryData<unknown>,
   ): Promise<void> {
     try {
       const { context_id, config, metadata, update_mask } = call.request;
@@ -216,7 +208,7 @@ export class ContextServiceImpl {
    */
   async deleteContext(
     call: grpc.ServerUnaryCall<unknown, unknown>,
-    callback: grpc.sendUnaryData<unknown>
+    callback: grpc.sendUnaryData<unknown>,
   ): Promise<void> {
     try {
       const { context_id } = call.request;
@@ -259,7 +251,7 @@ export class ContextServiceImpl {
    */
   async listContexts(
     call: grpc.ServerUnaryCall<unknown, unknown>,
-    callback: grpc.sendUnaryData<unknown>
+    callback: grpc.sendUnaryData<unknown>,
   ): Promise<void> {
     try {
       const { session_id, filter, pagination } = call.request;
@@ -276,20 +268,20 @@ export class ContextServiceImpl {
 
       // Filter contexts
       const allContexts = Array.from(contexts.values())
-        .filter(ctx => ctx.sessionId === session_id)
-        .filter(ctx => shouldIncludeContext(ctx, filter as ContextFilter));
+        .filter((ctx) => ctx.sessionId === session_id)
+        .filter((ctx) => shouldIncludeContext(ctx, filter as ContextFilter));
 
       // Paginate
       const { pageSize, offset } = parsePagination(pagination);
       const paginatedContexts = allContexts.slice(offset, offset + pageSize);
 
       callback(null, {
-        contexts: paginatedContexts.map(ctx => this.mapContextToProto(ctx)),
+        contexts: paginatedContexts.map((ctx) => this.mapContextToProto(ctx)),
         pagination: createPaginationResponse(
           allContexts.length,
           offset,
           pageSize,
-          paginatedContexts.length
+          paginatedContexts.length,
         ),
       });
     } catch (error) {
@@ -301,9 +293,7 @@ export class ContextServiceImpl {
    * Stream context events
    * @nist au-3 "Content of audit records"
    */
-  async streamContextEvents(
-    call: grpc.ServerWritableStream<unknown, unknown>
-  ): Promise<void> {
+  async streamContextEvents(call: grpc.ServerWritableStream<unknown, unknown>): Promise<void> {
     try {
       const { session_id } = call.request;
 
@@ -357,7 +347,7 @@ export class ContextServiceImpl {
    */
   executeCommand(
     call: grpc.ServerUnaryCall<unknown, unknown>,
-    callback: grpc.sendUnaryData<unknown>
+    callback: grpc.sendUnaryData<unknown>,
   ): void {
     try {
       const { context_id } = call.request;
@@ -382,12 +372,10 @@ export class ContextServiceImpl {
    * @nist ac-3 "Access enforcement"
    * @nist si-10 "Information input validation"
    */
-  streamCommand(
-    call: grpc.ServerWritableStream<unknown, unknown>
-  ): void {
+  streamCommand(call: grpc.ServerWritableStream<unknown, unknown>): void {
     try {
       const { context_id } = call.request;
-      
+
       try {
         validateRequiredField(context_id, 'Context ID');
       } catch (error) {
@@ -424,5 +412,4 @@ export class ContextServiceImpl {
       status: context.status,
     };
   }
-
 }

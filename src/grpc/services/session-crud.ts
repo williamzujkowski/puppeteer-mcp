@@ -33,7 +33,7 @@ import type {
 export class SessionCrud {
   constructor(
     private logger: pino.Logger,
-    private sessionStore: SessionStore
+    private sessionStore: SessionStore,
   ) {}
 
   /**
@@ -44,71 +44,107 @@ export class SessionCrud {
    */
   async createSession(
     call: grpc.ServerUnaryCall<CreateSessionRequest, CreateSessionResponse>,
-    callback: grpc.sendUnaryData<CreateSessionResponse>
+    callback: grpc.sendUnaryData<CreateSessionResponse>,
   ): Promise<void> {
     try {
       const { user_id, username, roles, data, ttl_seconds } = call.request;
 
-      // Validate required fields
-      if (!user_id || !username) {
-        throw new AppError('User ID and username are required', 400);
-      }
+      this.validateCreateSessionRequest(user_id, username);
 
-      // Create session
-      const sessionId = uuidv4();
-      const expiresAt = Date.now() + (ttl_seconds ?? 3600) * 1000; // Default 1 hour
+      const sessionData = this.buildSessionData({ user_id, username, roles, data, ttl_seconds });
+      const sessionId = sessionData.sessionId;
 
-      const sessionData = {
-        userId: user_id,
-        username,
-        roles: roles ?? [],
-        metadata: data ?? {},
-        createdAt: new Date().toISOString(),
-        expiresAt: new Date(expiresAt).toISOString(),
-      };
+      await this.sessionStore.create(sessionData.data);
+      const tokens = this.generateSessionTokens(user_id, username, roles ?? [], sessionId);
 
-      const createdSessionId = await this.sessionStore.create(sessionData);
+      const session = await this.getCreatedSession(sessionId);
+      await this.logSessionCreation({ sessionId, user_id, username, roles: roles ?? [] });
 
-      // Generate tokens
-      const { accessToken, refreshToken } = generateTokens(
-        user_id,
-        username,
-        roles ?? [],
-        sessionId
-      );
-
-      // Get the created session for response
-      const session = await this.sessionStore.get(sessionId);
-      if (!session) {
-        throw new AppError('Failed to create session', 500);
-      }
-
-      // Log session creation
-      await logSecurityEvent(SecurityEventType.SESSION_CREATED, {
-        resource: `session:${sessionId}`,
-        userId: user_id,
-        result: 'success',
-        metadata: {
-          username,
-          roles: roles ?? [],
-          expiresAt: new Date(expiresAt).toISOString(),
-        },
-      });
-
-      // Return response
       callback(null, {
         session: SessionUtils.mapSessionToProto(session),
-        access_token: accessToken,
-        refresh_token: refreshToken,
+        access_token: tokens.accessToken,
+        refresh_token: tokens.refreshToken,
       });
     } catch (error) {
-      this.logger.error('Error creating session:', error);
-      const grpcError = {
-        code: grpc.status.INTERNAL,
-        message: error instanceof Error ? error.message : 'Unknown error',
-      };
-      callback(grpcError);
+      this.handleCreateSessionError(error, callback);
     }
+  }
+
+  private validateCreateSessionRequest(user_id: string, username: string): void {
+    if (!user_id || !username) {
+      throw new AppError('User ID and username are required', 400);
+    }
+  }
+
+  private buildSessionData(options: {
+    user_id: string;
+    username: string;
+    roles?: string[];
+    data?: Record<string, unknown>;
+    ttl_seconds?: number;
+  }): { sessionId: string; expiresAt: number; data: Record<string, unknown> } {
+    const sessionId = uuidv4();
+    const expiresAt = Date.now() + (options.ttl_seconds ?? 3600) * 1000; // Default 1 hour
+
+    return {
+      sessionId,
+      expiresAt,
+      data: {
+        userId: options.user_id,
+        username: options.username,
+        roles: options.roles ?? [],
+        metadata: options.data ?? {},
+        createdAt: new Date().toISOString(),
+        expiresAt: new Date(expiresAt).toISOString(),
+      },
+    };
+  }
+
+  private generateSessionTokens(
+    user_id: string,
+    username: string,
+    roles: string[],
+    sessionId: string,
+  ): { accessToken: string; refreshToken: string; expiresIn: number } {
+    return generateTokens(user_id, username, roles, sessionId);
+  }
+
+  private async getCreatedSession(sessionId: string): Promise<unknown> {
+    const session = await this.sessionStore.get(sessionId);
+    if (!session) {
+      throw new AppError('Failed to create session', 500);
+    }
+    return session;
+  }
+
+  private async logSessionCreation(options: {
+    sessionId: string;
+    user_id: string;
+    username: string;
+    roles: string[];
+  }): Promise<void> {
+    await logSecurityEvent(SecurityEventType.SESSION_CREATED, {
+      resource: `session:${options.sessionId}`,
+      userId: options.user_id,
+      result: 'success',
+      metadata: {
+        username: options.username,
+        roles: options.roles,
+        expiresAt: new Date().toISOString(),
+      },
+    });
+  }
+
+  private handleCreateSessionError(
+    error: unknown,
+    callback: grpc.sendUnaryData<CreateSessionResponse>,
+  ): void {
+    this.logger.error('Error creating session:', error);
+    const grpcError = {
+      code: grpc.status.INTERNAL,
+      message: error instanceof Error ? error.message : 'Unknown error',
+    };
+    callback(grpcError);
   }
 
   /**
@@ -117,7 +153,7 @@ export class SessionCrud {
    */
   async getSession(
     call: grpc.ServerUnaryCall<GetSessionRequest, GetSessionResponse>,
-    callback: grpc.sendUnaryData<GetSessionResponse>
+    callback: grpc.sendUnaryData<GetSessionResponse>,
   ): Promise<void> {
     try {
       const { session_id } = call.request;
@@ -157,7 +193,7 @@ export class SessionCrud {
    */
   async updateSession(
     call: grpc.ServerUnaryCall<UpdateSessionRequest, UpdateSessionResponse>,
-    callback: grpc.sendUnaryData<UpdateSessionResponse>
+    callback: grpc.sendUnaryData<UpdateSessionResponse>,
   ): Promise<void> {
     try {
       const { session_id, data, extend_ttl, ttl_seconds } = call.request;
@@ -211,7 +247,7 @@ export class SessionCrud {
    */
   async deleteSession(
     call: grpc.ServerUnaryCall<DeleteSessionRequest, DeleteSessionResponse>,
-    callback: grpc.sendUnaryData<DeleteSessionResponse>
+    callback: grpc.sendUnaryData<DeleteSessionResponse>,
   ): Promise<void> {
     try {
       const { session_id } = call.request;

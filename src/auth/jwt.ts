@@ -204,7 +204,7 @@ export const generateTokens = generateTokenPair;
  * Verify refresh token
  * @nist ia-2 "Identification and authentication"
  */
-export const verifyRefreshToken = async (token: string): Promise<JWTPayload> => {
+export const verifyRefreshToken = (token: string): Promise<JWTPayload> => {
   return verifyToken(token, 'refresh');
 };
 
@@ -212,6 +212,6 @@ export const verifyRefreshToken = async (token: string): Promise<JWTPayload> => 
  * Verify access token
  * @nist ia-2 "Identification and authentication"
  */
-export const verifyAccessToken = async (token: string): Promise<JWTPayload> => {
+export const verifyAccessToken = (token: string): Promise<JWTPayload> => {
   return verifyToken(token, 'access');
 };

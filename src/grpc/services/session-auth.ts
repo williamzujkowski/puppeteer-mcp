@@ -27,7 +27,7 @@ import type {
 export class SessionAuth {
   constructor(
     private logger: pino.Logger,
-    private sessionStore: SessionStore
+    private sessionStore: SessionStore,
   ) {}
 
   /**
@@ -37,7 +37,7 @@ export class SessionAuth {
    */
   async refreshSession(
     call: grpc.ServerUnaryCall<RefreshSessionRequest, RefreshSessionResponse>,
-    callback: grpc.sendUnaryData<RefreshSessionResponse>
+    callback: grpc.sendUnaryData<RefreshSessionResponse>,
   ): Promise<void> {
     try {
       const { refresh_token } = call.request;
@@ -48,14 +48,18 @@ export class SessionAuth {
 
       // Verify refresh token
       const payload = await verifyRefreshToken(refresh_token);
-      
-      if (payload?.sessionId === undefined || payload.sessionId === null || payload.sessionId === '') {
+
+      if (
+        payload?.sessionId === undefined ||
+        payload.sessionId === null ||
+        payload.sessionId === ''
+      ) {
         throw new AppError('Invalid refresh token', 401);
       }
 
       // Get session
       const session = await this.sessionStore.get(payload.sessionId);
-      
+
       if (!session) {
         throw new AppError('Session not found', 404);
       }
@@ -66,11 +70,11 @@ export class SessionAuth {
       }
 
       // Generate new tokens
-      const { accessToken, refreshToken: newRefreshToken } = await generateTokens(
+      const { accessToken, refreshToken: newRefreshToken } = generateTokens(
         session.data.userId,
         session.data.username,
         session.data.roles,
-        session.id
+        session.id,
       );
 
       // Update session last accessed time
@@ -106,7 +110,7 @@ export class SessionAuth {
    */
   async validateSession(
     call: grpc.ServerUnaryCall<ValidateSessionRequest, ValidateSessionResponse>,
-    callback: grpc.sendUnaryData<ValidateSessionResponse>
+    callback: grpc.sendUnaryData<ValidateSessionResponse>,
   ): Promise<void> {
     try {
       const { session_id, access_token } = call.request;
@@ -145,18 +149,21 @@ export class SessionAuth {
     return value === null || value === undefined || value === '';
   }
 
-  private async getSessionFromIdOrToken(sessionId: string | null | undefined, accessToken: string | null | undefined): Promise<Session | null> {
+  private async getSessionFromIdOrToken(
+    sessionId: string | null | undefined,
+    accessToken: string | null | undefined,
+  ): Promise<Session | null> {
     if (sessionId !== null && sessionId.length > 0) {
       return this.sessionStore.get(sessionId);
     }
-    
+
     if (accessToken !== null && accessToken.length > 0) {
       const payload = await verifyAccessToken(accessToken);
       if (payload?.sessionId !== null && payload.sessionId.length > 0) {
         return this.sessionStore.get(payload.sessionId);
       }
     }
-    
+
     return null;
   }
 
@@ -174,7 +181,10 @@ export class SessionAuth {
     return new Date(session.data.expiresAt).getTime() < Date.now();
   }
 
-  private sendSessionExpired(callback: grpc.sendUnaryData<ValidateSessionResponse>, session: Session): void {
+  private sendSessionExpired(
+    callback: grpc.sendUnaryData<ValidateSessionResponse>,
+    session: Session,
+  ): void {
     callback(null, {
       valid: false,
       session: SessionUtils.mapSessionToProto(session),
@@ -184,7 +194,6 @@ export class SessionAuth {
       },
     });
   }
-
 }
 
 // Import verifyAccessToken function
