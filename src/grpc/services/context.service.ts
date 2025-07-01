@@ -24,6 +24,16 @@ import {
   type ContextFilter
 } from './context-helpers.js';
 import { CommandExecutor } from './command-executor.js';
+import type {
+  CreateContextRequest,
+  CreateContextResponse,
+  ExecuteCommandRequest,
+  ExecuteCommandResponse,
+  StreamContextEventsRequest,
+  ContextEvent,
+  ContextProto,
+} from '../types/context.types.js';
+import type { AuthenticatedServerUnaryCall, AuthenticatedServerWritableStream } from '../interceptors/types.js';
 
 // Context interface
 export interface Context {
@@ -65,8 +75,8 @@ export class ContextServiceImpl {
    * @evidence code, test
    */
   async createContext(
-    call: grpc.ServerUnaryCall<unknown, unknown>,
-    callback: grpc.sendUnaryData<unknown>
+    call: AuthenticatedServerUnaryCall<CreateContextRequest, CreateContextResponse>,
+    callback: grpc.sendUnaryData<CreateContextResponse>
   ): Promise<void> {
     try {
       const { session_id, name, type, config, metadata } = call.request;
@@ -182,7 +192,7 @@ export class ContextServiceImpl {
       // Log context update
       await logSecurityEvent(SecurityEventType.RESOURCE_UPDATED, {
         resource: 'context',
-        resourceId: context_id,
+        resource: `context:${context_id}`,
         action: 'update',
         result: 'success',
         metadata: {
@@ -229,7 +239,7 @@ export class ContextServiceImpl {
       // Log context deletion
       await logSecurityEvent(SecurityEventType.RESOURCE_DELETED, {
         resource: 'context',
-        resourceId: context_id,
+        resource: `context:${context_id}`,
         action: 'delete',
         result: 'success',
         metadata: {

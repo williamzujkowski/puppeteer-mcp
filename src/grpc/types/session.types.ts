@@ -39,6 +39,12 @@ export interface ListSessionsRequest {
   active_only?: boolean;
   page_size?: number;
   page_token?: string;
+  session_ids?: string[];
+}
+
+export interface ValidateSessionRequest {
+  session_id: string;
+  access_token: string;
 }
 
 // Response types
@@ -82,6 +88,15 @@ export interface ListSessionsResponse {
   sessions: SessionProto[];
   next_page_token?: string;
   total_count: number;
+  not_found?: string[];
+}
+
+export interface ValidateSessionResponse {
+  valid: boolean;
+  session?: SessionProto;
+  user_id?: string;
+  username?: string;
+  roles?: string[];
 }
 
 // Helper type for mapping Session to SessionProto

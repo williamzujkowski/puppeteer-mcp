@@ -47,7 +47,7 @@ export const generateToken = (
 ): string => {
   const signOptions: jwt.SignOptions = {
     algorithm: config.JWT_ALGORITHM as jwt.Algorithm,
-    expiresIn: expiresIn as string | number,
+    expiresIn,
   };
   return jwt.sign(payload as object, config.JWT_SECRET, signOptions);
 };
@@ -195,4 +195,23 @@ export const isTokenExpiringSoon = (token: string, thresholdSeconds: number = 30
   } catch {
     return true;
   }
+};
+
+// Export aliases for backward compatibility
+export const generateTokens = generateTokenPair;
+
+/**
+ * Verify refresh token
+ * @nist ia-2 "Identification and authentication"
+ */
+export const verifyRefreshToken = async (token: string): Promise<JWTPayload> => {
+  return verifyToken(token, 'refresh');
+};
+
+/**
+ * Verify access token
+ * @nist ia-2 "Identification and authentication"
+ */
+export const verifyAccessToken = async (token: string): Promise<JWTPayload> => {
+  return verifyToken(token, 'access');
 };

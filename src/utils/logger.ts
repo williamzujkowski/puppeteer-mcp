@@ -61,6 +61,14 @@ export enum SecurityEventType {
   SERVICE_START = 'SERVICE_START',
   SERVICE_STOP = 'SERVICE_STOP',
   ERROR = 'ERROR',
+  
+  // Command execution events
+  COMMAND_EXECUTED = 'COMMAND_EXECUTED',
+  
+  // Session events
+  SESSION_CREATED = 'SESSION_CREATED',
+  SESSION_UPDATED = 'SESSION_UPDATED',
+  SESSION_DELETED = 'SESSION_DELETED',
 }
 
 /**

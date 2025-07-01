@@ -81,6 +81,7 @@ export class GrpcServer {
           v1: { 
             SessionService: { service: grpc.ServiceDefinition };
             ContextService: { service: grpc.ServiceDefinition };
+            HealthService: { service: grpc.ServiceDefinition };
           };
         };
       };

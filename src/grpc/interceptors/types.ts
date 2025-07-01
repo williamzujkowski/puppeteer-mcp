@@ -54,3 +54,25 @@ export interface GrpcError extends Error {
   details?: unknown;
   metadata?: grpc.Metadata;
 }
+
+/**
+ * Extended ServerUnaryCall with session context
+ */
+export interface AuthenticatedServerUnaryCall<RequestType, ResponseType> 
+  extends grpc.ServerUnaryCall<RequestType, ResponseType> {
+  session?: Session;
+  userId?: string;
+  username?: string;
+  roles?: string[];
+}
+
+/**
+ * Extended ServerWritableStream with session context
+ */
+export interface AuthenticatedServerWritableStream<RequestType, ResponseType>
+  extends grpc.ServerWritableStream<RequestType, ResponseType> {
+  session?: Session;
+  userId?: string;
+  username?: string;
+  roles?: string[];
+}

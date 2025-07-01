@@ -58,32 +58,40 @@ export class SessionCrud {
       const sessionId = uuidv4();
       const expiresAt = Date.now() + (ttl_seconds ?? 3600) * 1000; // Default 1 hour
 
-      const session = await this.sessionStore.create({
-        id: sessionId,
+      const sessionData = {
         userId: user_id,
         username,
         roles: roles ?? [],
-        data: data ?? {},
-        expiresAt,
-      });
+        metadata: data ?? {},
+        createdAt: new Date().toISOString(),
+        expiresAt: new Date(expiresAt).toISOString(),
+      };
+
+      const createdSessionId = await this.sessionStore.create(sessionData);
 
       // Generate tokens
-      const { accessToken, refreshToken } = await generateTokens({
-        sessionId: session.id,
-        userId: session.userId,
-        username: session.username,
-        roles: session.roles,
-      });
+      const { accessToken, refreshToken } = generateTokens(
+        user_id,
+        username,
+        roles ?? [],
+        sessionId
+      );
+
+      // Get the created session for response
+      const session = await this.sessionStore.get(sessionId);
+      if (!session) {
+        throw new AppError('Failed to create session', 500);
+      }
 
       // Log session creation
       await logSecurityEvent(SecurityEventType.SESSION_CREATED, {
-        sessionId: session.id,
-        userId: session.userId,
-        username: session.username,
+        resource: `session:${sessionId}`,
+        userId: user_id,
         result: 'success',
         metadata: {
-          roles: session.roles,
-          expiresAt: new Date(session.expiresAt).toISOString(),
+          username,
+          roles: roles ?? [],
+          expiresAt: new Date(expiresAt).toISOString(),
         },
       });
 

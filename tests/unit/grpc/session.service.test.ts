@@ -25,7 +25,7 @@ describe('SessionService', () => {
     logger = pino({ level: 'silent' });
     sessionStore = new InMemorySessionStore(logger);
     service = new SessionServiceImpl(logger, sessionStore);
-    
+
     mockCallback = jest.fn();
     mockCall = {
       request: {},
@@ -62,15 +62,18 @@ describe('SessionService', () => {
 
       service.createSession(mockCall, mockCallback);
 
-      expect(mockCallback).toHaveBeenCalledWith(null, expect.objectContaining({
-        session: expect.objectContaining({
-          user_id: 'user123',
-          username: 'testuser',
-          roles: ['user'],
+      expect(mockCallback).toHaveBeenCalledWith(
+        null,
+        expect.objectContaining({
+          session: expect.objectContaining({
+            user_id: 'user123',
+            username: 'testuser',
+            roles: ['user'],
+          }),
+          access_token: 'mock-access-token',
+          refresh_token: 'mock-refresh-token',
         }),
-        access_token: 'mock-access-token',
-        refresh_token: 'mock-refresh-token',
-      }));
+      );
     });
 
     it('should fail when user_id is missing', () => {
@@ -83,7 +86,7 @@ describe('SessionService', () => {
       expect(mockCallback).toHaveBeenCalledWith(
         expect.objectContaining({
           message: expect.stringContaining('required'),
-        })
+        }),
       );
     });
 
@@ -95,13 +98,16 @@ describe('SessionService', () => {
 
       service.createSession(mockCall, mockCallback);
 
-      expect(mockCallback).toHaveBeenCalledWith(null, expect.objectContaining({
-        session: expect.objectContaining({
-          expires_at: expect.objectContaining({
-            seconds: expect.any(Number),
+      expect(mockCallback).toHaveBeenCalledWith(
+        null,
+        expect.objectContaining({
+          session: expect.objectContaining({
+            expires_at: expect.objectContaining({
+              seconds: expect.any(Number),
+            }),
           }),
         }),
-      }));
+      );
     });
   });
 
@@ -125,15 +131,18 @@ describe('SessionService', () => {
 
       service.getSession(mockCall, mockCallback);
 
-      expect(mockCallback).toHaveBeenCalledWith(null, expect.objectContaining({
-        session: expect.objectContaining({
-          id: 'test-session-id',
-          user_id: 'test-user',
+      expect(mockCallback).toHaveBeenCalledWith(
+        null,
+        expect.objectContaining({
+          session: expect.objectContaining({
+            id: 'test-session-id',
+            user_id: 'test-user',
+          }),
         }),
-      }));
+      );
     });
 
-    it('should allow admin to get any session', async () => {
+    it('should allow admin to get any session', () => {
       mockCall.request = {
         session_id: 'test-session-id',
       };
@@ -142,14 +151,17 @@ describe('SessionService', () => {
 
       service.getSession(mockCall, mockCallback);
 
-      expect(mockCallback).toHaveBeenCalledWith(null, expect.objectContaining({
-        session: expect.objectContaining({
-          id: 'test-session-id',
+      expect(mockCallback).toHaveBeenCalledWith(
+        null,
+        expect.objectContaining({
+          session: expect.objectContaining({
+            id: 'test-session-id',
+          }),
         }),
-      }));
+      );
     });
 
-    it('should deny access to other users sessions', async () => {
+    it('should deny access to other users sessions', () => {
       mockCall.request = {
         session_id: 'test-session-id',
       };
@@ -161,11 +173,11 @@ describe('SessionService', () => {
       expect(mockCallback).toHaveBeenCalledWith(
         expect.objectContaining({
           message: expect.stringContaining('Access denied'),
-        })
+        }),
       );
     });
 
-    it('should return error for non-existent session', async () => {
+    it('should return error for non-existent session', () => {
       mockCall.request = {
         session_id: 'non-existent',
       };
@@ -175,7 +187,7 @@ describe('SessionService', () => {
       expect(mockCallback).toHaveBeenCalledWith(
         expect.objectContaining({
           message: expect.stringContaining('not found'),
-        })
+        }),
       );
     });
   });
@@ -192,7 +204,7 @@ describe('SessionService', () => {
       });
     });
 
-    it('should update session data successfully', async () => {
+    it('should update session data successfully', () => {
       mockCall.request = {
         session_id: 'test-session-id',
         data: { new: 'value' },
@@ -200,14 +212,17 @@ describe('SessionService', () => {
 
       service.updateSession(mockCall, mockCallback);
 
-      expect(mockCallback).toHaveBeenCalledWith(null, expect.objectContaining({
-        session: expect.objectContaining({
-          data: expect.objectContaining({
-            existing: 'data',
-            new: 'value',
+      expect(mockCallback).toHaveBeenCalledWith(
+        null,
+        expect.objectContaining({
+          session: expect.objectContaining({
+            data: expect.objectContaining({
+              existing: 'data',
+              new: 'value',
+            }),
           }),
         }),
-      }));
+      );
     });
 
     it('should update only specified fields with field mask', async () => {
@@ -248,12 +263,12 @@ describe('SessionService', () => {
       service.deleteSession(mockCall, mockCallback);
 
       expect(mockCallback).toHaveBeenCalledWith(null, { success: true });
-      
+
       const session = await sessionStore.get('test-session-id');
       expect(session).toBeNull();
     });
 
-    it('should deny deletion by non-owner', async () => {
+    it('should deny deletion by non-owner', () => {
       mockCall.request = {
         session_id: 'test-session-id',
       };
@@ -265,7 +280,7 @@ describe('SessionService', () => {
       expect(mockCallback).toHaveBeenCalledWith(
         expect.objectContaining({
           message: expect.stringContaining('Access denied'),
-        })
+        }),
       );
     });
   });
@@ -287,25 +302,28 @@ describe('SessionService', () => {
       });
     });
 
-    it('should refresh session successfully', async () => {
+    it('should refresh session successfully', () => {
       mockCall.request = {
         refresh_token: 'valid-refresh-token',
       };
 
       service.refreshSession(mockCall, mockCallback);
 
-      expect(mockCallback).toHaveBeenCalledWith(null, expect.objectContaining({
-        session: expect.objectContaining({
-          id: 'test-session-id',
+      expect(mockCallback).toHaveBeenCalledWith(
+        null,
+        expect.objectContaining({
+          session: expect.objectContaining({
+            id: 'test-session-id',
+          }),
+          access_token: 'mock-access-token',
+          refresh_token: 'mock-refresh-token',
         }),
-        access_token: 'mock-access-token',
-        refresh_token: 'mock-refresh-token',
-      }));
+      );
     });
 
-    it('should fail with invalid refresh token', async () => {
+    it('should fail with invalid refresh token', () => {
       (jwt.verifyRefreshToken as jest.Mock).mockResolvedValue(null);
-      
+
       mockCall.request = {
         refresh_token: 'invalid-token',
       };
@@ -315,7 +333,7 @@ describe('SessionService', () => {
       expect(mockCallback).toHaveBeenCalledWith(
         expect.objectContaining({
           message: expect.stringContaining('Invalid refresh token'),
-        })
+        }),
       );
     });
   });
@@ -332,19 +350,22 @@ describe('SessionService', () => {
       });
     });
 
-    it('should validate session by ID successfully', async () => {
+    it('should validate session by ID successfully', () => {
       mockCall.request = {
         session_id: 'test-session-id',
       };
 
       service.validateSession(mockCall, mockCallback);
 
-      expect(mockCallback).toHaveBeenCalledWith(null, expect.objectContaining({
-        valid: true,
-        session: expect.objectContaining({
-          id: 'test-session-id',
+      expect(mockCallback).toHaveBeenCalledWith(
+        null,
+        expect.objectContaining({
+          valid: true,
+          session: expect.objectContaining({
+            id: 'test-session-id',
+          }),
         }),
-      }));
+      );
     });
 
     it('should return invalid for expired session', async () => {
@@ -364,12 +385,15 @@ describe('SessionService', () => {
 
       service.validateSession(mockCall, mockCallback);
 
-      expect(mockCallback).toHaveBeenCalledWith(null, expect.objectContaining({
-        valid: false,
-        error: expect.objectContaining({
-          code: 'SESSION_EXPIRED',
+      expect(mockCallback).toHaveBeenCalledWith(
+        null,
+        expect.objectContaining({
+          valid: false,
+          error: expect.objectContaining({
+            code: 'SESSION_EXPIRED',
+          }),
         }),
-      }));
+      );
     });
   });
 });

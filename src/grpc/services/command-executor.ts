@@ -16,6 +16,8 @@ import {
   validateCommandContext,
 } from './context-helpers.js';
 import type { Context } from './context.service.js';
+import type { AuthenticatedServerUnaryCall, AuthenticatedServerWritableStream } from '../interceptors/types.js';
+import type { ExecuteCommandRequest, ExecuteCommandResponse } from '../types/context.types.js';
 
 export class CommandExecutor {
   constructor(private logger: pino.Logger) {}
@@ -27,8 +29,8 @@ export class CommandExecutor {
    * @nist au-3 "Content of audit records"
    */
   async executeCommand(
-    call: grpc.ServerUnaryCall<unknown, unknown>,
-    callback: grpc.sendUnaryData<unknown>,
+    call: AuthenticatedServerUnaryCall<ExecuteCommandRequest, ExecuteCommandResponse>,
+    callback: grpc.sendUnaryData<ExecuteCommandResponse>,
     context: Context
   ): Promise<void> {
     try {
@@ -40,13 +42,12 @@ export class CommandExecutor {
 
       // Log command execution attempt
       await logSecurityEvent(SecurityEventType.COMMAND_EXECUTED, {
-        resource: 'context',
-        resourceId: context.id,
+        resource: `context:${context.id}`,
         action: 'execute_command',
-        command,
-        result: 'initiated',
+        result: 'success',
         metadata: {
           userId: call.userId,
+          command,
           args: args?.join(' '),
         },
       });
@@ -84,13 +85,12 @@ export class CommandExecutor {
 
         // Log command completion
         await logSecurityEvent(SecurityEventType.COMMAND_EXECUTED, {
-          resource: 'context',
-          resourceId: context.id,
+          resource: `context:${context.id}`,
           action: 'execute_command',
-          command,
           result: code === 0 ? 'success' : 'failure',
           metadata: {
             userId: call.userId,
+            command,
             exitCode: code,
             duration,
             timedOut,
@@ -98,10 +98,9 @@ export class CommandExecutor {
         });
 
           callback(null, {
+            output: stdout,
             exit_code: code ?? 0,
-            stdout,
-            stderr,
-            timed_out: timedOut,
+            error: stderr || undefined,
           });
         })();
       });
@@ -124,7 +123,7 @@ export class CommandExecutor {
    * @nist si-10 "Information input validation"
    */
   streamCommand(
-    call: grpc.ServerWritableStream<unknown, unknown>,
+    call: AuthenticatedServerWritableStream<ExecuteCommandRequest, ExecuteCommandResponse>,
     context: Context
   ): void {
     try {
@@ -149,16 +148,16 @@ export class CommandExecutor {
 
       child.on('error', (error) => {
         call.write({
-          error: {
-            code: 'COMMAND_ERROR',
-            message: error.message,
-          },
+          error: `COMMAND_ERROR: ${error.message}`,
         });
         call.end();
       });
 
       child.on('close', (code) => {
-        call.write({ exit_code: code ?? 0 });
+        call.write({ 
+          output: '',
+          exit_code: code ?? 0 
+        });
         call.end();
       });
 

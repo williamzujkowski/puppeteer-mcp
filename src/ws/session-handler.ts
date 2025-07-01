@@ -76,7 +76,7 @@ export class WSSessionHandler {
   /**
    * Handle POST session requests
    */
-  private handlePostRequest(connectionState: WSConnectionState, data?: unknown): Promise<unknown> {
+  private async handlePostRequest(connectionState: WSConnectionState, data?: unknown): Promise<unknown> {
     interface SessionData {
       username?: string;
       roles?: string[];
@@ -113,7 +113,7 @@ export class WSSessionHandler {
   /**
    * Handle DELETE session requests
    */
-  private handleDeleteRequest(connectionState: WSConnectionState, sessionId?: string): Promise<unknown> {
+  private async handleDeleteRequest(connectionState: WSConnectionState, sessionId?: string): Promise<unknown> {
     if (this.isEmptySessionId(sessionId)) {
       throw new Error('Session ID required');
     }
@@ -126,7 +126,7 @@ export class WSSessionHandler {
   /**
    * Handle session refresh action
    */
-  private handleRefreshAction(connectionState: WSConnectionState, sessionId?: string): Promise<unknown> {
+  private async handleRefreshAction(connectionState: WSConnectionState, sessionId?: string): Promise<unknown> {
     const ws = this.connectionManager.getWebSocket(connectionState.id);
     if (ws === undefined || sessionId === undefined) {
       throw new Error('WebSocket or session ID not found');
@@ -143,7 +143,7 @@ export class WSSessionHandler {
   /**
    * Handle session update action
    */
-  private handleUpdateAction(connectionState: WSConnectionState, sessionId?: string, data?: unknown): Promise<unknown> {
+  private async handleUpdateAction(connectionState: WSConnectionState, sessionId?: string, data?: unknown): Promise<unknown> {
     if (sessionId === undefined) {
       throw new Error('Session ID required');
     }
@@ -156,7 +156,7 @@ export class WSSessionHandler {
   /**
    * Get session and validate user ownership
    */
-  private getSessionForUser(userId: string, sessionId: string): Promise<Session | null> {
+  private async getSessionForUser(userId: string, sessionId: string): Promise<Session | null> {
     const session = await this.sessionStore.get(sessionId);
     if (!session || session.data.userId !== userId) {
       throw new Error('Session not found');

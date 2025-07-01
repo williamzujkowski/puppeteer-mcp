@@ -61,26 +61,29 @@ export class SessionAuth {
       }
 
       // Check if session is still valid
-      if (session.expiresAt < Date.now()) {
+      if (new Date(session.data.expiresAt).getTime() < Date.now()) {
         throw new AppError('Session expired', 401);
       }
 
       // Generate new tokens
-      const { accessToken, refreshToken: newRefreshToken } = await generateTokens({
-        sessionId: session.id,
-        userId: session.userId,
-        username: session.username,
-        roles: session.roles,
-      });
+      const { accessToken, refreshToken: newRefreshToken } = await generateTokens(
+        session.data.userId,
+        session.data.username,
+        session.data.roles,
+        session.id
+      );
 
       // Update session last accessed time
       await this.sessionStore.touch(session.id);
 
       // Log token refresh
       await logSecurityEvent(SecurityEventType.TOKEN_REFRESHED, {
-        sessionId: session.id,
-        userId: session.userId,
+        resource: `session:${session.id}`,
+        userId: session.data.userId,
         result: 'success',
+        metadata: {
+          username: session.data.username,
+        },
       });
 
       callback(null, {
@@ -168,7 +171,7 @@ export class SessionAuth {
   }
 
   private isSessionExpired(session: Session): boolean {
-    return session.expiresAt < Date.now();
+    return new Date(session.data.expiresAt).getTime() < Date.now();
   }
 
   private sendSessionExpired(callback: grpc.sendUnaryData<ValidateSessionResponse>, session: Session): void {

@@ -99,7 +99,7 @@ export function shouldIncludeContext(
  * Check if context matches type filter
  */
 function checkTypeFilter(context: Context, filter: ContextFilter): boolean {
-  if ((filter.types?.length ?? 0) > 0 && !filter.types.includes(context.type)) {
+  if (filter.types && filter.types.length > 0 && !filter.types.includes(context.type)) {
     return false;
   }
   return true;
@@ -109,7 +109,7 @@ function checkTypeFilter(context: Context, filter: ContextFilter): boolean {
  * Check if context matches status filter
  */
 function checkStatusFilter(context: Context, filter: ContextFilter): boolean {
-  if ((filter.statuses?.length ?? 0) > 0 && !filter.statuses.includes(context.status)) {
+  if (filter.statuses && filter.statuses.length > 0 && !filter.statuses.includes(context.status)) {
     return false;
   }
   return true;
@@ -144,7 +144,7 @@ export function validateCommandContext(context: Context): void {
   if (!commandEnabledTypes.includes(context.type)) {
     throw new AppError(
       'Context type does not support command execution',
-      'INVALID_ARGUMENT'
+      400
     );
   }
 }
@@ -172,7 +172,7 @@ export function parsePagination(pagination?: {
   page_token?: string;
 }): PaginationParams {
   const pageSize = pagination?.page_size ?? 20;
-  const offset = (pagination?.page_token ?? '') !== '' ? parseInt(pagination.page_token) : 0;
+  const offset = (pagination?.page_token ?? '') !== '' ? parseInt(pagination?.page_token ?? '0') : 0;
   
   return { pageSize, offset };
 }

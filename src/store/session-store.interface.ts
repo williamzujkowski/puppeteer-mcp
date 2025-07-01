@@ -5,6 +5,9 @@
 
 import type { Session, SessionData } from '../types/session.js';
 
+// Re-export for convenience
+export type { Session, SessionData };
+
 /**
  * Interface for session storage implementations
  */
