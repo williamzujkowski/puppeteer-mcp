@@ -50,7 +50,7 @@ router.post(
   '/',
   requireAuth,
   validateRequest(createApiKeySchema),
-  async (req: AuthenticatedRequest, res) => {
+  async (req, res) => {
     const { name, roles, scopes, expiresIn, metadata } = req.body;
 
     // Calculate expiration time if provided
@@ -97,7 +97,7 @@ router.get(
   '/',
   requireAuth,
   validateRequest(listApiKeysSchema),
-  async (req: AuthenticatedRequest, res) => {
+  async (req, res) => {
     const { active } = req.query;
 
     // Get all keys for user
@@ -138,7 +138,7 @@ router.get(
 router.get(
   '/:id',
   requireAuth,
-  async (req: AuthenticatedRequest, res) => {
+  async (req, res) => {
     const { id } = req.params;
 
     const key = await apiKeyStore.get(id);
@@ -182,7 +182,7 @@ router.get(
 router.delete(
   '/:id',
   requireAuth,
-  async (req: AuthenticatedRequest, res) => {
+  async (req, res) => {
     const { id } = req.params;
 
     const key = await apiKeyStore.get(id);

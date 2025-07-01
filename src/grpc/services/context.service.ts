@@ -17,7 +17,6 @@ import {
   validateRequiredField,
   toProtoTimestamp,
   parsePagination,
-  type ContextFilter,
 } from './context-helpers.js';
 import { CommandExecutor } from './command-executor.js';
 import type {
@@ -116,10 +115,10 @@ export class ContextServiceImpl {
    * Get context details
    * @nist ac-3 "Access enforcement"
    */
-  getContext(
+  async getContext(
     call: AuthenticatedServerUnaryCall<GetContextRequest, GetContextResponse>,
     callback: grpc.sendUnaryData<GetContextResponse>,
-  ): void {
+  ): Promise<void> {
     try {
       const { context_id } = call.request;
 
@@ -166,7 +165,7 @@ export class ContextServiceImpl {
       checkContextAccess(context, call.userId, call.roles);
 
       // Apply updates and save
-      const updatedContext = await contextStore.update(context_id, {
+      await contextStore.update(context_id, {
         config: config ?? context.config,
         metadata: metadata ?? context.metadata,
       });
@@ -330,10 +329,10 @@ export class ContextServiceImpl {
    * @nist si-10 "Information input validation"
    * @nist au-3 "Content of audit records"
    */
-  executeCommand(
+  async executeCommand(
     call: AuthenticatedServerUnaryCall<ExecuteCommandRequest, ExecuteCommandResponse>,
     callback: grpc.sendUnaryData<ExecuteCommandResponse>,
-  ): void {
+  ): Promise<void> {
     try {
       const { context_id } = call.request;
       validateRequiredField(context_id, 'Context ID');
@@ -357,9 +356,9 @@ export class ContextServiceImpl {
    * @nist ac-3 "Access enforcement"
    * @nist si-10 "Information input validation"
    */
-  streamCommand(
+  async streamCommand(
     call: AuthenticatedServerWritableStream<ExecuteCommandRequest, ExecuteCommandResponse>,
-  ): void {
+  ): Promise<void> {
     try {
       const { context_id } = call.request;
 

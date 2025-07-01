@@ -134,7 +134,7 @@ async function handleGetUserSessions(
       throw new AppError('Not authenticated', 401);
     }
 
-    const sessions = await sessionStore.getByUserId(req.user.id);
+    const sessions = await sessionStore.getByUserId(req.user.userId);
 
     res.json({
       success: true,
@@ -176,7 +176,7 @@ async function handleTerminateSession(
     }
 
     // Check if user owns this session or is admin
-    if (session.data.userId !== req.user.id && !req.user.roles.includes('admin')) {
+    if (session.data.userId !== req.user.userId && !req.user.roles.includes('admin')) {
       throw new AppError('Cannot terminate session for another user', 403);
     }
 
@@ -189,11 +189,11 @@ async function handleTerminateSession(
 
     // Log session termination
     await logSecurityEvent(SecurityEventType.LOGOUT, {
-      userId: req.user.id,
+      userId: req.user.userId,
       result: 'success',
       metadata: {
         terminatedSessionId: sessionId,
-        terminatedByUser: req.user.id,
+        terminatedByUser: req.user.userId,
         ip: req.ip,
         userAgent: req.headers['user-agent'],
       },
@@ -224,7 +224,7 @@ async function handleTerminateAllSessions(
     }
 
     // Get all user sessions
-    const sessions = await sessionStore.getByUserId(req.user.id);
+    const sessions = await sessionStore.getByUserId(req.user.userId);
 
     let deletedCount = 0;
 
@@ -240,7 +240,7 @@ async function handleTerminateAllSessions(
 
     // Log mass session termination
     await logSecurityEvent(SecurityEventType.LOGOUT, {
-      userId: req.user.id,
+      userId: req.user.userId,
       result: 'success',
       metadata: {
         action: 'terminate_all',

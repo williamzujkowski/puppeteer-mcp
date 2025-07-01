@@ -15,7 +15,7 @@ import {
   checkContextAccess,
   validateCommandContext,
 } from './context-helpers.js';
-import type { Context } from './context.service.js';
+import type { Context } from '../../store/context-store.js';
 import type { AuthenticatedServerUnaryCall, AuthenticatedServerWritableStream } from '../interceptors/types.js';
 import type { ExecuteCommandRequest, ExecuteCommandResponse } from '../types/context.types.js';
 

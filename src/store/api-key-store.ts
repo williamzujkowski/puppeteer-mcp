@@ -8,7 +8,6 @@
 
 import { createHash } from 'crypto';
 import { v4 as uuidv4 } from 'uuid';
-import { AppError } from '../core/errors/app-error.js';
 import { logSecurityEvent, SecurityEventType } from '../utils/logger.js';
 
 /**
@@ -182,8 +181,8 @@ export class InMemoryApiKeyStore implements ApiKeyStore {
 
     await logSecurityEvent(SecurityEventType.LOGIN_SUCCESS, {
       userId: apiKey.userId,
-      method: 'api_key',
       result: 'success',
+      metadata: { method: 'api_key' },
     });
 
     return apiKey;

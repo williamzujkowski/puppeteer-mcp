@@ -54,6 +54,7 @@ export enum SecurityEventType {
   INVALID_TOKEN = 'INVALID_TOKEN',
   RATE_LIMIT_EXCEEDED = 'RATE_LIMIT_EXCEEDED',
   SUSPICIOUS_ACTIVITY = 'SUSPICIOUS_ACTIVITY',
+  VALIDATION_FAILURE = 'VALIDATION_FAILURE',
   
   // Connection events
   CONNECTION_ATTEMPT = 'CONNECTION_ATTEMPT',
@@ -263,11 +264,12 @@ export const runWithRequestContext = <T>(
 /**
  * Express middleware to set request context
  */
-export const requestContextMiddleware = (req: Request, res: Response, next: NextFunction): void => {
-  const requestId = req.id ?? req.headers['x-request-id'] ?? pino.stdSerializers.req(req).id;
-  const userId = req.user?.id;
+export const requestContextMiddleware = (req: Request, _res: Response, next: NextFunction): void => {
+  const xRequestId = req.headers['x-request-id'];
+  const requestId = req.id ?? (typeof xRequestId === 'string' ? xRequestId : undefined) ?? pino.stdSerializers.req(req).id;
+  const userId = req.user?.userId;
   
-  runWithRequestContext(requestId, userId, () => {
+  runWithRequestContext(requestId as string, userId, () => {
     next();
   });
 };

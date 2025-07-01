@@ -37,7 +37,7 @@ export class ContextHandlers {
       const config = contextConfigSchema.parse(req.body);
 
       // Create context
-      const context = await this.storage.createContext(req.user.id, config);
+      const context = await this.storage.createContext(req.user.userId, config);
 
       res.status(201).json({
         success: true,
@@ -62,7 +62,7 @@ export class ContextHandlers {
         throw new AppError('Not authenticated', 401);
       }
 
-      const userContextList = await this.storage.getUserContexts(req.user.id);
+      const userContextList = await this.storage.getUserContexts(req.user.userId);
 
       res.json({
         success: true,
@@ -86,7 +86,7 @@ export class ContextHandlers {
       }
 
       const { contextId } = req.params;
-      const context = await this.storage.getContext(contextId, req.user.id, req.user.roles);
+      const context = await this.storage.getContext(contextId, req.user.userId, req.user.roles);
 
       res.json({
         success: true,
@@ -115,7 +115,7 @@ export class ContextHandlers {
       const updates = contextConfigSchema.partial().parse(req.body);
 
       // Update context
-      const context = await this.storage.updateContext(contextId, updates, req.user.id, req.user.roles);
+      const context = await this.storage.updateContext(contextId, updates, req.user.userId, req.user.roles);
 
       res.json({
         success: true,
@@ -140,7 +140,7 @@ export class ContextHandlers {
 
       const { contextId } = req.params;
 
-      await this.storage.deleteContext(contextId, req.user.id, req.user.roles);
+      await this.storage.deleteContext(contextId, req.user.userId, req.user.roles);
 
       res.json({
         success: true,
@@ -169,11 +169,11 @@ export class ContextHandlers {
       const { action, params } = actionSchema.parse(req.body);
 
       // Update context last used timestamp
-      this.storage.touchContext(contextId, req.user.id, req.user.roles);
+      this.storage.touchContext(contextId, req.user.userId, req.user.roles);
 
       // Log action execution
       await logDataAccess('WRITE', `context/${contextId}`, {
-        userId: req.user.id,
+        userId: req.user.userId,
         action: 'execute_action',
         executedAction: action,
       });

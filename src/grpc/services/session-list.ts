@@ -13,7 +13,6 @@ import { SessionUtils } from './session-utils.js';
 import type {
   ListSessionsRequest,
   ListSessionsResponse,
-  SessionProto,
 } from '../types/session.types.js';
 
 /**

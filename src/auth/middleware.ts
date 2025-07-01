@@ -37,7 +37,7 @@ const handleAuthSuccess = async (
 ): Promise<void> => {
   // Attach user info to request
   req.user = {
-    id: payload.sub,
+    userId: payload.sub,
     username: payload.username,
     roles: payload.roles,
     sessionId: payload.sessionId,
@@ -145,7 +145,7 @@ export const createApiKeyMiddleware = (validateApiKey: (key: string) => Promise<
 
       // Attach key info to request (using a synthetic user object)
       req.user = {
-        id: `api-key:${validatedKey.name}`,
+        userId: `api-key:${validatedKey.name}`,
         username: `api-key:${validatedKey.name}`,
         roles: validatedKey.permissions,
         sessionId: 'api-key-session',
@@ -153,7 +153,7 @@ export const createApiKeyMiddleware = (validateApiKey: (key: string) => Promise<
 
       // Log successful authentication
       await logSecurityEvent(SecurityEventType.ACCESS_GRANTED, {
-        userId: req.user.id,
+        userId: req.user.userId,
         resource: req.path,
         action: req.method,
         result: 'success',
@@ -199,7 +199,7 @@ export const requireRoles = (...requiredRoles: string[]) => {
 
       if (!hasRequiredRole) {
         await logSecurityEvent(SecurityEventType.ACCESS_DENIED, {
-          userId: req.user.id,
+          userId: req.user.userId,
           resource: req.path,
           action: req.method,
           result: 'failure',
@@ -265,7 +265,7 @@ export const requirePermissions = (...requiredPermissions: string[]) => {
 
       if (!hasRequiredPermission) {
         await logSecurityEvent(SecurityEventType.ACCESS_DENIED, {
-          userId: req.user.id,
+          userId: req.user.userId,
           resource: req.path,
           action: req.method,
           result: 'failure',

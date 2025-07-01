@@ -46,7 +46,7 @@ export class WSSubscriptionManager {
     // Check authentication
     const connectionState = this.connectionManager.getConnectionState(connectionId);
     if (connectionState?.authenticated !== true) {
-      this.sendError(ws, message.id ?? undefined, 'UNAUTHORIZED', 'Authentication required');
+      this.sendError(ws, message.id ?? '', 'UNAUTHORIZED', 'Authentication required');
       return;
     }
 
@@ -56,7 +56,7 @@ export class WSSubscriptionManager {
       if (message.type === WSMessageType.SUBSCRIBE) {
         // Validate subscription permission
         if (!this.validateSubscriptionPermission(connectionState, topic)) {
-          this.sendError(ws, message.id ?? undefined, 'FORBIDDEN', 'Access denied to topic');
+          this.sendError(ws, message.id ?? '', 'FORBIDDEN', 'Access denied to topic');
           return;
         }
 

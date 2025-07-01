@@ -57,7 +57,7 @@ export function validateRequest<T extends ZodSchema>(schema: T) {
         });
       } else {
         // Pass unexpected errors to error handler
-        next(new AppError('Validation error', 500, error as Error));
+        next(new AppError('Validation error', 500));
       }
     }
   };

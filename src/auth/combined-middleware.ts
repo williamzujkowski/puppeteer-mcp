@@ -19,7 +19,7 @@ import type { AuthenticatedRequest } from '../types/express.js';
  * @nist ac-3 "Access enforcement"
  */
 export const createCombinedAuthMiddleware = (sessionStore: SessionStore) => {
-  return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  return async (req: Request, _res: Response, next: NextFunction): Promise<void> => {
     try {
       // Check for API key first
       const apiKeyHeader = req.headers['x-api-key'] as string | undefined;
