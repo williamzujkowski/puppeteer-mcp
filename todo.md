@@ -34,10 +34,12 @@
 
 ### Authentication & Authorization
 
-- [ ] **API Key Authentication** (`src/ws/auth-handler.ts:231`)
-  - [ ] Implement API key validation for WebSocket connections
-  - [ ] Add API key storage and management
-  - [ ] Integrate with session store
+- [x] **API Key Authentication** (`src/ws/auth-handler.ts:231`)
+  - [x] Implement API key validation for WebSocket connections
+  - [x] Add API key storage and management
+  - [x] Create REST API endpoints for API key management
+  - [x] Integrate with session store
+  - [x] Support API keys in both REST and WebSocket protocols
 
 - [ ] **Permission Checking** (`src/ws/auth-handler.ts:307`)
   - [ ] Implement granular permission checking

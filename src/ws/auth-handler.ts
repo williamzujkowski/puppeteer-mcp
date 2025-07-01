@@ -12,6 +12,7 @@ import { v4 as uuidv4 } from 'uuid';
 import type { SessionStore } from '../store/session-store.interface.js';
 import { verifyToken } from '../auth/jwt.js';
 import { logSecurityEvent, SecurityEventType } from '../utils/logger.js';
+import { apiKeyStore } from '../store/api-key-store.js';
 import { WSMessageType } from '../types/websocket.js';
 
 interface AuthFailureOptions {
@@ -79,7 +80,7 @@ export class WSAuthHandler {
 
       // Try API key authentication
       if (this.hasValidApiKey(apiKey)) {
-        const result = this.authenticateWithApiKey(ws, connectionId, message.id, apiKey ?? '');
+        const result = await this.authenticateWithApiKey(ws, connectionId, message.id, apiKey ?? '');
         if (result.success) {
           return result;
         }
@@ -221,19 +222,62 @@ export class WSAuthHandler {
    * Authenticate with API key
    * @nist ia-2 "Identification and authentication"
    */
-  private authenticateWithApiKey(
-    _ws: WebSocket,
-    _connectionId: string,
-    _messageId: string | undefined,
-    _apiKey: string
-  ): { success: boolean; userId?: string; sessionId?: string; error?: string } {
+  private async authenticateWithApiKey(
+    ws: WebSocket,
+    connectionId: string,
+    messageId: string | undefined,
+    apiKey: string
+  ): Promise<{ success: boolean; userId?: string; sessionId?: string; roles?: string[]; error?: string }> {
     try {
-      // TODO: Implement API key authentication
-      // For now, this is a placeholder
-      this.logger.warn('API key authentication not yet implemented');
-      return { success: false, error: 'API key authentication not implemented' };
+      // Verify API key
+      const keyData = await apiKeyStore.verify(apiKey);
+      
+      if (!keyData) {
+        await logSecurityEvent(SecurityEventType.LOGIN_FAILURE, {
+          method: 'api_key',
+          reason: 'Invalid API key',
+          result: 'failure',
+        });
+        return { success: false, error: 'Invalid API key' };
+      }
+
+      // Create a new session for the API key
+      const sessionData = {
+        userId: keyData.userId,
+        username: `apikey:${keyData.name}`,
+        roles: keyData.roles,
+        createdAt: new Date().toISOString(),
+        expiresAt: keyData.expiresAt 
+          ? new Date(keyData.expiresAt).toISOString() 
+          : new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24 hours default
+        metadata: {
+          authMethod: 'api_key',
+          apiKeyId: keyData.id,
+          apiKeyName: keyData.name,
+        },
+      };
+
+      const session = await this.sessionStore.create(sessionData);
+
+      // Log successful authentication
+      await logSecurityEvent(SecurityEventType.LOGIN_SUCCESS, {
+        userId: keyData.userId,
+        method: 'api_key',
+        result: 'success',
+        metadata: {
+          apiKeyId: keyData.id,
+          sessionId: session.id,
+        },
+      });
+
+      return {
+        success: true,
+        userId: keyData.userId,
+        sessionId: session.id,
+        roles: keyData.roles,
+      };
     } catch (error) {
-      this.logger.debug('API key authentication failed:', error);
+      this.logger.error('API key authentication error:', error);
       return { success: false, error: 'API key validation failed' };
     }
   }

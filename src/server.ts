@@ -25,6 +25,7 @@ import { requestContextMiddleware, logSecurityEvent, SecurityEventType } from '.
 import { healthRouter } from './routes/health.js';
 import { createSessionRoutes } from './routes/sessions.js';
 import { createContextRoutes } from './routes/contexts.js';
+import { createApiKeyRoutes } from './routes/api-keys.js';
 import { InMemorySessionStore } from './store/in-memory-session-store.js';
 import { createGrpcServer, GrpcServer } from './grpc/server.js';
 import { createWebSocketServer, WSServer } from './ws/server.js';
@@ -146,6 +147,7 @@ export function createApp(): Application {
   // Mount versioned routes
   apiRouter.use('/sessions', createSessionRoutes(sessionStore));
   apiRouter.use('/contexts', createContextRoutes(sessionStore));
+  apiRouter.use('/api-keys', createApiKeyRoutes(sessionStore));
 
   // Mount API router
   app.use(`${config.API_PREFIX}/${config.API_VERSION}`, apiRouter);
