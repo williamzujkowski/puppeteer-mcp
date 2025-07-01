@@ -41,10 +41,7 @@ export class ContextHandlers {
 
       res.status(201).json({
         success: true,
-        data: {
-          id: context.id,
-          ...context,
-        },
+        data: context,
       });
     } catch (error) {
       next(error);

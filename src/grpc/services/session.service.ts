@@ -39,7 +39,6 @@ import type {
  * @nist ac-3 "Access enforcement"
  */
 export class SessionServiceImpl {
-  [key: string]: (...args: unknown[]) => unknown;
   private operations: SessionOperations;
   private auth: SessionAuth;
   private stream: SessionStream;

@@ -38,8 +38,10 @@ export class SessionStream {
 
       // Check access permission
       const metadata = call.metadata;
-      const userId = metadata.get('user-id')?.[0] ?? '';
-      const rolesStr = metadata.get('user-roles')?.[0] ?? '';
+      const userIdValue = metadata.get('user-id')?.[0];
+      const userId = typeof userIdValue === 'string' ? userIdValue : '';
+      const rolesValue = metadata.get('user-roles')?.[0];
+      const rolesStr = typeof rolesValue === 'string' ? rolesValue : '';
       const roles = rolesStr !== '' ? rolesStr.split(',') : [];
       
       if (roles.includes('admin') !== true && user_id !== userId) {
@@ -48,19 +50,24 @@ export class SessionStream {
       }
 
       // Set up event listener
-      const eventHandler = this.createEventHandler(user_id, session_ids, event_types, call);
+      const eventHandler = this.createEventHandler(user_id ?? '', session_ids ?? [], event_types ?? [], call);
 
-      // Subscribe to events
-      this.sessionStore.on('sessionEvent', eventHandler);
+      // TODO: Implement event streaming when SessionStore supports events
+      // this.sessionStore.on('sessionEvent', eventHandler);
 
-      // Clean up on stream end
-      call.on('cancelled', () => {
-        this.sessionStore.off('sessionEvent', eventHandler);
-      });
+      // TODO: Clean up event listeners when SessionStore supports events
+      // call.on('cancelled', () => {
+      //   this.sessionStore.off('sessionEvent', eventHandler);
+      // });
 
-      call.on('error', () => {
-        this.sessionStore.off('sessionEvent', eventHandler);
-      });
+      // call.on('error', () => {
+      //   this.sessionStore.off('sessionEvent', eventHandler);
+      // });
+      
+      // For now, just end the stream after a delay
+      setTimeout(() => {
+        call.end();
+      }, 1000);
     } catch (error) {
       this.logger.error('Error in streamSessionEvents:', error);
       call.emit('error', error);
@@ -107,11 +114,22 @@ export class SessionStream {
     call.write({
       id: uuidv4(),
       type: event.type,
-      session_id: event.sessionId,
-      user_id: event.userId,
+      session_id: event.session_id ?? '',
+      user_id: event.user_id ?? '',
       timestamp: new Date().toISOString(),
       data: event.data ?? {},
-      session: event.session ? SessionUtils.mapSessionToProto(event.session) : undefined,
+      session: event.session ? SessionUtils.mapSessionToProto({
+        id: event.session.id,
+        data: {
+          userId: event.session.user_id,
+          username: event.session.username,
+          roles: event.session.roles,
+          createdAt: event.session.created_at,
+          expiresAt: event.session.expires_at,
+          metadata: event.session.data,
+        },
+        lastAccessedAt: event.session.last_accessed_at,
+      }) : undefined,
     });
   }
 

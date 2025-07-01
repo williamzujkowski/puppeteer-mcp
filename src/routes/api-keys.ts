@@ -12,7 +12,6 @@ import { createCombinedAuthMiddleware } from '../auth/combined-middleware.js';
 import { apiKeyStore } from '../store/api-key-store.js';
 import { validateRequest } from '../core/middleware/validate-request.js';
 import { AppError } from '../core/errors/app-error.js';
-import type { AuthenticatedRequest } from '../types/express.js';
 import type { SessionStore } from '../store/session-store.interface.js';
 
 // Create API key schema
@@ -111,9 +110,9 @@ router.get(
 
     // Map to response format (never expose key hash)
     const response = keys.map(key => ({
-      id: key.id,
-      name: key.name,
-      prefix: key.prefix,
+      id: key!.id,
+      name: key!.name,
+      prefix: key!.prefix,
       roles: key.roles,
       scopes: key.scopes,
       active: key.active,
@@ -140,6 +139,10 @@ router.get(
   requireAuth,
   async (req, res) => {
     const { id } = req.params;
+
+    if (!id) {
+      throw new AppError('API key ID is required', 400);
+    }
 
     const key = await apiKeyStore.get(id);
     
@@ -185,6 +188,10 @@ router.delete(
   async (req, res) => {
     const { id } = req.params;
 
+    if (!id) {
+      throw new AppError('API key ID is required', 400);
+    }
+
     const key = await apiKeyStore.get(id);
     
     if (!key) {
@@ -197,7 +204,7 @@ router.delete(
     }
 
     // Revoke the key
-    await apiKeyStore.revoke(id);
+    await apiKeyStore.revoke(id!);
 
     res.json({
       message: 'API key revoked successfully',

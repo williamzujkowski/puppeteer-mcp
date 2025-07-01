@@ -257,7 +257,7 @@ export const requirePermissions = (...requiredPermissions: string[]) => {
       }
 
       // For API keys, roles are actually permissions
-      const userPermissions = req.user.id.startsWith('api-key:') ? req.user.roles : [];
+      const userPermissions = req.user.userId.startsWith('api-key:') ? req.user.roles : [];
 
       const hasRequiredPermission = requiredPermissions.every((perm) =>
         userPermissions.includes(perm),
