@@ -8,7 +8,6 @@
 
 import * as grpc from '@grpc/grpc-js';
 import { pino } from 'pino';
-import { v4 as uuidv4 } from 'uuid';
 import type { SessionStore } from '../../store/session-store.interface.js';
 import { AppError } from '../../core/errors/app-error.js';
 import { logSecurityEvent, SecurityEventType } from '../../utils/logger.js';
@@ -16,8 +15,6 @@ import {
   validateContextType,
   checkContextAccess,
   validateRequiredField,
-  applyFieldUpdates,
-  shouldIncludeContext,
   toProtoTimestamp,
   parsePagination,
   type ContextFilter,
@@ -44,23 +41,7 @@ import type {
   AuthenticatedServerUnaryCall,
   AuthenticatedServerWritableStream,
 } from '../interceptors/types.js';
-
-// Context interface
-export interface Context {
-  id: string;
-  sessionId: string;
-  name: string;
-  type: string;
-  config: Record<string, unknown>;
-  metadata: Record<string, unknown>;
-  createdAt: number;
-  updatedAt: number;
-  status: string;
-  userId: string;
-}
-
-// In-memory context store (should be replaced with proper storage)
-const contexts = new Map<string, Context>();
+import { contextStore, type Context } from '../../store/context-store.js';
 
 /**
  * Context service implementation
@@ -99,34 +80,26 @@ export class ContextServiceImpl {
       validateContextType(type);
 
       // Create context
-      const contextId = uuidv4();
-      const now = Date.now();
-
-      const context: Context = {
-        id: contextId,
+      const context = await contextStore.create({
         sessionId: session_id,
-        name: name ?? `Context-${contextId.substring(0, 8)}`,
+        name: name ?? `Context-${Date.now()}`,
         type,
         config: config ?? {},
         metadata: metadata ?? {},
-        createdAt: now,
-        updatedAt: now,
         status: 'CONTEXT_STATUS_ACTIVE',
         userId: call.userId ?? '',
-      };
-
-      contexts.set(contextId, context);
+      });
 
       // Log context creation
       await logSecurityEvent(SecurityEventType.RESOURCE_CREATED, {
-        resource: `context/${contextId}`,
+        resource: `context/${context.id}`,
         action: 'create',
         result: 'success',
         metadata: {
           sessionId: session_id,
           userId: call.userId,
           type,
-          contextId,
+          contextId: context.id,
         },
       });
 
@@ -152,7 +125,7 @@ export class ContextServiceImpl {
 
       validateRequiredField(context_id, 'Context ID');
 
-      const context = contexts.get(context_id);
+      const context = await contextStore.get(context_id);
 
       if (!context) {
         throw new AppError('Context not found', 404);
@@ -183,7 +156,7 @@ export class ContextServiceImpl {
 
       validateRequiredField(context_id, 'Context ID');
 
-      const context = contexts.get(context_id);
+      const context = await contextStore.get(context_id);
 
       if (!context) {
         throw new AppError('Context not found', 404);
@@ -192,8 +165,11 @@ export class ContextServiceImpl {
       // Check access permission
       checkContextAccess(context, call.userId, call.roles);
 
-      // Apply updates
-      applyFieldUpdates(context as unknown as Record<string, unknown>, { config, metadata }, { paths: update_mask });
+      // Apply updates and save
+      const updatedContext = await contextStore.update(context_id, {
+        config: config ?? context.config,
+        metadata: metadata ?? context.metadata,
+      });
 
       // Log context update
       await logSecurityEvent(SecurityEventType.RESOURCE_UPDATED, {
@@ -228,7 +204,7 @@ export class ContextServiceImpl {
 
       validateRequiredField(context_id, 'Context ID');
 
-      const context = contexts.get(context_id);
+      const context = await contextStore.get(context_id);
 
       if (!context) {
         throw new AppError('Context not found', 404);
@@ -238,8 +214,8 @@ export class ContextServiceImpl {
       checkContextAccess(context, call.userId, call.roles);
 
       // Clean up context resources
-      context.status = 'CONTEXT_STATUS_TERMINATED';
-      contexts.delete(context_id);
+      await contextStore.update(context_id, { status: 'CONTEXT_STATUS_TERMINATED' });
+      await contextStore.delete(context_id);
 
       // Log context deletion
       await logSecurityEvent(SecurityEventType.RESOURCE_DELETED, {
@@ -279,9 +255,11 @@ export class ContextServiceImpl {
       checkContextAccess({ userId: session.data.userId } as Context, call.userId, call.roles);
 
       // Filter contexts
-      const allContexts = Array.from(contexts.values())
-        .filter((ctx) => ctx.sessionId === session_id)
-        .filter((ctx) => shouldIncludeContext(ctx, filter as ContextFilter));
+      const allContexts = await contextStore.list({
+        sessionId: session_id,
+        types: filter?.types,
+        statuses: filter?.statuses,
+      });
 
       // Paginate
       const { pageSize, offset } = parsePagination(pagination);
@@ -360,7 +338,7 @@ export class ContextServiceImpl {
       const { context_id } = call.request;
       validateRequiredField(context_id, 'Context ID');
 
-      const context = contexts.get(context_id);
+      const context = await contextStore.get(context_id);
       if (!context) {
         throw new AppError('Context not found', 404);
       }
@@ -392,7 +370,7 @@ export class ContextServiceImpl {
         return;
       }
 
-      const context = contexts.get(context_id);
+      const context = await contextStore.get(context_id);
       if (!context) {
         call.emit('error', new AppError('Context not found', 404));
         return;

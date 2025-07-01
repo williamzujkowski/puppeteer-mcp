@@ -26,10 +26,11 @@
 
 ### WebSocket Implementation
 
-- [ ] **Context Operations** (`src/ws/request-processor.ts:202`)
-  - [ ] Implement context CRUD operations via WebSocket
+- [x] **Context Operations** (`src/ws/request-processor.ts:202`)
+  - [x] Implement context CRUD operations via WebSocket
+  - [x] Create shared context store for both gRPC and WebSocket
+  - [x] Integrate with existing context service
   - [ ] Add context event broadcasting
-  - [ ] Integrate with existing context service
 
 ### Authentication & Authorization
 
