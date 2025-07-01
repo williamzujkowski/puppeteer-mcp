@@ -21,7 +21,7 @@ export class InMemorySessionStore implements SessionStore {
   private cleanupInterval?: NodeJS.Timeout;
 
   constructor(logger?: pino.Logger) {
-    this.logger = logger || pino({ level: 'info' });
+    this.logger = logger ?? pino({ level: 'info' });
 
     // Start cleanup interval for expired sessions
     this.cleanupInterval = setInterval(() => {
@@ -46,7 +46,10 @@ export class InMemorySessionStore implements SessionStore {
     if (!this.userSessions.has(data.userId)) {
       this.userSessions.set(data.userId, new Set());
     }
-    this.userSessions.get(data.userId)!.add(id);
+    const userSessionSet = this.userSessions.get(data.userId);
+    if (userSessionSet !== undefined) {
+      userSessionSet.add(id);
+    }
 
     this.logger.info({ sessionId: id, userId: data.userId }, 'Session created');
 
@@ -176,6 +179,7 @@ export class InMemorySessionStore implements SessionStore {
     return session !== null;
   }
 
+  // eslint-disable-next-line require-await, @typescript-eslint/require-await
   async touch(id: string): Promise<boolean> {
     const session = this.sessions.get(id);
 
@@ -198,6 +202,7 @@ export class InMemorySessionStore implements SessionStore {
   /**
    * Clear all sessions (for testing)
    */
+  // eslint-disable-next-line require-await, @typescript-eslint/require-await
   async clear(): Promise<void> {
     this.sessions.clear();
     this.userSessions.clear();

@@ -4,6 +4,7 @@
  */
 
 import { z } from 'zod';
+import type { ChannelCredentials, ServerCredentials } from '@grpc/grpc-js';
 
 /**
  * gRPC status codes
@@ -124,7 +125,7 @@ export type GrpcEmpty = z.infer<typeof grpcEmptySchema>;
 export interface GrpcCallOptions {
   deadline?: Date;
   metadata?: GrpcMetadata;
-  credentials?: any;
+  credentials?: ChannelCredentials;
   propagateFlags?: number;
 }
 
@@ -134,7 +135,7 @@ export interface GrpcCallOptions {
 export interface GrpcServerOptions {
   host: string;
   port: number;
-  credentials?: any;
+  credentials?: ServerCredentials;
   maxReceiveMessageSize?: number;
   maxSendMessageSize?: number;
   keepaliveTime?: number;
@@ -147,7 +148,7 @@ export interface GrpcServerOptions {
  */
 export interface GrpcClientOptions {
   address: string;
-  credentials?: any;
+  credentials?: ChannelCredentials;
   maxReceiveMessageSize?: number;
   maxSendMessageSize?: number;
   channelOptions?: Record<string, unknown>;

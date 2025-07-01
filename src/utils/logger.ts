@@ -11,6 +11,7 @@ import { mkdir } from 'fs/promises';
 import { dirname, join } from 'path';
 import { AsyncLocalStorage } from 'async_hooks';
 import { config } from '@core/config.js';
+import type { Request, Response, NextFunction } from 'express';
 
 // AsyncLocalStorage for request context
 const requestContext = new AsyncLocalStorage<{ requestId: string; userId?: string }>();
@@ -130,6 +131,7 @@ const createAuditLogger = async (): Promise<PinoLogger> => {
 
   // Ensure audit log directory exists
   const auditLogDir = dirname(config.AUDIT_LOG_PATH);
+  // eslint-disable-next-line security/detect-non-literal-fs-filename
   await mkdir(auditLogDir, { recursive: true });
 
   const auditLogFile = join(config.AUDIT_LOG_PATH, `audit-${new Date().toISOString().split('T')[0]}.log`);
@@ -248,8 +250,8 @@ export const runWithRequestContext = <T>(
 /**
  * Express middleware to set request context
  */
-export const requestContextMiddleware = (req: any, res: any, next: any): void => {
-  const requestId = req.id || req.headers['x-request-id'] || pino.stdSerializers.req(req).id;
+export const requestContextMiddleware = (req: Request, res: Response, next: NextFunction): void => {
+  const requestId = req.id ?? req.headers['x-request-id'] ?? pino.stdSerializers.req(req).id;
   const userId = req.user?.id;
   
   runWithRequestContext(requestId, userId, () => {

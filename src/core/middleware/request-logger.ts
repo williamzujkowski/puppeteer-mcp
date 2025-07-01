@@ -4,11 +4,9 @@
  * @nist au-3 "Content of audit records"
  */
 
-// Express types are handled through any for now
 import type { Logger } from 'pino';
 import { randomUUID } from 'crypto';
-
-// Type extensions are now in types/express.d.ts
+import type { Request, Response, NextFunction } from 'express';
 
 /**
  * Create request logging middleware
@@ -16,7 +14,7 @@ import { randomUUID } from 'crypto';
  * @returns Express middleware
  */
 export const requestLogger = (logger: Logger) => {
-  return (req: any, res: any, next: any): void => {
+  return (req: Request, res: Response, next: NextFunction): void => {
     // Assign unique request ID
     req.id = randomUUID();
     req.startTime = Date.now();

@@ -12,5 +12,6 @@ declare module 'express' {
       sessionId: string;
     };
     id?: string;
+    startTime?: number;
   }
 }

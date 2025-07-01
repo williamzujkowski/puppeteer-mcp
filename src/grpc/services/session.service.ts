@@ -364,7 +364,7 @@ export class SessionServiceImpl {
       }
 
       // Set up event listener
-      const eventHandler = (event: SessionEvent) => {
+      const eventHandler = (event: SessionEvent): void => {
         // Filter events
         if (user_id !== undefined && user_id !== '' && event.user_id !== user_id) {
           return;
@@ -424,7 +424,7 @@ export class SessionServiceImpl {
       // Verify refresh token
       const payload = await verifyRefreshToken(refresh_token);
       
-      if (!payload?.sessionId) {
+      if (payload?.sessionId === undefined || payload.sessionId === null || payload.sessionId === '') {
         throw new AppError('Invalid refresh token', 401);
       }
 
@@ -593,5 +593,5 @@ export class SessionServiceImpl {
 
 async function verifyAccessToken(token: string): Promise<{ sub: string; sessionId: string }> {
   const { verifyAccessToken: verify } = await import('../../auth/jwt.js');
-  return verify(token);
+  return verify(token) as Promise<{ sub: string; sessionId: string }>;
 }

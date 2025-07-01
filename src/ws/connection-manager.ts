@@ -120,13 +120,19 @@ export class WSConnectionManager {
       if (!this.userConnections.has(userId)) {
         this.userConnections.set(userId, new Set());
       }
-      this.userConnections.get(userId)!.add(connectionId);
+      const userConnectionSet = this.userConnections.get(userId);
+      if (userConnectionSet !== undefined) {
+        userConnectionSet.add(connectionId);
+      }
 
       // Update session mapping
       if (!this.sessionConnections.has(sessionId)) {
         this.sessionConnections.set(sessionId, new Set());
       }
-      this.sessionConnections.get(sessionId)!.add(connectionId);
+      const sessionConnectionSet = this.sessionConnections.get(sessionId);
+      if (sessionConnectionSet !== undefined) {
+        sessionConnectionSet.add(connectionId);
+      }
 
       this.logger.info('Connection authenticated', {
         connectionId,

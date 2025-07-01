@@ -252,7 +252,7 @@ export const createSessionRoutes = (sessionStore: SessionStore): Router => {
    * @nist au-2 "Audit events"
    * @nist ac-3 "Access enforcement"
    */
-  router.get('/', authMiddleware, requireRoles('admin'), (req: Request, res: Response, next: NextFunction) => void (async () => {
+  router.get('/', authMiddleware, requireRoles('admin'), (req: Request, res: Response, next: NextFunction) => {
     try {
       // This would require modification to SessionStore interface
       // For now, return not implemented
@@ -260,7 +260,7 @@ export const createSessionRoutes = (sessionStore: SessionStore): Router => {
     } catch (error) {
       next(error);
     }
-  })());
+  });
 
   /**
    * Admin: Terminate any session

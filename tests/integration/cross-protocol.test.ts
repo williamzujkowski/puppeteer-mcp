@@ -60,7 +60,7 @@ describe('Cross-Protocol Integration', () => {
     sessionStore = new InMemorySessionStore(logger);
 
     // Create Express app
-    app = await createApp();
+    app = createApp();
     
     // Create HTTP server
     httpServer = createServer(app);
@@ -73,7 +73,7 @@ describe('Cross-Protocol Integration', () => {
     wsServer = createWebSocketServer(logger, sessionStore, httpServer);
 
     // Create and start gRPC server
-    grpcServer = await createGrpcServer(logger, sessionStore);
+    grpcServer = createGrpcServer(logger, sessionStore);
     await new Promise<void>((resolve) => {
       const server = grpcServer.getServer();
       server.bindAsync(

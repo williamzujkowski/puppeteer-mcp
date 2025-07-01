@@ -5,9 +5,11 @@ import { promisify } from 'util';
 
 const execAsync = promisify(exec);
 
+import type { ChildProcess } from 'child_process';
+
 declare global {
   // eslint-disable-next-line no-var
-  var e2eServerProcess: any;
+  var e2eServerProcess: ChildProcess | undefined;
 }
 
 // Setup for E2E tests
@@ -20,12 +22,13 @@ beforeAll(async () => {
   process.env.SESSION_TIMEOUT = '3600000'; // 1 hour
 
   // Build the application before E2E tests
+  // eslint-disable-next-line no-console
   console.log('Building application for E2E tests...');
   await execAsync('npm run build');
 });
 
 // Cleanup after all E2E tests
-afterAll(async () => {
+afterAll(() => {
   // Kill any running server processes
   if (global.e2eServerProcess) {
     global.e2eServerProcess.kill();
@@ -78,6 +81,6 @@ export async function stopE2EServer(): Promise<void> {
     global.e2eServerProcess.kill();
     global.e2eServerProcess = undefined;
     // Wait for process to fully terminate
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    await new Promise<void>((resolve) => { setTimeout(resolve, 1000); });
   }
 }

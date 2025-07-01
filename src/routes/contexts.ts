@@ -356,7 +356,7 @@ export const createContextRoutes = (sessionStore: SessionStore): Router => {
    * GET /v1/contexts/:contextId/metrics
    * @nist au-2 "Audit events"
    */
-  router.get('/:contextId/metrics', authMiddleware, (req: Request, res: Response, next: NextFunction) => void (async () => {
+  router.get('/:contextId/metrics', authMiddleware, (req: Request, res: Response, next: NextFunction) => {
     try {
       if (!req.user) {
         throw new AppError('Not authenticated', 401);
@@ -398,7 +398,7 @@ export const createContextRoutes = (sessionStore: SessionStore): Router => {
     } catch (error) {
       next(error);
     }
-  })());
+  });
 
   return router;
 };

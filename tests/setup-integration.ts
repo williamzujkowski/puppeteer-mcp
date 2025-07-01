@@ -11,7 +11,7 @@ declare global {
 }
 
 // Setup for integration tests
-beforeAll(async () => {
+beforeAll(() => {
   // Set integration test specific environment
   process.env.NODE_ENV = 'test';
   process.env.PORT = '0'; // Use random port
@@ -23,16 +23,16 @@ beforeAll(async () => {
 // Cleanup after each test
 afterEach(async () => {
   // Close server if running
-  if (global.testServer) {
+  if (global.testServer !== undefined && global.testServer !== null) {
     await new Promise<void>((resolve) => {
       global.testServer.close(() => resolve());
     });
-    global.testServer = undefined as any;
+    global.testServer = undefined as unknown as http.Server;
   }
 });
 
 // Helper to wait for server to be ready
-export async function waitForServer(server: http.Server, timeout = 5000): Promise<void> {
+export function waitForServer(server: http.Server, timeout = 5000): Promise<void> {
   const start = Date.now();
 
   return new Promise((resolve, reject) => {

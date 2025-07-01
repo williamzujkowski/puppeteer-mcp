@@ -18,8 +18,8 @@ describe('Contexts API Integration Tests', () => {
   const username = 'testuser';
   const roles = ['user'];
 
-  beforeAll(async () => {
-    app = await createApp();
+  beforeAll(() => {
+    app = createApp();
   });
 
   beforeEach(async () => {

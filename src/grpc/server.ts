@@ -63,8 +63,7 @@ export class GrpcServer {
         includeDirs: [join(process.cwd(), 'proto')],
       });
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const proto = grpc.loadPackageDefinition(packageDefinition) as any;
+      const proto = grpc.loadPackageDefinition(packageDefinition);
       
       // Create service implementations with interceptors
       const sessionService = new SessionServiceImpl(this.logger, this.sessionStore);
@@ -120,7 +119,7 @@ export class GrpcServer {
           for (const interceptor of interceptorChain.reverse()) {
             const previousHandler = wrappedHandler;
             wrappedHandler = (call: ExtendedCall, callback?: GrpcCallback) => {
-              interceptor(call, callback as GrpcCallback, previousHandler);
+              void interceptor(call, callback as GrpcCallback, previousHandler);
             };
           }
 
@@ -137,6 +136,78 @@ export class GrpcServer {
   }
 
   /**
+   * Create TLS credentials for gRPC server
+   */
+  private createTLSCredentials(): grpc.ServerCredentials {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const fs = require('fs') as typeof import('fs');
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const path = require('path') as typeof import('path');
+    
+    // Helper function to validate and read TLS files safely
+    const readTLSFile = (filePath: string, fileType: string): Buffer => {
+      // Validate path is a string and not empty
+      if (typeof filePath !== 'string' || filePath.trim() === '') {
+        throw new Error(`Invalid ${fileType} path`);
+      }
+      
+      // Resolve to absolute path
+      const absolutePath = path.resolve(filePath);
+      
+      // Ensure path doesn't contain null bytes
+      if (absolutePath.includes('\0')) {
+        throw new Error(`Invalid ${fileType} path: contains null bytes`);
+      }
+      
+      // Check if file exists and is a file (not directory)
+      try {
+        // eslint-disable-next-line security/detect-non-literal-fs-filename
+        const stats = fs.statSync(absolutePath);
+        if (!stats.isFile()) {
+          throw new Error(`${fileType} path is not a file: ${absolutePath}`);
+        }
+      } catch (error) {
+        throw new Error(`${fileType} file not found or inaccessible: ${absolutePath}`);
+      }
+      
+      // Read file with explicit encoding
+      // eslint-disable-next-line security/detect-non-literal-fs-filename
+      return fs.readFileSync(absolutePath);
+    };
+    
+    // Read TLS files with validation
+    const cert = readTLSFile(config.GRPC_TLS_CERT_PATH as string, 'TLS certificate');
+    const key = readTLSFile(config.GRPC_TLS_KEY_PATH as string, 'TLS key');
+    
+    let ca: Buffer | undefined;
+    if (config.GRPC_TLS_CA_PATH !== null && config.GRPC_TLS_CA_PATH !== undefined && config.GRPC_TLS_CA_PATH !== '') {
+      ca = readTLSFile(config.GRPC_TLS_CA_PATH, 'TLS CA');
+    }
+
+    return grpc.ServerCredentials.createSsl(
+      ca,
+      [{
+        cert_chain: cert,
+        private_key: key,
+      }],
+      config.GRPC_TLS_CLIENT_AUTH // Require client certificates if configured
+    );
+  }
+
+  /**
+   * Check if TLS should be enabled
+   */
+  private shouldEnableTLS(): boolean {
+    return config.TLS_ENABLED === true && 
+           config.GRPC_TLS_CERT_PATH !== null && 
+           config.GRPC_TLS_CERT_PATH !== undefined && 
+           config.GRPC_TLS_CERT_PATH !== '' && 
+           config.GRPC_TLS_KEY_PATH !== null && 
+           config.GRPC_TLS_KEY_PATH !== undefined && 
+           config.GRPC_TLS_KEY_PATH !== '';
+  }
+
+  /**
    * Start the gRPC server
    * @nist sc-8 "Transmission confidentiality and integrity"
    * @nist sc-13 "Cryptographic protection"
@@ -145,68 +216,22 @@ export class GrpcServer {
     return new Promise((resolve, reject) => {
       let credentials: grpc.ServerCredentials;
 
-      if (config.TLS_ENABLED === true && config.GRPC_TLS_CERT_PATH !== null && config.GRPC_TLS_CERT_PATH !== undefined && config.GRPC_TLS_CERT_PATH !== '' && config.GRPC_TLS_KEY_PATH !== null && config.GRPC_TLS_KEY_PATH !== undefined && config.GRPC_TLS_KEY_PATH !== '') {
-        // Production: Use TLS
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const fs = require('fs');
-        const path = require('path');
-        
-        // Helper function to validate and read TLS files safely
-        const readTLSFile = (filePath: string, fileType: string): Buffer => {
-          // Validate path is a string and not empty
-          if (typeof filePath !== 'string' || filePath.trim() === '') {
-            throw new Error(`Invalid ${fileType} path`);
+      try {
+        if (this.shouldEnableTLS()) {
+          // Production: Use TLS
+          credentials = this.createTLSCredentials();
+        } else {
+          // Development: Insecure
+          if (config.NODE_ENV === 'production') {
+            reject(new Error('TLS must be enabled for gRPC in production'));
+            return;
           }
-          
-          // Resolve to absolute path
-          const absolutePath = path.resolve(filePath);
-          
-          // Ensure path doesn't contain null bytes
-          if (absolutePath.includes('\0')) {
-            throw new Error(`Invalid ${fileType} path: contains null bytes`);
-          }
-          
-          // Check if file exists and is a file (not directory)
-          try {
-            // eslint-disable-next-line security/detect-non-literal-fs-filename
-            const stats = fs.statSync(absolutePath);
-            if (!stats.isFile()) {
-              throw new Error(`${fileType} path is not a file: ${absolutePath}`);
-            }
-          } catch (error) {
-            throw new Error(`${fileType} file not found or inaccessible: ${absolutePath}`);
-          }
-          
-          // Read file with explicit encoding
-          // eslint-disable-next-line security/detect-non-literal-fs-filename
-          return fs.readFileSync(absolutePath);
-        };
-        
-        // Read TLS files with validation
-        const cert = readTLSFile(config.GRPC_TLS_CERT_PATH, 'TLS certificate');
-        const key = readTLSFile(config.GRPC_TLS_KEY_PATH, 'TLS key');
-        
-        let ca: Buffer | undefined;
-        if (config.GRPC_TLS_CA_PATH !== null && config.GRPC_TLS_CA_PATH !== undefined && config.GRPC_TLS_CA_PATH !== '') {
-          ca = readTLSFile(config.GRPC_TLS_CA_PATH, 'TLS CA');
+          credentials = grpc.ServerCredentials.createInsecure();
+          this.logger.warn('gRPC server running without TLS - development only!');
         }
-
-        credentials = grpc.ServerCredentials.createSsl(
-          ca,
-          [{
-            cert_chain: cert,
-            private_key: key,
-          }],
-          config.GRPC_TLS_CLIENT_AUTH // Require client certificates if configured
-        );
-      } else {
-        // Development: Insecure
-        if (config.NODE_ENV === 'production') {
-          reject(new Error('TLS must be enabled for gRPC in production'));
-          return;
-        }
-        credentials = grpc.ServerCredentials.createInsecure();
-        this.logger.warn('gRPC server running without TLS - development only!');
+      } catch (error) {
+        reject(error);
+        return;
       }
 
       this.server.bindAsync(

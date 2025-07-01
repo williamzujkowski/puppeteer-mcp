@@ -60,7 +60,7 @@ healthRouter.get('/live', (_req: Request, res: Response) => {
  * GET /health/ready
  * Kubernetes readiness probe endpoint
  */
-healthRouter.get('/ready', (_req: Request, res: Response) => void (async () => {
+healthRouter.get('/ready', (_req: Request, res: Response) => {
   // Add checks for external dependencies (database, redis, etc.)
   const checks = {
     server: true,
@@ -74,4 +74,4 @@ healthRouter.get('/ready', (_req: Request, res: Response) => void (async () => {
     status: allHealthy ? 'ready' : 'not ready',
     checks,
   });
-})());
+});

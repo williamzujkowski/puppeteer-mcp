@@ -44,9 +44,13 @@ expect.extend({
     const pass = calls.some((call) => {
       const arg = call[0];
       // Check if all properties in expected exist in the argument
-      for (const key in expected as any) {
-        if ((expected as any)[key] !== arg[key]) {
-          return false;
+      const expectedObj = expected as Record<string, unknown>;
+      for (const key in expectedObj) {
+        if (Object.prototype.hasOwnProperty.call(expectedObj, key)) {
+          const argObj = arg as Record<string, unknown>;
+          if (Object.prototype.hasOwnProperty.call(argObj, key) && expectedObj[key] !== argObj[key]) {
+            return false;
+          }
         }
       }
       return true;
@@ -71,17 +75,31 @@ expect.extend({
 jest.setTimeout(5000);
 
 // Suppress console during tests unless explicitly needed
-const originalConsole = { ...console };
+const originalConsole = { 
+  log: console.log, // eslint-disable-line no-console
+  info: console.info, // eslint-disable-line no-console
+  warn: console.warn,
+  error: console.error
+};
+
 beforeAll(() => {
+  // eslint-disable-next-line no-console
   console.log = jest.fn();
+  // eslint-disable-next-line no-console
   console.info = jest.fn();
+  // eslint-disable-next-line no-console
   console.warn = jest.fn();
+  // eslint-disable-next-line no-console
   console.error = jest.fn();
 });
 
 afterAll(() => {
+  // eslint-disable-next-line no-console
   console.log = originalConsole.log;
+  // eslint-disable-next-line no-console
   console.info = originalConsole.info;
+  // eslint-disable-next-line no-console
   console.warn = originalConsole.warn;
+  // eslint-disable-next-line no-console
   console.error = originalConsole.error;
 });

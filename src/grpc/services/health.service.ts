@@ -187,7 +187,7 @@ export class HealthServiceImpl {
 
     // Event loop check
     const start = performance.now();
-    await new Promise<void>(resolve => setImmediate(resolve));
+    await new Promise<void>(resolve => { setImmediate(resolve); });
     const eventLoopDelay = performance.now() - start;
     checks.eventLoop = {
       status: eventLoopDelay < 100 ? 'healthy' : 'unhealthy',

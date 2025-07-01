@@ -30,6 +30,17 @@ export class WSAuthHandler {
   }
 
   /**
+   * Validate authentication credentials
+   */
+  private validateCredentials(token?: string, apiKey?: string): { valid: boolean; error?: string } {
+    if ((token === null || token === undefined || token.length === 0) && 
+        (apiKey === null || apiKey === undefined || apiKey.length === 0)) {
+      return { valid: false, error: 'Missing credentials' };
+    }
+    return { valid: true };
+  }
+
+  /**
    * Handle authentication message
    * @nist ia-2 "User authentication"
    * @nist ac-3 "Access enforcement"
@@ -68,7 +79,7 @@ export class WSAuthHandler {
 
       // Authenticate with API key
       if (apiKey !== null && apiKey !== undefined && apiKey.length > 0) {
-        const result = await this.authenticateWithApiKey(ws, connectionId, message.id, apiKey);
+        const result = this.authenticateWithApiKey(ws, connectionId, message.id, apiKey);
         if (result.success) {
           return result;
         }

@@ -11,8 +11,8 @@ import helmet from 'helmet';
 import cors from 'cors';
 import compression from 'compression';
 import rateLimit from 'express-rate-limit';
-import { createServer as createHttpServer } from 'http';
-import { createServer as createHttpsServer } from 'https';
+import { createServer as createHttpServer, Server as HttpServer } from 'http';
+import { createServer as createHttpsServer, Server as HttpsServer } from 'https';
 import { readFileSync } from 'fs';
 import { pino } from 'pino';
 import { config, validateProductionConfig } from './core/config.js';
@@ -50,7 +50,7 @@ const sessionStore = new InMemorySessionStore(logger.child({ module: 'session-st
  * @nist cm-7 "Least functionality"
  * @nist si-10 "Information input validation"
  */
-export async function createApp(): Promise<Application> {
+export function createApp(): Application {
   const app = express();
 
   // Trust proxy for accurate IP addresses
@@ -101,7 +101,7 @@ export async function createApp(): Promise<Application> {
     skipSuccessfulRequests: config.RATE_LIMIT_SKIP_SUCCESSFUL_REQUESTS,
     skipFailedRequests: config.RATE_LIMIT_SKIP_FAILED_REQUESTS,
     handler: (req, res) => {
-      logSecurityEvent(SecurityEventType.RATE_LIMIT_EXCEEDED, {
+      void logSecurityEvent(SecurityEventType.RATE_LIMIT_EXCEEDED, {
         resource: req.path,
         action: req.method,
         result: 'failure',
@@ -167,21 +167,56 @@ export async function createApp(): Promise<Application> {
 }
 
 /**
+ * Check if TLS should be enabled
+ */
+function shouldEnableTLS(): boolean {
+  return config.TLS_ENABLED === true && 
+         config.TLS_CERT_PATH !== null && 
+         config.TLS_CERT_PATH !== undefined && 
+         config.TLS_CERT_PATH !== '' && 
+         config.TLS_KEY_PATH !== null && 
+         config.TLS_KEY_PATH !== undefined && 
+         config.TLS_KEY_PATH !== '';
+}
+
+/**
+ * Create HTTPS options
+ */
+function createHttpsOptions(): https.ServerOptions {
+  const certPath = config.TLS_CERT_PATH as string;
+  const keyPath = config.TLS_KEY_PATH as string;
+  
+  if (certPath.includes('..') || keyPath.includes('..')) {
+    throw new Error('Invalid TLS file paths');
+  }
+  
+  return {
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
+    cert: readFileSync(certPath),
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
+    key: readFileSync(keyPath),
+    ca: config.TLS_CA_PATH !== null && config.TLS_CA_PATH !== undefined && config.TLS_CA_PATH !== '' ? (() => {
+      const caPath = config.TLS_CA_PATH;
+      if (caPath.includes('..')) {
+        throw new Error('Invalid CA file path');
+      }
+      // eslint-disable-next-line security/detect-non-literal-fs-filename
+      return readFileSync(caPath);
+    })() : undefined,
+    minVersion: config.TLS_MIN_VERSION,
+    ciphers: 'TLS_AES_256_GCM_SHA384:TLS_AES_128_GCM_SHA256:ECDHE-RSA-AES256-GCM-SHA384',
+  };
+}
+
+/**
  * Create HTTP/HTTPS server based on configuration
  * @nist sc-8 "Transmission confidentiality and integrity"
  * @nist sc-13 "Cryptographic protection"
  */
-function createServer(app: Application) {
-  if (config.TLS_ENABLED && config.TLS_CERT_PATH && config.TLS_KEY_PATH) {
+function createServer(app: Application): HttpServer | HttpsServer {
+  if (shouldEnableTLS()) {
     // HTTPS server with TLS
-    const httpsOptions = {
-      cert: readFileSync(config.TLS_CERT_PATH),
-      key: readFileSync(config.TLS_KEY_PATH),
-      ca: config.TLS_CA_PATH ? readFileSync(config.TLS_CA_PATH) : undefined,
-      minVersion: config.TLS_MIN_VERSION,
-      ciphers: 'TLS_AES_256_GCM_SHA384:TLS_AES_128_GCM_SHA256:ECDHE-RSA-AES256-GCM-SHA384',
-    };
-
+    const httpsOptions = createHttpsOptions();
     return createHttpsServer(httpsOptions, app);
   }
 
@@ -198,7 +233,7 @@ function createServer(app: Application) {
  * Initialize WebSocket server
  * @nist sc-8 "Transmission confidentiality and integrity"
  */
-function initializeWebSocketServer(server: any): WSServer {
+function initializeWebSocketServer(server: HttpServer | HttpsServer): WSServer {
   return createWebSocketServer(logger, sessionStore, server);
 }
 
@@ -211,7 +246,7 @@ let isShuttingDown = false;
  */
 async function gracefulShutdown(
   signal: string, 
-  server: any, 
+  server: HttpServer | HttpsServer, 
   wss?: WSServer,
   grpcServer?: GrpcServer
 ): Promise<void> {
@@ -244,7 +279,9 @@ async function gracefulShutdown(
   }
 
   // Clean up session store
-  await sessionStore.clear();
+  if ('clear' in sessionStore && typeof sessionStore.clear === 'function') {
+    await sessionStore.clear();
+  }
 
   // Force exit after 30 seconds
   setTimeout(() => {
@@ -260,7 +297,7 @@ async function gracefulShutdown(
 
 // Start server if not in test environment
 if (config.NODE_ENV !== 'test') {
-  (async () => {
+  void (async () => {
     try {
       // Validate production configuration
       validateProductionConfig();
@@ -275,12 +312,12 @@ if (config.NODE_ENV !== 'test') {
         },
       });
 
-      const app = await createApp();
+      const app = createApp();
       const server = createServer(app);
       const wss = initializeWebSocketServer(server);
       
       // Initialize gRPC server
-      const grpcServer = await createGrpcServer(logger, sessionStore);
+      const grpcServer = createGrpcServer(logger, sessionStore);
 
       // Register shutdown handlers
       process.on('SIGTERM', () => void gracefulShutdown('SIGTERM', server, wss, grpcServer));

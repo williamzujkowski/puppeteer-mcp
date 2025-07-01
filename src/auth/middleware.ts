@@ -229,7 +229,7 @@ export const requireRoles = (...requiredRoles: string[]) => {
  * Optional authentication middleware
  * Attempts to authenticate but doesn't fail if no credentials provided
  */
-export const optionalAuth = (sessionStore: SessionStore) => {
+export const optionalAuth = (sessionStore: SessionStore): ((req: Request, res: Response, next: NextFunction) => void) => {
   const authMiddleware = createAuthMiddleware(sessionStore);
 
   return (req: Request, _res: Response, next: NextFunction) => {

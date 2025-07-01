@@ -14,12 +14,13 @@ import type { SessionStore } from '../store/session-store.interface.js';
 import { WSConnectionManager } from './connection-manager.js';
 import { WSAuthHandler } from './auth-handler.js';
 import { logSecurityEvent, SecurityEventType } from '../utils/logger.js';
+import { sendResponse, sendError } from './message-handler-helpers.js';
+import { WSSessionHandler } from './session-handler.js';
 import {
   wsMessageSchema,
   type WSMessage,
   type WSRequestMessage,
   type WSSubscriptionMessage,
-  type WSResponseMessage,
   type WSEventMessage,
   type WSAuthMessage,
   type WSConnectionState,
@@ -36,6 +37,7 @@ export class WSMessageHandler {
   private sessionStore: SessionStore;
   private connectionManager: WSConnectionManager;
   private authHandler: WSAuthHandler;
+  private sessionHandler: WSSessionHandler;
 
   constructor(
     logger: pino.Logger,
@@ -47,6 +49,7 @@ export class WSMessageHandler {
     this.sessionStore = sessionStore;
     this.connectionManager = connectionManager;
     this.authHandler = authHandler;
+    this.sessionHandler = new WSSessionHandler(logger, sessionStore, authHandler, connectionManager);
   }
 
   /**
@@ -86,11 +89,11 @@ export class WSMessageHandler {
 
         case WSMessageType.SUBSCRIBE:
         case WSMessageType.UNSUBSCRIBE:
-          await this.handleSubscriptionMessage(ws, connectionId, message);
+          this.handleSubscriptionMessage(ws, connectionId, message);
           break;
 
         default:
-          this.sendError(ws, message.id, 'UNKNOWN_MESSAGE_TYPE', `Unknown message type: ${message.type}`);
+          sendError({ ws, requestId: message.id, code: 'UNKNOWN_MESSAGE_TYPE', message: `Unknown message type: ${message.type}` }, this.logger);
       }
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -99,10 +102,10 @@ export class WSMessageHandler {
           errors: error.errors,
         });
         
-        this.sendError(ws, undefined, 'INVALID_MESSAGE', 'Invalid message format', error.errors);
+        sendError({ ws, requestId: undefined, code: 'INVALID_MESSAGE', message: 'Invalid message format', details: error.errors }, this.logger);
       } else {
         this.logger.error('Error handling message:', error);
-        this.sendError(ws, undefined, 'INTERNAL_ERROR', 'Failed to process message');
+        sendError({ ws, requestId: undefined, code: 'INTERNAL_ERROR', message: 'Failed to process message' }, this.logger);
       }
     }
   }
@@ -158,7 +161,7 @@ export class WSMessageHandler {
       // Check authentication
       const connectionState = this.connectionManager.getConnectionState(connectionId);
       if (connectionState?.authenticated !== true) {
-        this.sendError(ws, message.id, 'UNAUTHORIZED', 'Authentication required');
+        sendError({ ws, requestId: message.id, code: 'UNAUTHORIZED', message: 'Authentication required' }, this.logger);
         return;
       }
 
@@ -184,7 +187,7 @@ export class WSMessageHandler {
       );
 
       // Send response
-      this.sendResponse(ws, message.id, 200, response);
+      sendResponse({ ws, requestId: message.id, status: 200, data: response }, this.logger);
 
       // Log successful access
       await logSecurityEvent(SecurityEventType.API_ACCESS, {
@@ -229,7 +232,7 @@ export class WSMessageHandler {
    * Route request to appropriate handler
    * @nist ac-3 "Access enforcement"
    */
-  private async routeRequest(
+  private routeRequest(
     connectionState: WSConnectionState,
     method: string,
     path: string,
@@ -248,8 +251,10 @@ export class WSMessageHandler {
 
     // Route based on resource
     switch (resource) {
-      case 'sessions':
-        return this.handleSessionRequest(connectionState, method, action, data);
+      case 'sessions': {
+        const sessionId = pathParts[1];
+        return this.sessionHandler.handleSessionRequest(connectionState, method, sessionId, data, action);
+      }
       
       case 'contexts':
         return this.handleContextRequest(connectionState, method, action, data);
@@ -259,64 +264,12 @@ export class WSMessageHandler {
     }
   }
 
-  /**
-   * Handle session-related requests
-   * @nist ac-3 "Access enforcement"
-   */
-  private async handleSessionRequest(
-    connectionState: WSConnectionState,
-    method: string,
-    action: string,
-    _data: unknown
-  ): Promise<unknown> {
-    const sessionId = connectionState.metadata?.sessionId as string | undefined;
-    
-    switch (method.toUpperCase()) {
-      case 'GET':
-        if (!action) {
-          // Get current session
-          const session = await this.sessionStore.get(sessionId);
-          if (!session) {
-            throw new Error('Session not found');
-          }
-          return session;
-        }
-        break;
-
-      case 'PUT':
-        if (action === 'refresh') {
-          // Refresh session
-          const refreshed = await this.authHandler.refreshAuth(
-            this.connectionManager.getWebSocket(connectionState.id)!,
-            connectionState.id,
-            sessionId!
-          );
-          
-          if (!refreshed) {
-            throw new Error('Failed to refresh session');
-          }
-          
-          return { success: true };
-        }
-        break;
-
-      case 'DELETE':
-        if (!action) {
-          // Delete current session
-          await this.sessionStore.delete(sessionId);
-          return { success: true };
-        }
-        break;
-    }
-
-    throw new Error(`Invalid session operation: ${method} ${action || '/'}`);
-  }
 
   /**
    * Handle context-related requests
    * @nist ac-3 "Access enforcement"
    */
-  private async handleContextRequest(
+  private handleContextRequest(
     _connectionState: WSConnectionState,
     _method: string,
     _action: string,
@@ -330,11 +283,11 @@ export class WSMessageHandler {
    * Handle subscription message
    * @nist ac-3 "Access enforcement"
    */
-  private async handleSubscriptionMessage(
+  private handleSubscriptionMessage(
     ws: WebSocket,
     connectionId: string,
     message: WSSubscriptionMessage
-  ): Promise<void> {
+  ): void {
     // Check authentication
     const connectionState = this.connectionManager.getConnectionState(connectionId);
     if (connectionState?.authenticated !== true) {
@@ -434,30 +387,6 @@ export class WSMessageHandler {
   }
 
   /**
-   * Send response message
-   */
-  private sendResponse(
-    ws: WebSocket,
-    requestId: string,
-    status: number,
-    data?: unknown,
-    error?: { code: string; message: string; details?: unknown }
-  ): void {
-    const message: WSResponseMessage = {
-      type: WSMessageType.RESPONSE,
-      id: requestId,
-      timestamp: new Date().toISOString(),
-      status,
-      data,
-      error,
-    };
-
-    if (ws.readyState === WebSocket.OPEN) {
-      ws.send(JSON.stringify(message));
-    }
-  }
-
-  /**
    * Send event message
    */
   private sendEvent(ws: WebSocket, event: string, data: unknown): void {
@@ -471,32 +400,6 @@ export class WSMessageHandler {
 
     if (ws.readyState === WebSocket.OPEN) {
       ws.send(JSON.stringify(message));
-    }
-  }
-
-  /**
-   * Send error message
-   */
-  private sendError(
-    ws: WebSocket,
-    requestId: string | undefined,
-    code: string,
-    message: string,
-    details?: unknown
-  ): void {
-    const errorMessage: WSMessage = {
-      type: WSMessageType.ERROR,
-      id: requestId || uuidv4(),
-      timestamp: new Date().toISOString(),
-      error: {
-        code,
-        message,
-        details,
-      },
-    };
-
-    if (ws.readyState === WebSocket.OPEN) {
-      ws.send(JSON.stringify(errorMessage));
     }
   }
 

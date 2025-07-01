@@ -34,7 +34,7 @@ describe.skip('Health Endpoints Integration (TODO: Fix config loading)', () => {
 
   beforeAll(async () => {
     // Create the full application
-    app = await createApp();
+    app = createApp();
     server = http.createServer(app);
 
     // Start server on random port

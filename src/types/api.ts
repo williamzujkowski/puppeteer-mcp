@@ -18,7 +18,24 @@ export const paginationSchema = z.object({
 /**
  * API response wrapper schema
  */
-export const apiResponseSchema = <T extends z.ZodType>(dataSchema: T) =>
+export const apiResponseSchema = <T extends z.ZodType>(dataSchema: T): z.ZodObject<{
+  success: z.ZodBoolean;
+  data: z.ZodOptional<T>;
+  error: z.ZodOptional<z.ZodObject<{
+    code: z.ZodString;
+    message: z.ZodString;
+    details: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodUnknown>>;
+  }, "strip", z.ZodTypeAny, {
+    code: string;
+    message: string;
+    details?: Record<string, unknown>;
+  }, {
+    code: string;
+    message: string;
+    details?: Record<string, unknown>;
+  }>>;
+  timestamp: z.ZodString;
+}> =>
   z.object({
     success: z.boolean(),
     data: dataSchema.optional(),
