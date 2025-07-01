@@ -161,11 +161,11 @@ export class InMemoryContextStore implements ContextStore {
       if (filter.userId !== null && filter.userId !== '') {
         contexts = contexts.filter(ctx => ctx.userId === filter.userId);
       }
-      if (filter.types !== null && filter.types.length > 0) {
-        contexts = contexts.filter(ctx => filter.types?.includes(ctx.type) ?? false);
+      if (filter.types !== null && filter.types !== undefined && filter.types.length > 0) {
+        contexts = contexts.filter(ctx => filter.types!.includes(ctx.type));
       }
-      if (filter.statuses !== null && filter.statuses.length > 0) {
-        contexts = contexts.filter(ctx => filter.statuses?.includes(ctx.status) ?? false);
+      if (filter.statuses !== null && filter.statuses !== undefined && filter.statuses.length > 0) {
+        contexts = contexts.filter(ctx => filter.statuses!.includes(ctx.status));
       }
     }
 

@@ -128,7 +128,7 @@ export class WSContextHandler {
     }
 
     const context = await contextStore.create({
-      sessionId: state.sessionId,
+      sessionId: state.sessionId as string,
       name: input.name ?? `Context-${Date.now()}`,
       type: input.type,
       config: input.config ?? {},

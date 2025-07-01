@@ -76,7 +76,7 @@ export class WSApiKeyAuthHandler {
         username: `apikey:${keyData.name}`,
         roles: keyData.roles,
         createdAt: new Date().toISOString(),
-        expiresAt: (keyData.expiresAt !== null && keyData.expiresAt > 0) 
+        expiresAt: (keyData.expiresAt !== null && keyData.expiresAt !== undefined && keyData.expiresAt > 0) 
           ? new Date(keyData.expiresAt).toISOString() 
           : new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24 hours default
         metadata: {

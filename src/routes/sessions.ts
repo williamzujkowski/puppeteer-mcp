@@ -172,7 +172,7 @@ async function handleTerminateSession(
     }
 
     // Get session to verify ownership
-    const session = await sessionStore.get(sessionId);
+    const session = await sessionStore.get(sessionId as string);
 
     if (!session) {
       throw new AppError('Session not found', 404);
@@ -184,7 +184,7 @@ async function handleTerminateSession(
     }
 
     // Delete session
-    const deleted = await sessionStore.delete(sessionId);
+    const deleted = await sessionStore.delete(sessionId as string);
 
     if (!deleted) {
       throw new AppError('Failed to delete session', 500);
@@ -302,14 +302,14 @@ async function handleAdminTerminateSession(
     }
 
     // Get session info before deletion
-    const session = await sessionStore.get(sessionId);
+    const session = await sessionStore.get(sessionId as string);
 
     if (!session) {
       throw new AppError('Session not found', 404);
     }
 
     // Delete session
-    const deleted = await sessionStore.delete(sessionId);
+    const deleted = await sessionStore.delete(sessionId as string);
 
     if (!deleted) {
       throw new AppError('Failed to delete session', 500);

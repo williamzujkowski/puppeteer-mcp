@@ -24,7 +24,7 @@ export const createCombinedAuthMiddleware = (sessionStore: SessionStore) => {
       // Check for API key first
       const apiKeyHeader = req.headers['x-api-key'] as string | undefined;
       if (apiKeyHeader !== null && apiKeyHeader !== '') {
-        const keyData = await apiKeyStore.verify(apiKeyHeader);
+        const keyData = await apiKeyStore.verify(apiKeyHeader as string);
         
         if (!keyData) {
           await logSecurityEvent(SecurityEventType.ACCESS_DENIED, {

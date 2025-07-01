@@ -86,7 +86,7 @@ export class ContextHandlers {
       if (contextId === null || contextId === '') {
         throw new AppError('Context ID is required', 400);
       }
-      const context = await this.storage.getContext(contextId, req.user.userId, req.user.roles);
+      const context = await this.storage.getContext(contextId as string, req.user.userId, req.user.roles);
 
       res.json({
         success: true,
@@ -118,7 +118,7 @@ export class ContextHandlers {
       const updates = contextConfigSchema.partial().parse(req.body);
 
       // Update context
-      const context = await this.storage.updateContext(contextId, updates, req.user.userId, req.user.roles);
+      const context = await this.storage.updateContext(contextId as string, updates, req.user.userId, req.user.roles);
 
       res.json({
         success: true,
@@ -146,7 +146,7 @@ export class ContextHandlers {
         throw new AppError('Context ID is required', 400);
       }
 
-      await this.storage.deleteContext(contextId, req.user.userId, req.user.roles);
+      await this.storage.deleteContext(contextId as string, req.user.userId, req.user.roles);
 
       res.json({
         success: true,
@@ -178,7 +178,7 @@ export class ContextHandlers {
       const { action, params } = actionSchema.parse(req.body);
 
       // Update context last used timestamp
-      this.storage.touchContext(contextId, req.user.userId, req.user.roles);
+      this.storage.touchContext(contextId as string, req.user.userId, req.user.roles);
 
       // Log action execution
       await logDataAccess('WRITE', `context/${contextId}`, {

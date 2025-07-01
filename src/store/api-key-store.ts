@@ -151,7 +151,7 @@ export class InMemoryApiKeyStore implements ApiKeyStore {
       return null;
     }
 
-    const apiKey = this.apiKeys.get(id);
+    const apiKey = this.apiKeys.get(id as string);
     if (!apiKey) {
       return null;
     }
@@ -167,7 +167,7 @@ export class InMemoryApiKeyStore implements ApiKeyStore {
     }
 
     // Check expiration
-    if (apiKey.expiresAt !== null && apiKey.expiresAt > 0 && apiKey.expiresAt < Date.now()) {
+    if (apiKey.expiresAt !== null && apiKey.expiresAt !== undefined && apiKey.expiresAt > 0 && apiKey.expiresAt < Date.now()) {
       await logSecurityEvent(SecurityEventType.INVALID_TOKEN, {
         userId: apiKey.userId,
         reason: 'API key expired',
@@ -177,7 +177,7 @@ export class InMemoryApiKeyStore implements ApiKeyStore {
     }
 
     // Update last used
-    await this.updateLastUsed(id);
+    await this.updateLastUsed(id as string);
 
     await logSecurityEvent(SecurityEventType.LOGIN_SUCCESS, {
       userId: apiKey.userId,
