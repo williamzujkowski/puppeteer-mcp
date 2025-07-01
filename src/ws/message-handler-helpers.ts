@@ -35,7 +35,7 @@ export interface SendErrorParams {
  * @nist au-3 "Content of audit records"
  */
 export function sendResponse(params: SendResponseParams, logger: pino.Logger): void {
-  const { ws, requestId, status, data, headers } = params;
+  const { ws, requestId, status, data } = params;
   
   const responseMessage: WSMessage = {
     type: WSMessageType.RESPONSE,
@@ -43,7 +43,6 @@ export function sendResponse(params: SendResponseParams, logger: pino.Logger): v
     timestamp: new Date().toISOString(),
     status,
     data,
-    headers,
   };
 
   try {

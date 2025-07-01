@@ -19,7 +19,6 @@ import { WSMessageRouter } from './message-router.js';
  * @nist ac-3 "Access enforcement"
  */
 export class WSMessageHandler {
-  private logger: pino.Logger;
   private messageRouter: WSMessageRouter;
 
   constructor(
@@ -28,7 +27,6 @@ export class WSMessageHandler {
     connectionManager: WSConnectionManager,
     authHandler: WSAuthHandler
   ) {
-    this.logger = logger.child({ module: 'ws-message-handler' });
     this.messageRouter = new WSMessageRouter(logger, sessionStore, connectionManager, authHandler);
   }
 

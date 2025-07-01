@@ -6,7 +6,6 @@
  */
 
 import * as grpc from '@grpc/grpc-js';
-import { pino } from 'pino';
 import type { SessionStore } from '../../store/session-store.interface.js';
 import type { Session } from '../../types/session.js';
 import { generateTokens, verifyRefreshToken, verifyAccessToken } from '../../auth/jwt.js';
@@ -26,7 +25,6 @@ import type {
  */
 export class SessionAuth {
   constructor(
-    private logger: pino.Logger,
     private sessionStore: SessionStore,
   ) {}
 
@@ -153,13 +151,13 @@ export class SessionAuth {
     sessionId: string | null | undefined,
     accessToken: string | null | undefined,
   ): Promise<Session | null> {
-    if (sessionId !== null && sessionId.length > 0) {
+    if (sessionId !== null && sessionId !== undefined && sessionId.length > 0) {
       return this.sessionStore.get(sessionId);
     }
 
-    if (accessToken !== null && accessToken.length > 0) {
+    if (accessToken !== null && accessToken !== undefined && accessToken.length > 0) {
       const payload = await verifyAccessToken(accessToken);
-      if (payload?.sessionId !== null && payload.sessionId.length > 0) {
+      if (payload?.sessionId !== null && payload?.sessionId !== undefined && payload.sessionId.length > 0) {
         return this.sessionStore.get(payload.sessionId);
       }
     }
@@ -170,10 +168,6 @@ export class SessionAuth {
   private sendSessionNotFound(callback: grpc.sendUnaryData<ValidateSessionResponse>): void {
     callback(null, {
       valid: false,
-      error: {
-        code: 'SESSION_NOT_FOUND',
-        message: 'Session not found',
-      },
     });
   }
 
@@ -188,10 +182,6 @@ export class SessionAuth {
     callback(null, {
       valid: false,
       session: SessionUtils.mapSessionToProto(session),
-      error: {
-        code: 'SESSION_EXPIRED',
-        message: 'Session has expired',
-      },
     });
   }
 }

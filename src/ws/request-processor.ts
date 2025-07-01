@@ -45,9 +45,7 @@ interface RouteRequestParams {
  */
 export class WSRequestProcessor {
   private logger: pino.Logger;
-  private sessionStore: SessionStore;
   private connectionManager: WSConnectionManager;
-  private authHandler: WSAuthHandler;
   private sessionHandler: WSSessionHandler;
 
   constructor(
@@ -57,9 +55,7 @@ export class WSRequestProcessor {
     authHandler: WSAuthHandler
   ) {
     this.logger = logger.child({ module: 'ws-request-processor' });
-    this.sessionStore = sessionStore;
     this.connectionManager = connectionManager;
-    this.authHandler = authHandler;
     this.sessionHandler = new WSSessionHandler(sessionStore, authHandler, connectionManager);
   }
 
@@ -89,7 +85,7 @@ export class WSRequestProcessor {
         result: 'success',
         metadata: {
           connectionId,
-          userId: connectionState.userId,
+          userId: connectionState.userId ?? 'unknown',
           requestId: message.id,
         },
       });
@@ -113,7 +109,7 @@ export class WSRequestProcessor {
         result: 'success',
         metadata: {
           connectionId,
-          userId: connectionState.userId,
+          userId: connectionState.userId ?? 'unknown',
           requestId: message.id,
         },
       });
@@ -143,7 +139,7 @@ export class WSRequestProcessor {
         reason: errorMessage,
         metadata: {
           connectionId,
-          userId: connectionState?.userId,
+          userId: connectionState?.userId ?? 'unknown',
           requestId: message.id,
           statusCode,
         },

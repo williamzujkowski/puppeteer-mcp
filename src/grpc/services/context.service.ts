@@ -193,7 +193,7 @@ export class ContextServiceImpl {
       checkContextAccess(context, call.userId, call.roles);
 
       // Apply updates
-      applyFieldUpdates(context, { config, metadata }, update_mask);
+      applyFieldUpdates(context as unknown as Record<string, unknown>, { config, metadata }, { paths: update_mask });
 
       // Log context update
       await logSecurityEvent(SecurityEventType.RESOURCE_UPDATED, {
@@ -312,7 +312,7 @@ export class ContextServiceImpl {
       if (session_id !== null && session_id !== undefined && session_id !== '') {
         const session = await this.sessionStore.get(session_id);
         if (!session) {
-          call.emit('error', new AppError('Session not found', 'NOT_FOUND'));
+          call.emit('error', new AppError('Session not found', 404));
           return;
         }
 
@@ -394,7 +394,7 @@ export class ContextServiceImpl {
 
       const context = contexts.get(context_id);
       if (!context) {
-        call.emit('error', new AppError('Context not found', 'NOT_FOUND'));
+        call.emit('error', new AppError('Context not found', 404));
         return;
       }
 

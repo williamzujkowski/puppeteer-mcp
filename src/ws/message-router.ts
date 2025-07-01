@@ -30,7 +30,6 @@ import {
  */
 export class WSMessageRouter {
   private logger: pino.Logger;
-  private sessionStore: SessionStore;
   private connectionManager: WSConnectionManager;
   private authHandler: WSAuthHandler;
   private requestProcessor: WSRequestProcessor;
@@ -43,7 +42,6 @@ export class WSMessageRouter {
     authHandler: WSAuthHandler
   ) {
     this.logger = logger.child({ module: 'ws-message-router' });
-    this.sessionStore = sessionStore;
     this.connectionManager = connectionManager;
     this.authHandler = authHandler;
     this.requestProcessor = new WSRequestProcessor(logger, sessionStore, connectionManager, authHandler);

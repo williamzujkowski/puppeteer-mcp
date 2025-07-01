@@ -6,7 +6,6 @@
  */
 
 import * as grpc from '@grpc/grpc-js';
-import { pino } from 'pino';
 import type { SessionStore } from '../../store/session-store.interface.js';
 import type { Session } from '../../types/session.js';
 import { AppError } from '../../core/errors/app-error.js';
@@ -23,7 +22,6 @@ import type {
  */
 export class SessionList {
   constructor(
-    private logger: pino.Logger,
     private sessionStore: SessionStore
   ) {}
 
@@ -36,16 +34,16 @@ export class SessionList {
     callback: grpc.sendUnaryData<ListSessionsResponse>
   ): Promise<void> {
     try {
-      const { user_id, session_ids, filter, pagination } = call.request;
+      const { user_id, session_ids, active_only, page_size, page_token } = call.request;
 
       // Check access permission
       const { userId, roles } = SessionUtils.extractUserFromCall(call);
-      if (!this.hasListAccess(roles, user_id, userId)) {
+      if (!this.hasListAccess(roles, user_id ?? '', userId)) {
         throw new AppError('Access denied', 403);
       }
 
-      const sessions = await this.getFilteredSessions(user_id, session_ids, filter, pagination);
-      const response = this.buildListResponse(sessions, pagination);
+      const sessions = await this.getFilteredSessions(user_id ?? '', session_ids, active_only);
+      const response = this.buildListResponse(sessions, { page_size, page_token });
 
       callback(null, response);
     } catch (error) {
@@ -61,35 +59,37 @@ export class SessionList {
     return roles.includes('admin') || requestedUserId === currentUserId;
   }
 
-  private async getFilteredSessions(userId: string, sessionIds: string[], filter: Partial<ListSessionsRequest>, pagination: Partial<ListSessionsRequest>): Promise<Session[]> {
+  private async getFilteredSessions(userId: string, sessionIds?: string[], activeOnly?: boolean): Promise<Session[]> {
     // TODO: Implement proper list method in SessionStore interface
     // For now, get by userId and filter client-side
     const userSessions = await this.sessionStore.getByUserId(userId);
-    const filteredSessions = userSessions.filter(session => 
-      sessionIds.length === 0 || sessionIds.includes(session.id)
-    );
+    const filteredSessions = userSessions.filter(session => {
+      if (sessionIds && sessionIds.length > 0 && !sessionIds.includes(session.id)) {
+        return false;
+      }
+      if (activeOnly === true && new Date(session.data.expiresAt).getTime() < Date.now()) {
+        return false;
+      }
+      return true;
+    });
     
-    const limit = pagination?.page_size ?? 20;
-    const offset = this.getOffsetFromToken(pagination?.page_token);
-    
-    return filteredSessions.slice(offset, offset + limit);
+    return filteredSessions;
   }
 
   private getOffsetFromToken(pageToken: string | undefined): number {
     return pageToken !== undefined && pageToken !== '' ? parseInt(pageToken, 10) : 0;
   }
 
-  private buildListResponse(sessions: Session[], pagination: Partial<ListSessionsRequest>): { sessions: SessionProto[], pagination: { next_page_token?: string } } {
+  private buildListResponse(sessions: Session[], pagination: Partial<ListSessionsRequest>): ListSessionsResponse {
     const pageSize = pagination?.page_size ?? 20;
     const currentOffset = this.getOffsetFromToken(pagination?.page_token);
+    const paginatedSessions = sessions.slice(currentOffset, currentOffset + pageSize);
+    const hasMore = currentOffset + pageSize < sessions.length;
     
     return {
-      sessions: sessions.map(s => SessionUtils.mapSessionToProto(s)),
-      pagination: {
-        next_page_token: sessions.length === pageSize 
-          ? String(currentOffset + sessions.length)
-          : undefined,
-      },
+      sessions: paginatedSessions.map(s => SessionUtils.mapSessionToProto(s)),
+      next_page_token: hasMore ? String(currentOffset + pageSize) : undefined,
+      total_count: sessions.length
     };
   }
 
@@ -117,7 +117,7 @@ export class SessionList {
         if (session) {
           // Check access permission
           const { userId, roles } = SessionUtils.extractUserFromCall(call);
-          if (userId === session.userId || roles.includes('admin')) {
+          if (userId === session.data.userId || roles.includes('admin')) {
             sessions.push(SessionUtils.mapSessionToProto(session));
           } else {
             notFound.push(sessionId);
@@ -130,6 +130,7 @@ export class SessionList {
       callback(null, {
         sessions,
         not_found: notFound,
+        total_count: sessions.length
       });
     } catch (error) {
       const grpcError = {

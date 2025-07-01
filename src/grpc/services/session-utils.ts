@@ -5,7 +5,7 @@
  */
 
 import * as grpc from '@grpc/grpc-js';
-import type { Session } from '../../store/session-store.interface.js';
+import type { Session, SessionData } from '../../store/session-store.interface.js';
 import type { SessionProto } from '../types/session.types.js';
 
 /**
@@ -18,14 +18,14 @@ export class SessionUtils {
   static mapSessionToProto(session: Session): SessionProto {
     return {
       id: session.id,
-      user_id: session.userId,
-      username: session.username,
-      roles: session.roles,
-      data: session.data ?? {},
-      created_at: new Date(session.createdAt).toISOString(),
-      updated_at: new Date(session.updatedAt).toISOString(),
-      expires_at: new Date(session.expiresAt).toISOString(),
-      last_accessed_at: new Date(session.lastAccessedAt).toISOString(),
+      user_id: session.data.userId,
+      username: session.data.username,
+      roles: session.data.roles,
+      data: session.data.metadata ?? {},
+      created_at: session.data.createdAt,
+      updated_at: session.lastAccessedAt,
+      expires_at: session.data.expiresAt,
+      last_accessed_at: session.lastAccessedAt,
     };
   }
   
@@ -34,9 +34,11 @@ export class SessionUtils {
    */
   static extractUserFromCall<TRequest, TResponse>(call: grpc.ServerUnaryCall<TRequest, TResponse>): { userId: string; roles: string[] } {
     const metadata = call.metadata;
-    const userId = metadata.get('user-id')?.[0] ?? '';
-    const rolesStr = metadata.get('user-roles')?.[0] ?? '';
-    const roles = (rolesStr !== null && rolesStr !== undefined && rolesStr !== '') ? rolesStr.split(',') : [];
+    const userIdValue = metadata.get('user-id')?.[0];
+    const userId = typeof userIdValue === 'string' ? userIdValue : '';
+    const rolesValue = metadata.get('user-roles')?.[0];
+    const rolesStr = typeof rolesValue === 'string' ? rolesValue : '';
+    const roles = rolesStr !== '' ? rolesStr.split(',') : [];
     return { userId, roles };
   }
   
@@ -48,15 +50,16 @@ export class SessionUtils {
     data?: Record<string, unknown>,
     extendTtl?: boolean,
     ttlSeconds?: number
-  ): Partial<Session> {
-    const updates: Partial<Session> = {};
+  ): Partial<SessionData> {
+    const updates: Partial<SessionData> = {};
     
     if (data) {
-      updates.data = { ...session.data, ...data };
+      updates.metadata = { ...session.data.metadata, ...data };
     }
     
     if (extendTtl === true && ttlSeconds !== null && ttlSeconds !== undefined && ttlSeconds !== 0) {
-      updates.expiresAt = Date.now() + ttlSeconds * 1000;
+      const newExpiresAt = new Date(Date.now() + ttlSeconds * 1000);
+      updates.expiresAt = newExpiresAt.toISOString();
     }
     
     return updates;

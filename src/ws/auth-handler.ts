@@ -316,7 +316,7 @@ export class WSAuthHandler {
    * @nist ia-2 "Identification and authentication"
    */
   async refreshAuth(
-    ws: WebSocket,
+    _ws: WebSocket,
     connectionId: string,
     sessionId: string
   ): Promise<boolean> {

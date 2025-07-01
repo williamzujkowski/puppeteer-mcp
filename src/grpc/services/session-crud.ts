@@ -8,8 +8,7 @@
 
 import * as grpc from '@grpc/grpc-js';
 import { pino } from 'pino';
-import { v4 as uuidv4 } from 'uuid';
-import type { SessionStore } from '../../store/session-store.interface.js';
+import type { SessionStore, Session, SessionData } from '../../store/session-store.interface.js';
 import { generateTokens } from '../../auth/jwt.js';
 import { AppError } from '../../core/errors/app-error.js';
 import { logSecurityEvent, SecurityEventType } from '../../utils/logger.js';
@@ -52,9 +51,7 @@ export class SessionCrud {
       this.validateCreateSessionRequest(user_id, username);
 
       const sessionData = this.buildSessionData({ user_id, username, roles, data, ttl_seconds });
-      const sessionId = sessionData.sessionId;
-
-      await this.sessionStore.create(sessionData.data);
+      const sessionId = await this.sessionStore.create(sessionData);
       const tokens = this.generateSessionTokens(user_id, username, roles ?? [], sessionId);
 
       const session = await this.getCreatedSession(sessionId);
@@ -82,21 +79,16 @@ export class SessionCrud {
     roles?: string[];
     data?: Record<string, unknown>;
     ttl_seconds?: number;
-  }): { sessionId: string; expiresAt: number; data: Record<string, unknown> } {
-    const sessionId = uuidv4();
+  }): SessionData {
     const expiresAt = Date.now() + (options.ttl_seconds ?? 3600) * 1000; // Default 1 hour
 
     return {
-      sessionId,
-      expiresAt,
-      data: {
-        userId: options.user_id,
-        username: options.username,
-        roles: options.roles ?? [],
-        metadata: options.data ?? {},
-        createdAt: new Date().toISOString(),
-        expiresAt: new Date(expiresAt).toISOString(),
-      },
+      userId: options.user_id,
+      username: options.username,
+      roles: options.roles ?? [],
+      metadata: options.data ?? {},
+      createdAt: new Date().toISOString(),
+      expiresAt: new Date(expiresAt).toISOString(),
     };
   }
 
@@ -109,7 +101,7 @@ export class SessionCrud {
     return generateTokens(user_id, username, roles, sessionId);
   }
 
-  private async getCreatedSession(sessionId: string): Promise<unknown> {
+  private async getCreatedSession(sessionId: string): Promise<Session> {
     const session = await this.sessionStore.get(sessionId);
     if (!session) {
       throw new AppError('Failed to create session', 500);
@@ -170,7 +162,7 @@ export class SessionCrud {
 
       // Check access permission
       const { userId, roles: userRoles } = SessionUtils.extractUserFromCall(call);
-      if (userId !== session.userId && !userRoles.includes('admin')) {
+      if (userId !== session.data.userId && !userRoles.includes('admin')) {
         throw new AppError('Access denied', 403);
       }
 
@@ -210,7 +202,7 @@ export class SessionCrud {
 
       // Check access permission
       const { userId, roles: userRoles } = SessionUtils.extractUserFromCall(call);
-      if (userId !== session.userId && !userRoles.includes('admin')) {
+      if (userId !== session.data.userId && !userRoles.includes('admin')) {
         throw new AppError('Access denied', 403);
       }
 
@@ -218,10 +210,14 @@ export class SessionCrud {
       const updates = SessionUtils.buildSessionUpdates(session, data, extend_ttl, ttl_seconds);
       const updatedSession = await this.sessionStore.update(session_id, updates);
 
+      if (!updatedSession) {
+        throw new AppError('Failed to update session', 500);
+      }
+
       // Log session update
       await logSecurityEvent(SecurityEventType.SESSION_UPDATED, {
-        sessionId: session_id,
-        userId: session.userId,
+        resource: `session:${session_id}`,
+        userId: session.data.userId,
         result: 'success',
         metadata: {
           updatedFields: Object.keys(updates),
@@ -264,7 +260,7 @@ export class SessionCrud {
 
       // Check access permission
       const { userId, roles: userRoles } = SessionUtils.extractUserFromCall(call);
-      if (userId !== session.userId && !userRoles.includes('admin')) {
+      if (userId !== session.data.userId && !userRoles.includes('admin')) {
         throw new AppError('Access denied', 403);
       }
 
@@ -272,8 +268,8 @@ export class SessionCrud {
 
       // Log session deletion
       await logSecurityEvent(SecurityEventType.SESSION_DELETED, {
-        sessionId: session_id,
-        userId: session.userId,
+        resource: `session:${session_id}`,
+        userId: session.data.userId,
         result: 'success',
       });
 

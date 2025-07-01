@@ -45,7 +45,7 @@ export class WSSubscriptionManager {
     // Check authentication
     const connectionState = this.connectionManager.getConnectionState(connectionId);
     if (connectionState?.authenticated !== true) {
-      this.sendError(ws, message.id, 'UNAUTHORIZED', 'Authentication required');
+      this.sendError(ws, message.id ?? undefined, 'UNAUTHORIZED', 'Authentication required');
       return;
     }
 
@@ -55,7 +55,7 @@ export class WSSubscriptionManager {
       if (message.type === WSMessageType.SUBSCRIBE) {
         // Validate subscription permission
         if (!this.validateSubscriptionPermission(connectionState, topic)) {
-          this.sendError(ws, message.id, 'FORBIDDEN', 'Access denied to topic');
+          this.sendError(ws, message.id ?? undefined, 'FORBIDDEN', 'Access denied to topic');
           return;
         }
 
@@ -65,7 +65,7 @@ export class WSSubscriptionManager {
         if (added) {
           this.logger.info('Client subscribed to topic', {
             connectionId,
-            userId: connectionState.userId,
+            userId: connectionState.userId ?? 'unknown',
             topic,
           });
 
@@ -82,7 +82,7 @@ export class WSSubscriptionManager {
         if (removed) {
           this.logger.info('Client unsubscribed from topic', {
             connectionId,
-            userId: connectionState.userId,
+            userId: connectionState.userId ?? 'unknown',
             topic,
           });
 
@@ -94,7 +94,7 @@ export class WSSubscriptionManager {
       }
     } catch (error) {
       this.logger.error('Subscription error:', error);
-      this.sendError(ws, message.id, 'SUBSCRIPTION_ERROR', 'Failed to process subscription');
+      this.sendError(ws, message.id ?? undefined, 'SUBSCRIPTION_ERROR', 'Failed to process subscription');
     }
   }
 
@@ -176,7 +176,7 @@ export class WSSubscriptionManager {
       if (this.validateSubscriptionPermission(state, topic)) {
         this.sendEvent(ws, event, {
           topic,
-          ...data,
+          data,
         });
       }
     });

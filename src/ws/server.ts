@@ -17,7 +17,7 @@ import { WSMessageHandler } from './message-handler.js';
 import { WSAuthHandler } from './auth-handler.js';
 import { config } from '../core/config.js';
 import { logSecurityEvent, SecurityEventType } from '../utils/logger.js';
-import type { WSMessage, WSConnectionState } from '../types/websocket.js';
+import { WSMessage, WSConnectionState, WSMessageType } from '../types/websocket.js';
 
 /**
  * WebSocket server options
@@ -38,7 +38,6 @@ export interface WSServerOptions {
 export class WSServer extends EventEmitter {
   private wss: WebSocketServer;
   private logger: pino.Logger;
-  private sessionStore: SessionStore;
   private connectionManager: WSConnectionManager;
   private messageHandler: WSMessageHandler;
   private authHandler: WSAuthHandler;
@@ -51,7 +50,6 @@ export class WSServer extends EventEmitter {
   ) {
     super();
     this.logger = logger.child({ module: 'ws-server' });
-    this.sessionStore = sessionStore;
 
     // Initialize WebSocket server
     this.wss = new WebSocketServer({
@@ -191,7 +189,7 @@ export class WSServer extends EventEmitter {
 
     // Send connection acknowledgment
     this.sendMessage(ws, {
-      type: 'connect',
+      type: WSMessageType.CONNECT,
       id: uuidv4(),
       timestamp: new Date().toISOString(),
       data: {
@@ -226,7 +224,7 @@ export class WSServer extends EventEmitter {
         
         // Send error response
         this.sendMessage(ws, {
-          type: 'error',
+          type: WSMessageType.ERROR,
           id: uuidv4(),
           timestamp: new Date().toISOString(),
           error: {
