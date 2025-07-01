@@ -5,6 +5,16 @@ export default {
   extensionsToTreatAsEsm: ['.ts'],
   moduleNameMapper: {
     '^(\\.{1,2}/.*)\\.js$': '$1',
+    // Handle .js extensions first for path aliases
+    '^@core/(.*)\\.js$': '<rootDir>/src/core/$1',
+    '^@store/(.*)\\.js$': '<rootDir>/src/store/$1',
+    '^@auth/(.*)\\.js$': '<rootDir>/src/auth/$1',
+    '^@routes/(.*)\\.js$': '<rootDir>/src/routes/$1',
+    '^@grpc/(?!grpc-js)(.*)\\.js$': '<rootDir>/src/grpc/$1',
+    '^@ws/(.*)\\.js$': '<rootDir>/src/ws/$1',
+    '^@utils/(.*)\\.js$': '<rootDir>/src/utils/$1',
+    '^@types/(.*)\\.js$': '<rootDir>/src/types/$1',
+    // Then handle without .js extension
     '^@core/(.*)$': '<rootDir>/src/core/$1',
     '^@store/(.*)$': '<rootDir>/src/store/$1',
     '^@auth/(.*)$': '<rootDir>/src/auth/$1',
