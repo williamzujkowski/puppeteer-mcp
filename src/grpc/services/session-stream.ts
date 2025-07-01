@@ -7,10 +7,8 @@
 
 import * as grpc from '@grpc/grpc-js';
 import { pino } from 'pino';
-import { v4 as uuidv4 } from 'uuid';
 import type { SessionStore } from '../../store/session-store.interface.js';
 import { AppError } from '../../core/errors/app-error.js';
-import { SessionUtils } from './session-utils.js';
 import type {
   StreamSessionEventsRequest,
   SessionEvent,
@@ -34,7 +32,7 @@ export class SessionStream {
     call: grpc.ServerWritableStream<StreamSessionEventsRequest, SessionEvent>
   ): void {
     try {
-      const { user_id, session_ids, event_types } = call.request;
+      const { user_id } = call.request;
 
       // Check access permission
       const metadata = call.metadata;
@@ -72,65 +70,6 @@ export class SessionStream {
       this.logger.error('Error in streamSessionEvents:', error);
       call.emit('error', error);
     }
-  }
-
-  private createEventHandler(
-    userId: string,
-    sessionIds: string[],
-    eventTypes: string[],
-    call: grpc.ServerWritableStream<StreamSessionEventsRequest, SessionEvent>
-  ) {
-    return (event: SessionEvent): void => {
-      if (!this.shouldIncludeEvent(event, userId, sessionIds, eventTypes)) {
-        return;
-      }
-
-      this.writeEventToStream(event, call);
-    };
-  }
-
-  private shouldIncludeEvent(
-    event: SessionEvent,
-    userId: string,
-    sessionIds: string[],
-    eventTypes: string[]
-  ): boolean {
-    if (userId !== undefined && userId !== '' && event.user_id !== userId) {
-      return false;
-    }
-    if (sessionIds !== undefined && sessionIds.length > 0 && !sessionIds.includes(event.session_id)) {
-      return false;
-    }
-    if (eventTypes !== undefined && eventTypes.length > 0 && !eventTypes.includes(event.type)) {
-      return false;
-    }
-    return true;
-  }
-
-  private writeEventToStream(
-    event: SessionEvent,
-    call: grpc.ServerWritableStream<StreamSessionEventsRequest, SessionEvent>
-  ): void {
-    call.write({
-      id: uuidv4(),
-      type: event.type,
-      session_id: event.session_id ?? '',
-      user_id: event.user_id ?? '',
-      timestamp: new Date().toISOString(),
-      data: event.data ?? {},
-      session: event.session ? SessionUtils.mapSessionToProto({
-        id: event.session.id,
-        data: {
-          userId: event.session.user_id,
-          username: event.session.username,
-          roles: event.session.roles,
-          createdAt: event.session.created_at,
-          expiresAt: event.session.expires_at,
-          metadata: event.session.data,
-        },
-        lastAccessedAt: event.session.last_accessed_at,
-      }) : undefined,
-    });
   }
 
 }

@@ -261,7 +261,7 @@ export class WSAuthHandler {
         },
       };
 
-      const session = await this.sessionStore.create(sessionData);
+      const sessionId = await this.sessionStore.create(sessionData);
 
       // Log successful authentication
       await logSecurityEvent(SecurityEventType.LOGIN_SUCCESS, {
@@ -270,13 +270,13 @@ export class WSAuthHandler {
         metadata: {
           method: 'api_key',
           apiKeyId: keyData.id,
-          sessionId: session.id,
+          sessionId: sessionId,
         },
       });
 
       // Send success response with permissions
       this.sendAuthSuccess(ws, messageId, {
-        sessionId: session.id,
+        sessionId: sessionId,
         userId: keyData.userId,
         username: `apikey:${keyData.name}`,
         roles: keyData.roles,
@@ -287,7 +287,7 @@ export class WSAuthHandler {
       return {
         success: true,
         userId: keyData.userId,
-        sessionId: session.id,
+        sessionId: sessionId,
         roles: keyData.roles,
         permissions: getPermissionsForRoles(keyData.roles),
         scopes: keyData.scopes,
@@ -352,7 +352,7 @@ export class WSAuthHandler {
     }
 
     // If no specific permission required, just check authentication
-    if (!requiredPermission) {
+    if (requiredPermission == null) {
       return true;
     }
 
@@ -398,7 +398,7 @@ export class WSAuthHandler {
         result: 'success',
         metadata: {
           connectionId,
-          sessionId: session.id,
+          sessionId: sessionId,
           userId: session.data.userId,
         },
       });

@@ -110,9 +110,9 @@ router.get(
 
     // Map to response format (never expose key hash)
     const response = keys.map(key => ({
-      id: key!.id,
-      name: key!.name,
-      prefix: key!.prefix,
+      id: key.id,
+      name: key.name,
+      prefix: key.prefix,
       roles: key.roles,
       scopes: key.scopes,
       active: key.active,
@@ -204,7 +204,7 @@ router.delete(
     }
 
     // Revoke the key
-    await apiKeyStore.revoke(id!);
+    await apiKeyStore.revoke(id);
 
     res.json({
       message: 'API key revoked successfully',

@@ -181,7 +181,7 @@ export class WSRequestProcessor {
       }
       
       case 'contexts':
-        return this.handleContextRequest(connectionState, method, action, data);
+        return this.handleContextRequest(connectionState, method, action ?? '', data);
       
       default:
         throw new Error(`Unknown resource: ${resource}`);
@@ -236,7 +236,7 @@ export class WSRequestProcessor {
   ): Promise<unknown> {
     // Check permission
     await requirePermission(
-      connectionState.userId,
+      connectionState.userId!,
       connectionState.roles ?? [],
       Permission.CONTEXT_CREATE,
       'context',

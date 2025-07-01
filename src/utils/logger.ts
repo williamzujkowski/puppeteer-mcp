@@ -269,7 +269,7 @@ export const requestContextMiddleware = (req: Request, _res: Response, next: Nex
   const requestId = req.id ?? (typeof xRequestId === 'string' ? xRequestId : undefined) ?? pino.stdSerializers.req(req).id;
   const userId = req.user?.userId;
   
-  runWithRequestContext(requestId as string, userId, () => {
+  runWithRequestContext(requestId, userId, () => {
     next();
   });
 };

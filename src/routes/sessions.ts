@@ -167,6 +167,9 @@ async function handleTerminateSession(
     }
 
     const { sessionId } = req.params;
+    if (!sessionId) {
+      throw new AppError('Session ID is required', 400);
+    }
 
     // Get session to verify ownership
     const session = await sessionStore.get(sessionId);
@@ -294,6 +297,9 @@ async function handleAdminTerminateSession(
 ): Promise<void> {
   try {
     const { sessionId } = req.params;
+    if (!sessionId) {
+      throw new AppError('Session ID is required', 400);
+    }
 
     // Get session info before deletion
     const session = await sessionStore.get(sessionId);
