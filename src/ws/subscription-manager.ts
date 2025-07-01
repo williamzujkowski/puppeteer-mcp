@@ -54,48 +54,69 @@ export class WSSubscriptionManager {
 
     try {
       if (message.type === WSMessageType.SUBSCRIBE) {
-        // Validate subscription permission
-        if (!this.validateSubscriptionPermission(connectionState, topic)) {
-          this.sendError(ws, message.id ?? '', 'FORBIDDEN', 'Access denied to topic');
-          return;
-        }
-
-        // Add subscription
-        const added = this.connectionManager.addSubscription(connectionId, topic);
-        
-        if (added) {
-          this.logger.info('Client subscribed to topic', {
-            connectionId,
-            userId: connectionState.userId ?? 'unknown',
-            topic,
-          });
-
-          // Send confirmation
-          this.sendEvent(ws, 'subscription_confirmed', {
-            topic,
-            filters,
-          });
-        }
+        this.handleSubscribe(ws, connectionId, connectionState, message, topic, filters);
       } else {
-        // Remove subscription
-        const removed = this.connectionManager.removeSubscription(connectionId, topic);
-        
-        if (removed) {
-          this.logger.info('Client unsubscribed from topic', {
-            connectionId,
-            userId: connectionState.userId ?? 'unknown',
-            topic,
-          });
-
-          // Send confirmation
-          this.sendEvent(ws, 'unsubscription_confirmed', {
-            topic,
-          });
-        }
+        this.handleUnsubscribe(ws, connectionId, connectionState, topic);
       }
     } catch (error) {
       this.logger.error('Subscription error:', error);
       this.sendError(ws, message.id ?? '', 'SUBSCRIPTION_ERROR', 'Failed to process subscription');
+    }
+  }
+
+  private handleSubscribe(params: {
+    ws: WebSocket;
+    connectionId: string;
+    connectionState: WSConnectionState;
+    message: WSSubscriptionMessage;
+    topic: string;
+    filters?: Record<string, unknown>;
+  }): void {
+    const { ws, connectionId, connectionState, message, topic, filters } = params;
+    // Validate subscription permission
+    if (!this.validateSubscriptionPermission(connectionState, topic)) {
+      this.sendError(ws, message.id ?? '', 'FORBIDDEN', 'Access denied to topic');
+      return;
+    }
+
+    // Add subscription
+    const added = this.connectionManager.addSubscription(connectionId, topic);
+    
+    if (added) {
+      this.logger.info('Client subscribed to topic', {
+        connectionId,
+        userId: connectionState.userId ?? 'unknown',
+        topic,
+      });
+
+      // Send confirmation
+      this.sendEvent(ws, 'subscription_confirmed', {
+        topic,
+        filters,
+      });
+    }
+  }
+
+  private handleUnsubscribe(
+    ws: WebSocket,
+    connectionId: string,
+    connectionState: WSConnectionState,
+    topic: string
+  ): void {
+    // Remove subscription
+    const removed = this.connectionManager.removeSubscription(connectionId, topic);
+    
+    if (removed) {
+      this.logger.info('Client unsubscribed from topic', {
+        connectionId,
+        userId: connectionState.userId ?? 'unknown',
+        topic,
+      });
+
+      // Send confirmation
+      this.sendEvent(ws, 'unsubscription_confirmed', {
+        topic,
+      });
     }
   }
 
@@ -113,37 +134,44 @@ export class WSSubscriptionManager {
 
     const resource = topicParts[0];
     
-    // Check resource-specific permissions
+    // Delegate to specific validation methods
     switch (resource) {
       case 'sessions':
-        // Users can only subscribe to their own session events
-        if (topicParts[1] !== null && topicParts[1] !== undefined && topicParts[1].length > 0 && topicParts[1] !== connectionState.userId) {
-          return false;
-        }
-        break;
-
+        return this.validateSessionsSubscription(topicParts, connectionState);
       case 'contexts':
-        // Users can subscribe to contexts in their sessions
-        return hasPermission(
-          connectionState.roles ?? [],
-          Permission.SUBSCRIPTION_READ,
-          connectionState.scopes
-        );
-
+        return this.validateContextsSubscription(connectionState);
       case 'system':
-        // System events require admin role
-        return hasPermission(
-          connectionState.roles ?? [],
-          Permission.ADMIN_ALL,
-          connectionState.scopes
-        );
-
+        return this.validateSystemSubscription(connectionState);
       default:
-        // Unknown topics are denied by default
         return false;
     }
+  }
 
+  private validateSessionsSubscription(topicParts: string[], connectionState: WSConnectionState): boolean {
+    // Users can only subscribe to their own session events
+    const targetUserId = topicParts[1];
+    if (targetUserId && targetUserId !== connectionState.userId) {
+      return false;
+    }
     return true;
+  }
+
+  private validateContextsSubscription(connectionState: WSConnectionState): boolean {
+    // Users can subscribe to contexts in their sessions
+    return hasPermission(
+      connectionState.roles ?? [],
+      Permission.SUBSCRIPTION_READ,
+      connectionState.scopes
+    );
+  }
+
+  private validateSystemSubscription(connectionState: WSConnectionState): boolean {
+    // System events require admin role
+    return hasPermission(
+      connectionState.roles ?? [],
+      Permission.ADMIN_ALL,
+      connectionState.scopes
+    );
   }
 
   /**

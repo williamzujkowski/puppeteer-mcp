@@ -122,14 +122,14 @@ export class WSMessageRouter {
       // const connectionState = this.connectionManager.getConnectionState(connectionId);
       
       // Update connection state with full auth data
-      this.connectionManager.authenticateConnection(
+      this.connectionManager.authenticateConnection({
         connectionId,
-        authResult.userId,
-        authResult.sessionId,
-        authResult.roles,
-        authResult.permissions,
-        authResult.scopes
-      );
+        userId: authResult.userId,
+        sessionId: authResult.sessionId,
+        roles: authResult.roles,
+        permissions: authResult.permissions,
+        scopes: authResult.scopes
+      });
     }
   }
 

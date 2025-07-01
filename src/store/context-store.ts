@@ -80,8 +80,8 @@ export class InMemoryContextStore implements ContextStore {
   /**
    * Get a context by ID
    */
-  async get(id: string): Promise<Context | null> {
-    return this.contexts.get(id) ?? null;
+  get(id: string): Promise<Context | null> {
+    return Promise.resolve(this.contexts.get(id) ?? null);
   }
 
   /**
@@ -95,7 +95,8 @@ export class InMemoryContextStore implements ContextStore {
     }
 
     // Don't allow updating certain fields
-    const { id: _, createdAt: __, ...allowedUpdates } = updates;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { id, createdAt, ...allowedUpdates } = updates;
     
     const updatedContext = {
       ...context,
@@ -145,7 +146,7 @@ export class InMemoryContextStore implements ContextStore {
   /**
    * List contexts with optional filtering
    */
-  async list(filter?: {
+  list(filter?: {
     sessionId?: string;
     userId?: string;
     types?: string[];
@@ -161,21 +162,22 @@ export class InMemoryContextStore implements ContextStore {
         contexts = contexts.filter(ctx => ctx.userId === filter.userId);
       }
       if (filter.types?.length) {
-        contexts = contexts.filter(ctx => filter.types!.includes(ctx.type));
+        contexts = contexts.filter(ctx => filter.types?.includes(ctx.type) ?? false);
       }
       if (filter.statuses?.length) {
-        contexts = contexts.filter(ctx => filter.statuses!.includes(ctx.status));
+        contexts = contexts.filter(ctx => filter.statuses?.includes(ctx.status) ?? false);
       }
     }
 
-    return contexts;
+    return Promise.resolve(contexts);
   }
 
   /**
    * Clear all contexts
    */
-  async clear(): Promise<void> {
+  clear(): Promise<void> {
     this.contexts.clear();
+    return Promise.resolve();
   }
 }
 

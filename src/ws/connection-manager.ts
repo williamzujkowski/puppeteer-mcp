@@ -19,6 +19,18 @@ interface ConnectionEntry {
 }
 
 /**
+ * Authentication parameters
+ */
+interface AuthenticationParams {
+  connectionId: string;
+  userId: string;
+  sessionId: string;
+  roles?: string[];
+  permissions?: string[];
+  scopes?: string[];
+}
+
+/**
  * WebSocket connection manager
  * @nist ac-3 "Access enforcement"
  */
@@ -100,14 +112,14 @@ export class WSConnectionManager {
    * @nist ac-3 "Access enforcement"
    * @nist au-3 "Content of audit records"
    */
-  authenticateConnection(
-    connectionId: string,
-    userId: string,
-    sessionId: string,
-    roles?: string[],
-    permissions?: string[],
-    scopes?: string[]
-  ): void {
+  authenticateConnection({
+    connectionId,
+    userId,
+    sessionId,
+    roles,
+    permissions,
+    scopes
+  }: AuthenticationParams): void {
     const connection = this.connections.get(connectionId);
     if (connection) {
       // Update connection state

@@ -191,16 +191,18 @@ export class InMemoryApiKeyStore implements ApiKeyStore {
   /**
    * Get an API key by ID
    */
-  async get(id: string): Promise<ApiKey | null> {
-    return this.apiKeys.get(id) ?? null;
+  get(id: string): Promise<ApiKey | null> {
+    return Promise.resolve(this.apiKeys.get(id) ?? null);
   }
 
   /**
    * List API keys for a user
    */
-  async list(userId: string): Promise<ApiKey[]> {
-    return Array.from(this.apiKeys.values())
-      .filter(key => key.userId === userId);
+  list(userId: string): Promise<ApiKey[]> {
+    return Promise.resolve(
+      Array.from(this.apiKeys.values())
+        .filter(key => key.userId === userId)
+    );
   }
 
   /**
@@ -229,19 +231,21 @@ export class InMemoryApiKeyStore implements ApiKeyStore {
   /**
    * Update last used timestamp
    */
-  async updateLastUsed(id: string): Promise<void> {
+  updateLastUsed(id: string): Promise<void> {
     const apiKey = this.apiKeys.get(id);
     if (apiKey) {
       apiKey.lastUsedAt = Date.now();
     }
+    return Promise.resolve();
   }
 
   /**
    * Clear all API keys
    */
-  async clear(): Promise<void> {
+  clear(): Promise<void> {
     this.apiKeys.clear();
     this.keyHashToId.clear();
+    return Promise.resolve();
   }
 }
 

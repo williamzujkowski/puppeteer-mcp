@@ -49,7 +49,7 @@ export enum Permission {
 /**
  * Role definitions with their permissions
  */
-export const RolePermissions: Record<string, Permission[]> = {
+const rolePermissionsObject: Record<string, Permission[]> = {
   // Basic user role
   user: [
     Permission.SESSION_CREATE,
@@ -125,6 +125,9 @@ export const RolePermissions: Record<string, Permission[]> = {
   ],
 };
 
+// Convert to Map to avoid object injection issues
+export const RolePermissions = new Map(Object.entries(rolePermissionsObject));
+
 /**
  * Check if a set of roles has a specific permission
  * @nist ac-3 "Access enforcement"
@@ -140,38 +143,54 @@ export function hasPermission(
   }
   
   // Check role-based permissions
-  for (const role of roles) {
-    const rolePerms = RolePermissions[role];
-    if (rolePerms) {
-      // Check for exact permission match
-      if (rolePerms.includes(permission)) {
-        return true;
-      }
-      
-      // Check for wildcard admin permission
-      if (rolePerms.includes(Permission.ADMIN_ALL)) {
-        return true;
-      }
-    }
+  if (checkRolePermissions(roles, permission)) {
+    return true;
   }
   
   // Check scope-based permissions (for API keys)
-  if (scopes) {
-    // Check for wildcard scope
-    if (scopes.includes('*')) {
-      return true;
+  if (scopes && checkScopePermissions(scopes, permission)) {
+    return true;
+  }
+  
+  return false;
+}
+
+/**
+ * Check role-based permissions
+ */
+function checkRolePermissions(roles: string[], permission: Permission): boolean {
+  for (const role of roles) {
+    const rolePerms = RolePermissions.get(role);
+    if (!rolePerms) {
+      continue;
     }
     
-    // Check for specific permission in scopes
-    if (scopes.includes(permission)) {
+    // Check for exact permission match or wildcard admin permission
+    if (rolePerms.includes(permission) || rolePerms.includes(Permission.ADMIN_ALL)) {
       return true;
     }
-    
-    // Check for resource wildcard (e.g., "context:*" matches "context:read")
-    const [resource] = permission.split(':');
-    if (scopes.includes(`${resource}:*`)) {
-      return true;
-    }
+  }
+  return false;
+}
+
+/**
+ * Check scope-based permissions
+ */
+function checkScopePermissions(scopes: string[], permission: Permission): boolean {
+  // Check for wildcard scope
+  if (scopes.includes('*')) {
+    return true;
+  }
+  
+  // Check for specific permission in scopes
+  if (scopes.includes(permission)) {
+    return true;
+  }
+  
+  // Check for resource wildcard (e.g., "context:*" matches "context:read")
+  const [resource] = permission.split(':');
+  if (scopes.includes(`${resource}:*`)) {
+    return true;
   }
   
   return false;
@@ -182,13 +201,26 @@ export function hasPermission(
  * @nist ac-3 "Access enforcement"
  * @nist au-3 "Content of audit records"
  */
-export async function requirePermission(
-  userId: string,
-  roles: string[],
-  permission: Permission,
-  resource: string,
-  scopes?: string[]
-): Promise<void> {
+interface PermissionCheckParams {
+  userId: string;
+  roles: string[];
+  permission: Permission;
+  resource: string;
+  scopes?: string[];
+}
+
+/**
+ * Require permission or throw error
+ * @nist ac-3 "Access enforcement"
+ * @nist au-3 "Content of audit records"
+ */
+export async function requirePermission({
+  userId,
+  roles,
+  permission,
+  resource,
+  scopes
+}: PermissionCheckParams): Promise<void> {
   if (!hasPermission(roles, permission, scopes)) {
     await logSecurityEvent(SecurityEventType.ACCESS_DENIED, {
       userId,
@@ -217,7 +249,7 @@ export function getPermissionsForRoles(roles: string[]): Permission[] {
   const permissions = new Set<Permission>();
   
   for (const role of roles) {
-    const rolePerms = RolePermissions[role];
+    const rolePerms = RolePermissions.get(role);
     if (rolePerms) {
       for (const perm of rolePerms) {
         permissions.add(perm);

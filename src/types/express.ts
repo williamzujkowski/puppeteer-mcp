@@ -16,18 +16,20 @@ export interface RequestContext {
   userAgent?: string;
 }
 
-declare global {
-  namespace Express {
-    interface Request {
-      user?: {
-        userId: string;
-        username: string;
-        roles: string[];
-        sessionId: string;
-      };
-      context?: RequestContext;
-    }
-  }
+// Module augmentation for Express types
+export interface CustomRequestProperties {
+  user?: {
+    userId: string;
+    username: string;
+    roles: string[];
+    sessionId: string;
+  };
+  context?: RequestContext;
+}
+
+// Extend the Express Request type
+declare module 'express' {
+  interface Request extends CustomRequestProperties {}
 }
 
 /**

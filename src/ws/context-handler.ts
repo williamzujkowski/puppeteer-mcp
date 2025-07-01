@@ -66,13 +66,13 @@ export class WSContextHandler {
   }
 
   private async checkPermission(state: WSConnectionState, perm: Permission): Promise<void> {
-    await requirePermission(
-      state.userId as string,
-      state.roles ?? [],
-      perm,
-      'context',
-      state.scopes
-    );
+    await requirePermission({
+      userId: state.userId as string,
+      roles: state.roles ?? [],
+      permission: perm,
+      resource: 'context',
+      scopes: state.scopes
+    });
   }
 
   private checkAccess(context: { userId: string }, state: WSConnectionState): void {
@@ -97,7 +97,7 @@ export class WSContextHandler {
     };
   }
 
-  private async getAndValidate(id: string, state: WSConnectionState): Promise<any> {
+  private async getAndValidate(id: string, state: WSConnectionState): Promise<Context> {
     const context = await contextStore.get(id);
     if (!context) {throw new AppError('Context not found', 404);}
     this.checkAccess(context, state);
