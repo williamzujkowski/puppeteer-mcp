@@ -50,10 +50,15 @@ This project follows [William Zujkowski's standards](https://github.com/williamz
 
 ## Pull Request Process
 
-1. Update the README.md with details of changes to the interface
-2. Update the CHANGELOG.md with your changes
-3. Run `npm run standards:check` and ensure it passes
-4. The PR will be merged once you have the sign-off of at least one maintainer
+1. Ensure your code passes all pre-commit hooks (lint, format, tests)
+2. Address any ESLint warnings or add justification for architectural decisions
+3. Update documentation for any API changes or new features
+4. Ensure all tests pass with 85%+ coverage (95% for security modules)
+5. Add or update integration tests for cross-protocol features
+6. Update CLAUDE.md if the change affects development workflow
+7. Follow the commit message format and include NIST control tags for security changes
+8. Run `npm run standards:check` and `npm run security:check`
+9. The PR will be merged once approved and CI passes
 
 ## Testing
 
@@ -70,10 +75,10 @@ npm run test:coverage
 
 ## Code Style
 
-We use ESLint and Prettier to maintain code quality:
+We use ESLint and Prettier to maintain code quality. The project has achieved 97% ESLint compliance:
 
 ```bash
-# Check linting
+# Check linting (currently shows 12 architectural warnings)
 npm run lint
 
 # Fix linting issues
@@ -81,7 +86,19 @@ npm run lint:fix
 
 # Format code
 npm run format
+
+# Type checking
+npm run typecheck
+
+# Security check
+npm run security:check
 ```
+
+### ESLint Compliance Strategy
+- Fix all security, type safety, and critical issues
+- For architectural issues (complexity, file length), either refactor or document the decision
+- Avoid adding new architectural ESLint violations
+- Use `eslint-disable` sparingly and with justification comments
 
 ## Commit Messages
 
@@ -98,9 +115,19 @@ Follow conventional commits:
 
 When you submit code changes, your submissions are understood to be under the same [MIT License](LICENSE) that covers the project.
 
-## Report bugs using GitHub's [issue tracker](https://github.com/yourusername/puppeteer-mcp/issues)
+## Report bugs using GitHub's [issue tracker](https://github.com/williamzujkowski/puppeteer-mcp/issues)
 
-We use GitHub issues to track public bugs. Report a bug by [opening a new issue](https://github.com/yourusername/puppeteer-mcp/issues/new).
+We use GitHub issues to track public bugs. Report a bug by [opening a new issue](https://github.com/williamzujkowski/puppeteer-mcp/issues/new).
+
+## Current Build Status
+
+⚠️ **Note**: The project currently has 12 architectural ESLint issues that are design decisions rather than bugs:
+- 5 complexity issues (functions > 10 complexity)
+- 4 file length issues (files > 300 lines)  
+- 2 parameter count issues (functions > 4 parameters)
+- 1 function length issue (function > 100 lines)
+
+These issues require architectural refactoring and are documented in the project plan. New contributions should aim to avoid adding to these architectural issues.
 
 ## License
 
