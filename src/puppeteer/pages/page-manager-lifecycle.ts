@@ -41,6 +41,22 @@ export async function performCleanup(
 }
 
 /**
+ * Initialize cleanup interval for page manager
+ * @param performCleanup - Cleanup function to run periodically
+ * @returns Cleanup interval timer
+ */
+export function initializeCleanupInterval(
+  performCleanup: () => Promise<void>
+): NodeJS.Timeout {
+  return setInterval(
+    () => {
+      void performCleanup();
+    },
+    5 * 60 * 1000 // 5 minutes
+  );
+}
+
+/**
  * Shutdown page manager
  * @nist ac-12 "Session termination"
  */

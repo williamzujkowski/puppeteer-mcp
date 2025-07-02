@@ -16,7 +16,7 @@ import {
   needsRestart,
   closeBrowser,
   restartBrowser 
-} from './browser-lifecycle.js';
+} from './browser-utils.js';
 import { BrowserHealthMonitor } from './browser-health.js';
 
 const logger = createLogger('browser-pool-maintenance');

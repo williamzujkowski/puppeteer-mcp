@@ -9,8 +9,6 @@
 
 import type { Browser, Page } from 'puppeteer';
 import { EventEmitter } from 'events';
-import { AppError } from '../../core/errors/app-error.js';
-import { createLogger } from '../../utils/logger.js';
 import type { 
   BrowserPool as IBrowserPool,
   BrowserInstance,
@@ -23,31 +21,33 @@ import {
   BrowserPoolMaintenance,
   type InternalBrowserInstance 
 } from './browser-pool-maintenance.js';
+import { releaseBrowser } from './browser-pool-acquisition-handlers.js';
 import {
-  findIdleBrowser,
-  createPage as createBrowserPage,
-  closePage as closeBrowserPage,
-  listBrowsers,
-} from './browser-pool-operations.js';
-import {
-  createAndAcquireBrowser,
-  queueAcquisition,
-  launchNewBrowser,
-} from './browser-pool-acquisition.js';
-import { getPoolMetrics } from './browser-pool-metrics.js';
-import { DEFAULT_OPTIONS, configurePoolOptions } from './browser-pool-config.js';
-import { initializePool } from './browser-pool-init.js';
-import { shutdownPool } from './browser-pool-shutdown.js';
-import { setupQueueHandlers } from './browser-pool-event-setup.js';
-import { acquireBrowser, releaseBrowser } from './browser-pool-acquisition-handlers.js';
-import {
-  activateBrowserForSession,
-  handleRemoveBrowser,
-  handleUnhealthyBrowserWithEvent,
-  performMaintenanceWrapper,
+  handleUnhealthyBrowserDelegate,
+  performPoolMaintenance,
+  removeBrowserFromPool,
 } from './browser-pool-private-methods.js';
-
-const logger = createLogger('browser-pool');
+import { acquireBrowserFacade } from './browser-pool-facade.js';
+import {
+  createPage,
+  closePage,
+  healthCheck,
+  recycleBrowser,
+  listBrowsersPublic,
+  cleanupIdle,
+  configure,
+  getBrowser,
+  getMetrics,
+} from './browser-pool-public-methods.js';
+import {
+  initializeBrowserPool,
+  initializePoolWithBrowsers,
+  shutdownBrowserPool,
+  createAndAcquireNewBrowser,
+  queueBrowserAcquisition,
+  launchBrowser,
+  createBrowserPoolHelpers,
+} from './browser-pool-lifecycle.js';
 
 /**
  * Browser pool implementation
@@ -56,24 +56,26 @@ const logger = createLogger('browser-pool');
  */
 export class BrowserPool extends EventEmitter implements IBrowserPool {
   private options: BrowserPoolOptions;
-  private browsers = new Map<string, InternalBrowserInstance>();
-  private healthMonitor = new BrowserHealthMonitor();
-  private queue = new BrowserQueue();
-  private maintenance = new BrowserPoolMaintenance();
+  private browsers: Map<string, InternalBrowserInstance>;
+  private healthMonitor: BrowserHealthMonitor;
+  private queue: BrowserQueue;
+  private maintenance: BrowserPoolMaintenance;
   private isShuttingDown = false;
 
   constructor(options: Partial<BrowserPoolOptions> = {}) {
     super();
-    this.options = { ...DEFAULT_OPTIONS, ...options } as BrowserPoolOptions;
-    
-    // Start maintenance cycle
-    this.maintenance.startMaintenance(
-      () => this.performMaintenance(),
-      60000 // 1 minute
+    const components = initializeBrowserPool(
+      this,
+      options,
+      () => createBrowserPoolHelpers(this.browsers, this.options, (event, data) => this.emit(event, data)).findIdleBrowser(),
+      () => this.performMaintenance()
     );
-
-    // Set up queue event handling
-    setupQueueHandlers(this, this.queue, () => this.findIdleBrowser());
+    
+    this.options = components.options;
+    this.browsers = components.browsers;
+    this.healthMonitor = components.healthMonitor;
+    this.queue = components.queue;
+    this.maintenance = components.maintenance;
   }
 
   /**
@@ -81,7 +83,7 @@ export class BrowserPool extends EventEmitter implements IBrowserPool {
    * @nist ac-3 "Access enforcement"
    */
   async initialize(): Promise<void> {
-    await initializePool(this, this.options.maxBrowsers, () => this.launchNewBrowser());
+    await initializePoolWithBrowsers(this, this.options.maxBrowsers, () => this.launchNewBrowser());
   }
 
   /**
@@ -90,13 +92,14 @@ export class BrowserPool extends EventEmitter implements IBrowserPool {
    * @nist ac-4 "Information flow enforcement"
    */
   async acquireBrowser(sessionId: string): Promise<BrowserInstance> {
-    return acquireBrowser(
+    const helpers = createBrowserPoolHelpers(this.browsers, this.options, (event, data) => this.emit(event, data));
+    return acquireBrowserFacade(
       sessionId,
       this.isShuttingDown,
-      () => this.findIdleBrowser(),
-      (instance, sid) => this.activateBrowser(instance, sid),
+      helpers.findIdleBrowser,
+      helpers.activateBrowser,
       (sid) => this.createAndAcquireBrowser(sid),
-      () => this.browsers.size < this.options.maxBrowsers,
+      helpers.canCreateNewBrowser,
       (sid) => this.queueAcquisition(sid)
     );
   }
@@ -119,7 +122,7 @@ export class BrowserPool extends EventEmitter implements IBrowserPool {
    * @nist ac-3 "Access enforcement"
    */
   getBrowser(browserId: string): BrowserInstance | undefined {
-    return this.browsers.get(browserId);
+    return getBrowser(browserId, this.browsers);
   }
 
   /**
@@ -127,7 +130,7 @@ export class BrowserPool extends EventEmitter implements IBrowserPool {
    * @nist au-3 "Content of audit records"
    */
   getMetrics(): PoolMetrics {
-    return getPoolMetrics(this.browsers, this.options.maxBrowsers);
+    return getMetrics(this.browsers, this.options.maxBrowsers);
   }
 
   /**
@@ -136,46 +139,23 @@ export class BrowserPool extends EventEmitter implements IBrowserPool {
    */
   async shutdown(): Promise<void> {
     this.isShuttingDown = true;
-    this.maintenance.setShuttingDown(true);
-    this.maintenance.stopMaintenance();
-    await shutdownPool(this.browsers, this.healthMonitor, this.queue);
+    await shutdownBrowserPool(this.browsers, this.healthMonitor, this.queue, this.maintenance);
   }
 
-  /**
-   * Find an idle browser
-   * @private
-   */
-  private findIdleBrowser(): InternalBrowserInstance | null {
-    return findIdleBrowser(this.browsers);
-  }
-
-  /**
-   * Activate a browser for a session
-   * @private
-   */
-  private activateBrowser(instance: InternalBrowserInstance, sessionId: string): InternalBrowserInstance {
-    return activateBrowserForSession(
-      instance,
-      sessionId,
-      (browserId, sid) => this.emit('browser:acquired', { browserId, sessionId: sid })
-    );
-  }
 
   /**
    * Create and acquire a new browser
    * @private
    */
   private async createAndAcquireBrowser(sessionId: string): Promise<BrowserInstance> {
-    const instance = await createAndAcquireBrowser(
+    return createAndAcquireNewBrowser(
       sessionId,
       this.options,
       this.browsers,
       this.healthMonitor,
-      (browserId) => void this.handleUnhealthyBrowser(browserId)
+      (browserId) => this.handleUnhealthyBrowser(browserId),
+      (event, data) => this.emit(event, data)
     );
-    
-    this.emit('browser:acquired', { browserId: instance.id, sessionId });
-    return instance;
   }
 
   /**
@@ -183,7 +163,7 @@ export class BrowserPool extends EventEmitter implements IBrowserPool {
    * @private
    */
   private queueAcquisition(sessionId: string): Promise<BrowserInstance> {
-    return queueAcquisition(
+    return queueBrowserAcquisition(
       sessionId,
       this.queue,
       this.options.acquisitionTimeout ?? 30000
@@ -195,15 +175,13 @@ export class BrowserPool extends EventEmitter implements IBrowserPool {
    * @private
    */
   private async launchNewBrowser(): Promise<{ browser: Browser; instance: InternalBrowserInstance }> {
-    const result = await launchNewBrowser(
+    return launchBrowser(
       this.options,
       this.browsers,
       this.healthMonitor,
-      (browserId) => void this.handleUnhealthyBrowser(browserId)
+      (browserId) => this.handleUnhealthyBrowser(browserId),
+      (event, data) => this.emit(event, data)
     );
-    
-    this.emit('browser:created', { browserId: result.instance.id });
-    return result;
   }
 
   /**
@@ -211,20 +189,14 @@ export class BrowserPool extends EventEmitter implements IBrowserPool {
    * @private
    */
   private async handleUnhealthyBrowser(browserId: string): Promise<void> {
-    await handleUnhealthyBrowserWithEvent(
+    await handleUnhealthyBrowserDelegate(
       browserId,
       this.browsers,
-      async (id) => {
-        await this.maintenance.handleUnhealthyBrowser(
-          id,
-          this.browsers,
-          this.healthMonitor,
-          this.options,
-          (bid) => void this.handleUnhealthyBrowser(bid)
-        );
-      },
-      (id) => this.emit('browser:restarted', { browserId: id }),
-      (id) => this.emit('browser:removed', { browserId: id })
+      this.maintenance,
+      this.healthMonitor,
+      this.options,
+      (event, data) => this.emit(event, data),
+      (id) => this.handleUnhealthyBrowser(id)
     );
   }
 
@@ -234,14 +206,13 @@ export class BrowserPool extends EventEmitter implements IBrowserPool {
    * @private
    */
   private async performMaintenance(): Promise<void> {
-    await performMaintenanceWrapper(
-      () => this.maintenance.performMaintenance(
-        this.browsers,
-        this.options,
-        (browserId) => this.removeBrowser(browserId),
-        (browserId) => this.handleUnhealthyBrowser(browserId),
-        () => this.launchNewBrowser()
-      )
+    await performPoolMaintenance(
+      this.browsers,
+      this.options,
+      this.maintenance,
+      (browserId) => this.removeBrowser(browserId),
+      (browserId) => this.handleUnhealthyBrowser(browserId),
+      () => this.launchNewBrowser()
     );
   }
 
@@ -250,10 +221,12 @@ export class BrowserPool extends EventEmitter implements IBrowserPool {
    * @private
    */
   private async removeBrowser(browserId: string): Promise<void> {
-    await handleRemoveBrowser(
+    await removeBrowserFromPool(
       browserId,
-      (id) => this.maintenance.removeBrowser(id, this.browsers, this.healthMonitor),
-      (id) => this.emit('browser:removed', { browserId: id })
+      this.browsers,
+      this.healthMonitor,
+      this.maintenance,
+      (event, data) => this.emit(event, data)
     );
   }
 
@@ -262,14 +235,14 @@ export class BrowserPool extends EventEmitter implements IBrowserPool {
    * @nist ac-4 "Information flow enforcement"
    */
   async createPage(browserId: string, sessionId: string): Promise<Page> {
-    return createBrowserPage(browserId, sessionId, this.browsers);
+    return createPage(browserId, sessionId, this.browsers);
   }
 
   /**
    * Close a page in a browser
    */
   async closePage(browserId: string, sessionId: string): Promise<void> {
-    return closeBrowserPage(browserId, sessionId, this.browsers);
+    return closePage(browserId, sessionId, this.browsers);
   }
 
   /**
@@ -277,59 +250,52 @@ export class BrowserPool extends EventEmitter implements IBrowserPool {
    * @nist si-4 "Information system monitoring"
    */
   async healthCheck(): Promise<Map<string, boolean>> {
-    return this.maintenance.healthCheck(this.browsers);
+    return healthCheck(this.maintenance, this.browsers);
   }
 
   /**
    * Recycle a browser instance
    */
   async recycleBrowser(browserId: string): Promise<void> {
-    try {
-      await this.maintenance.recycleBrowser(
-        browserId,
-        this.browsers,
-        this.options
-      );
-    } catch (error) {
-      logger.error({ browserId, error }, 'Failed to recycle browser');
-      await this.removeBrowser(browserId);
-    }
+    return recycleBrowser(
+      browserId,
+      this.browsers,
+      this.options,
+      this.maintenance,
+      (id) => this.removeBrowser(id)
+    );
   }
 
   /**
    * List all browser instances
    */
   listBrowsers(): BrowserInstance[] {
-    return listBrowsers(this.browsers);
+    return listBrowsersPublic(this.browsers);
   }
 
   /**
    * Clean up idle browsers
    */
   async cleanupIdle(): Promise<number> {
-    return this.maintenance.cleanupIdle(
+    return cleanupIdle(
+      this.maintenance,
       this.browsers,
       this.options,
       (browserId) => this.removeBrowser(browserId)
     );
   }
 
-
   /**
    * Configure pool options
    * @nist cm-7 "Least functionality"
    */
   configure(options: Partial<BrowserPoolOptions>): void {
-    this.options = configurePoolOptions(this.options, options);
-    
-    // Restart maintenance if interval changed
-    if (options.healthCheckInterval) {
-      this.maintenance.stopMaintenance();
-      this.maintenance.startMaintenance(
-        () => this.performMaintenance(),
-        60000
-      );
-    }
+    this.options = configure(
+      this.options,
+      options,
+      this.maintenance,
+      () => this.performMaintenance()
+    );
   }
 
 }

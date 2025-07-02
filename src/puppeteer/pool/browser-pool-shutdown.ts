@@ -5,7 +5,7 @@
  */
 
 import { createLogger } from '../../utils/logger.js';
-import { closeBrowser } from './browser-lifecycle.js';
+import { closeBrowser } from './browser-utils.js';
 import type { InternalBrowserInstance } from './browser-pool-maintenance.js';
 import type { BrowserHealthMonitor } from './browser-health.js';
 import type { BrowserQueue } from './browser-queue.js';

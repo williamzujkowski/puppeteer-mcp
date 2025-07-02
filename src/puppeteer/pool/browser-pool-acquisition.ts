@@ -11,7 +11,7 @@ import { AppError } from '../../core/errors/app-error.js';
 import { createLogger } from '../../utils/logger.js';
 import type { BrowserInstance, BrowserPoolOptions } from '../interfaces/browser-pool.interface.js';
 import type { InternalBrowserInstance } from './browser-pool-maintenance.js';
-import { launchBrowser } from './browser-lifecycle.js';
+import { launchBrowser } from './browser-utils.js';
 import { BrowserHealthMonitor } from './browser-health.js';
 import { BrowserQueue } from './browser-queue.js';
 

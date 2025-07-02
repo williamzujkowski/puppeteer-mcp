@@ -97,6 +97,30 @@ export async function navigateTo(
 }
 
 /**
+ * Navigate to URL with event emission
+ * @param pageId - Page identifier
+ * @param url - Target URL
+ * @param sessionId - Session identifier for validation
+ * @param options - Navigation options
+ * @param pages - Pages map
+ * @param pageStore - Page info store
+ * @param emitter - Event emitter for page events
+ * @nist ac-4 "Information flow enforcement"
+ */
+export async function navigateToWithEvents(
+  pageId: string,
+  url: string,
+  sessionId: string,
+  options: NavigationOptions | undefined,
+  pages: Map<string, Page>,
+  pageStore: PageInfoStore,
+  emitter: { emit: (event: string, data: any) => void }
+): Promise<void> {
+  await navigateTo(pageId, url, sessionId, options, pages, pageStore);
+  emitter.emit('page:navigated', { pageId, url });
+}
+
+/**
  * Update page options
  * @param pageId - Page identifier
  * @param options - Page options to update
