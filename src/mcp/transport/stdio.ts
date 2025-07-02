@@ -45,7 +45,7 @@ export class StdioTransport {
         msg: 'MCP stdio transport received SIGINT',
         timestamp: new Date().toISOString(),
       });
-      void this.close();
+      this.close();
     });
 
     process.on('SIGTERM', () => {
@@ -53,7 +53,7 @@ export class StdioTransport {
         msg: 'MCP stdio transport received SIGTERM',
         timestamp: new Date().toISOString(),
       });
-      void this.close();
+      this.close();
     });
   }
 
@@ -67,7 +67,7 @@ export class StdioTransport {
   /**
    * Close the transport gracefully
    */
-  async close(): Promise<void> {
+  close(): void {
     try {
       logger.info({
         msg: 'Closing MCP stdio transport',

@@ -59,19 +59,19 @@ describe('MCP Server', () => {
 
   describe('Tool Registration', () => {
     it('should register execute-api tool', () => {
-      const tools = (mcpServer as any).server._handlers?.get('tools/list');
+      const _tools = (mcpServer as any).server._handlers?.get('tools/list');
       // This test will be implemented once we can access the registered tools
       expect(mcpServer).toBeDefined();
     });
 
     it('should register session management tools', () => {
-      const tools = (mcpServer as any).server._handlers?.get('tools/list');
+      const _tools = (mcpServer as any).server._handlers?.get('tools/list');
       // This test will be implemented once we can access the registered tools
       expect(mcpServer).toBeDefined();
     });
 
     it('should register browser context tools', () => {
-      const tools = (mcpServer as any).server._handlers?.get('tools/list');
+      const _tools = (mcpServer as any).server._handlers?.get('tools/list');
       // This test will be implemented once we can access the registered tools
       expect(mcpServer).toBeDefined();
     });
@@ -79,13 +79,13 @@ describe('MCP Server', () => {
 
   describe('Resource Registration', () => {
     it('should register API catalog resource', () => {
-      const resources = (mcpServer as any).server._handlers?.get('resources/list');
+      const _resources = (mcpServer as any).server._handlers?.get('resources/list');
       // This test will be implemented once we can access the registered resources
       expect(mcpServer).toBeDefined();
     });
 
     it('should register health resource', () => {
-      const resources = (mcpServer as any).server._handlers?.get('resources/list');
+      const _resources = (mcpServer as any).server._handlers?.get('resources/list');
       // This test will be implemented once we can access the registered resources
       expect(mcpServer).toBeDefined();
     });

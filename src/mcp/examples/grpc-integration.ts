@@ -292,7 +292,7 @@ async function contextManagementExample(): Promise<void> {
 
   // Example 2: Execute a command in the context
   // console.log('2. Executing a command:');
-  const commandResponse = await adapter.executeRequest({
+  await adapter.executeRequest({
     operation: {
       service: 'ContextService',
       method: 'ExecuteCommand',
@@ -314,7 +314,7 @@ async function contextManagementExample(): Promise<void> {
 
   // Example 3: List contexts
   // console.log('3. Listing contexts:');
-  const listResponse = await adapter.executeRequest({
+  await adapter.executeRequest({
     operation: {
       service: 'ContextService',
       method: 'ListContexts',

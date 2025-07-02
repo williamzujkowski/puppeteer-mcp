@@ -56,6 +56,7 @@ export async function handleClick(
     });
 
     const duration = Date.now() - startTime;
+    const sanitizedSelector = sanitizeSelector(action.selector);
 
     logger.info('Click action completed', {
       sessionId: context.sessionId,

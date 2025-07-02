@@ -137,7 +137,7 @@ const demoUsers = [
 // console.log('================================\n');
 
 // console.log('Available Demo Users:');
-demoUsers.forEach(user => {
+demoUsers.forEach((_user) => {
   // console.log(`- Username: ${user.username}`);
   // console.log(`  Password: ${user.password}`);
   // console.log(`  Roles: ${user.roles.join(', ')}`);
@@ -147,7 +147,7 @@ demoUsers.forEach(user => {
 // console.log('\nExample Tool Calls:');
 // console.log('==================\n');
 
-Object.entries(exampleSessionManagement).forEach(([name, example]) => {
+Object.entries(exampleSessionManagement).forEach(([_name, example]) => {
   // console.log(`${name}:`);
   // console.log(`Tool: ${example.tool}`);
   // console.log('Arguments:', JSON.stringify(example.args, null, 2));

@@ -118,7 +118,7 @@ async function sendWebSocketMessage(): Promise<void> {
  */
 async function broadcastSystemEvent(): Promise<void> {
   try {
-    const response = await wsAdapter.executeRequest({
+    await wsAdapter.executeRequest({
       operation: {
         type: 'broadcast',
         topic: 'system.maintenance',
@@ -177,7 +177,7 @@ async function manageMultipleSubscriptions(): Promise<void> {
     }
 
     // Wait for some time
-    await new Promise(resolve => setTimeout(resolve, 30000));
+    await new Promise<void>(resolve => { setTimeout(resolve, 30000); });
 
     // Unsubscribe from all topics
     for (const { topic } of subscriptions) {
@@ -200,11 +200,11 @@ async function manageMultipleSubscriptions(): Promise<void> {
  * Example: Get WebSocket capabilities
  */
 async function checkCapabilities(): Promise<void> {
-  const capabilities = await wsAdapter.getCapabilities();
+  await wsAdapter.getCapabilities();
   // console.log('WebSocket Adapter Capabilities:');
   // console.log(JSON.stringify(capabilities, null, 2));
 
-  const endpoints = await wsAdapter.listEndpoints();
+  await wsAdapter.listEndpoints();
   // console.log('\nAvailable Endpoints:');
   // console.log(endpoints.content[0]?.text);
 }
@@ -236,7 +236,7 @@ async function handleConnectionErrors(): Promise<void> {
         if (error.message.includes('CONNECTION_CLOSED') && retryCount < maxRetries) {
           retryCount++;
           // console.log(`Retrying in ${retryCount * 2} seconds...`);
-          await new Promise(resolve => setTimeout(resolve, retryCount * 2000));
+          await new Promise<void>(resolve => { setTimeout(resolve, retryCount * 2000); });
           return attemptConnection();
         }
       }

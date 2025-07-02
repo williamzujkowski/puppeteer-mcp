@@ -20,7 +20,7 @@ async function setupMCPWithExpress() {
   // Start MCP server
   await mcpServer.start();
   
-  console.log('MCP server started with REST adapter enabled');
+  // MCP server started with REST adapter enabled
 }
 
 /**

@@ -5,7 +5,6 @@
 
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
 import { MCPServer } from './server.js';
-import { logger } from '../utils/logger.js';
 
 // Mock the logger
 jest.mock('../utils/logger.js', () => ({

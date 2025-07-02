@@ -447,7 +447,7 @@ describe('BrowserPool', () => {
       const instance = await pool.acquireBrowser('session-123');
       
       // Add a small delay to ensure measurable lifetime
-      await new Promise<void>(resolve => setTimeout(resolve, 10));
+      await new Promise<void>(resolve => { setTimeout(resolve, 10); });
       
       await pool.releaseBrowser(instance.id, 'session-123');
       
