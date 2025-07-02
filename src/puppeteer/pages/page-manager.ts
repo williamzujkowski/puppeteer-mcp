@@ -11,8 +11,7 @@ import type { Page, Cookie } from 'puppeteer';
 import { EventEmitter } from 'events';
 import { v4 as uuidv4 } from 'uuid';
 import { AppError } from '../../core/errors/app-error.js';
-import { logSecurityEvent, SecurityEventType, createLogger } from '../../utils/logger.js';
-import { contextStore } from '../../store/context-store.js';
+import { createLogger } from '../../utils/logger.js';
 import type { BrowserPool } from '../interfaces/browser-pool.interface.js';
 import type {
   PageManager as IPageManager,
@@ -24,7 +23,43 @@ import type {
 import { pageInfoStore, type PageInfoStore } from './page-info-store.js';
 import { configurePageOptions } from './page-configuration.js';
 import { configurePageEventHandlers, type PageEvents } from './page-event-handler.js';
-import { closeContextPages, closeSessionPages, closePage, performPeriodicCleanup } from './page-cleanup.js';
+import {
+  getPageMetrics,
+  setCookies,
+  getCookies,
+  clearPageData,
+  takeScreenshot,
+  isPageActive,
+  cleanupIdlePages,
+} from './page-operations.js';
+import {
+  navigatePage,
+  navigateTo,
+  updatePageOptions,
+} from './page-navigation.js';
+import {
+  performCleanup,
+  shutdownPageManager,
+} from './page-manager-lifecycle.js';
+import { setupPageStoreHandlers } from './page-manager-events.js';
+import { 
+  getPageWithAccessControl,
+  getPageInfoWithAccessControl
+} from './page-access-control.js';
+import {
+  listPagesForSession,
+  listPagesForContext,
+} from './page-list-operations.js';
+import {
+  createPageInfo,
+  verifyContextAccess,
+  createAndConfigurePage,
+} from './page-create-operations.js';
+import {
+  closePageOperation,
+  closePagesForContextOperation,
+  closePagesForSessionOperation,
+} from './page-close-operations.js';
 
 const logger = createLogger('page-manager');
 
@@ -71,72 +106,30 @@ export class PageManager extends EventEmitter implements IPageManager {
 
     logger.debug({ contextId, sessionId, browserId }, 'Creating new page');
 
-    // Verify context exists and belongs to session
-    const context = await contextStore.get(contextId);
-    if (!context) {
-      throw new AppError('Context not found', 404);
-    }
-
-    if (context.sessionId !== sessionId) {
-      await logSecurityEvent(SecurityEventType.ACCESS_DENIED, {
-        userId: sessionId,
-        resource: `context:${contextId}`,
-        result: 'failure',
-        reason: 'Context does not belong to session',
-      });
-      throw new AppError('Unauthorized access to context', 403);
-    }
+    // Verify context access
+    await verifyContextAccess(contextId, sessionId);
 
     try {
-      // Get browser instance from pool
-      const browserInstance = this.browserPool.getBrowser(browserId);
-      if (!browserInstance) {
-        throw new AppError('Browser not found', 404);
-      }
-
-      // Create new page
-      const page = await browserInstance.browser.newPage();
       const pageId = uuidv4();
-
-      // Configure page options
-      if (options) {
-        await configurePageOptions(page, options);
-      }
-
-      // Create page info
-      const pageInfo: PageInfo = {
-        id: pageId,
-        contextId,
-        sessionId,
+      const pageInfo = createPageInfo(pageId, contextId, sessionId, browserId);
+      
+      const result = await createAndConfigurePage(
+        this.browserPool,
         browserId,
-        url: 'about:blank',
-        title: '',
-        state: 'active',
-        createdAt: new Date(),
-        lastActivityAt: new Date(),
-        navigationHistory: [],
-        errorCount: 0,
-      };
+        pageId,
+        pageInfo,
+        options,
+        this.pages,
+        this.pageStore,
+        this
+      );
 
-      // Store page
-      this.pages.set(pageId, page);
-      await this.pageStore.create(pageInfo);
-
-      // Set up event listeners
-      configurePageEventHandlers(page, pageId, this);
-      this.setupPageStoreHandlers(page, pageInfo);
-
+      setupPageStoreHandlers(result, pageInfo, this.pageStore, this);
+      
       // Emit creation event
       this.emit('page:created', { pageInfo });
 
-      logger.info({
-        pageId,
-        contextId,
-        sessionId,
-        browserId,
-      }, 'Page created successfully');
-
-      return pageInfo;
+      return result;
 
     } catch (error) {
       logger.error({
@@ -157,32 +150,7 @@ export class PageManager extends EventEmitter implements IPageManager {
    * @nist ac-3 "Access enforcement"
    */
   async getPage(pageId: string, sessionId: string): Promise<Page> {
-    const pageInfo = await this.pageStore.get(pageId);
-    if (!pageInfo) {
-      throw new AppError('Page not found', 404);
-    }
-
-    if (pageInfo.sessionId !== sessionId) {
-      await logSecurityEvent(SecurityEventType.ACCESS_DENIED, {
-        userId: sessionId,
-        resource: `page:${pageId}`,
-        result: 'failure',
-        reason: 'Page does not belong to session',
-      });
-      throw new AppError('Unauthorized access to page', 403);
-    }
-
-    const page = this.pages.get(pageId);
-    if (!page || page.isClosed()) {
-      await this.pageStore.delete(pageId);
-      this.pages.delete(pageId);
-      throw new AppError('Page is closed', 410);
-    }
-
-    // Update activity
-    await this.pageStore.touchActivity(pageId);
-
-    return page;
+    return getPageWithAccessControl(pageId, sessionId, this.pages, this.pageStore);
   }
 
   /**
@@ -190,22 +158,7 @@ export class PageManager extends EventEmitter implements IPageManager {
    * @nist ac-3 "Access enforcement"
    */
   async getPageInfo(pageId: string, sessionId: string): Promise<PageInfo> {
-    const pageInfo = await this.pageStore.get(pageId);
-    if (!pageInfo) {
-      throw new AppError('Page not found', 404);
-    }
-
-    if (pageInfo.sessionId !== sessionId) {
-      await logSecurityEvent(SecurityEventType.ACCESS_DENIED, {
-        userId: sessionId,
-        resource: `page:${pageId}`,
-        result: 'failure',
-        reason: 'Page does not belong to session',
-      });
-      throw new AppError('Unauthorized access to page', 403);
-    }
-
-    return pageInfo;
+    return getPageInfoWithAccessControl(pageId, sessionId, this.pageStore);
   }
 
   /**
@@ -218,14 +171,7 @@ export class PageManager extends EventEmitter implements IPageManager {
     url: string,
     options?: NavigationOptions
   ): Promise<void> {
-    const page = await this.getPage(pageId, sessionId);
-    
-    logger.debug({ pageId, url }, 'Navigating page');
-
-    await page.goto(url, {
-      waitUntil: options?.waitUntil ?? 'networkidle2',
-      timeout: options?.timeout ?? 30000,
-    });
+    return navigatePage(pageId, sessionId, url, options, this.pages, this.pageStore);
   }
 
   /**
@@ -242,37 +188,8 @@ export class PageManager extends EventEmitter implements IPageManager {
     sessionId: string,
     options?: NavigationOptions
   ): Promise<void> {
-    const pageInfo = await this.pageStore.get(pageId);
-    if (!pageInfo || pageInfo.sessionId !== sessionId) {
-      throw new AppError('Page not found or access denied', 404);
-    }
-
-    const page = this.pages.get(pageId);
-    if (!page) {
-      throw new AppError('Page instance not found', 404);
-    }
-
-    await this.pageStore.updateState(pageId, 'navigating');
-    
-    try {
-      await page.goto(url, {
-        timeout: options?.timeout ?? 30000,
-        waitUntil: options?.waitUntil ?? 'load',
-        referer: options?.referer,
-      });
-      
-      const title = await page.title();
-      await this.pageStore.updateUrl(pageId, url);
-      await this.pageStore.updateTitle(pageId, title);
-      await this.pageStore.addNavigationHistory(pageId, url);
-      await this.pageStore.updateState(pageId, 'active');
-      
-      this.emit('page:navigated', { pageId, url });
-    } catch (error) {
-      await this.pageStore.updateState(pageId, 'active');
-      await this.pageStore.incrementErrorCount(pageId);
-      throw error;
-    }
+    await navigateTo(pageId, url, sessionId, options, this.pages, this.pageStore);
+    this.emit('page:navigated', { pageId, url });
   }
 
   /**
@@ -286,18 +203,7 @@ export class PageManager extends EventEmitter implements IPageManager {
     options: Partial<PageOptions>,
     sessionId: string
   ): Promise<void> {
-    const pageInfo = await this.pageStore.get(pageId);
-    if (!pageInfo || pageInfo.sessionId !== sessionId) {
-      throw new AppError('Page not found or access denied', 404);
-    }
-
-    const page = this.pages.get(pageId);
-    if (!page) {
-      throw new AppError('Page instance not found', 404);
-    }
-
-    await configurePageOptions(page, options);
-    await this.pageStore.touchActivity(pageId);
+    return updatePageOptions(pageId, options, sessionId, this.pages, this.pageStore, configurePageOptions);
   }
 
   /**
@@ -309,17 +215,7 @@ export class PageManager extends EventEmitter implements IPageManager {
     sessionId: string,
     options?: ScreenshotOptions
   ): Promise<Buffer> {
-    const page = await this.getPage(pageId, sessionId);
-    
-    const screenshot = await page.screenshot({
-      type: options?.type ?? 'png',
-      fullPage: options?.fullPage ?? false,
-      quality: options?.quality,
-      clip: options?.clip,
-      encoding: 'binary',
-    });
-
-    return Buffer.isBuffer(screenshot) ? screenshot : Buffer.from(screenshot);
+    return takeScreenshot(pageId, sessionId, options, this.pages, this.pageStore);
   }
 
   /**
@@ -327,7 +223,7 @@ export class PageManager extends EventEmitter implements IPageManager {
    * @nist ac-3 "Access enforcement"
    */
   async listPagesForSession(sessionId: string): Promise<PageInfo[]> {
-    return this.pageStore.listBySession(sessionId);
+    return listPagesForSession(sessionId, this.pageStore);
   }
 
   /**
@@ -335,17 +231,7 @@ export class PageManager extends EventEmitter implements IPageManager {
    * @nist ac-3 "Access enforcement"
    */
   async listPagesForContext(contextId: string, sessionId: string): Promise<PageInfo[]> {
-    // Verify context belongs to session
-    const context = await contextStore.get(contextId);
-    if (!context) {
-      throw new AppError('Context not found', 404);
-    }
-
-    if (context.sessionId !== sessionId) {
-      throw new AppError('Unauthorized access to context', 403);
-    }
-
-    return this.pageStore.listByContext(contextId);
+    return listPagesForContext(contextId, sessionId, this.pageStore);
   }
 
   /**
@@ -353,13 +239,14 @@ export class PageManager extends EventEmitter implements IPageManager {
    * @nist ac-12 "Session termination"
    */
   async closePage(pageId: string, sessionId: string): Promise<void> {
-    const pageInfo = await this.getPageInfo(pageId, sessionId);
-    
-    await closePage(pageId, this.pages, this.pageStore);
-    
-    this.emit('page:closed', { pageId, contextId: pageInfo.contextId });
-    
-    logger.info({ pageId, contextId: pageInfo.contextId }, 'Page closed');
+    return closePageOperation(
+      pageId,
+      sessionId,
+      this.pages,
+      this.pageStore,
+      (pid, sid) => this.getPageInfo(pid, sid),
+      this
+    );
   }
 
   /**
@@ -367,14 +254,7 @@ export class PageManager extends EventEmitter implements IPageManager {
    * @nist ac-12 "Session termination"
    */
   async closePagesForContext(contextId: string): Promise<void> {
-    const result = await closeContextPages(contextId, this.pages, this.pageStore);
-    
-    this.emit('context:pages-cleared', { 
-      contextId, 
-      pageCount: result.pageCount 
-    });
-    
-    logger.info(result, 'Context pages closed');
+    return closePagesForContextOperation(contextId, this.pages, this.pageStore, this);
   }
 
   /**
@@ -382,19 +262,7 @@ export class PageManager extends EventEmitter implements IPageManager {
    * @nist ac-12 "Session termination"
    */
   async closePagesForSession(sessionId: string): Promise<void> {
-    const results = await closeSessionPages(sessionId, this.pages, this.pageStore);
-    
-    let totalPages = 0;
-    for (const result of results.values()) {
-      totalPages += result.pageCount;
-    }
-    
-    this.emit('session:pages-cleared', { 
-      sessionId, 
-      pageCount: totalPages 
-    });
-    
-    logger.info({ sessionId, totalPages }, 'Session pages closed');
+    return closePagesForSessionOperation(sessionId, this.pages, this.pageStore, this);
   }
 
   /**
@@ -402,22 +270,7 @@ export class PageManager extends EventEmitter implements IPageManager {
    * @private
    */
   private async performCleanup(): Promise<void> {
-    if (this.isShuttingDown) {
-      return;
-    }
-
-    try {
-      const cleanedCount = await performPeriodicCleanup(
-        this.pages, 
-        this.pageStore
-      );
-      
-      if (cleanedCount > 0) {
-        logger.info({ cleanedCount }, 'Cleaned up idle pages');
-      }
-    } catch (error) {
-      logger.error({ error }, 'Error during periodic cleanup');
-    }
+    await performCleanup(this.pages, this.pageStore, this.isShuttingDown);
   }
 
   /**
@@ -425,54 +278,21 @@ export class PageManager extends EventEmitter implements IPageManager {
    * @nist au-6 "Audit review, analysis, and reporting"
    */
   async getPageMetrics(pageId: string, sessionId: string): Promise<Record<string, unknown>> {
-    const pageInfo = await this.pageStore.get(pageId);
-    if (!pageInfo || pageInfo.sessionId !== sessionId) {
-      throw new AppError('Page not found or access denied', 404);
-    }
-
-    const page = this.pages.get(pageId);
-    if (!page) {
-      throw new AppError('Page instance not found', 404);
-    }
-
-    const metrics = await page.metrics();
-    return metrics as Record<string, unknown>;
+    return getPageMetrics(pageId, sessionId, this.pages, this.pageStore);
   }
 
   /**
    * Set page cookies
    */
   async setCookies(pageId: string, cookies: Cookie[], sessionId: string): Promise<void> {
-    const pageInfo = await this.pageStore.get(pageId);
-    if (!pageInfo || pageInfo.sessionId !== sessionId) {
-      throw new AppError('Page not found or access denied', 404);
-    }
-
-    const page = this.pages.get(pageId);
-    if (!page) {
-      throw new AppError('Page instance not found', 404);
-    }
-
-    await page.setCookie(...cookies);
-    await this.pageStore.touchActivity(pageId);
+    return setCookies(pageId, cookies, sessionId, this.pages, this.pageStore);
   }
 
   /**
    * Get page cookies
    */
   async getCookies(pageId: string, sessionId: string): Promise<Cookie[]> {
-    const pageInfo = await this.pageStore.get(pageId);
-    if (!pageInfo || pageInfo.sessionId !== sessionId) {
-      throw new AppError('Page not found or access denied', 404);
-    }
-
-    const page = this.pages.get(pageId);
-    if (!page) {
-      throw new AppError('Page instance not found', 404);
-    }
-
-    const cookies = await page.cookies();
-    return cookies;
+    return getCookies(pageId, sessionId, this.pages, this.pageStore);
   }
 
   /**
@@ -488,55 +308,21 @@ export class PageManager extends EventEmitter implements IPageManager {
       sessionStorage?: boolean;
     }
   ): Promise<void> {
-    const pageInfo = await this.pageStore.get(pageId);
-    if (!pageInfo || pageInfo.sessionId !== sessionId) {
-      throw new AppError('Page not found or access denied', 404);
-    }
-
-    const page = this.pages.get(pageId);
-    if (!page) {
-      throw new AppError('Page instance not found', 404);
-    }
-
-    if (options?.cookies) {
-      await page.deleteCookie(...await page.cookies());
-    }
-
-    if (options?.localStorage || options?.sessionStorage) {
-      await page.evaluate((opts) => {
-        if (opts?.localStorage) {
-          // @ts-ignore - window is available in browser context
-          window.localStorage.clear();
-        }
-        if (opts?.sessionStorage) {
-          // @ts-ignore - window is available in browser context
-          window.sessionStorage.clear();
-        }
-      }, options);
-    }
-
-    await this.pageStore.touchActivity(pageId);
+    return clearPageData(pageId, sessionId, options, this.pages, this.pageStore);
   }
 
   /**
    * Check if page is active
    */
   async isPageActive(pageId: string): Promise<boolean> {
-    const pageInfo = await this.pageStore.get(pageId);
-    return pageInfo?.state === 'active';
+    return isPageActive(pageId, this.pageStore);
   }
 
   /**
    * Clean up idle pages
    */
   async cleanupIdlePages(idleTimeout: number): Promise<number> {
-    const now = Date.now();
-    const predicate = (pageInfo: PageInfo) => {
-      const idleTime = now - pageInfo.lastActivityAt.getTime();
-      return idleTime > idleTimeout;
-    };
-
-    const cleanedCount = await this.pageStore.cleanup(predicate);
+    const cleanedCount = await cleanupIdlePages(idleTimeout, this.pageStore);
     
     if (cleanedCount > 0) {
       logger.info({ cleanedCount, idleTimeout }, 'Cleaned up idle pages');
@@ -545,80 +331,19 @@ export class PageManager extends EventEmitter implements IPageManager {
     return cleanedCount;
   }
 
-  /**
-   * Set up page store event handlers
-   * @private
-   */
-  private setupPageStoreHandlers(page: Page, pageInfo: PageInfo): void {
-    const pageId = pageInfo.id;
-
-    // Update store on navigation
-    this.on('page:navigated', async ({ pageId: navPageId, url }) => {
-      if (navPageId === pageId) {
-        const title = await page.title().catch(() => '');
-        await this.pageStore.updateUrl(pageId, url);
-        await this.pageStore.updateTitle(pageId, title);
-        await this.pageStore.addNavigationHistory(pageId, url);
-        await this.pageStore.touchActivity(pageId);
-      }
-    });
-
-    // Update error count
-    this.on('page:error', async ({ pageId: errorPageId }) => {
-      if (errorPageId === pageId) {
-        await this.pageStore.incrementErrorCount(pageId);
-        await this.pageStore.touchActivity(pageId);
-      }
-    });
-  }
 
   /**
    * Shutdown page manager
    * @nist ac-12 "Session termination"
    */
   async shutdown(): Promise<void> {
-    logger.info('Shutting down page manager');
     this.isShuttingDown = true;
-
-    // Stop periodic cleanup
-    if (this.cleanupInterval) {
-      clearInterval(this.cleanupInterval);
-    }
-
-    // Close all pages
-    const allPages = Array.from(this.pages.keys());
-    await Promise.allSettled(
-      allPages.map(pageId => 
-        closePage(pageId, this.pages, this.pageStore).catch(error => {
-          logger.error({ pageId, error }, 'Error closing page during shutdown');
-        })
-      )
-    );
-
-    await this.pageStore.clear();
-    this.pages.clear();
-
-    logger.info('Page manager shutdown complete');
+    await shutdownPageManager(this.pages, this.pageStore, this.cleanupInterval);
   }
 }
 
 // Re-export types
 export type { PageEvents };
 
-// Singleton factory
-let pageManagerInstance: PageManager | null = null;
-
-/**
- * Get page manager instance
- * @param browserPool - Browser pool instance (required on first call)
- * @returns Page manager instance
- */
-export function getPageManager(browserPool?: BrowserPool): PageManager {
-  if (!pageManagerInstance) {
-    if (!browserPool) {
-      throw new AppError('Browser pool required for page manager initialization', 500);
-    }
-    pageManagerInstance = new PageManager(browserPool);
-  }
-  return pageManagerInstance;
-}
+// Re-export factory function
+export { getPageManager } from './page-manager-factory.js';
