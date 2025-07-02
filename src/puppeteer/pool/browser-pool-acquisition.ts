@@ -6,16 +6,11 @@
  */
 
 import type { Browser } from 'puppeteer';
-import { v4 as uuidv4 } from 'uuid';
-import { AppError } from '../../core/errors/app-error.js';
-import { createLogger } from '../../utils/logger.js';
 import type { BrowserInstance, BrowserPoolOptions } from '../interfaces/browser-pool.interface.js';
 import type { InternalBrowserInstance } from './browser-pool-maintenance.js';
 import { launchBrowser } from './browser-utils.js';
 import { BrowserHealthMonitor } from './browser-health.js';
 import { BrowserQueue } from './browser-queue.js';
-
-const logger = createLogger('browser-pool-acquisition');
 
 /**
  * Create and acquire a new browser
@@ -27,7 +22,7 @@ export async function createAndAcquireBrowser(
   healthMonitor: BrowserHealthMonitor,
   onHealthCheckFailed: (browserId: string) => void
 ): Promise<BrowserInstance> {
-  const { browser, instance } = await launchNewBrowser(
+  const { instance } = await launchNewBrowser(
     options,
     browsers,
     healthMonitor,

@@ -31,7 +31,7 @@ export async function shutdownPool(
 
   // Close all browsers
   const closePromises = Array.from(browsers.values()).map(instance =>
-    closeBrowser(instance.browser, instance).catch(error => {
+    closeBrowser(instance.browser).catch(error => {
       logger.error({ browserId: instance.id, error }, 'Error closing browser');
     })
   );

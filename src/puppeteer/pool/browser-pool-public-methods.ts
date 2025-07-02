@@ -12,7 +12,6 @@ import type {
 } from '../interfaces/browser-pool.interface.js';
 import type { InternalBrowserInstance } from './browser-pool-maintenance.js';
 import { BrowserPoolMaintenance } from './browser-pool-maintenance.js';
-import { BrowserHealthMonitor } from './browser-health.js';
 import { 
   createPage as createBrowserPage,
   closePage as closeBrowserPage,

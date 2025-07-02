@@ -5,7 +5,7 @@
 
 import type { Browser } from 'puppeteer';
 import { createLogger } from '../../utils/logger.js';
-import type { BrowserInstance, BrowserPoolOptions } from '../interfaces/browser-pool.interface.js';
+import type { BrowserPoolOptions } from '../interfaces/browser-pool.interface.js';
 import type { InternalBrowserInstance } from './browser-pool-maintenance.js';
 import { BrowserPoolMaintenance } from './browser-pool-maintenance.js';
 import { BrowserHealthMonitor } from './browser-health.js';

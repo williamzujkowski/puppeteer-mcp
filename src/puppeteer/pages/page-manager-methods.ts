@@ -5,7 +5,7 @@
  * @nist au-3 "Content of audit records"
  */
 
-import type { Page, Cookie } from 'puppeteer';
+import type { Page } from 'puppeteer';
 import type { EventEmitter } from 'events';
 import { AppError } from '../../core/errors/app-error.js';
 import { createLogger } from '../../utils/logger.js';
@@ -13,8 +13,6 @@ import type { BrowserPool } from '../interfaces/browser-pool.interface.js';
 import type {
   PageInfo,
   PageOptions,
-  NavigationOptions,
-  ScreenshotOptions,
 } from '../interfaces/page-manager.interface.js';
 import type { PageInfoStore } from './page-info-store.js';
 import {
@@ -66,7 +64,11 @@ export async function createPageImpl(
       emitter
     );
 
-    setupPageStoreHandlers(result, pageInfo, pageStore, emitter);
+    // Get the actual page from the pages Map
+    const page = pages.get(pageId);
+    if (page) {
+      setupPageStoreHandlers(page, pageInfo, pageStore, emitter);
+    }
     
     // Emit creation event
     emitter.emit('page:created', { pageInfo });

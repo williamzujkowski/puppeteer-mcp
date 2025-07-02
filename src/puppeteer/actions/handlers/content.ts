@@ -204,15 +204,13 @@ export async function handleContent(
         timeout: action.timeout ?? 30000,
       });
 
-      content = await page.$eval(sanitizedSelector, (el: Element): string => {
+      content = await page.$eval(sanitizedSelector, (el) => {
         // Check if element has a value property (input/textarea)
-        if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement) {
-          const value: string = el.value;
-          return value;
+        if ('value' in el && typeof el.value === 'string') {
+          return el.value;
         }
         // Otherwise get text content
-        const textContent: string = el.textContent ?? '';
-        return textContent;
+        return el.textContent ?? '';
       });
       
       contentType = 'element';

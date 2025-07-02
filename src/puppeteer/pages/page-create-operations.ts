@@ -6,7 +6,6 @@
  */
 
 import type { Page } from 'puppeteer';
-import { v4 as uuidv4 } from 'uuid';
 import { AppError } from '../../core/errors/app-error.js';
 import { logSecurityEvent, SecurityEventType, createLogger } from '../../utils/logger.js';
 import { contextStore } from '../../store/context-store.js';

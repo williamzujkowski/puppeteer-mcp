@@ -37,7 +37,7 @@ export function buildScreenshotOptions(action: ScreenshotAction): Parameters<Pag
 /**
  * Build PDF margin options
  */
-export function buildPdfMargins(margin?: PDFAction['margin']): Parameters<Page['pdf']>[0]['margin'] {
+export function buildPdfMargins(margin?: PDFAction['margin']): NonNullable<Parameters<Page['pdf']>[0]>['margin'] {
   if (!margin) {
     return undefined;
   }

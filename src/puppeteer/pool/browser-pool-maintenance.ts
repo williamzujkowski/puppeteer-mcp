@@ -5,7 +5,7 @@
  * @nist si-4 "Information system monitoring"
  */
 
-import type { Browser, Page } from 'puppeteer';
+import type { Browser } from 'puppeteer';
 import { createLogger } from '../../utils/logger.js';
 import type { 
   BrowserInstance,
@@ -126,7 +126,7 @@ export class BrowserPoolMaintenance {
     healthMonitor.stopMonitoring(browserId);
 
     // Close browser
-    await closeBrowser(instance.browser, instance);
+    await closeBrowser(instance.browser);
 
     // Remove from pool
     browsers.delete(browserId);
@@ -151,28 +151,23 @@ export class BrowserPoolMaintenance {
 
     try {
       // Restart the browser
-      const result = await restartBrowser(
-        instance.browser,
+      const newBrowser = await restartBrowser(
         instance,
         options
       );
 
-      // Create internal instance with additional state
-      const internalInstance: InternalBrowserInstance = {
-        ...result.instance,
-        state: instance.state,
-        sessionId: instance.sessionId,
-        errorCount: 0,
-      };
+      // Update instance with new browser
+      instance.browser = newBrowser;
+      instance.errorCount = 0;
       
-      // Update instance
-      browsers.set(browserId, internalInstance);
+      // Keep instance in map (already there)
+      // browsers.set(browserId, instance); - not needed, already in map
 
       // Restart health monitoring
       healthMonitor.startMonitoring(
         browserId,
-        result.browser,
-        internalInstance,
+        newBrowser,
+        instance,
         () => onHealthCheckFailed(browserId),
         options.healthCheckInterval
       );
@@ -201,14 +196,12 @@ export class BrowserPoolMaintenance {
     logger.info({ browserId }, 'Recycling browser');
 
     try {
-      const result = await restartBrowser(instance.browser, instance, options);
-      const internalInstance: InternalBrowserInstance = {
-        ...result.instance,
-        state: instance.state,
-        sessionId: instance.sessionId,
-        errorCount: 0,
-      };
-      browsers.set(browserId, internalInstance);
+      const newBrowser = await restartBrowser(instance, options);
+      
+      // Update instance with new browser
+      instance.browser = newBrowser;
+      instance.errorCount = 0;
+      // Instance already in map, no need to set again
     } catch (error) {
       logger.error({ browserId, error }, 'Failed to recycle browser');
       throw error;

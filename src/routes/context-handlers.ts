@@ -232,9 +232,20 @@ export class ContextHandlers {
     }
   })();
 
-  executeAction = this.actionHandlers.executeAction;
+  // Delegate methods to handlers
+  executeAction = (req: Request, res: Response, next: NextFunction) => {
+    this.actionHandlers.executeAction(req, res, next);
+  };
 
-  getMetrics = this.pageHandlers.getMetrics;
-  listPages = this.pageHandlers.listPages;
-  createPage = this.pageHandlers.createPage;
+  getMetrics = (req: Request, res: Response, next: NextFunction) => {
+    this.pageHandlers.getMetrics(req, res, next);
+  };
+  
+  listPages = (req: Request, res: Response, next: NextFunction) => {
+    this.pageHandlers.listPages(req, res, next);
+  };
+  
+  createPage = (req: Request, res: Response, next: NextFunction) => {
+    this.pageHandlers.createPage(req, res, next);
+  };
 }

@@ -16,9 +16,7 @@ const logger = createLogger('browser-utils');
  */
 export async function launchBrowser(options: BrowserPoolOptions): Promise<{ browser: Browser; instance: BrowserInstance }> {
   const launchOptions: LaunchOptions = {
-    headless: options.headless,
-    args: options.args,
-    executablePath: options.executablePath,
+    ...options.launchOptions,
     handleSIGINT: false,
     handleSIGTERM: false,
     handleSIGHUP: false,
@@ -35,6 +33,7 @@ export async function launchBrowser(options: BrowserPoolOptions): Promise<{ brow
     createdAt: new Date(),
     lastUsedAt: new Date(),
     useCount: 0,
+    pageCount: 0,
   };
   
   logger.debug({ browserId: instance.id, version }, 'Browser launched successfully');
@@ -79,7 +78,7 @@ export async function closeBrowser(browser: Browser): Promise<void> {
  * Restart browser
  */
 export async function restartBrowser(
-  instance: InternalBrowserInstance,
+  _instance: InternalBrowserInstance,
   options: BrowserPoolOptions
 ): Promise<Browser> {
   const { browser } = await launchBrowser(options);

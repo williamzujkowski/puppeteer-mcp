@@ -33,7 +33,7 @@ export interface PageManagerInit {
 export function initializePageManager(
   browserPool: BrowserPool,
   pageStore: PageInfoStore | undefined,
-  emitter: EventEmitter,
+  _emitter: EventEmitter,
   performCleanup: () => Promise<void>
 ): PageManagerInit {
   // Initialize base properties

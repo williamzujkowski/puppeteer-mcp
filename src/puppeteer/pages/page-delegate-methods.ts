@@ -4,12 +4,9 @@
  * @nist ac-3 "Access enforcement"
  */
 
-import type { Page, Cookie } from 'puppeteer';
+import type { Page } from 'puppeteer';
 import type {
-  PageInfo,
   PageOptions,
-  NavigationOptions,
-  ScreenshotOptions,
 } from '../interfaces/page-manager.interface.js';
 import type { PageInfoStore } from './page-info-store.js';
 import {

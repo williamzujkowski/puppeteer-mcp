@@ -6,7 +6,6 @@
  */
 
 import { createLogger } from '../../utils/logger.js';
-import type { Page } from 'puppeteer';
 import type { PageInfoStore } from './page-info-store.js';
 import { cleanupIdlePages as performCleanup } from './page-operations.js';
 

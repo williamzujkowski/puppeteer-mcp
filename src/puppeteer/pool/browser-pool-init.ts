@@ -14,7 +14,7 @@ const logger = createLogger('browser-pool-init');
  * @nist ac-3 "Access enforcement"
  */
 export async function initializePool(
-  pool: BrowserPool,
+  _pool: BrowserPool,
   maxBrowsers: number,
   launchNewBrowser: () => Promise<any>
 ): Promise<void> {

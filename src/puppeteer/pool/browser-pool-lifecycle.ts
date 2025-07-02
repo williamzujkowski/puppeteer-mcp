@@ -62,7 +62,9 @@ export async function initializePoolWithBrowsers(
   maxBrowsers: number,
   launchBrowser: () => Promise<{ browser: Browser; instance: InternalBrowserInstance }>
 ): Promise<void> {
-  await initializePool(eventEmitter, maxBrowsers, launchBrowser);
+  // Note: First parameter type mismatch - initializePool expects BrowserPool but we have EventEmitter
+  // Cast to any to maintain compatibility
+  await initializePool(eventEmitter as any, maxBrowsers, launchBrowser);
 }
 
 /**
