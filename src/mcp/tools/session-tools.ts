@@ -40,7 +40,7 @@ export class SessionTools {
       const user = await userService.authenticateUser(args.username, args.password);
       
       // Calculate session duration (default 1 hour)
-      const duration = args.duration || 3600;
+      const duration = args.duration ?? 3600;
       const expiresAt = new Date(Date.now() + duration * 1000);
       
       // Create session data

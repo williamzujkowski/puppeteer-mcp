@@ -3,7 +3,7 @@
  * @module mcp/resources/system-health
  */
 
-import type { SystemHealth } from '../types/resource-types.js';
+import type { SystemHealth, ResourceResponse } from '../types/resource-types.js';
 
 /**
  * System health resource handler
@@ -18,7 +18,7 @@ export class SystemHealthResource {
   /**
    * Get system health status
    */
-  async getSystemHealth(): Promise<any> {
+  getSystemHealth(): ResourceResponse {
     const health: SystemHealth = {
       status: 'healthy',
       uptime: Date.now() - this.startTime,

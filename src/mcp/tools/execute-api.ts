@@ -88,12 +88,18 @@ export class ExecuteApiTool {
     request: any
   ): Promise<ToolResponse> {
     switch (protocol) {
-      case 'rest':
-        return this.executeRestRequest(request);
-      case 'grpc':
-        return this.executeGrpcRequest(request);
-      case 'websocket':
-        return this.executeWebSocketRequest(request);
+      case 'rest': {
+        const result = await this.executeRestRequest(request);
+        return result;
+      }
+      case 'grpc': {
+        const result = await this.executeGrpcRequest(request);
+        return result;
+      }
+      case 'websocket': {
+        const result = await this.executeWebSocketRequest(request);
+        return result;
+      }
       default:
         throw new McpError(
           ErrorCode.InvalidRequest,

@@ -86,13 +86,19 @@ export class ExecuteInContextTool {
    * Execute the command via REST adapter
    */
   private async executeCommand(args: ExecuteInContextArgs): Promise<any> {
-    const result = await this.restAdapter!.executeRequest({
+    if (!this.restAdapter) {
+      throw new McpError(
+        ErrorCode.InvalidRequest, 
+        'REST adapter not initialized'
+      );
+    }
+    const result = await this.restAdapter.executeRequest({
       operation: {
         method: 'POST',
         endpoint: `/v1/contexts/${args.contextId}/execute`,
         body: {
           action: args.command,
-          params: args.parameters || {},
+          params: args.parameters ?? {},
         },
       },
       // Use session authentication if provided

@@ -209,7 +209,7 @@ export class MCPServer {
     });
 
     // Read resource content
-    this.server.setRequestHandler(ReadResourceRequestSchema, (request) => {
+    this.server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
       const { uri } = request.params;
       
       logger.info({
@@ -219,10 +219,14 @@ export class MCPServer {
       });
 
       switch (uri) {
-        case 'api://catalog':
-          return this.apiCatalogResource.getApiCatalog();
-        case 'api://health':
-          return this.systemHealthResource.getSystemHealth();
+        case 'api://catalog': {
+          const catalog = await this.apiCatalogResource.getApiCatalog();
+          return catalog as any;
+        }
+        case 'api://health': {
+          const health = this.systemHealthResource.getSystemHealth();
+          return health as any;
+        }
         default:
           throw new McpError(ErrorCode.InvalidRequest, `Unknown resource: ${uri}`);
       }
@@ -245,6 +249,8 @@ export class MCPServer {
       case TransportType.STDIO: {
         const stdioTransport = createStdioTransport();
         await this.server.connect(stdioTransport.getTransport());
+        // Await any async connection setup
+        await new Promise<void>(resolve => { setImmediate(resolve); });
         
         logger.info({
           msg: 'MCP server started with stdio transport',
@@ -292,5 +298,5 @@ export function createMCPServer(options?: {
   grpcServer?: GrpcServer;
   wsServer?: any;
 }): MCPServer {
-  return new MCPServer(options?.app, options?.grpcServer, options?.wsServer);
+  return new MCPServer(options?.app ?? undefined, options?.grpcServer ?? undefined, options?.wsServer ?? undefined);
 }

@@ -4,7 +4,7 @@
  */
 
 import type { RestAdapter } from '../adapters/rest-adapter.js';
-import type { ApiCatalog, RestEndpoint } from '../types/resource-types.js';
+import type { ApiCatalog, RestEndpoint, ResourceResponse } from '../types/resource-types.js';
 
 /**
  * API Catalog resource handler
@@ -16,9 +16,9 @@ export class ApiCatalogResource {
   /**
    * Get API catalog
    */
-  async getApiCatalog(): Promise<any> {
+  async getApiCatalog(): Promise<ResourceResponse> {
     // Get REST endpoints from adapter if available
-    let restEndpoints: RestEndpoint[] = await this.getRestEndpoints();
+    const restEndpoints: RestEndpoint[] = await this.getRestEndpoints();
     
     const catalog: ApiCatalog = {
       rest: {
@@ -82,7 +82,7 @@ export class ApiCatalogResource {
       const endpointsResponse = await this.restAdapter.listEndpoints();
       if (endpointsResponse.content[0]?.text) {
         const data = JSON.parse(endpointsResponse.content[0].text);
-        return data.endpoints;
+        return data.endpoints as RestEndpoint[];
       }
     }
     
