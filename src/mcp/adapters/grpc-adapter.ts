@@ -399,51 +399,39 @@ export class GrpcAdapter implements ProtocolAdapter {
   }
 
   /**
+   * gRPC to HTTP status code mapping
+   */
+  private readonly grpcToHttpStatus = new Map<grpc.status, number>([
+    [grpc.status.OK, 200],
+    [grpc.status.CANCELLED, 499],
+    [grpc.status.INVALID_ARGUMENT, 400],
+    [grpc.status.NOT_FOUND, 404],
+    [grpc.status.ALREADY_EXISTS, 409],
+    [grpc.status.PERMISSION_DENIED, 403],
+    [grpc.status.UNAUTHENTICATED, 401],
+    [grpc.status.RESOURCE_EXHAUSTED, 429],
+    [grpc.status.FAILED_PRECONDITION, 412],
+    [grpc.status.ABORTED, 409],
+    [grpc.status.OUT_OF_RANGE, 400],
+    [grpc.status.UNIMPLEMENTED, 501],
+    [grpc.status.INTERNAL, 500],
+    [grpc.status.UNAVAILABLE, 503],
+    [grpc.status.DATA_LOSS, 500],
+  ]);
+
+  /**
    * Convert gRPC status code to HTTP status code
    * @nist si-11 "Error handling"
    */
   private grpcStatusToHttp(grpcCode: grpc.status): number {
-    switch (grpcCode) {
-      case grpc.status.OK:
-        return 200;
-      case grpc.status.CANCELLED:
-        return 499;
-      case grpc.status.INVALID_ARGUMENT:
-        return 400;
-      case grpc.status.NOT_FOUND:
-        return 404;
-      case grpc.status.ALREADY_EXISTS:
-        return 409;
-      case grpc.status.PERMISSION_DENIED:
-        return 403;
-      case grpc.status.UNAUTHENTICATED:
-        return 401;
-      case grpc.status.RESOURCE_EXHAUSTED:
-        return 429;
-      case grpc.status.FAILED_PRECONDITION:
-        return 412;
-      case grpc.status.ABORTED:
-        return 409;
-      case grpc.status.OUT_OF_RANGE:
-        return 400;
-      case grpc.status.UNIMPLEMENTED:
-        return 501;
-      case grpc.status.INTERNAL:
-        return 500;
-      case grpc.status.UNAVAILABLE:
-        return 503;
-      case grpc.status.DATA_LOSS:
-        return 500;
-      default:
-        return 500;
-    }
+    return this.grpcToHttpStatus.get(grpcCode) ?? 500;
   }
 
   /**
    * List available gRPC endpoints
    * @nist cm-7 "Least functionality"
    */
-  async listEndpoints(): Promise<MCPResponse> {
+  listEndpoints(): MCPResponse {
     const services = [
       {
         name: 'SessionService',
@@ -499,11 +487,11 @@ export class GrpcAdapter implements ProtocolAdapter {
    * Get gRPC capabilities
    * @nist cm-7 "Least functionality"
    */
-  async getCapabilities(): Promise<{
+  getCapabilities(): {
     protocol: string;
     version: string;
     features: string[];
-  }> {
+  } {
     return {
       protocol: 'grpc',
       version: '1.0.0',

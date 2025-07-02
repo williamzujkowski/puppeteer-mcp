@@ -64,7 +64,7 @@ describe('RestAdapter', () => {
 
       expect(result.content).toHaveLength(1);
       expect(result.content[0].type).toBe('text');
-      const response = JSON.parse(result.content[0].text!);
+      const response = JSON.parse(result.content[0].text as string);
       expect(response).toEqual({ status: 'healthy' });
       expect(result.metadata?.status).toBe(200);
     });
@@ -148,7 +148,7 @@ describe('RestAdapter', () => {
       });
 
       expect(result.metadata?.status).toBe(400);
-      const response = JSON.parse(result.content[0].text!);
+      const response = JSON.parse(result.content[0].text as string);
       expect(response.error.message).toBe('Validation error');
     });
 
@@ -167,7 +167,7 @@ describe('RestAdapter', () => {
       });
 
       expect(result.metadata?.status).toBe(401);
-      const response = JSON.parse(result.content[0].text!);
+      const response = JSON.parse(result.content[0].text as string);
       expect(response.error.message).toBe('Invalid session');
     });
 
@@ -180,7 +180,7 @@ describe('RestAdapter', () => {
       });
 
       expect(result.metadata?.status).toBe(404);
-      const response = JSON.parse(result.content[0].text!);
+      const response = JSON.parse(result.content[0].text as string);
       expect(response.error.message).toContain('Route not found');
     });
 
@@ -217,7 +217,7 @@ describe('RestAdapter', () => {
         },
       });
 
-      const response = JSON.parse(result.content[0].text!);
+      const response = JSON.parse(result.content[0].text as string);
       expect(response.query).toEqual({ foo: 'bar', baz: 'qux' });
     });
 
@@ -237,7 +237,7 @@ describe('RestAdapter', () => {
         },
       });
 
-      const response = JSON.parse(result.content[0].text!);
+      const response = JSON.parse(result.content[0].text as string);
       expect(response.body).toEqual({ name: 'test', value: 123 });
     });
   });
@@ -249,7 +249,7 @@ describe('RestAdapter', () => {
       expect(result.content).toHaveLength(1);
       expect(result.content[0].type).toBe('text');
       
-      const response = JSON.parse(result.content[0].text!);
+      const response = JSON.parse(result.content[0].text as string);
       expect(response.baseUrl).toBe('/api/v1');
       expect(response.endpoints).toBeInstanceOf(Array);
       expect(response.endpoints.length).toBeGreaterThan(0);
@@ -278,7 +278,7 @@ describe('RestAdapter', () => {
       });
 
       expect(result.metadata?.status).toBe(500);
-      const response = JSON.parse(result.content[0].text!);
+      const response = JSON.parse(result.content[0].text as string);
       expect(response.error.message).toBe('Unexpected error');
       expect(response.error.requestId).toBeDefined();
     });
@@ -296,7 +296,7 @@ describe('RestAdapter', () => {
       });
 
       expect(result.metadata?.status).toBe(403);
-      const response = JSON.parse(result.content[0].text!);
+      const response = JSON.parse(result.content[0].text as string);
       expect(response.error.message).toBe('Custom error');
       expect(response.error.details).toEqual({ reason: 'forbidden' });
     });

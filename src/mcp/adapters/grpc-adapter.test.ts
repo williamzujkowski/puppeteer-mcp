@@ -83,7 +83,7 @@ describe('GrpcAdapter', () => {
       
       const mockService = {
         StreamSessionEvents: jest.fn((call) => {
-          mockEvents.forEach(event => call.write(event));
+          mockEvents.forEach(event => { call.write(event); });
           call.end();
         }),
       };
