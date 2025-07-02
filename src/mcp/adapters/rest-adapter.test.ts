@@ -244,7 +244,7 @@ describe('RestAdapter', () => {
 
   describe('listEndpoints', () => {
     it('should return a list of available endpoints', async () => {
-      const result = await adapter.listEndpoints();
+      const result = adapter.listEndpoints();
 
       expect(result.content).toHaveLength(1);
       expect(result.content[0].type).toBe('text');

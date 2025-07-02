@@ -252,7 +252,7 @@ describe('GrpcAdapter', () => {
   describe('listEndpoints', () => {
     it('should return all available gRPC endpoints', async () => {
       // Act
-      const result = await adapter.listEndpoints();
+      const result = adapter.listEndpoints();
 
       // Assert
       expect(result.content).toHaveLength(1);
@@ -275,7 +275,7 @@ describe('GrpcAdapter', () => {
   describe('getCapabilities', () => {
     it('should return gRPC adapter capabilities', async () => {
       // Act
-      const capabilities = await adapter.getCapabilities();
+      const capabilities = adapter.getCapabilities();
 
       // Assert
       expect(capabilities.protocol).toBe('grpc');

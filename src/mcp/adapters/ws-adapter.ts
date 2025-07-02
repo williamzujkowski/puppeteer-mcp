@@ -260,8 +260,8 @@ export class WebSocketAdapter implements ProtocolAdapter {
       type: WSMessageType.REQUEST,
       id: requestId,
       timestamp: new Date().toISOString(),
-      method: operation.event || 'send',
-      path: operation.topic || '/',
+      method: operation.event ?? 'send',
+      path: operation.topic ?? '/',
       data: operation.data,
     };
 
@@ -316,7 +316,7 @@ export class WebSocketAdapter implements ProtocolAdapter {
     auth?: AuthParams,
     sessionId?: string
   ): Promise<MCPWebSocketConnection> {
-    const connectionId = sessionId || uuidv4();
+    const connectionId = sessionId ?? uuidv4();
     
     // Check if connection already exists
     let connection = this.activeConnections.get(connectionId);
@@ -340,7 +340,8 @@ export class WebSocketAdapter implements ProtocolAdapter {
 
     // Set up message handler
     ws.on('message', (data) => {
-      this.handleIncomingMessage(connection, data.toString());
+      const message = typeof data === 'string' ? data : data.toString();
+      this.handleIncomingMessage(connection, message);
     });
 
     // Set up close handler
@@ -549,11 +550,11 @@ export class WebSocketAdapter implements ProtocolAdapter {
     message: WSMessage
   ): void {
     const errorMessage = message as { error: { code: string; message: string } };
-    const pending = connection.pendingRequests.get(message.id || '');
+    const pending = connection.pendingRequests.get(message.id ?? '');
     
     if (pending) {
       clearTimeout(pending.timeout);
-      connection.pendingRequests.delete(message.id || '');
+      connection.pendingRequests.delete(message.id ?? '');
       pending.reject(new AppError(
         errorMessage.error.message,
         400
@@ -735,6 +736,7 @@ export class WebSocketAdapter implements ProtocolAdapter {
    * @nist sc-8 "Transmission confidentiality and integrity"
    */
   createStreamingResponse(subscriptionId: string): AsyncGenerator<MCPResponse> {
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
     const self = this;
     
     return (async function* () {
