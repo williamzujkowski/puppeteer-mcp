@@ -38,7 +38,6 @@ const AuthParamsSchema = z.object({
   credentials: z.string(),
 });
 
-
 /**
  * gRPC adapter for MCP protocol
  * @nist ac-3 "Access enforcement"
@@ -48,7 +47,7 @@ const AuthParamsSchema = z.object({
 export class GrpcAdapter implements ProtocolAdapter {
   constructor(
     private readonly server: GrpcServer,
-    private readonly protoPath: string = join(process.cwd(), 'proto', 'control.proto')
+    private readonly protoPath: string = join(process.cwd(), 'proto', 'control.proto'),
   ) {
     this.initializeProto();
   }
@@ -89,7 +88,7 @@ export class GrpcAdapter implements ProtocolAdapter {
     try {
       // Validate operation parameters
       const operation = GrpcOperationSchema.parse(params.operation);
-      
+
       // Validate auth if provided
       let auth: AuthParams | undefined;
       if (params.auth) {
@@ -142,11 +141,7 @@ export class GrpcAdapter implements ProtocolAdapter {
    * @nist ia-2 "Identification and authentication"
    * @nist ac-3 "Access enforcement"
    */
-  private createMetadata(
-    auth?: AuthParams,
-    sessionId?: string,
-    requestId?: string
-  ): grpc.Metadata {
+  private createMetadata(auth?: AuthParams, sessionId?: string, requestId?: string): grpc.Metadata {
     const metadata = new grpc.Metadata();
 
     // Add authentication
@@ -182,10 +177,7 @@ export class GrpcAdapter implements ProtocolAdapter {
    * @nist ac-3 "Access enforcement"
    * @nist si-10 "Information input validation"
    */
-  private executeGrpcCall(
-    operation: GrpcOperation,
-    metadata: grpc.Metadata
-  ): Promise<any> {
+  private executeGrpcCall(operation: GrpcOperation, metadata: grpc.Metadata): Promise<any> {
     // Get the service implementation from the server
     const service = this.getServiceFromServer(operation.service);
 
@@ -214,7 +206,7 @@ export class GrpcAdapter implements ProtocolAdapter {
     service: any,
     methodName: string,
     request: any,
-    metadata: grpc.Metadata
+    metadata: grpc.Metadata,
   ): Promise<any> {
     return new Promise((resolve, reject) => {
       // Create a mock call object that matches gRPC's ServerUnaryCall interface
@@ -250,11 +242,11 @@ export class GrpcAdapter implements ProtocolAdapter {
     service: any,
     methodName: string,
     request: any,
-    metadata: grpc.Metadata
+    metadata: grpc.Metadata,
   ): Promise<any[]> {
     return new Promise((resolve, reject) => {
       const responses: any[] = [];
-      
+
       // Create a mock call object that matches gRPC's ServerWritableStream interface
       const call = {
         request: request || {},
@@ -295,17 +287,17 @@ export class GrpcAdapter implements ProtocolAdapter {
     // Access the service implementations through the server's internal structure
     // This is a simplified approach - in production, you might want to expose
     // a proper API for accessing services
-    
+
     // The services are stored in the server's handlers
     // This is implementation-specific and may need adjustment
     const handlers = (this.server.getServer() as any).handlers;
-    
+
     for (const [key, handler] of handlers) {
       if (key.includes(serviceName)) {
         return handler;
       }
     }
-    
+
     return null;
   }
 
@@ -316,7 +308,7 @@ export class GrpcAdapter implements ProtocolAdapter {
   private transformToMCPResponse(
     response: any,
     operation: GrpcOperation,
-    requestId: string
+    requestId: string,
   ): MCPResponse {
     // Handle streaming responses
     if (Array.isArray(response)) {
@@ -340,11 +332,13 @@ export class GrpcAdapter implements ProtocolAdapter {
 
     // Handle unary responses
     return {
-      content: [{
-        type: 'text' as const,
-        text: JSON.stringify(response, null, 2),
-        data: response,
-      }],
+      content: [
+        {
+          type: 'text' as const,
+          text: JSON.stringify(response, null, 2),
+          data: response,
+        },
+      ],
       metadata: {
         requestId,
         timestamp: new Date().toISOString(),
@@ -379,15 +373,21 @@ export class GrpcAdapter implements ProtocolAdapter {
     }
 
     return {
-      content: [{
-        type: 'text' as const,
-        text: JSON.stringify({
-          error: {
-            code: errorCode,
-            message: errorMessage,
-          },
-        }, null, 2),
-      }],
+      content: [
+        {
+          type: 'text' as const,
+          text: JSON.stringify(
+            {
+              error: {
+                code: errorCode,
+                message: errorMessage,
+              },
+            },
+            null,
+            2,
+          ),
+        },
+      ],
       metadata: {
         requestId,
         timestamp: new Date().toISOString(),
@@ -431,7 +431,7 @@ export class GrpcAdapter implements ProtocolAdapter {
    * List available gRPC endpoints
    * @nist cm-7 "Least functionality"
    */
-  listEndpoints(): MCPResponse {
+  listEndpoints(): Promise<MCPResponse> {
     const services = [
       {
         name: 'SessionService',
@@ -469,30 +469,32 @@ export class GrpcAdapter implements ProtocolAdapter {
       },
     ];
 
-    return {
-      content: [{
-        type: 'text' as const,
-        text: JSON.stringify(services, null, 2),
-        data: services,
-      }],
+    return Promise.resolve({
+      content: [
+        {
+          type: 'text' as const,
+          text: JSON.stringify(services, null, 2),
+          data: services,
+        },
+      ],
       metadata: {
         protocol: 'grpc',
         version: '1.0.0',
         timestamp: new Date().toISOString(),
       },
-    };
+    });
   }
 
   /**
    * Get gRPC capabilities
    * @nist cm-7 "Least functionality"
    */
-  getCapabilities(): {
+  getCapabilities(): Promise<{
     protocol: string;
     version: string;
     features: string[];
-  } {
-    return {
+  }> {
+    return Promise.resolve({
       protocol: 'grpc',
       version: '1.0.0',
       features: [
@@ -506,6 +508,6 @@ export class GrpcAdapter implements ProtocolAdapter {
         'tls-support',
         'interceptors',
       ],
-    };
+    });
   }
 }

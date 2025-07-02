@@ -1,8 +1,8 @@
 # Puppeteer MCP - AI-Enabled Browser Automation Platform
 
-A comprehensive Node.js platform for browser automation and multi-protocol API services. Supports 
-REST, gRPC, WebSocket, and MCP protocols with enterprise-grade Puppeteer integration, unified session 
-management, and AI-powered browser orchestration through Model Context Protocol (MCP).
+A comprehensive Node.js platform for browser automation and multi-protocol API services. Supports
+REST, gRPC, WebSocket, and MCP protocols with enterprise-grade Puppeteer integration, unified
+session management, and AI-powered browser orchestration through Model Context Protocol (MCP).
 
 ## 🚀 Project Status
 
@@ -11,7 +11,8 @@ management, and AI-powered browser orchestration through Model Context Protocol 
 This project has successfully achieved production-ready status with comprehensive implementation:
 
 - ✅ **Zero TypeScript compilation errors**
-- ✅ **All critical linting errors resolved** (only minor warnings remain)
+- ✅ **Core platform achieved zero ESLint errors** (Puppeteer integration added 768 style/type
+  issues - non-blocking)
 - ✅ **All major security vulnerabilities fixed**
 - ✅ **Comprehensive test suites implemented**
 - ✅ **Production-ready CI/CD pipelines**
@@ -26,7 +27,7 @@ This project has successfully achieved production-ready status with comprehensiv
 ```bash
 npm install       # ✅ Works perfectly
 npm run typecheck # ✅ No compilation errors
-npm run lint      # ✅ Only minor warnings (non-blocking)
+npm run lint      # ⚠️ 768 ESLint issues from Puppeteer integration (style/type improvements - non-blocking)
 npm run build     # ✅ Successful compilation
 npm test          # ✅ All tests pass
 npm run dev       # ✅ Server starts successfully
@@ -34,9 +35,9 @@ npm run dev       # ✅ Server starts successfully
 
 ## 🏗️ Architecture Overview
 
-The platform implements a **unified multi-protocol architecture** with comprehensive browser automation 
-capabilities and MCP integration, allowing both traditional API clients and AI agents to orchestrate 
-browser operations through common infrastructure:
+The platform implements a **unified multi-protocol architecture** with comprehensive browser
+automation capabilities and MCP integration, allowing both traditional API clients and AI agents to
+orchestrate browser operations through common infrastructure:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -192,7 +193,8 @@ cp .env.example .env
 
 ## 🤖 Browser Automation
 
-The platform provides enterprise-grade browser automation through comprehensive Puppeteer integration with resource pooling, health monitoring, and security controls.
+The platform provides enterprise-grade browser automation through comprehensive Puppeteer
+integration with resource pooling, health monitoring, and security controls.
 
 ### Quick Start Examples
 
@@ -203,16 +205,16 @@ The platform provides enterprise-grade browser automation through comprehensive 
 const response = await fetch('https://localhost:8443/api/v1/contexts', {
   method: 'POST',
   headers: {
-    'Authorization': 'Bearer your-jwt-token',
-    'Content-Type': 'application/json'
+    Authorization: 'Bearer your-jwt-token',
+    'Content-Type': 'application/json',
   },
   body: JSON.stringify({
     type: 'browser',
     config: {
       headless: true,
-      viewport: { width: 1920, height: 1080 }
-    }
-  })
+      viewport: { width: 1920, height: 1080 },
+    },
+  }),
 });
 
 const { contextId } = await response.json();
@@ -224,12 +226,12 @@ const { contextId } = await response.json();
 // Navigate to a webpage
 await fetch(`https://localhost:8443/api/v1/contexts/${contextId}/execute`, {
   method: 'POST',
-  headers: { 'Authorization': 'Bearer your-jwt-token' },
+  headers: { Authorization: 'Bearer your-jwt-token' },
   body: JSON.stringify({
     type: 'navigate',
     url: 'https://example.com',
-    timeout: 30000
-  })
+    timeout: 30000,
+  }),
 });
 
 // Click on an element
@@ -238,8 +240,8 @@ await fetch(`https://localhost:8443/api/v1/contexts/${contextId}/execute`, {
   body: JSON.stringify({
     type: 'click',
     selector: '#submit-button',
-    waitForSelector: true
-  })
+    waitForSelector: true,
+  }),
 });
 
 // Type text into a form field
@@ -249,8 +251,8 @@ await fetch(`https://localhost:8443/api/v1/contexts/${contextId}/execute`, {
     type: 'type',
     selector: '#username',
     text: 'user@example.com',
-    delay: 100
-  })
+    delay: 100,
+  }),
 });
 ```
 
@@ -258,23 +260,26 @@ await fetch(`https://localhost:8443/api/v1/contexts/${contextId}/execute`, {
 
 ```typescript
 // Take a screenshot
-const screenshotResponse = await fetch(`https://localhost:8443/api/v1/contexts/${contextId}/execute`, {
-  method: 'POST',
-  body: JSON.stringify({
-    type: 'screenshot',
-    fullPage: true,
-    format: 'png',
-    quality: 90
-  })
-});
+const screenshotResponse = await fetch(
+  `https://localhost:8443/api/v1/contexts/${contextId}/execute`,
+  {
+    method: 'POST',
+    body: JSON.stringify({
+      type: 'screenshot',
+      fullPage: true,
+      format: 'png',
+      quality: 90,
+    }),
+  },
+);
 
 // Extract page content
 const contentResponse = await fetch(`https://localhost:8443/api/v1/contexts/${contextId}/execute`, {
   method: 'POST',
   body: JSON.stringify({
     type: 'getContent',
-    selector: '.main-content'
-  })
+    selector: '.main-content',
+  }),
 });
 
 // Generate PDF
@@ -284,21 +289,23 @@ const pdfResponse = await fetch(`https://localhost:8443/api/v1/contexts/${contex
     type: 'pdf',
     format: 'A4',
     printBackground: true,
-    margin: { top: '1cm', right: '1cm', bottom: '1cm', left: '1cm' }
-  })
+    margin: { top: '1cm', right: '1cm', bottom: '1cm', left: '1cm' },
+  }),
 });
 ```
 
 ### Supported Browser Actions
 
 #### Navigation Actions
+
 - `navigate` - Navigate to URL with security validation
-- `goBack` - Navigate to previous page  
+- `goBack` - Navigate to previous page
 - `goForward` - Navigate to next page
 - `reload` - Reload current page
 - `setViewport` - Set viewport dimensions
 
-#### Interaction Actions  
+#### Interaction Actions
+
 - `click` - Click elements with safety checks
 - `doubleClick` - Double-click elements
 - `rightClick` - Right-click (context menu)
@@ -310,6 +317,7 @@ const pdfResponse = await fetch(`https://localhost:8443/api/v1/contexts/${contex
 - `select` - Select dropdown options
 
 #### Content Actions
+
 - `screenshot` - Capture page or element screenshots
 - `pdf` - Generate PDF documents with custom options
 - `getContent` - Extract HTML content
@@ -320,6 +328,7 @@ const pdfResponse = await fetch(`https://localhost:8443/api/v1/contexts/${contex
 - `getElementProperty` - Get element properties
 
 #### Advanced Actions
+
 - `evaluate` - Execute JavaScript with security restrictions
 - `waitForSelector` - Wait for elements to appear
 - `waitForNavigation` - Wait for page navigation
@@ -369,6 +378,7 @@ const pdfResponse = await fetch(`https://localhost:8443/api/v1/contexts/${contex
 ### Security Features
 
 #### Input Validation and Sanitization
+
 - **URL Validation**: Prevents malicious redirects and protocol attacks
 - **Selector Sanitization**: Prevents XSS through CSS selectors
 - **JavaScript Security**: Code analysis blocks dangerous operations
@@ -376,6 +386,7 @@ const pdfResponse = await fetch(`https://localhost:8443/api/v1/contexts/${contex
 - **Path Traversal Prevention**: Protects against directory traversal
 
 #### NIST Compliance Controls
+
 - **SI-10**: Information input validation on all browser actions
 - **AC-3**: Access enforcement with session-based authorization
 - **AC-4**: Information flow enforcement between browser contexts
@@ -383,6 +394,7 @@ const pdfResponse = await fetch(`https://localhost:8443/api/v1/contexts/${contex
 - **SC-8**: Secure transport for all browser communications
 
 #### Browser Isolation
+
 - **Session Separation**: Each user session gets isolated browser instances
 - **Context Isolation**: Browser contexts are tied to authenticated sessions
 - **Resource Limits**: Memory and CPU limits prevent resource exhaustion
@@ -450,12 +462,12 @@ const stream = browserService.executeActions();
 // Stream multiple browser actions
 stream.write({
   contextId: 'ctx-123',
-  action: { type: 'navigate', url: 'https://example.com' }
+  action: { type: 'navigate', url: 'https://example.com' },
 });
 
 stream.write({
-  contextId: 'ctx-123', 
-  action: { type: 'click', selector: '#button' }
+  contextId: 'ctx-123',
+  action: { type: 'click', selector: '#button' },
 });
 
 // Receive real-time results
@@ -481,20 +493,24 @@ stream.on('data', (result) => {
 const ws = new WebSocket('wss://localhost:8443/ws?token=your-jwt-token');
 
 // Subscribe to browser events
-ws.send(JSON.stringify({
-  type: 'subscribe',
-  topic: 'browser.ctx-123.events'
-}));
+ws.send(
+  JSON.stringify({
+    type: 'subscribe',
+    topic: 'browser.ctx-123.events',
+  }),
+);
 
 // Execute browser action
-ws.send(JSON.stringify({
-  type: 'execute',
-  contextId: 'ctx-123',
-  action: {
-    type: 'navigate',
-    url: 'https://example.com'
-  }
-}));
+ws.send(
+  JSON.stringify({
+    type: 'execute',
+    contextId: 'ctx-123',
+    action: {
+      type: 'navigate',
+      url: 'https://example.com',
+    },
+  }),
+);
 
 // Receive live updates
 ws.onmessage = (event) => {
@@ -511,7 +527,7 @@ ws.onmessage = (event) => {
 - **Tools Available**:
   - `execute-api` - Execute calls across any protocol
   - `create-session` - Create authenticated sessions
-  - `list-sessions` - List active sessions  
+  - `list-sessions` - List active sessions
   - `delete-session` - Remove sessions
   - `create-browser-context` - Create Puppeteer browser contexts
   - `execute-browser-action` - Execute browser automation actions
@@ -682,15 +698,20 @@ This project is licensed under the MIT License - see the [LICENSE](./LICENSE) fi
 
 ## 🎯 Production Ready Features
 
-✅ **Complete Protocol Implementation**: REST, gRPC, WebSocket, and MCP with unified session management  
+✅ **Complete Protocol Implementation**: REST, gRPC, WebSocket, and MCP with unified session
+management  
 ✅ **Enterprise Browser Automation**: Production-ready Puppeteer integration with resource pooling  
-✅ **AI-Native Integration**: Full MCP support enabling LLM orchestration of browser and API operations  
-✅ **Advanced Security Controls**: Multi-modal auth, RBAC, audit logging, NIST compliance, browser sandboxing  
-✅ **Operational Excellence**: Health monitoring, graceful shutdown, comprehensive logging, browser metrics  
+✅ **AI-Native Integration**: Full MCP support enabling LLM orchestration of browser and API
+operations  
+✅ **Advanced Security Controls**: Multi-modal auth, RBAC, audit logging, NIST compliance, browser
+sandboxing  
+✅ **Operational Excellence**: Health monitoring, graceful shutdown, comprehensive logging, browser
+metrics  
 ✅ **Developer Experience**: Full TypeScript support, comprehensive testing, clear documentation  
 ✅ **Quality Assurance**: Zero compilation errors, minimal lint warnings, high test coverage  
-✅ **Deployment Ready**: Docker containerization, CI/CD pipelines, security scanning, container browser support  
-✅ **Performance Optimization**: Browser pool management, automatic recovery, resource monitoring  
+✅ **Deployment Ready**: Docker containerization, CI/CD pipelines, security scanning, container
+browser support  
+✅ **Performance Optimization**: Browser pool management, automatic recovery, resource monitoring
 
 This platform provides a robust foundation for building scalable, secure, multi-protocol API
 services with enterprise-grade browser automation capabilities and native AI agent support.

@@ -14,7 +14,10 @@ import { logSecurityEvent, SecurityEventType } from '../../utils/logger.js';
 import type { AuthenticatedRequest } from '../../types/express.js';
 import type { ProtocolAdapter, MCPResponse } from './adapter.interface.js';
 import { applyAuthentication, createUserFromSession } from './rest-auth-helper.js';
-import { transformToMCPResponse, transformErrorToMCPResponse } from './rest-response-transformer.js';
+import {
+  transformToMCPResponse,
+  transformErrorToMCPResponse,
+} from './rest-response-transformer.js';
 
 /**
  * REST operation parameters
@@ -61,7 +64,7 @@ export class RestAdapter implements ProtocolAdapter {
     try {
       // Validate operation parameters
       const operation = RestOperationSchema.parse(params.operation);
-      
+
       // Validate auth if provided
       let auth;
       if (params.auth) {
@@ -70,10 +73,10 @@ export class RestAdapter implements ProtocolAdapter {
 
       // Create mock request object
       const req = await this.createMockRequest(operation, auth, params.sessionId, requestId);
-      
+
       // Execute request
       const response = await this.forwardToExpress(req, operation);
-      
+
       // Log successful execution
       await logSecurityEvent(SecurityEventType.API_ACCESS, {
         userId: req.user?.userId,
@@ -116,7 +119,7 @@ export class RestAdapter implements ProtocolAdapter {
     operation: RestOperation,
     auth: z.infer<typeof AuthParamsSchema> | undefined,
     sessionId: string | undefined,
-    requestId: string
+    requestId: string,
   ): Promise<AuthenticatedRequest> {
     const req = {
       method: operation.method,
@@ -159,14 +162,14 @@ export class RestAdapter implements ProtocolAdapter {
    */
   private forwardToExpress(
     req: AuthenticatedRequest,
-    operation: RestOperation
+    operation: RestOperation,
   ): Promise<{ status: number; body: unknown; headers: Record<string, string> }> {
     return new Promise((resolve, reject) => {
       // Create mock response object
       let responseData: unknown;
       let responseStatus = 200;
       const responseHeaders: Record<string, string> = {};
-      
+
       const res = {
         status: (code: number) => {
           responseStatus = code;
@@ -199,7 +202,7 @@ export class RestAdapter implements ProtocolAdapter {
           return res;
         },
       } as unknown as Response;
-      
+
       // Create next function for error handling
       const next: NextFunction = (error?: unknown) => {
         if (error) {
@@ -212,15 +215,15 @@ export class RestAdapter implements ProtocolAdapter {
           });
         }
       };
-      
+
       // Find and execute the matching route
       const layer = this.findMatchingRoute(operation.method, operation.endpoint);
-      
+
       if (!layer) {
         reject(new AppError(`Route not found: ${operation.method} ${operation.endpoint}`, 404));
         return;
       }
-      
+
       // Execute route handler
       try {
         layer.handle(req, res, next);
@@ -237,19 +240,18 @@ export class RestAdapter implements ProtocolAdapter {
     // This is a simplified implementation
     // In production, we would need to properly match routes with parameters
     const router = (this.app as any)._router;
-    
+
     if (!router) {
       return null;
     }
-    
+
     // Find matching layer
     for (const layer of router.stack) {
-      if (layer.route?.methods[method.toLowerCase()] &&
-          this.pathMatches(layer.route.path, path)) {
+      if (layer.route?.methods[method.toLowerCase()] && this.pathMatches(layer.route.path, path)) {
         return layer;
       }
     }
-    
+
     return null;
   }
 
@@ -269,14 +271,14 @@ export class RestAdapter implements ProtocolAdapter {
   /**
    * Get REST adapter capabilities
    */
-  getCapabilities(): {
+  getCapabilities(): Promise<{
     protocol: string;
     version: string;
     features: string[];
     authentication: string[];
     contentTypes: string[];
-  } {
-    return {
+  }> {
+    return Promise.resolve({
       protocol: 'rest',
       version: '1.0.0',
       features: [
@@ -290,68 +292,74 @@ export class RestAdapter implements ProtocolAdapter {
       ],
       authentication: ['jwt', 'apikey', 'session'],
       contentTypes: ['application/json', 'application/x-www-form-urlencoded'],
-    };
+    });
   }
 
   /**
    * List available REST endpoints
    * @nist ac-3 "Access enforcement"
    */
-  listEndpoints(): MCPResponse {
-    return {
-      content: [{
-        type: 'text',
-        text: JSON.stringify({
-          baseUrl: '/api/v1',
-          endpoints: [
+  listEndpoints(): Promise<MCPResponse> {
+    return Promise.resolve({
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(
             {
-              path: '/sessions',
-              methods: ['GET', 'POST', 'DELETE'],
-              description: 'Session management',
+              baseUrl: '/api/v1',
+              endpoints: [
+                {
+                  path: '/sessions',
+                  methods: ['GET', 'POST', 'DELETE'],
+                  description: 'Session management',
+                },
+                {
+                  path: '/sessions/:id',
+                  methods: ['GET', 'DELETE'],
+                  description: 'Individual session operations',
+                },
+                {
+                  path: '/contexts',
+                  methods: ['GET', 'POST'],
+                  description: 'Context management',
+                },
+                {
+                  path: '/contexts/:id',
+                  methods: ['GET', 'PUT', 'DELETE'],
+                  description: 'Individual context operations',
+                },
+                {
+                  path: '/contexts/:id/execute',
+                  methods: ['POST'],
+                  description: 'Execute commands in context',
+                },
+                {
+                  path: '/api-keys',
+                  methods: ['GET', 'POST'],
+                  description: 'API key management',
+                },
+                {
+                  path: '/api-keys/:id',
+                  methods: ['DELETE'],
+                  description: 'Individual API key operations',
+                },
+                {
+                  path: '/health',
+                  methods: ['GET'],
+                  description: 'Health check',
+                },
+              ],
             },
-            {
-              path: '/sessions/:id',
-              methods: ['GET', 'DELETE'],
-              description: 'Individual session operations',
-            },
-            {
-              path: '/contexts',
-              methods: ['GET', 'POST'],
-              description: 'Context management',
-            },
-            {
-              path: '/contexts/:id',
-              methods: ['GET', 'PUT', 'DELETE'],
-              description: 'Individual context operations',
-            },
-            {
-              path: '/contexts/:id/execute',
-              methods: ['POST'],
-              description: 'Execute commands in context',
-            },
-            {
-              path: '/api-keys',
-              methods: ['GET', 'POST'],
-              description: 'API key management',
-            },
-            {
-              path: '/api-keys/:id',
-              methods: ['DELETE'],
-              description: 'Individual API key operations',
-            },
-            {
-              path: '/health',
-              methods: ['GET'],
-              description: 'Health check',
-            },
-          ],
-        }, null, 2),
-      }],
+            null,
+            2,
+          ),
+        },
+      ],
       metadata: {
         status: 200,
         timestamp: new Date().toISOString(),
       },
-    };
+    });
   }
 }
 
