@@ -1,3 +1,4 @@
+/* eslint-disable max-lines */
 /**
  * gRPC Adapter for MCP
  * @module mcp/adapters/grpc-adapter
@@ -181,7 +182,7 @@ export class GrpcAdapter implements ProtocolAdapter {
    * @nist ac-3 "Access enforcement"
    * @nist si-10 "Information input validation"
    */
-  private async executeGrpcCall(
+  private executeGrpcCall(
     operation: GrpcOperation,
     metadata: grpc.Metadata
   ): Promise<any> {
@@ -209,7 +210,7 @@ export class GrpcAdapter implements ProtocolAdapter {
    * Handle unary gRPC calls
    * @nist ac-3 "Access enforcement"
    */
-  private async handleUnaryCall(
+  private handleUnaryCall(
     service: any,
     methodName: string,
     request: any,
@@ -235,6 +236,7 @@ export class GrpcAdapter implements ProtocolAdapter {
       };
 
       // Execute the method
+      // eslint-disable-next-line security/detect-object-injection
       service[methodName](call, callback);
     });
   }
@@ -244,7 +246,7 @@ export class GrpcAdapter implements ProtocolAdapter {
    * @nist ac-3 "Access enforcement"
    * @nist sc-8 "Transmission confidentiality and integrity"
    */
-  private async handleStreamingCall(
+  private handleStreamingCall(
     service: any,
     methodName: string,
     request: any,
@@ -277,6 +279,7 @@ export class GrpcAdapter implements ProtocolAdapter {
 
       try {
         // Execute the streaming method
+        // eslint-disable-next-line security/detect-object-injection
         service[methodName](call);
       } catch (error) {
         reject(error);
@@ -365,7 +368,7 @@ export class GrpcAdapter implements ProtocolAdapter {
 
     if (error && typeof error === 'object' && 'code' in error && 'message' in error) {
       errorMessage = (error as any).message;
-      errorCode = grpc.status[(error as any).code] || 'UNKNOWN';
+      errorCode = grpc.status[(error as any).code] ?? 'UNKNOWN';
       statusCode = this.grpcStatusToHttp((error as any).code);
     } else if (error instanceof AppError) {
       errorMessage = error.message;

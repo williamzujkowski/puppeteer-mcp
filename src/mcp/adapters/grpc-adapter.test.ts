@@ -11,7 +11,6 @@ import * as grpc from '@grpc/grpc-js';
 import { GrpcAdapter } from './grpc-adapter.js';
 import { AppError } from '../../core/errors/app-error.js';
 import type { GrpcServer } from '../../grpc/server.js';
-import type { MCPResponse } from './adapter.interface.js';
 
 // Mock dependencies
 jest.mock('../../utils/logger.js', () => ({
