@@ -124,42 +124,23 @@ interface MouseClickParams {
   };
 }
 
-export async function handleMouseClick(params: MouseClickParams): Promise<ActionResult> {
-  const { x, y, page, context, options } = params;
-  const startTime = Date.now();
+/**
+ * Create mouse click result
+ * @param success - Whether the action succeeded
+ * @param params - Mouse click parameters
+ * @param duration - Action duration
+ * @param error - Optional error message
+ * @returns Action result
+ */
+function createMouseClickResult(
+  success: boolean,
+  params: MouseClickParams,
+  duration: number,
+  error?: string
+): ActionResult {
+  const { x, y, options } = params;
   
-  try {
-    logger.info('Executing mouse click action', {
-      sessionId: context.sessionId,
-      contextId: context.contextId,
-      x,
-      y,
-      button: options?.button,
-      clickCount: options?.clickCount,
-    });
-
-    // Validate coordinates
-    if (x < 0 || x > 10000 || y < 0 || y > 10000) {
-      throw new Error('Invalid coordinates');
-    }
-
-    // Perform click
-    await page.mouse.click(x, y, {
-      button: options?.button ?? 'left',
-      clickCount: options?.clickCount ?? 1,
-      delay: options?.delay ?? 0,
-    });
-
-    const duration = Date.now() - startTime;
-
-    logger.info('Mouse click action completed', {
-      sessionId: context.sessionId,
-      contextId: context.contextId,
-      x,
-      y,
-      duration,
-    });
-
+  if (success) {
     return {
       success: true,
       actionType: 'mouseClick',
@@ -172,33 +153,84 @@ export async function handleMouseClick(params: MouseClickParams): Promise<Action
       duration,
       timestamp: new Date(),
     };
+  }
+  
+  return {
+    success: false,
+    actionType: 'mouseClick',
+    error: error ?? 'Unknown mouse click error',
+    duration,
+    timestamp: new Date(),
+    metadata: {
+      x,
+      y,
+      button: options?.button,
+      clickCount: options?.clickCount,
+    },
+  };
+}
+
+/**
+ * Log mouse click action
+ * @param message - Log message
+ * @param params - Mouse click parameters
+ * @param context - Action context
+ * @param additional - Additional log data
+ */
+function logMouseClick(
+  message: string,
+  params: MouseClickParams,
+  context: ActionContext,
+  additional?: Record<string, unknown>
+): void {
+  const { x, y, options } = params;
+  
+  const logData = {
+    sessionId: context.sessionId,
+    contextId: context.contextId,
+    x,
+    y,
+    button: options?.button,
+    clickCount: options?.clickCount,
+    ...additional,
+  };
+  
+  if (message.includes('failed')) {
+    logger.error(message, logData);
+  } else {
+    logger.info(message, logData);
+  }
+}
+
+export async function handleMouseClick(params: MouseClickParams): Promise<ActionResult> {
+  const { x, y, page, context, options } = params;
+  const startTime = Date.now();
+  
+  try {
+    logMouseClick('Executing mouse click action', params, context);
+
+    // Validate coordinates
+    validateMouseCoordinates(x, y);
+
+    // Perform click
+    await page.mouse.click(x, y, {
+      button: options?.button ?? 'left',
+      clickCount: options?.clickCount ?? 1,
+      delay: options?.delay ?? 0,
+    });
+
+    const duration = Date.now() - startTime;
+    logMouseClick('Mouse click action completed', params, context, { duration });
+
+    return createMouseClickResult(true, params, duration);
 
   } catch (error) {
     const duration = Date.now() - startTime;
     const errorMessage = error instanceof Error ? error.message : 'Unknown mouse click error';
-
-    logger.error('Mouse click action failed', {
-      sessionId: context.sessionId,
-      contextId: context.contextId,
-      x,
-      y,
-      error: errorMessage,
-      duration,
-    });
-
-    return {
-      success: false,
-      actionType: 'mouseClick',
-      error: errorMessage,
-      duration,
-      timestamp: new Date(),
-      metadata: {
-        x,
-        y,
-        button: options?.button,
-        clickCount: options?.clickCount,
-      },
-    };
+    
+    logMouseClick('Mouse click action failed', params, context, { error: errorMessage, duration });
+    
+    return createMouseClickResult(false, params, duration, errorMessage);
   }
 }
 
