@@ -9,9 +9,6 @@ import { BrowserActionExecutor } from '../../../src/puppeteer/actions/action-exe
 import type { 
   ActionContext, 
   NavigateAction,
-  ClickAction,
-  TypeAction,
-  ScreenshotAction,
   BrowserAction
 } from '../../../src/puppeteer/interfaces/action-executor.interface.js';
 
@@ -392,17 +389,22 @@ describe('BrowserActionExecutor', () => {
     });
 
     it('should stop on error when stopOnError is true', async () => {
-      const { validateActionBatch } = await import('../../../src/puppeteer/actions/validation.js');
-      const { handleNavigate } = await import('../../../src/puppeteer/actions/handlers/navigation.js');
+      jest.spyOn(executor as any, 'getPageInstance').mockResolvedValue(mockPage);
+      
+      const { validateAction, validateActionBatch } = await import('../../../src/puppeteer/actions/validation.js');
+
+      (validateAction as jest.MockedFunction<typeof validateAction>).mockReturnValue({
+        valid: true,
+        errors: [],
+      });
 
       (validateActionBatch as jest.MockedFunction<typeof validateActionBatch>).mockReturnValue([
         { valid: true, errors: [] },
         { valid: true, errors: [] },
       ]);
 
-      // Clear any previous calls and set up the mock for this test
-      (handleNavigate as jest.MockedFunction<typeof handleNavigate>).mockClear();
-      (handleNavigate as jest.MockedFunction<typeof handleNavigate>)
+      // Mock the handler directly on the executor
+      const mockHandler = jest.fn()
         .mockResolvedValueOnce({
           success: false,
           actionType: 'navigate',
@@ -417,6 +419,9 @@ describe('BrowserActionExecutor', () => {
           duration: 100,
           timestamp: new Date(),
         });
+      
+      // Replace the navigate handler
+      (executor as any).handlers.set('navigate', mockHandler);
 
       const actions: BrowserAction[] = [
         {

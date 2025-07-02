@@ -189,10 +189,12 @@ export class RestAdapter implements ProtocolAdapter {
           });
         },
         set: (header: string, value: string) => {
+          // eslint-disable-next-line security/detect-object-injection
           responseHeaders[header] = value;
           return res;
         },
         setHeader: (header: string, value: string) => {
+          // eslint-disable-next-line security/detect-object-injection
           responseHeaders[header] = value;
           return res;
         },
@@ -242,8 +244,7 @@ export class RestAdapter implements ProtocolAdapter {
     
     // Find matching layer
     for (const layer of router.stack) {
-      if (layer.route && 
-          layer.route.methods[method.toLowerCase()] &&
+      if (layer.route?.methods[method.toLowerCase()] &&
           this.pathMatches(layer.route.path, path)) {
         return layer;
       }
@@ -268,13 +269,13 @@ export class RestAdapter implements ProtocolAdapter {
   /**
    * Get REST adapter capabilities
    */
-  async getCapabilities(): Promise<{
+  getCapabilities(): {
     protocol: string;
     version: string;
     features: string[];
     authentication: string[];
     contentTypes: string[];
-  }> {
+  } {
     return {
       protocol: 'rest',
       version: '1.0.0',
@@ -296,7 +297,7 @@ export class RestAdapter implements ProtocolAdapter {
    * List available REST endpoints
    * @nist ac-3 "Access enforcement"
    */
-  async listEndpoints(): Promise<MCPResponse> {
+  listEndpoints(): MCPResponse {
     return {
       content: [{
         type: 'text',

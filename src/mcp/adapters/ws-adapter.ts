@@ -1,3 +1,4 @@
+/* eslint-disable max-lines */
 /**
  * WebSocket Adapter for MCP
  * @module mcp/adapters/ws-adapter
@@ -339,7 +340,7 @@ export class WebSocketAdapter implements ProtocolAdapter {
 
     // Set up message handler
     ws.on('message', (data) => {
-      this.handleIncomingMessage(connection!, data.toString());
+      this.handleIncomingMessage(connection, data.toString());
     });
 
     // Set up close handler
@@ -474,10 +475,10 @@ export class WebSocketAdapter implements ProtocolAdapter {
 
       switch (message.type) {
         case WSMessageType.RESPONSE:
-          this.handleResponseMessage(connection, message as WSResponseMessage);
+          this.handleResponseMessage(connection, message);
           break;
         case WSMessageType.EVENT:
-          this.handleEventMessage(connection, message as WSEventMessage);
+          this.handleEventMessage(connection, message);
           break;
         case WSMessageType.ERROR:
           this.handleErrorMessage(connection, message);

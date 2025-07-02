@@ -70,7 +70,7 @@ async function subscribeToSessionUpdates(): Promise<void> {
         console.log('Session data:', data);
         
         // Break after 10 updates for this example
-        if (Math.random() > 0.9) break;
+        if (Math.random() > 0.9) {break;}
       }
     }
   } catch (error) {

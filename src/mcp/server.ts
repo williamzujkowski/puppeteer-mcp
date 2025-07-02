@@ -801,7 +801,7 @@ export class MCPServer {
       
       // Extract the response body from MCP response
       let responseBody = {};
-      if (result.content && result.content[0] && result.content[0].type === 'text' && result.content[0].text) {
+      if (result.content?.[0] && result.content[0].type === 'text' && result.content[0].text) {
         try {
           responseBody = JSON.parse(result.content[0].text);
         } catch (parseError) {

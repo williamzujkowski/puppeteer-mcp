@@ -435,7 +435,7 @@ export async function handleScrollToBottom(
     // Scroll to bottom
     await page.evaluate(() => {
       const doc = (globalThis as any).document;
-      if (doc && doc.body) {
+      if (doc?.body) {
         (globalThis as any).scrollTo(0, doc.body.scrollHeight);
       }
     });

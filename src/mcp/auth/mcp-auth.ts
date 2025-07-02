@@ -301,7 +301,7 @@ export class MCPAuthBridge {
   hasToolPermission(authContext: AuthContext, toolName: string): boolean {
     const requiredPermission = MCP_TOOL_PERMISSIONS[toolName];
     
-    if (!requiredPermission) {
+    if (requiredPermission == null) {
       // Unknown tool - deny by default (fail-safe)
       this.logger.warn({ toolName }, 'Unknown MCP tool requested');
       return false;

@@ -44,7 +44,7 @@ export async function handleScreenshot(
       quality: action.quality,
     });
 
-    let screenshotOptions: Parameters<Page['screenshot']>[0] = {
+    const screenshotOptions: Parameters<Page['screenshot']>[0] = {
       type: action.format || 'png',
       fullPage: action.fullPage || false,
       encoding: 'binary',

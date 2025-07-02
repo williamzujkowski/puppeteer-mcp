@@ -68,6 +68,18 @@ describe('WebSocketAdapter', () => {
 
   describe('executeRequest', () => {
     it('should handle subscribe operation', async () => {
+      // Mock WebSocket connection creation BEFORE creating params
+      const mockWs = {
+        readyState: WebSocket.OPEN,
+        send: jest.fn(),
+        on: jest.fn(),
+        close: jest.fn(),
+      } as any;
+      
+      // Override the createWebSocketConnection method to return our mock
+      jest.spyOn(adapter as any, 'createWebSocketConnection').mockResolvedValue(mockWs);
+      jest.spyOn(adapter as any, 'authenticateConnection').mockResolvedValue(undefined);
+
       const params = {
         operation: {
           type: 'subscribe',
@@ -82,25 +94,27 @@ describe('WebSocketAdapter', () => {
         sessionId: 'test-session',
       };
 
-      // Mock WebSocket connection creation
-      const mockWs = {
-        readyState: WebSocket.OPEN,
-        send: jest.fn(),
-        on: jest.fn(),
-      } as any;
-      
-      // Override the createWebSocketConnection method to return our mock
-      jest.spyOn(adapter as any, 'createWebSocketConnection').mockResolvedValue(mockWs);
-
       const result = await adapter.executeRequest(params);
 
       expect(result.content[0].text).toContain('Subscribed to sessions.user123');
       expect(result.metadata?.topic).toBe('sessions.user123');
       expect(result.metadata?.duration).toBe(60000);
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(mockConnectionManager.addSubscription).toHaveBeenCalled();
     });
 
     it('should handle unsubscribe operation', async () => {
+      // Mock existing connection with subscription
+      const mockWs = {
+        readyState: WebSocket.OPEN,
+        send: jest.fn(),
+        on: jest.fn(),
+        close: jest.fn(),
+      } as any;
+
+      jest.spyOn(adapter as any, 'createWebSocketConnection').mockResolvedValue(mockWs);
+      jest.spyOn(adapter as any, 'authenticateConnection').mockResolvedValue(undefined);
+      
       const params = {
         operation: {
           type: 'unsubscribe',
@@ -108,15 +122,6 @@ describe('WebSocketAdapter', () => {
         },
         sessionId: 'test-session',
       };
-
-      // Mock existing connection with subscription
-      const mockWs = {
-        readyState: WebSocket.OPEN,
-        send: jest.fn(),
-        on: jest.fn(),
-      } as any;
-
-      jest.spyOn(adapter as any, 'createWebSocketConnection').mockResolvedValue(mockWs);
       
       // Pre-populate a subscription
       const connection = await (adapter as any).ensureConnection(undefined, params.sessionId);
@@ -128,10 +133,21 @@ describe('WebSocketAdapter', () => {
       const result = await adapter.executeRequest(params);
 
       expect(result.content[0].text).toContain('Unsubscribed from sessions.user123');
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(mockConnectionManager.removeSubscription).toHaveBeenCalled();
     });
 
     it('should handle send operation', async () => {
+      const mockWs = {
+        readyState: WebSocket.OPEN,
+        send: jest.fn(),
+        on: jest.fn(),
+        close: jest.fn(),
+      } as any;
+
+      jest.spyOn(adapter as any, 'createWebSocketConnection').mockResolvedValue(mockWs);
+      jest.spyOn(adapter as any, 'authenticateConnection').mockResolvedValue(undefined);
+
       const params = {
         operation: {
           type: 'send',
@@ -142,14 +158,6 @@ describe('WebSocketAdapter', () => {
         },
         sessionId: 'test-session',
       };
-
-      const mockWs = {
-        readyState: WebSocket.OPEN,
-        send: jest.fn(),
-        on: jest.fn(),
-      } as any;
-
-      jest.spyOn(adapter as any, 'createWebSocketConnection').mockResolvedValue(mockWs);
 
       // Mock response handling
       const sendRequestSpy = jest.spyOn(adapter as any, 'sendRequestAndWaitForResponse')
@@ -165,6 +173,16 @@ describe('WebSocketAdapter', () => {
     });
 
     it('should handle broadcast operation', async () => {
+      const mockWs = {
+        readyState: WebSocket.OPEN,
+        send: jest.fn(),
+        on: jest.fn(),
+        close: jest.fn(),
+      } as any;
+
+      jest.spyOn(adapter as any, 'createWebSocketConnection').mockResolvedValue(mockWs);
+      jest.spyOn(adapter as any, 'authenticateConnection').mockResolvedValue(undefined);
+
       const params = {
         operation: {
           type: 'broadcast',
@@ -175,16 +193,9 @@ describe('WebSocketAdapter', () => {
         sessionId: 'test-session',
       };
 
-      const mockWs = {
-        readyState: WebSocket.OPEN,
-        send: jest.fn(),
-        on: jest.fn(),
-      } as any;
-
-      jest.spyOn(adapter as any, 'createWebSocketConnection').mockResolvedValue(mockWs);
-
       const result = await adapter.executeRequest(params);
 
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(mockSubscriptionManager.broadcastEvent).toHaveBeenCalledWith(
         'system.alerts',
         'maintenance',
@@ -436,7 +447,7 @@ describe('WebSocketAdapter', () => {
       const events = [];
       for await (const response of generator) {
         events.push(response);
-        if (events.length >= 2) break;
+        if (events.length >= 2) {break;}
       }
 
       expect(events).toHaveLength(2);

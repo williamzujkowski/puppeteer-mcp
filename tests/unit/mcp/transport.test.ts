@@ -6,7 +6,6 @@
 import { describe, it, expect, jest, beforeEach, afterEach } from '@jest/globals';
 import { StdioTransport, HttpTransport, TransportType, getTransportType } from '../../../src/mcp/transport/index.js';
 import { logger } from '../../../src/utils/logger.js';
-import { WebSocketServer } from 'ws';
 
 // Mock dependencies
 jest.mock('../../../src/utils/logger.js');
@@ -244,11 +243,11 @@ describe('MCP Transport Layer', () => {
       const wsServer = transport.getWebSocketServer();
       
       jest.spyOn(wsServer, 'close').mockImplementation((callback) => {
-        if (callback) callback();
+        if (callback) {callback();}
       });
       
       jest.spyOn(httpServer, 'close').mockImplementation((callback) => {
-        if (callback) callback();
+        if (callback) {callback();}
         return httpServer;
       });
       
@@ -275,15 +274,15 @@ describe('MCP Transport Layer', () => {
   });
 
   describe('Factory Functions', () => {
-    it('should create stdio transport using factory', () => {
-      const { createStdioTransport } = require('../../../src/mcp/transport/index.js');
-      const transport = createStdioTransport();
+    it('should create stdio transport using factory', async () => {
+      const transportModule = await import('../../../src/mcp/transport/index.js');
+      const transport = transportModule.createStdioTransport();
       expect(transport).toBeInstanceOf(StdioTransport);
     });
 
-    it('should create HTTP transport using factory', () => {
-      const { createHttpTransport } = require('../../../src/mcp/transport/index.js');
-      const transport = createHttpTransport({ port: 0 });
+    it('should create HTTP transport using factory', async () => {
+      const transportModule = await import('../../../src/mcp/transport/index.js');
+      const transport = transportModule.createHttpTransport({ port: 0 });
       expect(transport).toBeInstanceOf(HttpTransport);
     });
   });

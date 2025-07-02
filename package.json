@@ -1,7 +1,7 @@
 {
   "name": "puppeteer-mcp",
   "version": "0.1.0",
-  "description": "Multi-protocol API platform (MCP) with REST, gRPC, and WebSocket interfaces",
+  "description": "AI-enabled browser automation platform with REST, gRPC, WebSocket, and MCP interfaces, featuring enterprise Puppeteer integration",
   "type": "module",
   "engines": {
     "node": ">=20.0.0"
@@ -32,8 +32,13 @@
     "rest",
     "grpc",
     "websocket",
+    "puppeteer",
+    "browser-automation",
+    "web-scraping",
     "typescript",
-    "node"
+    "node",
+    "ai-agents",
+    "browser-pool"
   ],
   "author": "",
   "license": "MIT",
