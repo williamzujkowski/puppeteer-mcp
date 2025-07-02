@@ -15,15 +15,7 @@ import {
 } from '@modelcontextprotocol/sdk/types.js';
 import { logger } from '../utils/logger.js';
 import { InMemorySessionStore } from '../store/in-memory-session-store.js';
-import { contextStore } from '../store/context-store.js';
-import { generateTokenPair } from '../auth/jwt.js';
-import { userService } from './auth/user-service.js';
 import { MCPAuthBridge } from './auth/mcp-auth.js';
-import type { SessionData } from '../types/session.js';
-
-// Create store instance
-const sessionStore = new InMemorySessionStore(logger.child({ module: 'session-store' }));
-const authBridge = new MCPAuthBridge(sessionStore, logger.child({ module: 'mcp-auth' }));
 import { 
   TransportType, 
   getTransportType, 
@@ -38,6 +30,31 @@ import { WSSubscriptionManager } from '../ws/subscription-manager.js';
 import { Application } from 'express';
 import type { Server as GrpcServer } from '@grpc/grpc-js';
 
+// Import tool handlers
+import { ExecuteApiTool } from './tools/execute-api.js';
+import { SessionTools } from './tools/session-tools.js';
+import { BrowserContextTool } from './tools/browser-context.js';
+import { ExecuteInContextTool } from './tools/execute-in-context.js';
+import { TOOL_DEFINITIONS } from './tools/tool-definitions.js';
+
+// Import resource handlers
+import { ApiCatalogResource } from './resources/api-catalog.js';
+import { SystemHealthResource } from './resources/system-health.js';
+
+// Import types
+import type { 
+  ExecuteApiArgs,
+  CreateSessionArgs,
+  ListSessionsArgs,
+  DeleteSessionArgs,
+  CreateBrowserContextArgs,
+  ExecuteInContextArgs 
+} from './types/tool-types.js';
+
+// Create store instance
+const sessionStore = new InMemorySessionStore(logger.child({ module: 'session-store' }));
+const authBridge = new MCPAuthBridge(sessionStore, logger.child({ module: 'mcp-auth' }));
+
 /**
  * MCP Server implementation for multi-protocol API platform
  * @nist ac-3 "Access enforcement"
@@ -45,10 +62,19 @@ import type { Server as GrpcServer } from '@grpc/grpc-js';
  */
 export class MCPServer {
   private server: Server;
-  private startTime: number;
   private restAdapter?: RestAdapter;
   private grpcAdapter?: GrpcAdapter;
   private wsAdapter?: WebSocketAdapter;
+  
+  // Tool handlers
+  private executeApiTool: ExecuteApiTool;
+  private sessionTools: SessionTools;
+  private browserContextTool: BrowserContextTool;
+  private executeInContextTool: ExecuteInContextTool;
+  
+  // Resource handlers
+  private apiCatalogResource: ApiCatalogResource;
+  private systemHealthResource: SystemHealthResource;
 
   constructor(
     app?: Application,
@@ -69,8 +95,6 @@ export class MCPServer {
       }
     );
     
-    this.startTime = Date.now();
-    
     // Initialize protocol adapters
     if (app) {
       this.restAdapter = new RestAdapter(app);
@@ -90,117 +114,35 @@ export class MCPServer {
       this.wsAdapter = new WebSocketAdapter(wsLogger, connectionManager, subscriptionManager);
     }
     
+    // Initialize tool handlers
+    this.executeApiTool = new ExecuteApiTool(this.restAdapter, this.grpcAdapter, this.wsAdapter);
+    this.sessionTools = new SessionTools(sessionStore);
+    this.browserContextTool = new BrowserContextTool(authBridge);
+    this.executeInContextTool = new ExecuteInContextTool(this.restAdapter);
+    
+    // Initialize resource handlers
+    this.apiCatalogResource = new ApiCatalogResource(this.restAdapter);
+    this.systemHealthResource = new SystemHealthResource();
+    
     this.setupHandlers();
-    this.registerTools();
-    this.registerResources();
   }
 
   /**
    * Set up request handlers for MCP protocol
    */
   private setupHandlers(): void {
+    this.setupToolHandlers();
+    this.setupResourceHandlers();
+  }
+
+  /**
+   * Set up tool-related handlers
+   */
+  private setupToolHandlers(): void {
     // List available tools
-    this.server.setRequestHandler(ListToolsRequestSchema, async () => {
+    this.server.setRequestHandler(ListToolsRequestSchema, () => {
       return {
-        tools: [
-          {
-            name: 'execute-api',
-            description: 'Execute API calls across REST, gRPC, or WebSocket protocols',
-            inputSchema: {
-              type: 'object',
-              properties: {
-                protocol: {
-                  type: 'string',
-                  enum: ['rest', 'grpc', 'websocket'],
-                  description: 'Protocol to use',
-                },
-                operation: {
-                  type: 'object',
-                  description: 'Protocol-specific operation details',
-                },
-                auth: {
-                  type: 'object',
-                  properties: {
-                    type: { type: 'string', enum: ['jwt', 'apikey', 'session'] },
-                    credentials: { type: 'string' },
-                  },
-                },
-              },
-              required: ['protocol', 'operation'],
-            },
-          },
-          {
-            name: 'create-session',
-            description: 'Create a new session for API interactions',
-            inputSchema: {
-              type: 'object',
-              properties: {
-                username: { type: 'string' },
-                password: { type: 'string' },
-                duration: { type: 'number', description: 'Session duration in seconds' },
-              },
-              required: ['username', 'password'],
-            },
-          },
-          {
-            name: 'list-sessions',
-            description: 'List active sessions',
-            inputSchema: {
-              type: 'object',
-              properties: {
-                userId: { type: 'string' },
-              },
-            },
-          },
-          {
-            name: 'delete-session',
-            description: 'Delete an active session',
-            inputSchema: {
-              type: 'object',
-              properties: {
-                sessionId: { type: 'string', description: 'Session ID to delete' },
-              },
-              required: ['sessionId'],
-            },
-          },
-          {
-            name: 'create-browser-context',
-            description: 'Create a Puppeteer browser context',
-            inputSchema: {
-              type: 'object',
-              properties: {
-                sessionId: { type: 'string' },
-                options: {
-                  type: 'object',
-                  properties: {
-                    headless: { type: 'boolean' },
-                    viewport: {
-                      type: 'object',
-                      properties: {
-                        width: { type: 'number' },
-                        height: { type: 'number' },
-                      },
-                    },
-                  },
-                },
-              },
-              required: ['sessionId'],
-            },
-          },
-          {
-            name: 'execute-in-context',
-            description: 'Execute commands in a browser context',
-            inputSchema: {
-              type: 'object',
-              properties: {
-                contextId: { type: 'string', description: 'Context ID to execute command in' },
-                command: { type: 'string', description: 'Command to execute' },
-                parameters: { type: 'object', description: 'Parameters for the command' },
-              },
-              required: ['contextId', 'command'],
-            },
-          },
-        ],
+        tools: TOOL_DEFINITIONS,
       };
     });
 
@@ -217,17 +159,17 @@ export class MCPServer {
       try {
         switch (name) {
           case 'execute-api':
-            return await this.executeApiTool(args);
+            return await this.executeApiTool.execute(args as unknown as ExecuteApiArgs);
           case 'create-session':
-            return await this.createSessionTool(args);
+            return await this.sessionTools.createSession(args as unknown as CreateSessionArgs);
           case 'list-sessions':
-            return await this.listSessionsTool(args);
+            return await this.sessionTools.listSessions(args as unknown as ListSessionsArgs);
           case 'delete-session':
-            return await this.deleteSessionTool(args);
+            return await this.sessionTools.deleteSession(args as unknown as DeleteSessionArgs);
           case 'create-browser-context':
-            return await this.createBrowserContextTool(args);
+            return await this.browserContextTool.createBrowserContext(args as unknown as CreateBrowserContextArgs);
           case 'execute-in-context':
-            return await this.executeInContextTool(args);
+            return await this.executeInContextTool.execute(args as unknown as ExecuteInContextArgs);
           default:
             throw new McpError(ErrorCode.MethodNotFound, `Unknown tool: ${name}`);
         }
@@ -240,9 +182,14 @@ export class MCPServer {
         throw error;
       }
     });
+  }
 
+  /**
+   * Set up resource-related handlers
+   */
+  private setupResourceHandlers(): void {
     // List available resources
-    this.server.setRequestHandler(ListResourcesRequestSchema, async () => {
+    this.server.setRequestHandler(ListResourcesRequestSchema, () => {
       return {
         resources: [
           {
@@ -262,7 +209,7 @@ export class MCPServer {
     });
 
     // Read resource content
-    this.server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
+    this.server.setRequestHandler(ReadResourceRequestSchema, (request) => {
       const { uri } = request.params;
       
       logger.info({
@@ -273,714 +220,13 @@ export class MCPServer {
 
       switch (uri) {
         case 'api://catalog':
-          return await this.getApiCatalog();
+          return this.apiCatalogResource.getApiCatalog();
         case 'api://health':
-          return await this.getSystemHealth();
+          return this.systemHealthResource.getSystemHealth();
         default:
           throw new McpError(ErrorCode.InvalidRequest, `Unknown resource: ${uri}`);
       }
     });
-  }
-
-  /**
-   * Register available tools
-   */
-  private registerTools(): void {
-    // Tools are defined in the ListToolsRequestSchema handler above
-    // This method can be used for additional tool setup if needed
-  }
-
-  /**
-   * Register available resources
-   */
-  private registerResources(): void {
-    // Resources are defined in the ListResourcesRequestSchema handler above
-    // This method can be used for additional resource setup if needed
-  }
-
-  /**
-   * Execute API tool
-   * @nist ac-3 "Access enforcement"
-   * @nist au-3 "Content of audit records"
-   */
-  private async executeApiTool(args: any): Promise<any> {
-    const { protocol, operation, auth } = args;
-    
-    try {
-      // Validate authentication if provided
-      if (auth && auth.type === 'session' && !auth.credentials) {
-        // If session type but no credentials, try to use sessionId from args
-        if (args.sessionId) {
-          auth.credentials = args.sessionId;
-        }
-      }
-      
-      switch (protocol) {
-        case 'rest': {
-          if (!this.restAdapter) {
-            throw new McpError(
-              ErrorCode.InvalidRequest, 
-              'REST adapter not initialized. Express app required.'
-            );
-          }
-          
-          return await this.restAdapter.executeRequest({
-            operation,
-            auth,
-            sessionId: args.sessionId,
-          });
-        }
-        
-        case 'grpc': {
-          if (!this.grpcAdapter) {
-            throw new McpError(
-              ErrorCode.InvalidRequest, 
-              'gRPC adapter not initialized. gRPC server required.'
-            );
-          }
-          
-          return await this.grpcAdapter.executeRequest({
-            operation,
-            auth,
-            sessionId: args.sessionId,
-          });
-        }
-        
-        case 'websocket': {
-          if (!this.wsAdapter) {
-            throw new McpError(
-              ErrorCode.InvalidRequest, 
-              'WebSocket adapter not initialized. WebSocket server required.'
-            );
-          }
-          
-          return await this.wsAdapter.executeRequest({
-            operation,
-            auth,
-            sessionId: args.sessionId,
-          });
-        }
-        
-        default:
-          throw new McpError(
-            ErrorCode.InvalidRequest,
-            `Unsupported protocol: ${protocol}`
-          );
-      }
-    } catch (error) {
-      // If it's already an McpError, re-throw it
-      if (error instanceof McpError) {
-        throw error;
-      }
-      
-      // Otherwise, wrap it
-      logger.error({
-        msg: 'MCP API execution failed',
-        protocol,
-        error: error instanceof Error ? error.message : 'Unknown error',
-      });
-      
-      throw new McpError(
-        ErrorCode.InternalError,
-        error instanceof Error ? error.message : 'API execution failed'
-      );
-    }
-  }
-
-  /**
-   * Create session tool
-   * @nist ia-2 "Identification and authentication"
-   * @nist ac-3 "Access enforcement"
-   * @nist au-3 "Content of audit records"
-   * @evidence code, test
-   */
-  private async createSessionTool(args: any): Promise<any> {
-    try {
-      // Validate input
-      if (!args.username || !args.password) {
-        return {
-          content: [
-            {
-              type: 'text',
-              text: JSON.stringify({
-                error: 'Username and password are required',
-                code: 'INVALID_CREDENTIALS'
-              }),
-            },
-          ],
-        };
-      }
-
-      // Authenticate user
-      const user = await userService.authenticateUser(args.username, args.password);
-      
-      // Calculate session duration (default 1 hour)
-      const duration = args.duration || 3600;
-      const expiresAt = new Date(Date.now() + duration * 1000);
-      
-      // Create session data
-      const sessionData: SessionData = {
-        userId: user.id,
-        username: user.username,
-        roles: user.roles,
-        metadata: {
-          ...user.metadata,
-          authMethod: 'password',
-          createdBy: 'mcp',
-        },
-        createdAt: new Date().toISOString(),
-        expiresAt: expiresAt.toISOString(),
-      };
-      
-      // Create session in store
-      const sessionId = await sessionStore.create(sessionData);
-      
-      // Generate JWT tokens
-      const tokens = generateTokenPair(
-        user.id,
-        user.username,
-        user.roles,
-        sessionId
-      );
-      
-      // Log session creation
-      logger.info({
-        msg: 'MCP session created',
-        userId: user.id,
-        username: user.username,
-        sessionId,
-        duration,
-      });
-      
-      return {
-        content: [
-          {
-            type: 'text',
-            text: JSON.stringify({
-              sessionId,
-              userId: user.id,
-              username: user.username,
-              roles: user.roles,
-              createdAt: sessionData.createdAt,
-              expiresAt: sessionData.expiresAt,
-              tokens: {
-                accessToken: tokens.accessToken,
-                refreshToken: tokens.refreshToken,
-                expiresIn: tokens.expiresIn,
-              },
-            }),
-          },
-        ],
-      };
-    } catch (error) {
-      logger.error({
-        msg: 'MCP session creation failed',
-        error: error instanceof Error ? error.message : 'Unknown error',
-        username: args.username,
-      });
-      
-      return {
-        content: [
-          {
-            type: 'text',
-            text: JSON.stringify({
-              error: error instanceof Error ? error.message : 'Authentication failed',
-              code: 'AUTH_FAILED'
-            }),
-          },
-        ],
-      };
-    }
-  }
-
-  /**
-   * List sessions tool
-   * @nist ac-3 "Access enforcement"
-   * @nist au-3 "Content of audit records"
-   */
-  private async listSessionsTool(args: any): Promise<any> {
-    try {
-      let sessions: any[] = [];
-      
-      if (args.userId) {
-        // Get sessions for specific user
-        const userSessions = await sessionStore.getByUserId(args.userId);
-        sessions = userSessions.map(session => ({
-          id: session.id,
-          userId: session.data.userId,
-          username: session.data.username,
-          roles: session.data.roles,
-          createdAt: session.data.createdAt,
-          expiresAt: session.data.expiresAt,
-          lastAccessedAt: session.lastAccessedAt,
-          metadata: session.data.metadata,
-        }));
-        
-        logger.info({
-          msg: 'Listed sessions for user',
-          userId: args.userId,
-          count: sessions.length,
-        });
-      } else {
-        // Note: In production, this should require admin permissions
-        // For now, return empty array for non-user-specific queries
-        logger.warn({
-          msg: 'Session listing without userId not implemented',
-          note: 'Admin functionality required',
-        });
-      }
-      
-      return {
-        content: [
-          {
-            type: 'text',
-            text: JSON.stringify({
-              sessions,
-              count: sessions.length,
-            }),
-          },
-        ],
-      };
-    } catch (error) {
-      logger.error({
-        msg: 'MCP session listing failed',
-        error: error instanceof Error ? error.message : 'Unknown error',
-        userId: args.userId,
-      });
-      
-      return {
-        content: [
-          {
-            type: 'text',
-            text: JSON.stringify({
-              error: error instanceof Error ? error.message : 'Failed to list sessions',
-              code: 'LIST_FAILED'
-            }),
-          },
-        ],
-      };
-    }
-  }
-
-  /**
-   * Delete session tool
-   * @nist ac-3 "Access enforcement"
-   * @nist au-3 "Content of audit records"
-   */
-  private async deleteSessionTool(args: any): Promise<any> {
-    try {
-      // Validate input
-      if (!args.sessionId) {
-        return {
-          content: [
-            {
-              type: 'text',
-              text: JSON.stringify({
-                error: 'Session ID is required',
-                code: 'INVALID_SESSION_ID'
-              }),
-            },
-          ],
-        };
-      }
-      
-      // Get session to verify it exists
-      const session = await sessionStore.get(args.sessionId);
-      if (!session) {
-        return {
-          content: [
-            {
-              type: 'text',
-              text: JSON.stringify({
-                error: 'Session not found',
-                code: 'SESSION_NOT_FOUND'
-              }),
-            },
-          ],
-        };
-      }
-      
-      // Delete the session
-      const deleted = await sessionStore.delete(args.sessionId);
-      
-      logger.info({
-        msg: 'MCP session deleted',
-        sessionId: args.sessionId,
-        userId: session.data.userId,
-        deleted,
-      });
-      
-      return {
-        content: [
-          {
-            type: 'text',
-            text: JSON.stringify({
-              success: deleted,
-              sessionId: args.sessionId,
-              message: deleted ? 'Session deleted successfully' : 'Failed to delete session',
-            }),
-          },
-        ],
-      };
-    } catch (error) {
-      logger.error({
-        msg: 'MCP session deletion failed',
-        error: error instanceof Error ? error.message : 'Unknown error',
-        sessionId: args.sessionId,
-      });
-      
-      return {
-        content: [
-          {
-            type: 'text',
-            text: JSON.stringify({
-              error: error instanceof Error ? error.message : 'Failed to delete session',
-              code: 'DELETE_FAILED'
-            }),
-          },
-        ],
-      };
-    }
-  }
-
-  /**
-   * Create browser context tool
-   * @nist ac-3 "Access enforcement"
-   * @nist au-3 "Content of audit records"
-   */
-  private async createBrowserContextTool(args: any): Promise<any> {
-    try {
-      // Validate session
-      if (!args.sessionId) {
-        return {
-          content: [
-            {
-              type: 'text',
-              text: JSON.stringify({
-                error: 'Session ID is required',
-                code: 'INVALID_SESSION'
-              }),
-            },
-          ],
-        };
-      }
-      
-      // Authenticate using session
-      const authContext = await authBridge.authenticate({
-        type: 'session',
-        credentials: args.sessionId,
-      });
-      
-      // Check permissions
-      await authBridge.requireToolPermission(authContext, 'createContext');
-      
-      // Create context
-      const context = await contextStore.create({
-        sessionId: args.sessionId,
-        name: args.name || 'browser-context',
-        type: 'puppeteer',
-        config: args.options || {},
-        metadata: {
-          createdBy: 'mcp',
-          username: authContext.username,
-        },
-        status: 'active',
-        userId: authContext.userId,
-      });
-      
-      logger.info({
-        msg: 'MCP browser context created',
-        contextId: context.id,
-        userId: authContext.userId,
-        sessionId: args.sessionId,
-      });
-      
-      return {
-        content: [
-          {
-            type: 'text',
-            text: JSON.stringify({
-              contextId: context.id,
-              name: context.name,
-              type: context.type,
-              status: context.status,
-              createdAt: context.createdAt,
-            }),
-          },
-        ],
-      };
-    } catch (error) {
-      logger.error({
-        msg: 'MCP browser context creation failed',
-        error: error instanceof Error ? error.message : 'Unknown error',
-        sessionId: args.sessionId,
-      });
-      
-      return {
-        content: [
-          {
-            type: 'text',
-            text: JSON.stringify({
-              error: error instanceof Error ? error.message : 'Failed to create context',
-              code: 'CONTEXT_CREATION_FAILED'
-            }),
-          },
-        ],
-      };
-    }
-  }
-
-  /**
-   * Execute in context tool
-   * @nist ac-3 "Access enforcement"
-   * @nist au-3 "Content of audit records"
-   */
-  private async executeInContextTool(args: any): Promise<any> {
-    try {
-      // Validate input
-      if (!args.contextId) {
-        return {
-          content: [
-            {
-              type: 'text',
-              text: JSON.stringify({
-                error: 'Context ID is required',
-                code: 'INVALID_CONTEXT_ID'
-              }),
-            },
-          ],
-        };
-      }
-      
-      if (!args.command) {
-        return {
-          content: [
-            {
-              type: 'text',
-              text: JSON.stringify({
-                error: 'Command is required',
-                code: 'INVALID_COMMAND'
-              }),
-            },
-          ],
-        };
-      }
-      
-      // Check if REST adapter is available
-      if (!this.restAdapter) {
-        throw new McpError(
-          ErrorCode.InvalidRequest, 
-          'REST adapter not initialized. Express app required.'
-        );
-      }
-      
-      // Execute the command via REST adapter
-      const result = await this.restAdapter.executeRequest({
-        operation: {
-          method: 'POST',
-          endpoint: `/v1/contexts/${args.contextId}/execute`,
-          body: {
-            action: args.command,
-            params: args.parameters || {},
-          },
-        },
-        // Use session authentication if provided
-        auth: args.sessionId ? {
-          type: 'session',
-          credentials: args.sessionId,
-        } : undefined,
-        sessionId: args.sessionId,
-      });
-      
-      logger.info({
-        msg: 'MCP context command executed',
-        contextId: args.contextId,
-        command: args.command,
-        hasParameters: !!args.parameters,
-      });
-      
-      // Extract the response body from MCP response
-      let responseBody = {};
-      if (result.content?.[0] && result.content[0].type === 'text' && result.content[0].text) {
-        try {
-          responseBody = JSON.parse(result.content[0].text);
-        } catch (parseError) {
-          // If parsing fails, return the raw text
-          responseBody = { result: result.content[0].text };
-        }
-      }
-      
-      // Return the result
-      return {
-        content: [
-          {
-            type: 'text',
-            text: JSON.stringify(responseBody),
-          },
-        ],
-      };
-    } catch (error) {
-      logger.error({
-        msg: 'MCP context execution failed',
-        error: error instanceof Error ? error.message : 'Unknown error',
-        contextId: args.contextId,
-        command: args.command,
-      });
-      
-      // Handle specific error types
-      if (error instanceof McpError) {
-        throw error;
-      }
-      
-      return {
-        content: [
-          {
-            type: 'text',
-            text: JSON.stringify({
-              error: error instanceof Error ? error.message : 'Failed to execute command',
-              code: 'EXECUTION_FAILED'
-            }),
-          },
-        ],
-      };
-    }
-  }
-
-  /**
-   * Get API catalog resource
-   * @nist ac-3 "Access enforcement"
-   */
-  private async getApiCatalog(): Promise<any> {
-    // Get REST endpoints from adapter if available
-    let restEndpoints = [];
-    if (this.restAdapter) {
-      const endpointsResponse = await this.restAdapter.listEndpoints();
-      if (endpointsResponse.content[0]?.text) {
-        const data = JSON.parse(endpointsResponse.content[0].text);
-        restEndpoints = data.endpoints;
-      }
-    }
-    
-    const catalog = {
-      rest: {
-        baseUrl: '/api/v1',
-        endpoints: restEndpoints.length > 0 ? restEndpoints : [
-          {
-            path: '/sessions',
-            methods: ['GET', 'POST', 'DELETE'],
-            description: 'Session management',
-          },
-          {
-            path: '/sessions/:id',
-            methods: ['GET', 'DELETE'],
-            description: 'Individual session operations',
-          },
-          {
-            path: '/contexts',
-            methods: ['GET', 'POST', 'PUT', 'DELETE'],
-            description: 'Context management',
-          },
-          {
-            path: '/contexts/:id',
-            methods: ['GET', 'PUT', 'DELETE'],
-            description: 'Individual context operations',
-          },
-          {
-            path: '/contexts/:id/execute',
-            methods: ['POST'],
-            description: 'Execute commands in context',
-          },
-          {
-            path: '/api-keys',
-            methods: ['GET', 'POST'],
-            description: 'API key management',
-          },
-          {
-            path: '/api-keys/:id',
-            methods: ['DELETE'],
-            description: 'Individual API key operations',
-          },
-          {
-            path: '/health',
-            methods: ['GET'],
-            description: 'Health check',
-          },
-        ],
-        authentication: {
-          methods: ['jwt', 'apikey', 'session'],
-          headers: {
-            jwt: 'Authorization: Bearer <token>',
-            apikey: 'X-API-Key: <key>',
-          },
-        },
-      },
-      grpc: {
-        services: [
-          {
-            name: 'SessionService',
-            methods: ['CreateSession', 'GetSession', 'DeleteSession', 'ListSessions'],
-          },
-          {
-            name: 'ContextService',
-            methods: ['CreateContext', 'GetContext', 'ExecuteCommand'],
-          },
-          {
-            name: 'HealthService',
-            methods: ['Check', 'Watch'],
-          },
-        ],
-      },
-      websocket: {
-        endpoint: '/ws',
-        topics: [
-          {
-            name: 'session-updates',
-            description: 'Real-time session events',
-          },
-          {
-            name: 'context-updates',
-            description: 'Real-time context events',
-          },
-        ],
-      },
-    };
-    
-    return {
-      contents: [
-        {
-          uri: 'api://catalog',
-          mimeType: 'application/json',
-          text: JSON.stringify(catalog, null, 2),
-        },
-      ],
-    };
-  }
-
-  /**
-   * Get system health resource
-   */
-  private async getSystemHealth(): Promise<any> {
-    const health = {
-      status: 'healthy',
-      uptime: Date.now() - this.startTime,
-      services: {
-        rest: 'operational',
-        grpc: 'operational',
-        websocket: 'operational',
-        mcp: 'operational',
-      },
-      timestamp: new Date().toISOString(),
-    };
-    
-    return {
-      contents: [
-        {
-          uri: 'api://health',
-          mimeType: 'application/json',
-          text: JSON.stringify(health, null, 2),
-        },
-      ],
-    };
   }
 
   /**
@@ -1023,7 +269,7 @@ export class MCPServer {
       }
       
       default:
-        throw new Error(`Unsupported transport type: ${transportType}`);
+        throw new Error(`Unsupported transport type: ${String(transportType)}`);
     }
   }
 

@@ -91,13 +91,25 @@ export function createIntegratedWebSocketServer(port: number = 8080): {
 
     // Handle messages through the message handler
     ws.on('message', (data) => {
-      const message = typeof data === 'string' ? data : data.toString('utf8');
+      let message: string;
+      if (typeof data === 'string') {
+        message = data;
+      } else if (Buffer.isBuffer(data)) {
+        message = data.toString('utf8');
+      } else if (data instanceof ArrayBuffer) {
+        message = Buffer.from(data).toString('utf8');
+      } else if (Array.isArray(data)) {
+        message = Buffer.concat(data.map(d => Buffer.isBuffer(d) ? d : Buffer.from(d))).toString('utf8');
+      } else {
+        message = String(data);
+      }
       messageHandler.handleMessage(ws, connectionId, message);
     });
 
     // Handle disconnection
     ws.on('close', () => {
       connectionManager.removeConnection(connectionId);
+      logger.info(`Connection ${connectionId} closed`);
     });
 
     // Send connection acknowledgment
@@ -161,28 +173,31 @@ function extendAdapterForServer(
       throw new Error('Connection not found');
     }
 
-    return this.executeRequest({
+    // Use 'this' with proper typing context
+    const response = await this.executeRequest({
       operation,
       sessionId: connectionId,
       auth: connectionState.authenticated ? {
         type: 'session' as const,
-        credentials: connectionState.sessionId || '',
+        credentials: connectionState.sessionId ?? '',
       } : undefined,
-    });
+    }) as MCPResponse;
+    
+    return response;
   };
 }
 
 /**
  * Example usage of the integrated server
  */
-async function runExample(): Promise<void> {
+function runExample(): void {
   const { server, adapter, connectionManager } = createIntegratedWebSocketServer(8080);
 
   // Example: Handle MCP requests from existing WebSocket connections
   connectionManager.getAllConnections().forEach(({ connectionId, state }) => {
     if (state.authenticated) {
       // Execute MCP operations for authenticated connections
-      adapter.executeRequest({
+      void adapter.executeRequest({
         operation: {
           type: 'subscribe',
           topic: 'system.status',
@@ -197,23 +212,25 @@ async function runExample(): Promise<void> {
   });
 
   // Example: Broadcast system events through MCP
-  setInterval(async () => {
-    try {
-      await adapter.executeRequest({
-        operation: {
-          type: 'broadcast',
-          topic: 'system.status',
-          event: 'heartbeat',
-          data: {
-            timestamp: new Date().toISOString(),
-            connections: connectionManager.getStats(),
+  setInterval(() => {
+    void (async () => {
+      try {
+        await adapter.executeRequest({
+          operation: {
+            type: 'broadcast',
+            topic: 'system.status',
+            event: 'heartbeat',
+            data: {
+              timestamp: new Date().toISOString(),
+              connections: connectionManager.getStats(),
+            },
           },
-        },
-        sessionId: 'system',
-      });
-    } catch (error) {
-      logger.error('Failed to broadcast heartbeat', error);
-    }
+          sessionId: 'system',
+        });
+      } catch (error) {
+        logger.error('Failed to broadcast heartbeat', error);
+      }
+    })();
   }, 30000); // Every 30 seconds
 
   // Graceful shutdown
@@ -228,7 +245,11 @@ async function runExample(): Promise<void> {
 
 // Run example if this is the main module
 if (import.meta.url === `file://${process.argv[1]}`) {
-  runExample().catch(console.error);
+  try {
+    runExample();
+  } catch (error) {
+    console.error('Failed to run example:', error);
+  }
 }
 
 export { extendAdapterForServer };
