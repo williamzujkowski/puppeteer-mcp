@@ -299,9 +299,10 @@ export class MCPAuthBridge {
    * @nist ac-3 "Access enforcement"
    */
   hasToolPermission(authContext: AuthContext, toolName: string): boolean {
+    // eslint-disable-next-line security/detect-object-injection
     const requiredPermission = MCP_TOOL_PERMISSIONS[toolName];
     
-    if (requiredPermission == null) {
+    if (requiredPermission === null || requiredPermission === undefined) {
       // Unknown tool - deny by default (fail-safe)
       this.logger.warn({ toolName }, 'Unknown MCP tool requested');
       return false;
@@ -317,6 +318,7 @@ export class MCPAuthBridge {
    */
   async requireToolPermission(authContext: AuthContext, toolName: string): Promise<void> {
     if (!this.hasToolPermission(authContext, toolName)) {
+      // eslint-disable-next-line security/detect-object-injection
       const requiredPermission = MCP_TOOL_PERMISSIONS[toolName] ?? 'unknown';
       
       await logSecurityEvent(SecurityEventType.ACCESS_DENIED, {

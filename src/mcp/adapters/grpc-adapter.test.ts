@@ -250,7 +250,7 @@ describe('GrpcAdapter', () => {
   });
 
   describe('listEndpoints', () => {
-    it('should return all available gRPC endpoints', async () => {
+    it('should return all available gRPC endpoints', () => {
       // Act
       const result = adapter.listEndpoints();
 
@@ -273,7 +273,7 @@ describe('GrpcAdapter', () => {
   });
 
   describe('getCapabilities', () => {
-    it('should return gRPC adapter capabilities', async () => {
+    it('should return gRPC adapter capabilities', () => {
       // Act
       const capabilities = adapter.getCapabilities();
 
