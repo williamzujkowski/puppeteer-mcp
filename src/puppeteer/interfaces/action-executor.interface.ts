@@ -145,6 +145,10 @@ export interface ScrollAction extends BaseBrowserAction {
   distance?: number;
   selector?: string;
   toElement?: boolean;
+  x?: number;
+  y?: number;
+  smooth?: boolean;
+  duration?: number;
 }
 
 /**

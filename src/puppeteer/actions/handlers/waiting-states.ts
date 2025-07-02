@@ -7,6 +7,11 @@
 
 import type { Page } from 'puppeteer';
 import type { ActionResult, ActionContext } from '../../interfaces/action-executor.interface.js';
+import type {
+  WaitForElementStateResultParams,
+  WaitForElementStateLogParams,
+  WaitForElementStateParams
+} from './waiting-states-types.js';
 import { sanitizeSelector } from '../validation.js';
 import { createLogger } from '../../../utils/logger.js';
 
@@ -143,13 +148,9 @@ async function waitForElementByState(
  * @returns Action result
  */
 function createWaitForElementStateResult(
-  success: boolean,
-  selector: string,
-  sanitizedSelector: string,
-  state: 'visible' | 'hidden' | 'attached' | 'detached',
-  duration: number,
-  error?: string
+  params: WaitForElementStateResultParams
 ): ActionResult {
+  const { success, selector, sanitizedSelector, state, duration, error } = params;
   if (success) {
     return {
       success: true,
@@ -188,12 +189,9 @@ function createWaitForElementStateResult(
  * @param additional - Additional log data
  */
 function logWaitForElementState(
-  message: string,
-  context: ActionContext,
-  selector: string,
-  state: string,
-  additional?: Record<string, unknown>
+  params: WaitForElementStateLogParams
 ): void {
+  const { message, context, selector, state, additional } = params;
   const logData = {
     sessionId: context.sessionId,
     contextId: context.contextId,
@@ -219,33 +217,60 @@ function logWaitForElementState(
  * @returns Action result
  */
 export async function handleWaitForElementState(
-  selector: string,
-  state: 'visible' | 'hidden' | 'attached' | 'detached',
-  page: Page,
-  context: ActionContext,
-  timeout?: number
+  params: WaitForElementStateParams
 ): Promise<ActionResult> {
+  const { selector, state, page, context, timeout } = params;
   const startTime = Date.now();
   const effectiveTimeout = timeout || 30000;
   
   try {
-    logWaitForElementState('Executing wait for element state action', context, selector, state);
+    logWaitForElementState({
+      message: 'Executing wait for element state action',
+      context,
+      selector,
+      state,
+    });
 
     const sanitizedSelector = sanitizeSelector(selector);
     await waitForElementByState(page, sanitizedSelector, state, effectiveTimeout);
 
     const duration = Date.now() - startTime;
-    logWaitForElementState('Wait for element state action completed', context, sanitizedSelector, state, { duration });
+    logWaitForElementState({
+      message: 'Wait for element state action completed',
+      context,
+      selector: sanitizedSelector,
+      state,
+      additional: { duration },
+    });
 
-    return createWaitForElementStateResult(true, selector, sanitizedSelector, state, duration);
+    return createWaitForElementStateResult({
+      success: true,
+      selector,
+      sanitizedSelector,
+      state,
+      duration,
+    });
 
   } catch (error) {
     const duration = Date.now() - startTime;
     const errorMessage = error instanceof Error ? error.message : 'Unknown wait for element state error';
     
-    logWaitForElementState('Wait for element state action failed', context, selector, state, { error: errorMessage, duration });
+    logWaitForElementState({
+      message: 'Wait for element state action failed',
+      context,
+      selector,
+      state,
+      additional: { error: errorMessage, duration },
+    });
     
-    return createWaitForElementStateResult(false, selector, selector, state, duration, errorMessage);
+    return createWaitForElementStateResult({
+      success: false,
+      selector,
+      sanitizedSelector: selector,
+      state,
+      duration,
+      error: errorMessage,
+    });
   }
 }
 

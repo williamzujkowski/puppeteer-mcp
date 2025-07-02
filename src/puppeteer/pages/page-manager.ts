@@ -160,22 +160,32 @@ export class PageManager extends EventEmitter implements IPageManager {
   }
 
   async closePage(pageId: string, sessionId: string): Promise<void> {
-    return closePageOperation(
+    return closePageOperation({
       pageId,
       sessionId,
-      this.pages,
-      this.pageStore,
-      (pid, sid) => this.getPageInfo(pid, sid),
-      this
-    );
+      pages: this.pages,
+      pageStore: this.pageStore,
+      getPageInfo: (pid, sid) => this.getPageInfo(pid, sid),
+      emitter: this
+    });
   }
 
   async closePagesForContext(contextId: string): Promise<void> {
-    return closePagesForContextOperation(contextId, this.pages, this.pageStore, this);
+    return closePagesForContextOperation({
+      contextId,
+      pages: this.pages,
+      pageStore: this.pageStore,
+      emitter: this
+    });
   }
 
   async closePagesForSession(sessionId: string): Promise<void> {
-    return closePagesForSessionOperation(sessionId, this.pages, this.pageStore, this);
+    return closePagesForSessionOperation({
+      sessionId,
+      pages: this.pages,
+      pageStore: this.pageStore,
+      emitter: this
+    });
   }
 
   private async performCleanup(): Promise<void> {

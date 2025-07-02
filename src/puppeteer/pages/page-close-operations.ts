@@ -4,27 +4,25 @@
  * @nist ac-12 "Session termination"
  */
 
-import type { Page } from 'puppeteer';
 import { createLogger } from '../../utils/logger.js';
-import type { PageInfo } from '../interfaces/page-manager.interface.js';
-import type { PageInfoStore } from './page-info-store.js';
+import type {
+  ClosePageOperationParams,
+  ClosePagesForContextParams,
+  ClosePagesForSessionParams
+} from './page-close-types.js';
 import { closePage, closeContextPages, closeSessionPages } from './page-cleanup.js';
-import type { EventEmitter } from 'events';
 
 const logger = createLogger('page-close-operations');
 
 /**
  * Close page
+ * @param params - Close page operation parameters
  * @nist ac-12 "Session termination"
  */
 export async function closePageOperation(
-  pageId: string,
-  sessionId: string,
-  pages: Map<string, Page>,
-  pageStore: PageInfoStore,
-  getPageInfo: (pageId: string, sessionId: string) => Promise<PageInfo>,
-  emitter: EventEmitter
+  params: ClosePageOperationParams
 ): Promise<void> {
+  const { pageId, sessionId, pages, pageStore, getPageInfo, emitter } = params;
   const pageInfo = await getPageInfo(pageId, sessionId);
   
   await closePage(pageId, pages, pageStore);
@@ -36,14 +34,13 @@ export async function closePageOperation(
 
 /**
  * Close all pages for context
+ * @param params - Close pages for context parameters
  * @nist ac-12 "Session termination"
  */
 export async function closePagesForContextOperation(
-  contextId: string,
-  pages: Map<string, Page>,
-  pageStore: PageInfoStore,
-  emitter: EventEmitter
+  params: ClosePagesForContextParams
 ): Promise<void> {
+  const { contextId, pages, pageStore, emitter } = params;
   const result = await closeContextPages(contextId, pages, pageStore);
   
   emitter.emit('context:pages-cleared', { 
@@ -56,14 +53,13 @@ export async function closePagesForContextOperation(
 
 /**
  * Close all pages for session
+ * @param params - Close pages for session parameters
  * @nist ac-12 "Session termination"
  */
 export async function closePagesForSessionOperation(
-  sessionId: string,
-  pages: Map<string, Page>,
-  pageStore: PageInfoStore,
-  emitter: EventEmitter
+  params: ClosePagesForSessionParams
 ): Promise<void> {
+  const { sessionId, pages, pageStore, emitter } = params;
   const results = await closeSessionPages(sessionId, pages, pageStore);
   
   let totalPages = 0;

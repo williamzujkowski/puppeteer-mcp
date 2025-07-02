@@ -124,9 +124,8 @@ export class HttpTransport {
   /**
    * Start the HTTP transport
    */
-  // eslint-disable-next-line @typescript-eslint/require-await
   async start(): Promise<void> {
-    return new Promise((resolve, reject) => {
+    await new Promise<void>((resolve, reject) => {
       this.server.listen(this.config.port, this.config.host, () => {
         logger.info({
           msg: 'MCP HTTP transport started',
