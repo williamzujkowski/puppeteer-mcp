@@ -46,8 +46,8 @@ export async function handleNavigate(
 
     // Navigate to URL with optional wait condition
     const response = await page.goto(sanitizedUrl, {
-      timeout: action.timeout || 30000,
-      waitUntil: action.waitUntil || 'load',
+      timeout: action.timeout ?? 30000,
+      waitUntil: action.waitUntil ?? 'load',
     });
 
     const duration = Date.now() - startTime;
@@ -143,7 +143,7 @@ export async function handleGoBack(
     });
 
     const response = await page.goBack({
-      timeout: timeout || 30000,
+      timeout: timeout ?? 30000,
       waitUntil: 'load',
     });
 
@@ -221,7 +221,7 @@ export async function handleGoForward(
     });
 
     const response = await page.goForward({
-      timeout: timeout || 30000,
+      timeout: timeout ?? 30000,
       waitUntil: 'load',
     });
 
@@ -300,7 +300,7 @@ export async function handleReload(
     });
 
     const response = await page.reload({
-      timeout: timeout || 30000,
+      timeout: timeout ?? 30000,
       waitUntil: 'load',
     });
 

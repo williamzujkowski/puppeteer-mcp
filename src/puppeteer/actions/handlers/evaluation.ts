@@ -40,7 +40,7 @@ export async function handleEvaluate(
       contextId: context.contextId,
       pageId: action.pageId,
       functionLength: action.function.length,
-      argsCount: action.args?.length || 0,
+      argsCount: action.args?.length ?? 0,
     });
 
     // Validate JavaScript code for security
@@ -48,9 +48,9 @@ export async function handleEvaluate(
 
     // Execute the function with timeout
     const result = await Promise.race([
-      page.evaluate(action.function, ...(action.args || [])),
+      page.evaluate(action.function, ...(action.args ?? [])),
       new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Evaluation timeout')), action.timeout || 30000)
+        setTimeout(() => reject(new Error('Evaluation timeout')), action.timeout ?? 30000)
       ),
     ]);
 
@@ -76,7 +76,7 @@ export async function handleEvaluate(
       timestamp: new Date(),
       metadata: {
         functionLength: action.function.length,
-        argsCount: action.args?.length || 0,
+        argsCount: action.args?.length ?? 0,
       },
     };
 
@@ -100,7 +100,7 @@ export async function handleEvaluate(
       timestamp: new Date(),
       metadata: {
         functionLength: action.function.length,
-        argsCount: action.args?.length || 0,
+        argsCount: action.args?.length ?? 0,
       },
     };
   }
@@ -131,7 +131,7 @@ export async function handleEvaluateHandle(
       sessionId: context.sessionId,
       contextId: context.contextId,
       functionLength: functionString.length,
-      argsCount: args?.length || 0,
+      argsCount: args?.length ?? 0,
     });
 
     // Validate JavaScript code for security
@@ -139,9 +139,9 @@ export async function handleEvaluateHandle(
 
     // Execute the function with timeout and return JSHandle
     const handle = await Promise.race([
-      page.evaluateHandle(functionString, ...(args || [])),
+      page.evaluateHandle(functionString, ...(args ?? [])),
       new Promise<JSHandle>((_, reject) => 
-        setTimeout(() => reject(new Error('Evaluation handle timeout')), timeout || 30000)
+        setTimeout(() => reject(new Error('Evaluation handle timeout')), timeout ?? 30000)
       ),
     ]);
 
@@ -161,7 +161,7 @@ export async function handleEvaluateHandle(
       timestamp: new Date(),
       metadata: {
         functionLength: functionString.length,
-        argsCount: args?.length || 0,
+        argsCount: args?.length ?? 0,
       },
     };
 
@@ -184,7 +184,7 @@ export async function handleEvaluateHandle(
       timestamp: new Date(),
       metadata: {
         functionLength: functionString.length,
-        argsCount: args?.length || 0,
+        argsCount: args?.length ?? 0,
       },
     };
   }

@@ -50,9 +50,9 @@ export async function handleClick(
 
     // Perform click action
     await element.click({
-      button: action.button || 'left',
-      clickCount: action.clickCount || 1,
-      delay: action.delay || 0,
+      button: action.button ?? 'left',
+      clickCount: action.clickCount ?? 1,
+      delay: action.delay ?? 0,
     });
 
     const duration = Date.now() - startTime;
@@ -71,8 +71,8 @@ export async function handleClick(
       actionType: 'click',
       data: {
         selector: sanitizedSelector,
-        clickCount: action.clickCount || 1,
-        button: action.button || 'left',
+        clickCount: action.clickCount ?? 1,
+        button: action.button ?? 'left',
       },
       duration,
       timestamp: new Date(),
@@ -138,7 +138,7 @@ export async function handleType(
 
     // Wait for element to be available
     await page.waitForSelector(sanitizedSelector, {
-      timeout: action.timeout || 30000,
+      timeout: action.timeout ?? 30000,
       visible: true,
     });
 
@@ -164,7 +164,7 @@ export async function handleType(
 
     // Type text with optional delay
     await element.type(action.text, {
-      delay: action.delay || 0,
+      delay: action.delay ?? 0,
     });
 
     const duration = Date.now() - startTime;
@@ -249,7 +249,7 @@ export async function handleSelect(
 
     // Wait for element to be available
     await page.waitForSelector(sanitizedSelector, {
-      timeout: action.timeout || 30000,
+      timeout: action.timeout ?? 30000,
       visible: true,
     });
 
@@ -337,7 +337,7 @@ export async function handleHover(
 
     // Wait for element to be available
     await page.waitForSelector(sanitizedSelector, {
-      timeout: timeout || 30000,
+      timeout: timeout ?? 30000,
       visible: true,
     });
 
@@ -420,7 +420,7 @@ export async function handleFocus(
 
     // Wait for element to be available
     await page.waitForSelector(sanitizedSelector, {
-      timeout: timeout || 30000,
+      timeout: timeout ?? 30000,
       visible: true,
     });
 
@@ -503,7 +503,7 @@ export async function handleBlur(
 
     // Wait for element to be available
     await page.waitForSelector(sanitizedSelector, {
-      timeout: timeout || 30000,
+      timeout: timeout ?? 30000,
     });
 
     // Get element and blur it

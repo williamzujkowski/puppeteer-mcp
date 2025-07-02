@@ -33,19 +33,23 @@ async function startMCPServer() {
     await mcpServer.start();
     
     log.info('MCP server started successfully');
-    log.info('Transport type:', process.env.MCP_TRANSPORT || 'stdio');
+    log.info('Transport type:', process.env.MCP_TRANSPORT ?? 'stdio');
     
     // Handle graceful shutdown
-    process.on('SIGINT', async () => {
-      log.info('Shutting down MCP server...');
-      await mcpServer.stop();
-      process.exit(0);
+    process.on('SIGINT', () => {
+      void (async () => {
+        log.info('Shutting down MCP server...');
+        await mcpServer.stop();
+        process.exit(0);
+      })();
     });
     
-    process.on('SIGTERM', async () => {
-      log.info('Shutting down MCP server...');
-      await mcpServer.stop();
-      process.exit(0);
+    process.on('SIGTERM', () => {
+      void (async () => {
+        log.info('Shutting down MCP server...');
+        await mcpServer.stop();
+        process.exit(0);
+      })();
     });
     
   } catch (error) {
@@ -56,7 +60,7 @@ async function startMCPServer() {
 
 // Run if called directly
 if (import.meta.url === `file://${process.argv[1]}`) {
-  startMCPServer();
+  void startMCPServer();
 }
 
 export { startMCPServer };

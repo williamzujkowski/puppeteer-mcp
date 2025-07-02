@@ -218,7 +218,7 @@ export class BrowserHealthChecker {
         return 0;
       }
       const metrics = await page.metrics();
-      const memoryMB = (metrics.JSHeapUsedSize || 0) / (1024 * 1024);
+      const memoryMB = (metrics.JSHeapUsedSize ?? 0) / (1024 * 1024);
       
       return memoryMB;
     } catch (error) {

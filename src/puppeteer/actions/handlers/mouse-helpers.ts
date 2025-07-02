@@ -33,7 +33,7 @@ export async function executeMouseMove(page: Page, action: MouseAction): Promise
  */
 export async function executeMouseDown(page: Page, action: MouseAction): Promise<void> {
   await page.mouse.down({
-    button: action.button || 'left',
+    button: action.button ?? 'left',
   });
 }
 
@@ -42,7 +42,7 @@ export async function executeMouseDown(page: Page, action: MouseAction): Promise
  */
 export async function executeMouseUp(page: Page, action: MouseAction): Promise<void> {
   await page.mouse.up({
-    button: action.button || 'left',
+    button: action.button ?? 'left',
   });
 }
 
@@ -51,8 +51,8 @@ export async function executeMouseUp(page: Page, action: MouseAction): Promise<v
  */
 export async function executeMouseWheel(page: Page, action: MouseAction): Promise<void> {
   await page.mouse.wheel({
-    deltaX: action.deltaX || 0,
-    deltaY: action.deltaY || 0,
+    deltaX: action.deltaX ?? 0,
+    deltaY: action.deltaY ?? 0,
   });
 }
 
@@ -74,6 +74,6 @@ export async function executeMouseAction(page: Page, action: MouseAction): Promi
       await executeMouseWheel(page, action);
       break;
     default:
-      throw new Error(`Unsupported mouse action: ${action.action}`);
+      throw new Error(`Unsupported mouse action: ${String(action.action)}`);
   }
 }

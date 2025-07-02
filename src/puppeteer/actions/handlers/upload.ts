@@ -66,7 +66,7 @@ export async function handleUpload(
 
     // Wait for file input element
     await page.waitForSelector(sanitizedSelector, {
-      timeout: action.timeout || 30000,
+      timeout: action.timeout ?? 30000,
     });
 
     // Verify element is a file input
@@ -401,5 +401,5 @@ function getMimeType(extension: string): string {
     '.rar': 'application/vnd.rar',
   };
 
-  return mimeTypes[extension] || 'application/octet-stream';
+  return mimeTypes[extension] ?? 'application/octet-stream';
 }

@@ -32,11 +32,11 @@ export class HttpTransport {
 
   constructor(transportConfig?: Partial<HttpTransportConfig>) {
     this.config = {
-      port: transportConfig?.port || parseInt(process.env.MCP_HTTP_PORT || '3001'),
-      host: transportConfig?.host || process.env.MCP_HTTP_HOST || 'localhost',
+      port: transportConfig?.port ?? parseInt(process.env.MCP_HTTP_PORT ?? '3001'),
+      host: transportConfig?.host ?? process.env.MCP_HTTP_HOST ?? 'localhost',
       useTls: transportConfig?.useTls ?? config.TLS_ENABLED,
-      tlsCertPath: transportConfig?.tlsCertPath || config.TLS_CERT_PATH,
-      tlsKeyPath: transportConfig?.tlsKeyPath || config.TLS_KEY_PATH,
+      tlsCertPath: transportConfig?.tlsCertPath ?? config.TLS_CERT_PATH,
+      tlsKeyPath: transportConfig?.tlsKeyPath ?? config.TLS_KEY_PATH,
     };
 
     this.server = this.createServer();

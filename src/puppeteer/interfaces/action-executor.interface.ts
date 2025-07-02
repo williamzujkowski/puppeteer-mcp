@@ -104,12 +104,25 @@ export interface PDFAction extends BaseBrowserAction {
   landscape?: boolean;
   scale?: number;
   displayHeaderFooter?: boolean;
+  headerTemplate?: string;
+  footerTemplate?: string;
+  printBackground?: boolean;
+  preferCSSPageSize?: boolean;
+  pageRanges?: string;
   margin?: {
     top?: string;
     bottom?: string;
     left?: string;
     right?: string;
   };
+}
+
+/**
+ * Content retrieval action
+ */
+export interface ContentAction extends BaseBrowserAction {
+  type: 'content';
+  selector?: string;
 }
 
 /**
@@ -182,6 +195,7 @@ export type BrowserAction =
   | MouseAction
   | ScreenshotAction
   | PDFAction
+  | ContentAction
   | WaitAction
   | ScrollAction
   | EvaluateAction

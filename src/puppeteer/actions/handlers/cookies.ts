@@ -37,7 +37,7 @@ export async function handleCookie(
       contextId: context.contextId,
       pageId: action.pageId,
       operation: action.operation,
-      cookieCount: action.cookies?.length || 0,
+      cookieCount: action.cookies?.length ?? 0,
     });
 
     let result: unknown;
@@ -77,7 +77,7 @@ export async function handleCookie(
       timestamp: new Date(),
       metadata: {
         operation: action.operation,
-        cookieCount: action.cookies?.length || 0,
+        cookieCount: action.cookies?.length ?? 0,
       },
     };
 
@@ -102,7 +102,7 @@ export async function handleCookie(
       timestamp: new Date(),
       metadata: {
         operation: action.operation,
-        cookieCount: action.cookies?.length || 0,
+        cookieCount: action.cookies?.length ?? 0,
       },
     };
   }

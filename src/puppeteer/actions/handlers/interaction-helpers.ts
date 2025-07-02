@@ -20,7 +20,7 @@ export async function prepareElementForInteraction(
 
   // Wait for element to be available
   await page.waitForSelector(sanitizedSelector, {
-    timeout: timeout || 30000,
+    timeout: timeout ?? 30000,
     visible: true,
   });
 

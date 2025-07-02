@@ -221,11 +221,15 @@ export class MCPServer {
       switch (uri) {
         case 'api://catalog': {
           const catalog = await this.apiCatalogResource.getApiCatalog();
-          return catalog as any;
+          return {
+            contents: catalog.contents,
+          };
         }
         case 'api://health': {
           const health = this.systemHealthResource.getSystemHealth();
-          return health as any;
+          return {
+            contents: health.contents,
+          };
         }
         default:
           throw new McpError(ErrorCode.InvalidRequest, `Unknown resource: ${uri}`);

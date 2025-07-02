@@ -112,17 +112,20 @@ export async function handleMouse(
  * @param options - Click options
  * @returns Action result
  */
-export async function handleMouseClick(
-  x: number,
-  y: number,
-  page: Page,
-  context: ActionContext,
+interface MouseClickParams {
+  x: number;
+  y: number;
+  page: Page;
+  context: ActionContext;
   options?: {
     button?: 'left' | 'right' | 'middle';
     clickCount?: number;
     delay?: number;
-  }
-): Promise<ActionResult> {
+  };
+}
+
+export async function handleMouseClick(params: MouseClickParams): Promise<ActionResult> {
+  const { x, y, page, context, options } = params;
   const startTime = Date.now();
   
   try {
@@ -142,9 +145,9 @@ export async function handleMouseClick(
 
     // Perform click
     await page.mouse.click(x, y, {
-      button: options?.button || 'left',
-      clickCount: options?.clickCount || 1,
-      delay: options?.delay || 0,
+      button: options?.button ?? 'left',
+      clickCount: options?.clickCount ?? 1,
+      delay: options?.delay ?? 0,
     });
 
     const duration = Date.now() - startTime;
@@ -163,8 +166,8 @@ export async function handleMouseClick(
       data: {
         x,
         y,
-        button: options?.button || 'left',
-        clickCount: options?.clickCount || 1,
+        button: options?.button ?? 'left',
+        clickCount: options?.clickCount ?? 1,
       },
       duration,
       timestamp: new Date(),

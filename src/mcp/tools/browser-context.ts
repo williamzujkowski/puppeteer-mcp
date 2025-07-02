@@ -38,9 +38,9 @@ export class BrowserContextTool {
       // Create context
       const context = await contextStore.create({
         sessionId: args.sessionId,
-        name: args.name || 'browser-context',
+        name: args.name ?? 'browser-context',
         type: 'puppeteer',
-        config: args.options || {},
+        config: args.options ?? {},
         metadata: {
           createdBy: 'mcp',
           username: authContext.username,

@@ -47,7 +47,7 @@ import {
 } from './handlers/waiting.js';
 import { 
   handleScreenshot, 
-  handlePDF 
+  handlePdf 
 } from './handlers/content.js';
 import { 
   handleKeyboard 
@@ -262,36 +262,10 @@ export class BrowserActionExecutor implements ActionExecutor {
       throw new Error(`Invalid actions in batch: ${invalidActions.length} of ${actions.length}`);
     }
 
-    const results: ActionResult[] = [];
-
-    if (options?.parallel) {
-      // Execute actions in parallel with concurrency limit
-      const maxConcurrency = Math.min(options.maxConcurrency || 5, 10);
-      const chunks = this.chunkArray(actions, maxConcurrency);
-      
-      for (const chunk of chunks) {
-        const chunkResults = await Promise.all(
-          chunk.map(action => this.execute(action, context))
-        );
-        results.push(...chunkResults);
-        
-        // Stop on error if requested
-        if (options?.stopOnError && chunkResults.some(result => !result.success)) {
-          break;
-        }
-      }
-    } else {
-      // Execute actions sequentially
-      for (const action of actions) {
-        const result = await this.execute(action, context);
-        results.push(result);
-        
-        // Stop on error if requested
-        if (options?.stopOnError && !result.success) {
-          break;
-        }
-      }
-    }
+    // Delegate to specific execution method based on mode
+    const results = options?.parallel 
+      ? await this.executeParallel(actions, context, options)
+      : await this.executeSequential(actions, context, options);
 
     logger.info('Action batch execution completed', {
       sessionId: context.sessionId,
@@ -302,6 +276,56 @@ export class BrowserActionExecutor implements ActionExecutor {
       failedActions: results.filter(r => !r.success).length,
     });
 
+    return results;
+  }
+
+  /**
+   * Execute actions in parallel
+   */
+  private async executeParallel(
+    actions: BrowserAction[],
+    context: ActionContext,
+    options?: { stopOnError?: boolean; maxConcurrency?: number }
+  ): Promise<ActionResult[]> {
+    const results: ActionResult[] = [];
+    const maxConcurrency = Math.min(options?.maxConcurrency ?? 5, 10);
+    const chunks = this.chunkArray(actions, maxConcurrency);
+    
+    for (const chunk of chunks) {
+      const chunkResults = await Promise.all(
+        chunk.map(action => this.execute(action, context))
+      );
+      results.push(...chunkResults);
+      
+      // Stop on error if requested
+      if (options?.stopOnError && chunkResults.some(result => !result.success)) {
+        break;
+      }
+    }
+    
+    return results;
+  }
+
+  /**
+   * Execute actions sequentially
+   */
+  private async executeSequential(
+    actions: BrowserAction[],
+    context: ActionContext,
+    options?: { stopOnError?: boolean }
+  ): Promise<ActionResult[]> {
+    const results: ActionResult[] = [];
+    
+    for (const action of actions) {
+      const result = await this.execute(action, context);
+      results.push(result);
+      
+      // Stop on error if requested
+      if (options?.stopOnError && !result.success) {
+        break;
+      }
+    }
+    
     return results;
   }
 
@@ -463,7 +487,7 @@ export class BrowserActionExecutor implements ActionExecutor {
     }
   ): Promise<ActionResult[]> {
     const contextKey = `${context.sessionId}:${context.contextId}`;
-    const history = this.actionHistory.get(contextKey) || [];
+    const history = this.actionHistory.get(contextKey) ?? [];
 
     let filteredHistory = [...history];
 
@@ -505,7 +529,7 @@ export class BrowserActionExecutor implements ActionExecutor {
     const contextKey = `${context.sessionId}:${context.contextId}`;
     
     if (before) {
-      const history = this.actionHistory.get(contextKey) || [];
+      const history = this.actionHistory.get(contextKey) ?? [];
       const filteredHistory = history.filter(result => result.timestamp >= before);
       this.actionHistory.set(contextKey, filteredHistory);
     } else {
@@ -533,7 +557,7 @@ export class BrowserActionExecutor implements ActionExecutor {
     actionTypeBreakdown: Record<string, number>;
   }> {
     const contextKey = `${context.sessionId}:${context.contextId}`;
-    const history = this.actionHistory.get(contextKey) || [];
+    const history = this.actionHistory.get(contextKey) ?? [];
 
     const successfulActions = history.filter(result => result.success).length;
     const failedActions = history.length - successfulActions;
@@ -590,7 +614,7 @@ export class BrowserActionExecutor implements ActionExecutor {
       handleScreenshot(action as ScreenshotAction, page, context)
     );
     this.handlers.set('pdf', async (action, page, context) => 
-      handlePDF(action as PDFAction, page, context)
+      handlePdf(action as PDFAction, page, context)
     );
 
     // Wait handlers
@@ -696,7 +720,7 @@ export class BrowserActionExecutor implements ActionExecutor {
    */
   private addToHistory(context: ActionContext, result: ActionResult): void {
     const contextKey = `${context.sessionId}:${context.contextId}`;
-    const history = this.actionHistory.get(contextKey) || [];
+    const history = this.actionHistory.get(contextKey) ?? [];
     
     history.push(result);
     

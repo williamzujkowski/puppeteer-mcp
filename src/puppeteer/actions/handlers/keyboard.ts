@@ -243,7 +243,7 @@ export async function handleKeyboardType(
 
     // Type text with optional delay
     await page.keyboard.type(text, {
-      delay: delay || 0,
+      delay: delay ?? 0,
     });
 
     const duration = Date.now() - startTime;
@@ -260,7 +260,7 @@ export async function handleKeyboardType(
       actionType: 'keyboardType',
       data: {
         textLength: text.length,
-        delay: delay || 0,
+        delay: delay ?? 0,
       },
       duration,
       timestamp: new Date(),
