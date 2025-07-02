@@ -39,7 +39,7 @@ export function checkTimeoutWarnings(
   action: BrowserAction,
   warnings: ValidationError[]
 ): void {
-  if (action.timeout && action.timeout > 300000) { // 5 minutes
+  if (action.timeout !== undefined && action.timeout > 300000) { // 5 minutes
     warnings.push({
       field: 'timeout',
       message: 'Timeout value is very high, consider reducing it',
