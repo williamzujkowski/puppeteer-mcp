@@ -13,6 +13,7 @@ import { getPermissionsForRoles, Permission } from '../../auth/permissions.js';
 import { AppError } from '../../core/errors/app-error.js';
 import { logSecurityEvent, SecurityEventType } from '../../utils/logger.js';
 import { pino } from 'pino';
+import { extractCredentials } from './credential-extractor.js';
 
 /**
  * Authentication context returned by the bridge
@@ -343,82 +344,14 @@ export class MCPAuthBridge {
 
   /**
    * Extract authentication credentials from various sources
-   * Supports Authorization header, query params, or WebSocket metadata
+   * Delegates to credential-extractor module
    */
   extractCredentials(source: {
     headers?: Record<string, string | string[] | undefined>;
     query?: Record<string, string | string[] | undefined>;
     metadata?: Record<string, unknown>;
   }): MCPAuthCredentials | undefined {
-    // Check Authorization header
-    if (source.headers?.authorization) {
-      const authHeader = Array.isArray(source.headers.authorization) 
-        ? source.headers.authorization[0] 
-        : source.headers.authorization;
-      
-      if (authHeader && authHeader.startsWith('Bearer ')) {
-        return {
-          type: 'jwt',
-          credentials: authHeader.substring(7)
-        };
-      }
-    }
-    
-    // Check for API key in headers
-    const apiKeyHeader = source.headers?.['x-api-key'] ?? source.headers?.['apikey'];
-    if (apiKeyHeader) {
-      const apiKey = Array.isArray(apiKeyHeader) ? apiKeyHeader[0] : apiKeyHeader;
-      if (apiKey) {
-        return {
-          type: 'apikey',
-          credentials: apiKey
-        };
-      }
-    }
-    
-    // Check query parameters
-    if (source.query?.token) {
-      const token = Array.isArray(source.query.token) ? source.query.token[0] : source.query.token;
-      if (token) {
-        return {
-          type: 'jwt',
-          credentials: token
-        };
-      }
-    }
-    
-    if (source.query?.apikey) {
-      const apikey = Array.isArray(source.query.apikey) ? source.query.apikey[0] : source.query.apikey;
-      if (apikey) {
-        return {
-          type: 'apikey',
-          credentials: apikey
-        };
-      }
-    }
-    
-    if (source.query?.sessionId) {
-      const sessionId = Array.isArray(source.query.sessionId) ? source.query.sessionId[0] : source.query.sessionId;
-      if (sessionId) {
-        return {
-          type: 'session',
-          credentials: sessionId
-        };
-      }
-    }
-    
-    // Check WebSocket metadata
-    if (source.metadata?.auth) {
-      const auth = source.metadata.auth as { type?: string; credentials?: string };
-      if (auth.type && auth.credentials && ['jwt', 'apikey', 'session'].includes(auth.type)) {
-        return {
-          type: auth.type as 'jwt' | 'apikey' | 'session',
-          credentials: auth.credentials
-        };
-      }
-    }
-    
-    return undefined;
+    return extractCredentials(source);
   }
 }
 

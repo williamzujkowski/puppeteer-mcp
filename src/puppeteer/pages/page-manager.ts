@@ -57,7 +57,9 @@ export class PageManager extends EventEmitter implements IPageManager {
     
     // Start periodic cleanup
     this.cleanupInterval = setInterval(
-      () => this.performCleanup(),
+      () => {
+        void this.performCleanup();
+      },
       5 * 60 * 1000 // 5 minutes
     );
   }

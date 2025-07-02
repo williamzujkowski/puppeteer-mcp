@@ -234,7 +234,7 @@ describe('Browser Pool Integration', () => {
     expect(initialHealth.metrics.pageCount).toBe(3);
     
     // Add small delay for lifetime calculation
-    await new Promise(resolve => setTimeout(resolve, 10));
+    await new Promise<void>(resolve => setTimeout(resolve, 10));
     
     // Release and recycle
     await pool.releaseBrowser(instance.id, 'session-test');

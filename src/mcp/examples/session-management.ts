@@ -133,47 +133,47 @@ const demoUsers = [
   },
 ];
 
-console.log('MCP Session Management Examples:');
-console.log('================================\n');
+// console.log('MCP Session Management Examples:');
+// console.log('================================\n');
 
-console.log('Available Demo Users:');
+// console.log('Available Demo Users:');
 demoUsers.forEach(user => {
-  console.log(`- Username: ${user.username}`);
-  console.log(`  Password: ${user.password}`);
-  console.log(`  Roles: ${user.roles.join(', ')}`);
-  console.log(`  Description: ${user.description}\n`);
+  // console.log(`- Username: ${user.username}`);
+  // console.log(`  Password: ${user.password}`);
+  // console.log(`  Roles: ${user.roles.join(', ')}`);
+  // console.log(`  Description: ${user.description}\n`);
 });
 
-console.log('\nExample Tool Calls:');
-console.log('==================\n');
+// console.log('\nExample Tool Calls:');
+// console.log('==================\n');
 
 Object.entries(exampleSessionManagement).forEach(([name, example]) => {
-  console.log(`${name}:`);
-  console.log(`Tool: ${example.tool}`);
-  console.log('Arguments:', JSON.stringify(example.args, null, 2));
+  // console.log(`${name}:`);
+  // console.log(`Tool: ${example.tool}`);
+  // console.log('Arguments:', JSON.stringify(example.args, null, 2));
   if ('expectedResponse' in example) {
-    console.log('Expected Response Structure:', JSON.stringify(example.expectedResponse, null, 2));
+    // console.log('Expected Response Structure:', JSON.stringify(example.expectedResponse, null, 2));
   } else if ('expectedError' in example) {
-    console.log('Expected Error:', JSON.stringify(example.expectedError, null, 2));
+    // console.log('Expected Error:', JSON.stringify(example.expectedError, null, 2));
   }
-  console.log('---\n');
+  // console.log('---\n');
 });
 
-console.log('\nAuthentication Flow:');
-console.log('===================');
-console.log('1. Create session with username/password');
-console.log('2. Receive session ID and JWT tokens');
-console.log('3. Use session ID for subsequent operations');
-console.log('4. Sessions expire after the specified duration');
-console.log('5. Delete session when done\n');
+// console.log('\nAuthentication Flow:');
+// console.log('===================');
+// console.log('1. Create session with username/password');
+// console.log('2. Receive session ID and JWT tokens');
+// console.log('3. Use session ID for subsequent operations');
+// console.log('4. Sessions expire after the specified duration');
+// console.log('5. Delete session when done\n');
 
-console.log('Security Notes:');
-console.log('===============');
-console.log('- All authentication attempts are logged');
-console.log('- Failed logins trigger security events');
-console.log('- Sessions have expiration times');
-console.log('- Permissions are enforced based on user roles');
-console.log('- NIST compliance tags ensure proper security controls\n');
+// console.log('Security Notes:');
+// console.log('===============');
+// console.log('- All authentication attempts are logged');
+// console.log('- Failed logins trigger security events');
+// console.log('- Sessions have expiration times');
+// console.log('- Permissions are enforced based on user roles');
+// console.log('- NIST compliance tags ensure proper security controls\n');
 
 // Export for testing
 export { exampleSessionManagement, demoUsers };

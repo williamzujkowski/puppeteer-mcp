@@ -170,7 +170,7 @@ class UserService {
    * Get user by ID
    * @nist ac-3 "Access enforcement"
    */
-  async getUserById(userId: string): Promise<UserData | null> {
+  getUserById(userId: string): UserData | null {
     for (const user of this.users.values()) {
       if (user.id === userId) {
         return user;

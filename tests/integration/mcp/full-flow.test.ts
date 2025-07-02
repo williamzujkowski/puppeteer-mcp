@@ -3,7 +3,7 @@
  * @module tests/integration/mcp/full-flow
  */
 
-import { describe, it, expect, jest, beforeAll, afterAll } from '@jest/globals';
+import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 import { MCPServer } from '../../../src/mcp/server.js';
 import { sessionStore } from '../../../src/store/session-store.js';
 import { contextStore } from '../../../src/store/context-store.js';

@@ -741,7 +741,7 @@ describe('PageManager', () => {
       });
 
       // Verify the page info was updated correctly before cleanup
-      const beforeCleanup = await pageStore.get(pageInfo.id);
+      const beforeCleanup = pageStore.get(pageInfo.id);
       expect(beforeCleanup?.state).toBe('idle');
       expect(beforeCleanup?.lastActivityAt.getTime()).toBeLessThan(Date.now() - 60 * 60 * 1000);
 
@@ -750,7 +750,7 @@ describe('PageManager', () => {
       expect(cleaned).toBe(1);
       
       // Verify page was removed
-      const retrievedInfo = await pageStore.get(pageInfo.id);
+      const retrievedInfo = pageStore.get(pageInfo.id);
       expect(retrievedInfo).toBeUndefined();
     });
   });

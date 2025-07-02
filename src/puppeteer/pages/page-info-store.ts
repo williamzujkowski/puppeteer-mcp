@@ -83,7 +83,7 @@ export class InMemoryPageInfoStore implements PageInfoStore {
   /**
    * Get page info by ID
    */
-  async get(pageId: string): Promise<PageInfo | undefined> {
+  get(pageId: string): PageInfo | undefined {
     return this.pages.get(pageId);
   }
 

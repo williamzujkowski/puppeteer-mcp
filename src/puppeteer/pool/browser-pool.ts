@@ -87,13 +87,17 @@ export class BrowserPool implements IBrowserPool {
 
     // Start health check interval
     this.healthCheckInterval = setInterval(
-      () => this.performHealthChecks(),
+      () => {
+        void this.performHealthChecks();
+      },
       this.options.healthCheckInterval
     );
 
     // Start cleanup interval
     this.cleanupInterval = setInterval(
-      () => this.cleanupIdle(),
+      () => {
+        void this.cleanupIdle();
+      },
       Math.min(this.options.idleTimeout / 2, 30000)
     );
 

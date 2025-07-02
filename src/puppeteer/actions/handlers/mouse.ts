@@ -12,6 +12,7 @@ import type {
   ActionContext 
 } from '../../interfaces/action-executor.interface.js';
 import { createLogger } from '../../../utils/logger.js';
+import { validateMouseCoordinates, executeMouseAction } from './mouse-helpers.js';
 
 const logger = createLogger('puppeteer:mouse');
 
@@ -43,44 +44,10 @@ export async function handleMouse(
     });
 
     // Validate coordinates
-    if (action.x !== undefined && (action.x < 0 || action.x > 10000)) {
-      throw new Error('Invalid X coordinate');
-    }
-    if (action.y !== undefined && (action.y < 0 || action.y > 10000)) {
-      throw new Error('Invalid Y coordinate');
-    }
+    validateMouseCoordinates(action.x, action.y);
 
     // Execute mouse action
-    switch (action.action) {
-      case 'move':
-        if (action.x === undefined || action.y === undefined) {
-          throw new Error('X and Y coordinates are required for mouse move');
-        }
-        await page.mouse.move(action.x, action.y);
-        break;
-        
-      case 'down':
-        await page.mouse.down({
-          button: action.button || 'left',
-        });
-        break;
-        
-      case 'up':
-        await page.mouse.up({
-          button: action.button || 'left',
-        });
-        break;
-        
-      case 'wheel':
-        await page.mouse.wheel({
-          deltaX: action.deltaX || 0,
-          deltaY: action.deltaY || 0,
-        });
-        break;
-        
-      default:
-        throw new Error(`Unsupported mouse action: ${action.action}`);
-    }
+    await executeMouseAction(page, action);
 
     const duration = Date.now() - startTime;
 

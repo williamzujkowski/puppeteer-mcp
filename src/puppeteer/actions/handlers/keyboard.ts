@@ -74,7 +74,7 @@ export async function handleKeyboard(
         await page.keyboard.up(action.key);
         break;
       default:
-        throw new Error(`Unsupported keyboard action: ${action.action}`);
+        throw new Error(`Unsupported keyboard action: ${String(action.action)}`);
     }
 
     const duration = Date.now() - startTime;

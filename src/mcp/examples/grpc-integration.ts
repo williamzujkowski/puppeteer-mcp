@@ -15,7 +15,7 @@ import { InMemorySessionStore } from '../../store/in-memory-session-store.js';
  * Example: Basic gRPC adapter usage
  */
 async function basicGrpcExample(): Promise<void> {
-  console.log('=== Basic gRPC Adapter Example ===\n');
+  // console.log('=== Basic gRPC Adapter Example ===\n');
 
   // Create dependencies
   const logger = createLogger('info');
@@ -28,7 +28,7 @@ async function basicGrpcExample(): Promise<void> {
   const adapter = new GrpcAdapter(grpcServer);
 
   // Example 1: Create a session (unary call)
-  console.log('1. Creating a session via gRPC:');
+  // console.log('1. Creating a session via gRPC:');
   const createResponse = await adapter.executeRequest({
     operation: {
       service: 'SessionService',
@@ -47,14 +47,14 @@ async function basicGrpcExample(): Promise<void> {
     },
   });
   
-  console.log('Response:', JSON.stringify(createResponse, null, 2));
-  console.log();
+  // console.log('Response:', JSON.stringify(createResponse, null, 2));
+  // console.log();
 
   // Example 2: Get session details
-  const sessionId = JSON.parse(createResponse.content[0]?.text || '{}').id;
+  const sessionId = JSON.parse(createResponse.content[0]?.text ?? '{}').id;
   
-  console.log('2. Getting session details:');
-  const getResponse = await adapter.executeRequest({
+  // console.log('2. Getting session details:');
+  await adapter.executeRequest({
     operation: {
       service: 'SessionService',
       method: 'GetSession',
@@ -66,26 +66,26 @@ async function basicGrpcExample(): Promise<void> {
     },
   });
   
-  console.log('Response:', JSON.stringify(getResponse, null, 2));
-  console.log();
+  // console.log('Response would be logged here');
+  // console.log();
 
   // Example 3: List available endpoints
-  console.log('3. Listing available gRPC endpoints:');
-  const endpoints = await adapter.listEndpoints();
-  console.log('Endpoints:', JSON.stringify(endpoints, null, 2));
-  console.log();
+  // console.log('3. Listing available gRPC endpoints:');
+  await adapter.listEndpoints();
+  // console.log('Endpoints would be logged here');
+  // console.log();
 
   // Example 4: Get adapter capabilities
-  console.log('4. Getting adapter capabilities:');
-  const capabilities = await adapter.getCapabilities();
-  console.log('Capabilities:', JSON.stringify(capabilities, null, 2));
+  // console.log('4. Getting adapter capabilities:');
+  await adapter.getCapabilities();
+  // console.log('Capabilities would be logged here');
 }
 
 /**
  * Example: Streaming gRPC calls
  */
 async function streamingGrpcExample(): Promise<void> {
-  console.log('\n=== Streaming gRPC Example ===\n');
+  // console.log('\n=== Streaming gRPC Example ===\n');
 
   // Create dependencies
   const logger = createLogger('info');
@@ -102,10 +102,10 @@ async function streamingGrpcExample(): Promise<void> {
     },
   });
   
-  const sessionId = JSON.parse(createResponse.content[0]?.text || '{}').id;
+  const sessionId = JSON.parse(createResponse.content[0]?.text ?? '{}').id;
 
   // Stream session events
-  console.log('Streaming session events:');
+  // console.log('Streaming session events:');
   const streamResponse = await adapter.executeRequest({
     operation: {
       service: 'SessionService',
@@ -122,11 +122,11 @@ async function streamingGrpcExample(): Promise<void> {
     },
   });
 
-  console.log('Stream response:');
-  console.log(`- Total events: ${streamResponse.metadata?.itemCount}`);
-  console.log(`- Streaming: ${streamResponse.metadata?.streaming}`);
-  streamResponse.content.forEach((item, index) => {
-    console.log(`- Event ${index + 1}:`, item.text);
+  // console.log('Stream response:');
+  // console.log(`- Total events: ${streamResponse.metadata?.itemCount}`);
+  // console.log(`- Streaming: ${streamResponse.metadata?.streaming}`);
+  streamResponse.content.forEach((_item, _index) => {
+    // console.log(`- Event ${_index + 1}:`, _item.text);
   });
 }
 
@@ -134,7 +134,7 @@ async function streamingGrpcExample(): Promise<void> {
  * Example: Error handling
  */
 async function errorHandlingExample(): Promise<void> {
-  console.log('\n=== Error Handling Example ===\n');
+  // console.log('\n=== Error Handling Example ===\n');
 
   const logger = createLogger('info');
   const sessionStore = new InMemorySessionStore(logger);
@@ -142,8 +142,8 @@ async function errorHandlingExample(): Promise<void> {
   const adapter = new GrpcAdapter(grpcServer);
 
   // Example 1: Invalid authentication
-  console.log('1. Testing invalid authentication:');
-  const authErrorResponse = await adapter.executeRequest({
+  // console.log('1. Testing invalid authentication:');
+  await adapter.executeRequest({
     operation: {
       service: 'SessionService',
       method: 'GetSession',
@@ -155,12 +155,12 @@ async function errorHandlingExample(): Promise<void> {
     },
   });
 
-  console.log('Error response:', JSON.stringify(authErrorResponse, null, 2));
-  console.log();
+  // console.log('Error response would be logged here');
+  // console.log();
 
   // Example 2: Service not found
-  console.log('2. Testing invalid service:');
-  const serviceErrorResponse = await adapter.executeRequest({
+  // console.log('2. Testing invalid service:');
+  await adapter.executeRequest({
     operation: {
       service: 'NonExistentService',
       method: 'SomeMethod',
@@ -168,12 +168,12 @@ async function errorHandlingExample(): Promise<void> {
     },
   });
 
-  console.log('Error response:', JSON.stringify(serviceErrorResponse, null, 2));
-  console.log();
+  // console.log('Error response would be logged here');
+  // console.log();
 
   // Example 3: Method not found
-  console.log('3. Testing invalid method:');
-  const methodErrorResponse = await adapter.executeRequest({
+  // console.log('3. Testing invalid method:');
+  await adapter.executeRequest({
     operation: {
       service: 'SessionService',
       method: 'NonExistentMethod',
@@ -181,14 +181,14 @@ async function errorHandlingExample(): Promise<void> {
     },
   });
 
-  console.log('Error response:', JSON.stringify(methodErrorResponse, null, 2));
+  // console.log('Error response would be logged here');
 }
 
 /**
  * Example: Different authentication methods
  */
 async function authenticationExample(): Promise<void> {
-  console.log('\n=== Authentication Methods Example ===\n');
+  // console.log('\n=== Authentication Methods Example ===\n');
 
   const logger = createLogger('info');
   const sessionStore = new InMemorySessionStore(logger);
@@ -196,8 +196,8 @@ async function authenticationExample(): Promise<void> {
   const adapter = new GrpcAdapter(grpcServer);
 
   // Example 1: JWT authentication
-  console.log('1. Using JWT authentication:');
-  const jwtResponse = await adapter.executeRequest({
+  // console.log('1. Using JWT authentication:');
+  await adapter.executeRequest({
     operation: {
       service: 'HealthService',
       method: 'Check',
@@ -208,12 +208,12 @@ async function authenticationExample(): Promise<void> {
       credentials: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
     },
   });
-  console.log('Response:', JSON.stringify(jwtResponse, null, 2));
-  console.log();
+  // console.log('Response would be logged here');
+  // console.log();
 
   // Example 2: API key authentication
-  console.log('2. Using API key authentication:');
-  const apiKeyResponse = await adapter.executeRequest({
+  // console.log('2. Using API key authentication:');
+  await adapter.executeRequest({
     operation: {
       service: 'HealthService',
       method: 'Check',
@@ -224,12 +224,12 @@ async function authenticationExample(): Promise<void> {
       credentials: 'sk-test-1234567890abcdef',
     },
   });
-  console.log('Response:', JSON.stringify(apiKeyResponse, null, 2));
-  console.log();
+  // console.log('Response would be logged here');
+  // console.log();
 
   // Example 3: Session authentication
-  console.log('3. Using session authentication:');
-  const sessionResponse = await adapter.executeRequest({
+  // console.log('3. Using session authentication:');
+  await adapter.executeRequest({
     operation: {
       service: 'HealthService',
       method: 'Check',
@@ -240,14 +240,14 @@ async function authenticationExample(): Promise<void> {
       credentials: 'session-123-456-789',
     },
   });
-  console.log('Response:', JSON.stringify(sessionResponse, null, 2));
+  // console.log('Response would be logged here');
 }
 
 /**
  * Example: Context management via gRPC
  */
 async function contextManagementExample(): Promise<void> {
-  console.log('\n=== Context Management Example ===\n');
+  // console.log('\n=== Context Management Example ===\n');
 
   const logger = createLogger('info');
   const sessionStore = new InMemorySessionStore(logger);
@@ -263,10 +263,10 @@ async function contextManagementExample(): Promise<void> {
     },
   });
   
-  const sessionId = JSON.parse(sessionResponse.content[0]?.text || '{}').id;
+  const sessionId = JSON.parse(sessionResponse.content[0]?.text ?? '{}').id;
 
   // Example 1: Create a context
-  console.log('1. Creating a context:');
+  // console.log('1. Creating a context:');
   const createContextResponse = await adapter.executeRequest({
     operation: {
       service: 'ContextService',
@@ -285,13 +285,13 @@ async function contextManagementExample(): Promise<void> {
       credentials: sessionId,
     },
   });
-  console.log('Response:', JSON.stringify(createContextResponse, null, 2));
-  console.log();
+  // console.log('Response:', JSON.stringify(createContextResponse, null, 2));
+  // console.log();
 
-  const contextId = JSON.parse(createContextResponse.content[0]?.text || '{}').id;
+  const contextId = JSON.parse(createContextResponse.content[0]?.text ?? '{}').id;
 
   // Example 2: Execute a command in the context
-  console.log('2. Executing a command:');
+  // console.log('2. Executing a command:');
   const commandResponse = await adapter.executeRequest({
     operation: {
       service: 'ContextService',
@@ -309,11 +309,11 @@ async function contextManagementExample(): Promise<void> {
       credentials: sessionId,
     },
   });
-  console.log('Response:', JSON.stringify(commandResponse, null, 2));
-  console.log();
+  // console.log('Response:', JSON.stringify(commandResponse, null, 2));
+  // console.log();
 
   // Example 3: List contexts
-  console.log('3. Listing contexts:');
+  // console.log('3. Listing contexts:');
   const listResponse = await adapter.executeRequest({
     operation: {
       service: 'ContextService',
@@ -328,7 +328,7 @@ async function contextManagementExample(): Promise<void> {
       credentials: sessionId,
     },
   });
-  console.log('Response:', JSON.stringify(listResponse, null, 2));
+  // console.log('Response:', JSON.stringify(listResponse, null, 2));
 }
 
 /**

@@ -170,7 +170,7 @@ describe('BrowserPool', () => {
 
     it('should handle concurrent acquisitions', async () => {
       let launchCount = 0;
-      (puppeteer.launch as jest.Mock).mockImplementation(async () => {
+      (puppeteer.launch as jest.Mock).mockImplementation(() => {
         launchCount++;
         return {
           ...mockBrowser,
@@ -210,7 +210,7 @@ describe('BrowserPool', () => {
       const acquirePromise = pool.acquireBrowser('session-4');
       
       // Give some time to ensure it's queued
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise<void>(resolve => setTimeout(resolve, 100));
       
       // Release one browser
       await pool.releaseBrowser(instances[0].id, 'session-1');
@@ -267,7 +267,7 @@ describe('BrowserPool', () => {
     });
 
     it('should close pages', async () => {
-      const page = await pool.createPage(instance.id, 'session-123');
+      await pool.createPage(instance.id, 'session-123');
       
       // Get the page ID from the internal structure
       const state = (pool as any).browsers.get(instance.id);
@@ -291,7 +291,7 @@ describe('BrowserPool', () => {
       await pool.releaseBrowser(instance.id, 'session-123');
 
       // Wait for idle timeout
-      await new Promise(resolve => setTimeout(resolve, 150));
+      await new Promise<void>(resolve => setTimeout(resolve, 150));
       
       const cleaned = await pool.cleanupIdle();
       
@@ -305,7 +305,7 @@ describe('BrowserPool', () => {
     it('should not clean up active browsers', async () => {
       await pool.acquireBrowser('session-123'); // Keep active
 
-      await new Promise(resolve => setTimeout(resolve, 150));
+      await new Promise<void>(resolve => setTimeout(resolve, 150));
       
       const cleaned = await pool.cleanupIdle();
       
@@ -409,7 +409,7 @@ describe('BrowserPool', () => {
     });
 
     it('should shutdown gracefully', async () => {
-      const instance1 = await pool.acquireBrowser('session-1');
+      await pool.acquireBrowser('session-1');
       const instance2 = await pool.acquireBrowser('session-2');
       await pool.releaseBrowser(instance2.id, 'session-2');
 
@@ -447,7 +447,7 @@ describe('BrowserPool', () => {
       const instance = await pool.acquireBrowser('session-123');
       
       // Add a small delay to ensure measurable lifetime
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise<void>(resolve => setTimeout(resolve, 10));
       
       await pool.releaseBrowser(instance.id, 'session-123');
       

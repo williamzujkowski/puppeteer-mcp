@@ -340,7 +340,16 @@ export class WebSocketAdapter implements ProtocolAdapter {
 
     // Set up message handler
     ws.on('message', (data) => {
-      const message = typeof data === 'string' ? data : data.toString();
+      // Handle different WebSocket data types
+      let message: string;
+      if (typeof data === 'string') {
+        message = data;
+      } else if (data instanceof Buffer) {
+        message = data.toString('utf8');
+      } else {
+        // For ArrayBuffer or other types, convert to string
+        message = String(data);
+      }
       this.handleIncomingMessage(connection, message);
     });
 

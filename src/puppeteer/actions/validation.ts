@@ -9,6 +9,7 @@
 import { z } from 'zod';
 import type { ValidationResult } from '../interfaces/action-executor.interface.js';
 import type { BrowserAction } from '../interfaces/action-executor.interface.js';
+import { validateEvaluateAction, checkTimeoutWarnings } from './validation-helpers.js';
 
 /**
  * Security keywords to check for in JavaScript code
@@ -300,26 +301,10 @@ export function validateAction(action: BrowserAction): ValidationResult {
     schema.parse(action);
 
     // Additional security validations
-    if (action.type === 'evaluate' && action.function) {
-      try {
-        validateJavaScriptCode(action.function);
-      } catch (error) {
-        errors.push({
-          field: 'function',
-          message: error instanceof Error ? error.message : 'Invalid JavaScript code',
-          code: 'UNSAFE_CODE',
-        });
-      }
-    }
+    validateEvaluateAction(action, errors, validateJavaScriptCode);
 
-    // Check for suspicious timeout values
-    if (action.timeout && action.timeout > 300000) { // 5 minutes
-      warnings.push({
-        field: 'timeout',
-        message: 'Timeout value is very high, consider reducing it',
-        code: 'HIGH_TIMEOUT',
-      });
-    }
+    // Check for warnings
+    checkTimeoutWarnings(action, warnings);
 
     return {
       valid: errors.length === 0,

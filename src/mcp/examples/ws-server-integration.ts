@@ -91,7 +91,8 @@ export function createIntegratedWebSocketServer(port: number = 8080): {
 
     // Handle messages through the message handler
     ws.on('message', (data) => {
-      messageHandler.handleMessage(ws, connectionId, data.toString());
+      const message = typeof data === 'string' ? data : data.toString();
+      messageHandler.handleMessage(ws, connectionId, message);
     });
 
     // Handle disconnection

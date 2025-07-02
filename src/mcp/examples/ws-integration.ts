@@ -51,7 +51,7 @@ async function subscribeToSessionUpdates(): Promise<void> {
       sessionId: 'user123-session',
     });
 
-    console.log('Subscription created:', response);
+    // console.log('Subscription created:', response);
 
     // Get subscription ID from metadata
     const subscriptionId = response.metadata?.subscriptionId as string;
@@ -60,21 +60,22 @@ async function subscribeToSessionUpdates(): Promise<void> {
     if (subscriptionId) {
       const stream = wsAdapter.createStreamingResponse(subscriptionId);
       
-      console.log('Listening for updates...');
+      // console.log('Listening for updates...');
       
       for await (const update of stream) {
-        console.log('Received update:', update);
+        // console.log('Received update:', update);
         
         // Process the update
-        const data = JSON.parse(update.content[0]?.text as string);
-        console.log('Session data:', data);
+        JSON.parse(update.content[0]?.text as string);
+        // const data = JSON.parse(update.content[0]?.text as string);
+        // console.log('Session data:', data);
         
         // Break after 10 updates for this example
         if (Math.random() > 0.9) {break;}
       }
     }
   } catch (error) {
-    console.error('Subscription error:', error);
+    // console.error('Subscription error:', error);
   }
 }
 
@@ -83,7 +84,7 @@ async function subscribeToSessionUpdates(): Promise<void> {
  */
 async function sendWebSocketMessage(): Promise<void> {
   try {
-    const response = await wsAdapter.executeRequest({
+    await wsAdapter.executeRequest({
       operation: {
         type: 'send',
         topic: '/api/context/execute',
@@ -106,9 +107,9 @@ async function sendWebSocketMessage(): Promise<void> {
       sessionId: 'user123-session',
     });
 
-    console.log('Message sent, response:', response);
+    // console.log('Message sent');
   } catch (error) {
-    console.error('Send error:', error);
+    // console.error('Send error:', error);
   }
 }
 
@@ -136,9 +137,9 @@ async function broadcastSystemEvent(): Promise<void> {
       sessionId: 'admin-session',
     });
 
-    console.log('Broadcast sent:', response);
+    // console.log('Broadcast sent:', response);
   } catch (error) {
-    console.error('Broadcast error:', error);
+    // console.error('Broadcast error:', error);
   }
 }
 
@@ -172,7 +173,7 @@ async function manageMultipleSubscriptions(): Promise<void> {
       const subscriptionId = response.metadata?.subscriptionId as string;
       subscriptions.push({ id: subscriptionId, topic });
       
-      console.log(`Subscribed to ${topic} with ID ${subscriptionId}`);
+      // console.log(`Subscribed to ${topic} with ID ${subscriptionId}`);
     }
 
     // Wait for some time
@@ -188,10 +189,10 @@ async function manageMultipleSubscriptions(): Promise<void> {
         sessionId: 'multi-sub-session',
       });
       
-      console.log(`Unsubscribed from ${topic}`);
+      // console.log(`Unsubscribed from ${topic}`);
     }
   } catch (error) {
-    console.error('Subscription management error:', error);
+    // console.error('Subscription management error:', error);
   }
 }
 
@@ -200,12 +201,12 @@ async function manageMultipleSubscriptions(): Promise<void> {
  */
 async function checkCapabilities(): Promise<void> {
   const capabilities = await wsAdapter.getCapabilities();
-  console.log('WebSocket Adapter Capabilities:');
-  console.log(JSON.stringify(capabilities, null, 2));
+  // console.log('WebSocket Adapter Capabilities:');
+  // console.log(JSON.stringify(capabilities, null, 2));
 
   const endpoints = await wsAdapter.listEndpoints();
-  console.log('\nAvailable Endpoints:');
-  console.log(endpoints.content[0]?.text);
+  // console.log('\nAvailable Endpoints:');
+  // console.log(endpoints.content[0]?.text);
 }
 
 /**
@@ -230,11 +231,11 @@ async function handleConnectionErrors(): Promise<void> {
       });
     } catch (error) {
       if (error instanceof Error) {
-        console.error(`Connection attempt ${retryCount + 1} failed:`, error.message);
+        // console.error(`Connection attempt ${retryCount + 1} failed:`, error.message);
         
         if (error.message.includes('CONNECTION_CLOSED') && retryCount < maxRetries) {
           retryCount++;
-          console.log(`Retrying in ${retryCount * 2} seconds...`);
+          // console.log(`Retrying in ${retryCount * 2} seconds...`);
           await new Promise(resolve => setTimeout(resolve, retryCount * 2000));
           return attemptConnection();
         }
@@ -246,48 +247,48 @@ async function handleConnectionErrors(): Promise<void> {
   try {
     const response = await attemptConnection();
     if (response) {
-      console.log('Successfully connected after', retryCount, 'retries');
+      // console.log('Successfully connected after', retryCount, 'retries');
     }
   } catch (error) {
-    console.error('Failed to establish connection after', maxRetries, 'attempts');
+    // console.error('Failed to establish connection after', maxRetries, 'attempts');
   }
 }
 
 // Run examples
 async function runExamples(): Promise<void> {
-  console.log('=== WebSocket Adapter Examples ===\n');
+  // console.log('=== WebSocket Adapter Examples ===\n');
 
   // Check capabilities first
   await checkCapabilities();
-  console.log('\n---\n');
+  // console.log('\n---\n');
 
   // Note: These examples assume a running WebSocket server
   // In a real implementation, you would need to integrate with your actual WebSocket infrastructure
 
-  console.log('Note: The following examples require a running WebSocket server.');
-  console.log('They will fail with "NOT_IMPLEMENTED" error in this standalone example.\n');
+  // console.log('Note: The following examples require a running WebSocket server.');
+  // console.log('They will fail with "NOT_IMPLEMENTED" error in this standalone example.\n');
 
   // Try to run examples (will fail without actual WebSocket server)
   try {
     await sendWebSocketMessage();
   } catch (error) {
-    console.log('Expected error (no WebSocket server):', (error as Error).message);
+    // console.log('Expected error (no WebSocket server):', (error as Error).message);
   }
 
-  console.log('\n---\n');
+  // console.log('\n---\n');
 
-  console.log('Example code demonstrates:');
-  console.log('1. Subscribing to real-time updates');
-  console.log('2. Sending messages through WebSocket');
-  console.log('3. Broadcasting events to subscribers');
-  console.log('4. Managing multiple subscriptions');
-  console.log('5. Error handling and reconnection logic');
-  console.log('6. Streaming response handling');
+  // console.log('Example code demonstrates:');
+  // console.log('1. Subscribing to real-time updates');
+  // console.log('2. Sending messages through WebSocket');
+  // console.log('3. Broadcasting events to subscribers');
+  // console.log('4. Managing multiple subscriptions');
+  // console.log('5. Error handling and reconnection logic');
+  // console.log('6. Streaming response handling');
 }
 
 // Run the examples
 if (import.meta.url === `file://${process.argv[1]}`) {
-  runExamples().catch(console.error);
+  runExamples().catch(() => {/* error already handled */});
 }
 
 export {

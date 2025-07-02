@@ -58,7 +58,7 @@ export async function handleWait(
         result = await handleWaitForFunction(action, page);
         break;
       default:
-        throw new Error(`Unsupported wait type: ${action.waitType}`);
+        throw new Error(`Unsupported wait type: ${String(action.waitType)}`);
     }
 
     const duration = Date.now() - startTime;

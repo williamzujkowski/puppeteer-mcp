@@ -5,7 +5,6 @@
 
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
 import { MCPServer } from './server.js';
-import { InMemorySessionStore } from '../store/in-memory-session-store.js';
 import { logger } from '../utils/logger.js';
 
 // Mock the logger

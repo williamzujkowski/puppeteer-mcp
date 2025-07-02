@@ -26,7 +26,7 @@ async function setupMCPWithExpress() {
 /**
  * Example: Using MCP to execute REST API calls
  */
-async function exampleMCPRestCalls() {
+function exampleMCPRestCalls() {
   // These examples show the MCP tool call format
   
   // Example 1: Health check (no auth required)
@@ -129,7 +129,7 @@ async function exampleMCPRestCalls() {
 /**
  * Example: Error handling scenarios
  */
-async function exampleErrorScenarios() {
+function exampleErrorScenarios() {
   // Example 1: Invalid authentication
   const invalidAuth = {
     name: 'execute-api',
@@ -196,7 +196,7 @@ async function exampleErrorScenarios() {
 /**
  * Example: Using the API catalog resource
  */
-async function exampleApiCatalog() {
+function exampleApiCatalog() {
   // MCP resource request to get API catalog
   const catalogRequest = {
     method: 'resources/read',

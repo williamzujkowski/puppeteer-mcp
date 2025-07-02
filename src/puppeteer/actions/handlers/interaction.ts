@@ -15,6 +15,7 @@ import type {
 } from '../../interfaces/action-executor.interface.js';
 import { sanitizeSelector } from '../validation.js';
 import { createLogger } from '../../../utils/logger.js';
+import { prepareElementForInteraction } from './interaction-helpers.js';
 
 const logger = createLogger('puppeteer:interaction');
 
@@ -44,26 +45,8 @@ export async function handleClick(
       clickCount: action.clickCount,
     });
 
-    // Sanitize selector for security
-    const sanitizedSelector = sanitizeSelector(action.selector);
-
-    // Wait for element to be available
-    await page.waitForSelector(sanitizedSelector, {
-      timeout: action.timeout || 30000,
-      visible: true,
-    });
-
-    // Get element
-    const element = await page.$(sanitizedSelector);
-    if (!element) {
-      throw new Error(`Element not found: ${sanitizedSelector}`);
-    }
-
-    // Ensure element is clickable
-    const isVisible = await element.isIntersectingViewport();
-    if (!isVisible) {
-      await element.scrollIntoView();
-    }
+    // Prepare element for interaction
+    const element = await prepareElementForInteraction(page, action.selector, action.timeout);
 
     // Perform click action
     await element.click({
