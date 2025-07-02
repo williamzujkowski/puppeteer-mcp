@@ -115,13 +115,13 @@ export async function performPoolMaintenance(
   launchNewBrowser: () => Promise<{ browser: Browser; instance: InternalBrowserInstance }>
 ): Promise<void> {
   await performMaintenanceWrapper(
-    () => maintenance.performMaintenance(
+    () => maintenance.performMaintenance({
       browsers,
       options,
       removeBrowser,
       handleUnhealthyBrowser,
       launchNewBrowser
-    )
+    })
   );
 }
 

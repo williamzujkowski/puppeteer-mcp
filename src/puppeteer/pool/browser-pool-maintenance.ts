@@ -22,6 +22,17 @@ import { BrowserHealthMonitor } from './browser-health.js';
 const logger = createLogger('browser-pool-maintenance');
 
 /**
+ * Maintenance operations interface
+ */
+export interface MaintenanceOperations {
+  browsers: Map<string, InternalBrowserInstance>;
+  options: BrowserPoolOptions;
+  removeBrowser: (browserId: string) => Promise<void>;
+  handleUnhealthyBrowser: (browserId: string) => Promise<void>;
+  launchNewBrowser: () => Promise<{ browser: Browser; instance: InternalBrowserInstance }>;
+}
+
+/**
  * Internal browser instance with additional state tracking
  */
 export interface InternalBrowserInstance extends BrowserInstance {
@@ -63,40 +74,58 @@ export class BrowserPoolMaintenance {
   /**
    * Perform pool maintenance
    */
-  async performMaintenance(
-    browsers: Map<string, InternalBrowserInstance>,
-    options: BrowserPoolOptions,
-    removeBrowser: (browserId: string) => Promise<void>,
-    handleUnhealthyBrowser: (browserId: string) => Promise<void>,
-    launchNewBrowser: () => Promise<{ browser: Browser; instance: InternalBrowserInstance }>
-  ): Promise<void> {
+  async performMaintenance(operations: MaintenanceOperations): Promise<void> {
     if (this.isShuttingDown) {
       return;
     }
 
     logger.debug('Performing pool maintenance');
 
-    // Remove idle browsers if above minimum
-    if (browsers.size > 1) {
-      for (const instance of browsers.values()) {
-        if (isIdleTooLong(instance, options.idleTimeout)) {
-          await removeBrowser(instance.id);
-          
-          if (browsers.size <= 1) {
-            break;
-          }
+    await this.removeIdleBrowsers(operations);
+    await this.restartUnhealthyBrowsers(operations);
+    await this.ensureMinimumBrowsers(operations);
+  }
+
+  /**
+   * Remove idle browsers if above minimum
+   */
+  private async removeIdleBrowsers(operations: MaintenanceOperations): Promise<void> {
+    const { browsers, options, removeBrowser } = operations;
+    
+    if (browsers.size <= 1) {
+      return;
+    }
+
+    for (const instance of browsers.values()) {
+      if (isIdleTooLong(instance, options.idleTimeout)) {
+        await removeBrowser(instance.id);
+        
+        if (browsers.size <= 1) {
+          break;
         }
       }
     }
+  }
 
-    // Restart browsers that need it
+  /**
+   * Restart browsers that need it
+   */
+  private async restartUnhealthyBrowsers(operations: MaintenanceOperations): Promise<void> {
+    const { browsers, handleUnhealthyBrowser } = operations;
+    
     for (const instance of browsers.values()) {
       if (needsRestart(instance)) {
         await handleUnhealthyBrowser(instance.id);
       }
     }
+  }
 
-    // Ensure minimum browsers
+  /**
+   * Ensure minimum browsers
+   */
+  private async ensureMinimumBrowsers(operations: MaintenanceOperations): Promise<void> {
+    const { browsers, launchNewBrowser } = operations;
+    
     while (browsers.size < 1 && !this.isShuttingDown) {
       try {
         await launchNewBrowser();

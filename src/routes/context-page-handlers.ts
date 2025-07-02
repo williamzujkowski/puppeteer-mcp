@@ -10,6 +10,7 @@ import { AppError } from '../core/errors/app-error.js';
 import { getPageManager } from '../puppeteer/pages/page-manager.js';
 import { ContextStorage } from './context-storage.js';
 import type { BrowserPool } from '../puppeteer/interfaces/browser-pool.interface.js';
+import { validatePageRequest, buildPageOptions, getUserSessionId } from './context-page-helpers.js';
 
 /**
  * Context page handlers
@@ -72,39 +73,29 @@ export class ContextPageHandlers {
    */
   createPage = (req: Request, res: Response, next: NextFunction): void => void (async () => {
     try {
-      if (!req.user) {
-        throw new AppError('Not authenticated', 401);
-      }
+      // Validate request
+      validatePageRequest(req);
 
       if (!this.browserPool) {
         throw new AppError('Browser pool not available', 503);
       }
 
       const { contextId } = req.params;
-      if (contextId === null || contextId === '') {
-        throw new AppError('Context ID is required', 400);
-      }
 
       // Verify context exists and user has access
-      const context = await this.storage.getContext(contextId as string, req.user.userId, req.user.roles);
+      const context = await this.storage.getContext(contextId as string, req.user!.userId, req.user!.roles);
 
       // Acquire browser for this session
-      const browser = await this.browserPool.acquireBrowser(req.user.sessionId || req.user.userId);
+      const sessionId = getUserSessionId(req.user!);
+      const browser = await this.browserPool.acquireBrowser(sessionId);
 
       // Create page with context configuration and optional overrides
-      const pageOptions = {
-        viewport: req.body.viewport || context.config.viewport,
-        userAgent: req.body.userAgent || context.config.userAgent,
-        extraHeaders: req.body.extraHeaders || context.config.extraHTTPHeaders,
-        javaScriptEnabled: req.body.javaScriptEnabled ?? context.config.javaScriptEnabled,
-        bypassCSP: req.body.bypassCSP ?? context.config.bypassCSP,
-        ignoreHTTPSErrors: req.body.ignoreHTTPSErrors ?? context.config.ignoreHTTPSErrors,
-      };
+      const pageOptions = buildPageOptions(req.body, context.config);
 
       const pageManager = getPageManager(this.browserPool);
       const pageInfo = await pageManager.createPage(
         contextId as string,
-        req.user.sessionId || req.user.userId,
+        sessionId,
         browser.id,
         pageOptions
       );

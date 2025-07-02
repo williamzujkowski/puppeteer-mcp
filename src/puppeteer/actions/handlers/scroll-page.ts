@@ -10,6 +10,7 @@ import type {
   ScrollAction,
   ActionContext 
 } from '../../interfaces/action-executor.interface.js';
+import { calculateScrollValues, calculateTargetPosition, validateScrollParams } from './scroll-helpers.js';
 import { createLogger } from '../../../utils/logger.js';
 
 const logger = createLogger('puppeteer:scroll-page');
@@ -26,40 +27,20 @@ export async function handleScrollPage(
   page: Page,
   context: ActionContext
 ): Promise<{ scrolledDistance: number; direction: string; pagePosition: { x: number; y: number } }> {
-  const direction = action.direction || 'down';
-  const distance = action.distance || 100;
+  const direction = action.direction ?? 'down';
+  const distance = action.distance ?? 100;
 
   // Validate distance
-  if (distance < 1 || distance > 10000) {
-    throw new Error('Scroll distance must be between 1 and 10000 pixels');
-  }
+  validateScrollParams(distance);
 
   // Get current scroll position
   const beforePosition = await page.evaluate(() => ({
-    x: (globalThis as any).pageXOffset || 0,
-    y: (globalThis as any).pageYOffset || 0,
+    x: (globalThis as any).pageXOffset ?? 0,
+    y: (globalThis as any).pageYOffset ?? 0,
   }));
 
   // Calculate scroll amounts
-  let scrollX = 0;
-  let scrollY = 0;
-
-  switch (direction) {
-    case 'up':
-      scrollY = -distance;
-      break;
-    case 'down':
-      scrollY = distance;
-      break;
-    case 'left':
-      scrollX = -distance;
-      break;
-    case 'right':
-      scrollX = distance;
-      break;
-    default:
-      throw new Error(`Invalid scroll direction: ${direction}`);
-  }
+  const { scrollX, scrollY } = calculateScrollValues(direction, distance);
 
   // Perform scroll
   await page.evaluate((x: number, y: number) => {
@@ -68,8 +49,8 @@ export async function handleScrollPage(
 
   // Get new scroll position
   const afterPosition = await page.evaluate(() => ({
-    x: (globalThis as any).pageXOffset || 0,
-    y: (globalThis as any).pageYOffset || 0,
+    x: (globalThis as any).pageXOffset ?? 0,
+    y: (globalThis as any).pageYOffset ?? 0,
   }));
 
   // Calculate actual scrolled distance
@@ -114,8 +95,8 @@ export async function handleScrollToCoordinates(
 
   // Get current position
   const beforePosition = await page.evaluate(() => ({
-    x: (globalThis as any).pageXOffset || 0,
-    y: (globalThis as any).pageYOffset || 0,
+    x: (globalThis as any).pageXOffset ?? 0,
+    y: (globalThis as any).pageYOffset ?? 0,
   }));
 
   // Scroll to position
@@ -125,8 +106,8 @@ export async function handleScrollToCoordinates(
 
   // Get new position
   const afterPosition = await page.evaluate(() => ({
-    x: (globalThis as any).pageXOffset || 0,
-    y: (globalThis as any).pageYOffset || 0,
+    x: (globalThis as any).pageXOffset ?? 0,
+    y: (globalThis as any).pageYOffset ?? 0,
   }));
 
   // Calculate distance scrolled
@@ -161,50 +142,34 @@ export async function handleSmoothScroll(
   context: ActionContext,
   duration: number = 500
 ): Promise<{ scrolledDistance: number; duration: number }> {
-  const direction = action.direction || 'down';
-  const distance = action.distance || 100;
+  const direction = action.direction ?? 'down';
+  const distance = action.distance ?? 100;
 
   // Validate parameters
-  if (distance < 1 || distance > 10000) {
-    throw new Error('Scroll distance must be between 1 and 10000 pixels');
-  }
-  if (duration < 100 || duration > 5000) {
-    throw new Error('Duration must be between 100 and 5000 milliseconds');
-  }
+  validateScrollParams(distance, duration);
 
   const startTime = Date.now();
 
   // Get current position
   const startPosition = await page.evaluate(() => ({
-    x: (globalThis as any).pageXOffset || 0,
-    y: (globalThis as any).pageYOffset || 0,
+    x: (globalThis as any).pageXOffset ?? 0,
+    y: (globalThis as any).pageYOffset ?? 0,
   }));
 
   // Calculate target position
-  let targetX = startPosition.x;
-  let targetY = startPosition.y;
-
-  switch (direction) {
-    case 'up':
-      targetY = Math.max(0, startPosition.y - distance);
-      break;
-    case 'down':
-      targetY = startPosition.y + distance;
-      break;
-    case 'left':
-      targetX = Math.max(0, startPosition.x - distance);
-      break;
-    case 'right':
-      targetX = startPosition.x + distance;
-      break;
-  }
+  const { targetX, targetY } = calculateTargetPosition(
+    startPosition.x,
+    startPosition.y,
+    direction,
+    distance
+  );
 
   // Perform smooth scroll
   await page.evaluate(
     (tX: number, tY: number, dur: number) => {
       return new Promise<void>((resolve) => {
-        const startX = (globalThis as any).pageXOffset || 0;
-        const startY = (globalThis as any).pageYOffset || 0;
+        const startX = (globalThis as any).pageXOffset ?? 0;
+        const startY = (globalThis as any).pageYOffset ?? 0;
         const distanceX = tX - startX;
         const distanceY = tY - startY;
         const startTime = performance.now();
@@ -240,8 +205,8 @@ export async function handleSmoothScroll(
 
   // Get final position
   const endPosition = await page.evaluate(() => ({
-    x: (globalThis as any).pageXOffset || 0,
-    y: (globalThis as any).pageYOffset || 0,
+    x: (globalThis as any).pageXOffset ?? 0,
+    y: (globalThis as any).pageYOffset ?? 0,
   }));
 
   const actualDistance = Math.abs(endPosition.x - startPosition.x) + 

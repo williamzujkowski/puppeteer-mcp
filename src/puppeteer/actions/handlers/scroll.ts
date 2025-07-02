@@ -12,8 +12,7 @@ import type {
   ActionContext 
 } from '../../interfaces/action-executor.interface.js';
 import { createLogger } from '../../../utils/logger.js';
-import { handleScrollToElement, handleScrollWithinElement } from './scroll-element.js';
-import { handleScrollPage, handleScrollToCoordinates, handleSmoothScroll } from './scroll-page.js';
+import { dispatchScrollAction } from './scroll-dispatch.js';
 
 const logger = createLogger('puppeteer:scroll');
 
@@ -44,30 +43,7 @@ export async function handleScroll(
       toElement: action.toElement,
     });
 
-    let result: unknown;
-
-    if (action.toElement && action.selector) {
-      // Scroll to element
-      result = await handleScrollToElement(action.selector, page, context);
-    } else if (action.selector) {
-      // Scroll within element
-      result = await handleScrollWithinElement({
-        selector: action.selector,
-        direction: action.direction || 'down',
-        distance: action.distance || 100,
-        page,
-        context
-      });
-    } else if (action.x !== undefined && action.y !== undefined) {
-      // Scroll to coordinates
-      result = await handleScrollToCoordinates(action.x, action.y, page, context);
-    } else if (action.smooth) {
-      // Smooth scroll
-      result = await handleSmoothScroll(action, page, context, action.duration);
-    } else {
-      // Normal page scroll
-      result = await handleScrollPage(action, page, context);
-    }
+    const result = await dispatchScrollAction(action, page, context);
 
     const duration = Date.now() - startTime;
 
