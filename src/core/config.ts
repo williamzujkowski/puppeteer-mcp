@@ -123,6 +123,19 @@ const configSchema = z.object({
    */
   HSTS_MAX_AGE: z.number().int().positive().default(31536000), // 1 year
   CSP_DIRECTIVES: z.string().default("default-src 'self'"),
+
+  // Puppeteer Configuration
+  /**
+   * @nist ac-4 "Information flow enforcement"
+   * @nist sc-5 "Denial of service protection"
+   */
+  PUPPETEER_EXECUTABLE_PATH: z.string().optional(),
+  PUPPETEER_HEADLESS: z.boolean().default(true),
+  PUPPETEER_ARGS: z.string().optional(), // Comma-separated list of args
+  BROWSER_POOL_MAX_SIZE: z.number().int().positive().default(5),
+  BROWSER_IDLE_TIMEOUT: z.number().int().positive().default(300000), // 5 minutes
+  PUPPETEER_DOWNLOAD_PATH: z.string().optional(),
+  PUPPETEER_CACHE_ENABLED: z.boolean().default(true),
 });
 
 // Helper functions to parse environment variables
@@ -248,6 +261,17 @@ const parseSecurityHeadersConfig = (): Partial<z.infer<typeof configSchema>> => 
   CSP_DIRECTIVES: process.env.CSP_DIRECTIVES,
 });
 
+// Parse Puppeteer configuration
+const parsePuppeteerConfig = (): Partial<z.infer<typeof configSchema>> => ({
+  PUPPETEER_EXECUTABLE_PATH: process.env.PUPPETEER_EXECUTABLE_PATH,
+  PUPPETEER_HEADLESS: parseBoolEnv(process.env.PUPPETEER_HEADLESS, true),
+  PUPPETEER_ARGS: process.env.PUPPETEER_ARGS,
+  BROWSER_POOL_MAX_SIZE: parseIntEnv(process.env.BROWSER_POOL_MAX_SIZE),
+  BROWSER_IDLE_TIMEOUT: parseIntEnv(process.env.BROWSER_IDLE_TIMEOUT),
+  PUPPETEER_DOWNLOAD_PATH: process.env.PUPPETEER_DOWNLOAD_PATH,
+  PUPPETEER_CACHE_ENABLED: parseBoolEnv(process.env.PUPPETEER_CACHE_ENABLED, true),
+});
+
 // Parse and validate configuration
 const parseConfig = (): z.infer<typeof configSchema> => {
   try {
@@ -264,6 +288,7 @@ const parseConfig = (): z.infer<typeof configSchema> => {
       ...parseGRPCConfig(),
       ...parseWebSocketConfig(),
       ...parseSecurityHeadersConfig(),
+      ...parsePuppeteerConfig(),
     });
   } catch (error) {
     // Use process.stderr.write for critical configuration errors before logger is initialized

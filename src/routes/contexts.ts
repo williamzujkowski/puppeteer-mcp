@@ -9,15 +9,16 @@ import { Router } from 'express';
 import { SessionStore } from '../store/session-store.interface.js';
 import { createAuthMiddleware } from '../auth/middleware.js';
 import { ContextHandlers } from './context-handlers.js';
+import type { BrowserPool } from '../puppeteer/interfaces/browser-pool.interface.js';
 
 /**
  * Create context routes
  * @nist ac-3 "Access enforcement"
  */
-export const createContextRoutes = (sessionStore: SessionStore): Router => {
+export const createContextRoutes = (sessionStore: SessionStore, browserPool?: BrowserPool): Router => {
   const router = Router();
   const authMiddleware = createAuthMiddleware(sessionStore);
-  const handlers = new ContextHandlers();
+  const handlers = new ContextHandlers(browserPool);
 
   /**
    * Create a new browser context
@@ -71,6 +72,22 @@ export const createContextRoutes = (sessionStore: SessionStore): Router => {
    * @nist au-2 "Audit events"
    */
   router.get('/:contextId/metrics', authMiddleware, handlers.getMetrics);
+
+  /**
+   * List pages for a context
+   * GET /v1/contexts/:contextId/pages
+   * @nist au-2 "Audit events"
+   * @nist ac-3 "Access enforcement"
+   */
+  router.get('/:contextId/pages', authMiddleware, handlers.listPages);
+
+  /**
+   * Create a new page in a context
+   * POST /v1/contexts/:contextId/pages
+   * @nist au-2 "Audit events"
+   * @nist ac-3 "Access enforcement"
+   */
+  router.post('/:contextId/pages', authMiddleware, handlers.createPage);
 
   return router;
 };

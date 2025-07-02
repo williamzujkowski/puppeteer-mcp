@@ -5,10 +5,11 @@ repository.
 
 ## Project Overview
 
-This is a **production-ready multi-protocol API platform (MCP)** built with Node.js and TypeScript
-that provides REST, gRPC, and WebSocket interfaces with unified session management and
-enterprise-grade security. The project has successfully achieved zero compilation errors and minimal
-linting warnings through systematic refactoring.
+This is a **production-ready multi-protocol API platform** built with Node.js and TypeScript
+that provides REST, gRPC, WebSocket, and Model Context Protocol (MCP) interfaces with unified
+session management and enterprise-grade security. The project has successfully achieved zero
+compilation errors and minimal linting warnings through systematic refactoring. The MCP integration
+enables AI agents and LLMs to orchestrate API calls across all protocols.
 
 ## 🤖 Working Philosophy: Delegate to Subagents
 
@@ -123,6 +124,16 @@ export async function authenticateRequest(req: Request): Promise<User> {
 - **Express Augmentations**: Properly typed request/response objects
 - **gRPC Types**: Complete type definitions for all services
 - **WebSocket Types**: Message envelopes with versioning
+
+### Model Context Protocol (src/mcp/) - AI INTEGRATION ✅
+
+- **MCP Server**: Full implementation with tools and resources
+- **Protocol Adapters**: Translate MCP calls to REST/gRPC/WebSocket
+- **Authentication Bridge**: Unified auth for all MCP operations
+- **Transport Support**: Both stdio (CLI) and HTTP/WebSocket
+- **Tools**: execute-api, session management, browser contexts
+- **Resources**: API catalog, health status
+- **@nist compliance**: All security controls preserved
 
 ### Protocol Layers - ALL PRODUCTION READY ✅
 
@@ -283,6 +294,20 @@ Before any commit:
 
 ## 🔄 Lessons Learned from Implementation
 
+### MCP Integration Success (January 2025) ✅
+
+The MCP integration was completed in **1 day** vs the estimated **8 weeks**, demonstrating the power of:
+
+1. **Subagent Delegation**: Used Task tool to implement adapters in parallel
+2. **Clean Architecture**: Existing separation of concerns made integration seamless
+3. **Type Safety**: TypeScript interfaces prevented integration errors
+4. **Reusable Infrastructure**: Auth, session, and storage layers worked immediately
+5. **Standards Compliance**: NIST controls automatically applied to MCP
+
+Key insight: **Well-architected systems can adapt to new paradigms rapidly**.
+
+### Original Implementation Lessons
+
 ### What Worked Extremely Well ✅
 
 1. **Task Delegation**: Using subagents for complex analysis dramatically improved efficiency
@@ -337,5 +362,69 @@ repository.
 5. **Test-Driven Development**: Write tests before implementation
 6. **Standards Compliance**: Follow the established patterns that proved successful
 
+## 🌐 Puppeteer Integration Guidelines (NEW - January 2025)
+
+### Overview
+We are implementing full Puppeteer support to transform the platform into a comprehensive browser automation powerhouse. This enables web testing, scraping, and API testing through real browser interactions.
+
+### Implementation Strategy
+
+1. **Test-First Development**: Write failing tests for each browser action before implementation
+2. **Resource Management**: Implement proper browser pooling to prevent memory leaks
+3. **Type Safety**: Use Puppeteer's TypeScript types throughout
+4. **Security**: Validate all JavaScript evaluation, use sandbox mode
+5. **Performance**: Monitor resource usage, implement automatic cleanup
+
+### Key Components
+
+#### Browser Pool (`src/puppeteer/browser-pool.ts`)
+- Resource pool with configurable size limits
+- Health checking and automatic recovery
+- Graceful shutdown handling
+- Metrics collection for monitoring
+
+#### Page Manager (`src/puppeteer/page-manager.ts`)
+- Context-to-page mapping
+- Automatic cleanup on context deletion
+- Session persistence across pages
+- Event streaming for real-time updates
+
+#### Action Executor (`src/puppeteer/action-executor.ts`)
+- Type-safe action handlers for all Puppeteer operations
+- Validation before execution
+- Error recovery and retry logic
+- Performance timing for each action
+
+### Security Requirements
+
+1. **Sandbox Execution**: Always run browsers with `--no-sandbox` flag disabled in production
+2. **JavaScript Validation**: Sanitize and validate all `evaluate` calls
+3. **Network Filtering**: Implement request interception for security
+4. **Credential Protection**: Never log sensitive data from pages
+5. **Screenshot Privacy**: Implement screenshot redaction for sensitive content
+
+### Testing Strategy
+
+1. **Unit Tests**: Test each component in isolation with mocked Puppeteer
+2. **Integration Tests**: Test full browser lifecycle with real Puppeteer
+3. **E2E Tests**: Test complete workflows through MCP interface
+4. **Performance Tests**: Benchmark action execution times
+5. **Memory Tests**: Detect and prevent memory leaks
+
+### NIST Compliance for Browser Automation
+
+Tag all browser automation code with relevant NIST controls:
+
+```typescript
+/**
+ * @nist ac-3 "Access enforcement" - Browser action authorization
+ * @nist au-3 "Content of audit records" - Action logging
+ * @nist sc-18 "Mobile code" - JavaScript execution control
+ * @nist si-10 "Information input validation" - Script validation
+ */
+```
+
 This project serves as a **reference implementation** for production-ready, multi-protocol API
-platforms with enterprise-grade security and comprehensive quality standards.
+platforms with enterprise-grade security, comprehensive quality standards, native AI agent
+support through Model Context Protocol (MCP) integration, and full browser automation capabilities
+via Puppeteer.

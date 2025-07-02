@@ -48,7 +48,8 @@
       "@grpc/*": ["src/grpc/*"],
       "@ws/*": ["src/ws/*"],
       "@utils/*": ["src/utils/*"],
-      "@types/*": ["src/types/*"]
+      "@types/*": ["src/types/*"],
+      "@mcp/*": ["src/mcp/*"]
     },
     
     // Advanced

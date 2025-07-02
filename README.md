@@ -1,7 +1,8 @@
-# Puppeteer MCP - Multi-Protocol API Platform
+# Puppeteer MCP - AI-Enabled Multi-Protocol API Platform
 
 A comprehensive Node.js API platform supporting REST, gRPC, and WebSocket protocols with unified
-session management and enterprise-grade security.
+session management, enterprise-grade security, and Model Context Protocol (MCP) integration for
+AI-powered interactions.
 
 ## 🚀 Project Status
 
@@ -30,12 +31,17 @@ npm run dev       # ✅ Server starts successfully
 
 ## 🏗️ Architecture Overview
 
-The platform implements a **unified multi-protocol architecture** where all three protocols share
-common infrastructure:
+The platform implements a **unified multi-protocol architecture** with MCP integration, allowing both
+traditional API clients and AI agents to interact with all protocols through common infrastructure:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    Client Applications                       │
+│              AI Agents (via MCP)      Traditional Clients   │
+├─────────────────────────┬───────────────────────────────────┤
+│   Model Context         │       Direct Protocol Access      │
+│   Protocol (MCP)        │                                   │
+├─────────────────────────┴───────────────────────────────────┤
+│                    Protocol Adapters                        │
 ├─────────────────┬─────────────────┬─────────────────────────┤
 │   REST API      │   gRPC Services │   WebSocket Server      │
 │   (HTTP/HTTPS)  │   (HTTP/2)      │   (WSS)                 │
@@ -58,6 +64,7 @@ common infrastructure:
 3. **Event-Driven Architecture**: Comprehensive audit logging and real-time events
 4. **Zero Trust Security**: Every request authenticated and authorized
 5. **NIST Compliance**: Tagged with NIST 800-53r5 security controls
+6. **AI-Native Design**: MCP integration enables LLM orchestration of all APIs
 
 ## 📁 File Structure
 
@@ -72,6 +79,12 @@ src/
 │   ├── config.ts              # Configuration management
 │   ├── errors/                # Error handling system
 │   └── middleware/            # Core middleware (security, validation)
+├── mcp/                     # Model Context Protocol integration
+│   ├── server.ts              # MCP server implementation
+│   ├── adapters/              # Protocol adapters (REST, gRPC, WS)
+│   ├── auth/                  # MCP authentication bridge
+│   ├── transport/             # Transport layers (stdio, HTTP)
+│   └── examples/              # Integration examples
 ├── grpc/                    # gRPC server implementation
 │   ├── services/              # gRPC service implementations
 │   ├── interceptors/          # Auth, logging, error interceptors
@@ -168,6 +181,20 @@ cp .env.example .env
   - Topic-based subscriptions
   - Bidirectional command execution
   - Connection heartbeat and auto-reconnect support
+
+### 4. Model Context Protocol (MCP) API
+
+- **Transport**: stdio (CLI) or HTTP/WebSocket
+- **Tools Available**:
+  - `execute-api` - Execute calls across any protocol
+  - `create-session` - Create authenticated sessions
+  - `list-sessions` - List active sessions  
+  - `delete-session` - Remove sessions
+  - `create-browser-context` - Create Puppeteer contexts
+- **Resources**:
+  - `api://catalog` - Discover available APIs
+  - `api://health` - System health status
+- **Authentication**: Unified bridge supporting JWT, API keys, and sessions
 
 ## 🔒 Security Features
 
@@ -310,7 +337,8 @@ This project is licensed under the MIT License - see the [LICENSE](./LICENSE) fi
 
 ## 🎯 Production Ready Features
 
-✅ **Complete Protocol Implementation**: REST, gRPC, and WebSocket with unified session management  
+✅ **Complete Protocol Implementation**: REST, gRPC, WebSocket, and MCP with unified session management  
+✅ **AI-Native Integration**: Full MCP support enabling LLM orchestration of all APIs  
 ✅ **Enterprise Security**: Multi-modal auth, RBAC, audit logging, NIST compliance  
 ✅ **Operational Excellence**: Health monitoring, graceful shutdown, comprehensive logging  
 ✅ **Developer Experience**: Full TypeScript support, comprehensive testing, clear documentation  
@@ -318,4 +346,4 @@ This project is licensed under the MIT License - see the [LICENSE](./LICENSE) fi
 ✅ **Deployment Ready**: Docker containerization, CI/CD pipelines, security scanning
 
 This platform provides a robust foundation for building scalable, secure, multi-protocol API
-services.
+services with native AI agent support.
