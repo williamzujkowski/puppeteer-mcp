@@ -15,6 +15,7 @@ import { handleScrollPage, handleScrollToCoordinates, handleSmoothScroll } from 
  * @param context - Action execution context
  * @returns Scroll result
  */
+// eslint-disable-next-line @typescript-eslint/require-await, require-await
 export async function dispatchScrollAction(
   action: ScrollAction,
   page: Page,

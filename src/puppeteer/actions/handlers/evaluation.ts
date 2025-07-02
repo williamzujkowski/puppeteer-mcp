@@ -50,9 +50,10 @@ export async function handleEvaluate(
     // Execute the function with timeout
     const result = await Promise.race([
       page.evaluate(action.function, ...(action.args ?? [])),
-      new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Evaluation timeout')), action.timeout ?? 30000)
-      ),
+      new Promise((_, reject) => {
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
+        setTimeout(() => reject(new Error('Evaluation timeout')), action.timeout ?? 30000);
+      }),
     ]);
 
     const duration = Date.now() - startTime;

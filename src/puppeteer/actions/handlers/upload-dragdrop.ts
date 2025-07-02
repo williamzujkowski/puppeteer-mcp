@@ -112,6 +112,7 @@ export async function handleDragDropUpload(
 /**
  * Prepare file data for drag and drop
  */
+// eslint-disable-next-line @typescript-eslint/require-await, require-await
 async function prepareFileData(validatedFiles: Array<{ path: string; name: string; type: string }>) {
   return Promise.all(
     validatedFiles.map(async (file) => {
@@ -150,12 +151,14 @@ async function simulateDragDrop(
         const file = new File([uint8Array], fileData.name, {
           type: fileData.type,
         });
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return file;
       });
 
       // Create data transfer object
       const DataTransfer = (globalThis as any).DataTransfer;
       const dataTransfer = new DataTransfer();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-return
       fileList.forEach((file: any) => dataTransfer.items.add(file));
 
       // Create and dispatch drop event

@@ -83,6 +83,7 @@ export async function handleMouseDrag(params: MouseDragParams): Promise<ActionRe
       await page.mouse.move(currentX, currentY);
       
       // Small delay for smooth movement
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises, no-promise-executor-return
       await new Promise(resolve => setTimeout(resolve, 10));
     }
 

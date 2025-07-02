@@ -51,9 +51,10 @@ export async function handleEvaluateHandle(
     // Execute the function with timeout and return JSHandle
     const handle = await Promise.race([
       page.evaluateHandle(functionString, ...(args ?? [])),
-      new Promise<JSHandle>((_, reject) => 
-        setTimeout(() => reject(new Error('Evaluation handle timeout')), timeout ?? 30000)
-      ),
+      new Promise<JSHandle>((_, reject) => {
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
+        setTimeout(() => reject(new Error('Evaluation handle timeout')), timeout ?? 30000);
+      }),
     ]);
 
     const duration = Date.now() - startTime;

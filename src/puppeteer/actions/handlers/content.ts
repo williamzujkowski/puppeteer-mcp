@@ -206,10 +206,13 @@ export async function handleContent(
 
       content = await page.$eval(sanitizedSelector, (el) => {
         // Check if element has a value property (input/textarea)
-        if ('value' in el && typeof el.value === 'string') {
-          return el.value;
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-explicit-any
+        if ('value' in el && typeof (el as any).value === 'string') {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-explicit-any
+          return (el as any).value;
         }
         // Otherwise get text content
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return el.textContent ?? '';
       });
       

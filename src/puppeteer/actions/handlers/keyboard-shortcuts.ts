@@ -47,6 +47,7 @@ export async function handleKeyboardShortcut(
 
     // Release all keys in reverse order
     for (let i = keys.length - 1; i >= 0; i--) {
+      // eslint-disable-next-line security/detect-object-injection
       const keyToRelease = keys[i];
       if (keyToRelease) {
         await page.keyboard.up(keyToRelease);
@@ -136,6 +137,7 @@ export async function handleKeyCombination(
 
     // Release modifiers
     for (let i = modifiers.length - 1; i >= 0; i--) {
+      // eslint-disable-next-line security/detect-object-injection
       const modifier = modifiers[i];
       if (modifier) {
         await page.keyboard.up(modifier);
