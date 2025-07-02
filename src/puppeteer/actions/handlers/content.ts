@@ -28,10 +28,44 @@ function buildScreenshotOptions(action: ScreenshotAction): Parameters<Page['scre
 
   // Add quality for JPEG/WebP
   if ((action.format === 'jpeg' || action.format === 'webp') && action.quality) {
-    (options as any).quality = Math.max(1, Math.min(100, action.quality));
+    const qualityOptions = options as { quality?: number };
+    qualityOptions.quality = Math.max(1, Math.min(100, action.quality));
   }
 
   return options;
+}
+
+/**
+ * Build PDF options from action
+ */
+function buildPdfOptions(action: PDFAction): Parameters<Page['pdf']>[0] {
+  const pdfOptions: Parameters<Page['pdf']>[0] = {
+    format: action.format ?? 'letter',
+    landscape: action.landscape ?? false,
+    printBackground: action.printBackground ?? true,
+    scale: action.scale ?? 1,
+    displayHeaderFooter: action.displayHeaderFooter ?? false,
+    headerTemplate: action.headerTemplate,
+    footerTemplate: action.footerTemplate,
+    preferCSSPageSize: action.preferCSSPageSize ?? false,
+  };
+
+  // Add page ranges if specified
+  if (action.pageRanges) {
+    pdfOptions.pageRanges = action.pageRanges;
+  }
+
+  // Add margins if specified
+  if (action.margin) {
+    pdfOptions.margin = {
+      top: action.margin.top ?? '0.5in',
+      bottom: action.margin.bottom ?? '0.5in',
+      left: action.margin.left ?? '0.5in',
+      right: action.margin.right ?? '0.5in',
+    };
+  }
+
+  return pdfOptions;
 }
 
 /**
@@ -43,7 +77,10 @@ async function captureElementScreenshot(
   screenshotOptions: Parameters<Page['screenshot']>[0],
   context: ActionContext
 ): Promise<Omit<ActionResult<Buffer>, 'duration' | 'timestamp'>> {
-  const sanitizedSelector = sanitizeSelector(action.selector!);
+  if (!action.selector) {
+    throw new Error('Selector is required for element screenshot');
+  }
+  const sanitizedSelector = sanitizeSelector(action.selector);
   
   // Wait for element to be visible
   await page.waitForSelector(sanitizedSelector, {
@@ -108,7 +145,7 @@ async function capturePageScreenshot(
       type: action.fullPage ? 'fullPage' : 'viewport',
       format: action.format ?? 'png',
       size: screenshot.length,
-      viewport: await page.viewport(),
+      viewport: page.viewport(),
     },
   };
 }
@@ -206,31 +243,7 @@ export async function handlePdf(
     });
 
     // Build PDF options
-    const pdfOptions: Parameters<Page['pdf']>[0] = {
-      format: action.format ?? 'letter',
-      landscape: action.landscape ?? false,
-      printBackground: action.printBackground ?? true,
-      scale: action.scale ?? 1,
-      displayHeaderFooter: action.displayHeaderFooter ?? false,
-      headerTemplate: action.headerTemplate,
-      footerTemplate: action.footerTemplate,
-      preferCSSPageSize: action.preferCSSPageSize ?? false,
-    };
-
-    // Add page ranges if specified
-    if (action.pageRanges) {
-      pdfOptions.pageRanges = action.pageRanges;
-    }
-
-    // Add margins if specified
-    if (action.margin) {
-      pdfOptions.margin = {
-        top: action.margin.top ?? '0.5in',
-        bottom: action.margin.bottom ?? '0.5in',
-        left: action.margin.left ?? '0.5in',
-        right: action.margin.right ?? '0.5in',
-      };
-    }
+    const pdfOptions = buildPdfOptions(action);
 
     // Generate PDF
     const pdf = Buffer.from(await page.pdf(pdfOptions));
@@ -320,10 +333,11 @@ export async function handleContent(
       });
 
       content = await page.$eval(sanitizedSelector, (el) => {
-        if ((el as any).tagName === 'INPUT' || (el as any).tagName === 'TEXTAREA') {
-          return (el as any).value;
+        const element = el as HTMLElement;
+        if (element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement) {
+          return element.value;
         }
-        return (el as any).textContent ?? '';
+        return element.textContent ?? '';
       });
       
       contentType = 'element';

@@ -1,120 +1,101 @@
 /**
- * Browser Pool Implementation for Puppeteer
+ * Browser Pool Implementation
  * @module puppeteer/pool/browser-pool
  * @nist ac-3 "Access enforcement"
- * @nist au-9 "Protection of audit information"
  * @nist ac-4 "Information flow enforcement"
- * @nist sc-2 "Application partitioning"
+ * @nist ac-12 "Session termination"
+ * @nist au-3 "Content of audit records"
  */
 
-import { Page } from 'puppeteer';
-import * as puppeteer from 'puppeteer';
-import { v4 as uuidv4 } from 'uuid';
-import type {
-  BrowserPool as IBrowserPool,
-  BrowserPoolOptions,
-  BrowserInstance,
-  PoolMetrics
-} from '../interfaces/browser-pool.interface.js';
-import { BrowserHealthChecker, type HealthCheckResult } from './browser-health-checker.js';
+import type { Browser } from 'puppeteer';
+import { EventEmitter } from 'events';
+import { AppError } from '../../core/errors/app-error.js';
 import { createLogger } from '../../utils/logger.js';
-import { logSecurityEvent, SecurityEventType } from '../../utils/logger.js';
+import type { 
+  BrowserPool as IBrowserPool,
+  BrowserInstance,
+  BrowserPoolOptions,
+  BrowserPoolMetrics,
+} from '../interfaces/browser-pool.interface.js';
+import { 
+  launchBrowser, 
+  closeBrowser, 
+  restartBrowser, 
+  isIdleTooLong,
+  needsRestart 
+} from './browser-lifecycle.js';
+import { BrowserHealthMonitor, checkBrowserHealth } from './browser-health.js';
+import { BrowserQueue } from './browser-queue.js';
 
 const logger = createLogger('browser-pool');
 
 /**
- * Internal browser state
+ * Default pool options
  */
-interface InternalBrowserState {
-  instance: BrowserInstance;
-  status: 'idle' | 'active' | 'recycling';
-  acquiredBy?: string; // Session ID
-  pages: Map<string, Page>;
-  idleSince?: Date;
-  lifecycleTimer?: NodeJS.Timeout;
-}
-
-/**
- * Acquisition request for queuing
- */
-interface AcquisitionRequest {
-  sessionId: string;
-  resolve: (instance: BrowserInstance) => void;
-  reject: (error: Error) => void;
-  timestamp: Date;
-}
+const DEFAULT_OPTIONS: Partial<BrowserPoolOptions> = {
+  maxBrowsers: 5,
+  minBrowsers: 1,
+  idleTimeout: 5 * 60 * 1000, // 5 minutes
+  acquisitionTimeout: 30000,
+  healthCheckInterval: 30000,
+  headless: true,
+};
 
 /**
  * Browser pool implementation
  * @nist ac-3 "Access enforcement"
  * @nist ac-4 "Information flow enforcement"
  */
-export class BrowserPool implements IBrowserPool {
+export class BrowserPool extends EventEmitter implements IBrowserPool {
   private options: BrowserPoolOptions;
-  private browsers: Map<string, InternalBrowserState> = new Map();
-  private acquisitionQueue: AcquisitionRequest[] = [];
-  private healthChecker: BrowserHealthChecker;
+  private browsers = new Map<string, BrowserInstance>();
+  private healthMonitor = new BrowserHealthMonitor();
+  private queue = new BrowserQueue();
+  private maintenanceInterval?: NodeJS.Timeout;
   private isShuttingDown = false;
-  private healthCheckInterval?: NodeJS.Timeout;
-  private cleanupInterval?: NodeJS.Timeout;
-  private metrics = {
-    browsersCreated: 0,
-    browsersDestroyed: 0,
-    totalLifetime: 0,
-  };
-  private acquisitionTimeout = 30000; // Default 30s
 
-  constructor(options: BrowserPoolOptions) {
-    this.options = this.validateOptions(options);
-    this.healthChecker = new BrowserHealthChecker({
-      maxMemoryMB: 512, // Default 512MB
-      maxPageCount: this.options.maxPagesPerBrowser,
-      responseTimeout: 5000,
-      checkInterval: this.options.healthCheckInterval,
-      enableAutoRecovery: true,
-    });
+  constructor(options: Partial<BrowserPoolOptions> = {}) {
+    super();
+    this.options = { ...DEFAULT_OPTIONS, ...options } as BrowserPoolOptions;
+    
+    // Start maintenance cycle
+    this.startMaintenance();
+
+    // Set up queue event handling
+    this.setupQueueHandlers();
   }
 
   /**
-   * Initialize the browser pool
-   * @nist ac-2 "Account management"
-   * @nist au-6 "Audit review, analysis, and reporting"
+   * Initialize the pool
+   * @nist ac-3 "Access enforcement"
    */
   async initialize(): Promise<void> {
     logger.info({
-      options: this.options,
+      maxBrowsers: this.options.maxBrowsers,
+      minBrowsers: this.options.minBrowsers,
     }, 'Initializing browser pool');
 
-    // Start health check interval
-    this.healthCheckInterval = setInterval(
-      () => {
-        void this.performHealthChecks();
-      },
-      this.options.healthCheckInterval
-    );
+    // Launch minimum browsers
+    const launchPromises = [];
+    for (let i = 0; i < this.options.minBrowsers; i++) {
+      launchPromises.push(this.launchNewBrowser());
+    }
 
-    // Start cleanup interval
-    this.cleanupInterval = setInterval(
-      () => {
-        void this.cleanupIdle();
-      },
-      Math.min(this.options.idleTimeout / 2, 30000)
-    );
+    await Promise.allSettled(launchPromises);
 
-    await logSecurityEvent(SecurityEventType.SERVICE_START, {
-      resource: 'browser-pool',
-      result: 'success',
-    });
+    logger.info({
+      activeBrowsers: this.browsers.size,
+    }, 'Browser pool initialized');
   }
 
   /**
-   * Acquire a browser instance from the pool
-   * @nist ia-2 "Identification and authentication"
+   * Acquire a browser for a session
    * @nist ac-3 "Access enforcement"
+   * @nist ac-4 "Information flow enforcement"
    */
   async acquireBrowser(sessionId: string): Promise<BrowserInstance> {
     if (this.isShuttingDown) {
-      throw new Error('Browser pool is shutting down');
+      throw new AppError('Browser pool is shutting down', 503);
     }
 
     logger.debug({ sessionId }, 'Browser acquisition requested');
@@ -138,566 +119,311 @@ export class BrowserPool implements IBrowserPool {
    * Release a browser back to the pool
    * @nist ac-12 "Session termination"
    */
-  async releaseBrowser(browserId: string, sessionId: string): Promise<void> {
-    const state = this.browsers.get(browserId);
-    
-    if (!state) {
-      throw new Error('Browser not found');
-    }
-
-    if (state.acquiredBy !== sessionId) {
-      await logSecurityEvent(SecurityEventType.ACCESS_DENIED, {
-        userId: sessionId,
-        resource: `browser:${browserId}`,
-        result: 'failure',
-        reason: 'Unauthorized session',
-      });
-      throw new Error('Unauthorized: Browser not acquired by this session');
-    }
-
-    // Check if browser should be recycled
-    if (this.shouldRecycle(state.instance)) {
-      state.status = 'recycling';
-      await this.destroyBrowser(browserId);
-      // Process queued requests
-      this.processQueue();
+  async releaseBrowser(browserId: string): Promise<void> {
+    const instance = this.browsers.get(browserId);
+    if (!instance) {
+      logger.warn({ browserId }, 'Attempted to release unknown browser');
       return;
     }
 
-    // Mark as idle
-    state.status = 'idle';
-    state.acquiredBy = undefined;
-    state.idleSince = new Date();
-    state.instance.lastUsedAt = new Date();
+    logger.debug({ browserId, sessionId: instance.sessionId }, 'Releasing browser');
 
-    logger.info({
-      browserId,
-      sessionId,
-      useCount: state.instance.useCount,
-    }, 'Browser released to pool');
+    // Update state
+    instance.state = 'idle';
+    instance.sessionId = null;
+    instance.lastActivity = new Date();
 
-    // Process queued requests
-    this.processQueue();
+    // Process queue
+    this.queue.processNext(instance);
+
+    // Emit event
+    this.emit('browser:released', { browserId });
   }
 
   /**
-   * Create a new page in a browser
-   * @nist ac-4 "Information flow enforcement"
+   * Get browser by ID
+   * @nist ac-3 "Access enforcement"
    */
-  async createPage(browserId: string, sessionId: string): Promise<Page> {
-    const state = this.browsers.get(browserId);
-    
-    if (!state) {
-      throw new Error('Browser not found');
-    }
-
-    if (state.acquiredBy !== sessionId) {
-      throw new Error('Unauthorized: Browser not acquired by this session');
-    }
-
-    if (state.pages.size >= this.options.maxPagesPerBrowser) {
-      throw new Error('Page limit reached for browser');
-    }
-
-    const page = await state.instance.browser.newPage();
-    const pageId = uuidv4();
-    (page as any)._id = pageId;
-    
-    state.pages.set(pageId, page);
-    state.instance.pageCount = state.pages.size;
-
-    if (this.options.enableRequestInterception) {
-      await page.setRequestInterception(true);
-    }
-
-    logger.debug({
-      browserId,
-      pageId,
-      pageCount: state.pages.size,
-    }, 'Page created');
-
-    return page;
+  async getBrowser(browserId: string): Promise<Browser | null> {
+    const instance = this.browsers.get(browserId);
+    return instance?.browser ?? null;
   }
 
   /**
-   * Close a page in a browser
+   * Get pool metrics
+   * @nist au-3 "Content of audit records"
    */
-  async closePage(browserId: string, pageId: string, sessionId: string): Promise<void> {
-    const state = this.browsers.get(browserId);
-    
-    if (!state) {
-      throw new Error('Browser not found');
-    }
-
-    if (state.acquiredBy !== sessionId) {
-      throw new Error('Unauthorized: Browser not acquired by this session');
-    }
-
-    const page = state.pages.get(pageId);
-    if (!page) {
-      throw new Error('Page not found');
-    }
-
-    await page.close();
-    state.pages.delete(pageId);
-    state.instance.pageCount = state.pages.size;
-
-    logger.debug({
-      browserId,
-      pageId,
-      pageCount: state.pages.size,
-    }, 'Page closed');
-  }
-
-  /**
-   * Get current pool metrics
-   * @nist au-6 "Audit review, analysis, and reporting"
-   */
-  getMetrics(): PoolMetrics {
-    const totalBrowsers = this.browsers.size;
-    const activeBrowsers = Array.from(this.browsers.values())
-      .filter(state => state.status === 'active').length;
-    const idleBrowsers = Array.from(this.browsers.values())
-      .filter(state => state.status === 'idle').length;
-    
-    let totalPages = 0;
-    let activePages = 0;
-    
-    for (const state of this.browsers.values()) {
-      totalPages += state.pages.size;
-      if (state.status === 'active') {
-        activePages += state.pages.size;
-      }
-    }
-
-    const avgLifetime = this.metrics.browsersDestroyed > 0
-      ? this.metrics.totalLifetime / this.metrics.browsersDestroyed
-      : 0;
-
-    const utilizationPercentage = this.options.maxBrowsers > 0
-      ? (activeBrowsers / this.options.maxBrowsers) * 100
-      : 0;
+  async getMetrics(): Promise<BrowserPoolMetrics> {
+    const instances = Array.from(this.browsers.values());
+    const queueStats = this.queue.getStats();
 
     return {
-      totalBrowsers,
-      activeBrowsers,
-      idleBrowsers,
-      totalPages,
-      activePages,
-      browsersCreated: this.metrics.browsersCreated,
-      browsersDestroyed: this.metrics.browsersDestroyed,
-      avgBrowserLifetime: avgLifetime,
-      utilizationPercentage,
-      lastHealthCheck: new Date(),
+      totalBrowsers: this.browsers.size,
+      activeBrowsers: instances.filter(i => i.state === 'active').length,
+      idleBrowsers: instances.filter(i => i.state === 'idle').length,
+      queuedRequests: queueStats.length,
+      oldestQueueTime: queueStats.oldestWaitTime,
+      avgPageCount: instances.length > 0
+        ? instances.reduce((sum, i) => sum + i.pageCount, 0) / instances.length
+        : 0,
+      totalErrors: instances.reduce((sum, i) => sum + i.errorCount, 0),
     };
   }
 
   /**
-   * Perform health check on all browsers
-   * @nist si-4 "Information system monitoring"
-   */
-  async healthCheck(): Promise<Map<string, boolean>> {
-    const results = new Map<string, boolean>();
-    const instances = Array.from(this.browsers.values())
-      .map(state => state.instance);
-
-    const healthResults = await this.healthChecker.checkMultiple(instances);
-    
-    for (const [browserId, health] of healthResults) {
-      results.set(browserId, health.isHealthy);
-      
-      // Handle unhealthy idle browsers
-      const state = this.browsers.get(browserId);
-      if (!health.isHealthy && state?.status === 'idle') {
-        logger.warn({
-          browserId,
-          reason: health.reason,
-        }, 'Unhealthy browser detected, scheduling restart');
-        
-        await this.restartUnhealthyBrowser(browserId, health);
-      }
-    }
-
-    return results;
-  }
-
-  /**
-   * Recycle a browser instance
+   * Shutdown the pool
    * @nist ac-12 "Session termination"
    */
-  async recycleBrowser(browserId: string): Promise<void> {
-    const state = this.browsers.get(browserId);
-    
-    if (!state) {
-      throw new Error('Browser not found');
-    }
-
-    if (state.status === 'active') {
-      throw new Error('Cannot recycle active browser');
-    }
-
-    state.status = 'recycling';
-    
-    try {
-      await this.destroyBrowser(browserId);
-    } catch (error) {
-      logger.error({
-        browserId,
-        error,
-      }, 'Failed to recycle browser');
-    }
-
-    // Process queued requests
-    this.processQueue();
-  }
-
-  /**
-   * Shutdown the browser pool
-   * @nist ac-12 "Session termination"
-   * @nist au-6 "Audit review, analysis, and reporting"
-   */
-  async shutdown(force = false): Promise<void> {
-    logger.info({ force }, 'Shutting down browser pool');
+  async shutdown(): Promise<void> {
+    logger.info('Shutting down browser pool');
     this.isShuttingDown = true;
 
-    // Clear intervals
-    if (this.healthCheckInterval) {
-      clearInterval(this.healthCheckInterval);
-    }
-    if (this.cleanupInterval) {
-      clearInterval(this.cleanupInterval);
+    // Stop maintenance
+    if (this.maintenanceInterval) {
+      clearInterval(this.maintenanceInterval);
     }
 
-    // Reject queued requests
-    for (const request of this.acquisitionQueue) {
-      request.reject(new Error('Browser pool shutting down'));
-    }
-    this.acquisitionQueue = [];
+    // Stop health monitoring
+    this.healthMonitor.stopAll();
+
+    // Clear queue
+    this.queue.clear();
 
     // Close all browsers
-    const closePromises: Promise<void>[] = [];
-    
-    for (const [browserId, state] of this.browsers) {
-      if (!force && state.status === 'active') {
-        logger.warn({ browserId }, 'Active browser during shutdown');
-      }
-      closePromises.push(this.destroyBrowser(browserId));
-    }
+    const closePromises = Array.from(this.browsers.values()).map(instance =>
+      closeBrowser(instance.browser, instance).catch(error => {
+        logger.error({ browserId: instance.id, error }, 'Error closing browser');
+      })
+    );
 
-    await Promise.all(closePromises);
+    await Promise.allSettled(closePromises);
 
-    await logSecurityEvent(SecurityEventType.SERVICE_STOP, {
-      resource: 'browser-pool',
-      result: 'success',
-    });
-  }
-
-  /**
-   * Set pool configuration
-   * @nist cm-7 "Least functionality"
-   */
-  configure(options: Partial<BrowserPoolOptions>): void {
-    const newOptions = { ...this.options, ...options };
-    this.options = this.validateOptions(newOptions);
-    
-    if (options.acquisitionTimeout !== undefined) {
-      this.acquisitionTimeout = options.acquisitionTimeout;
-    }
-
-    logger.info({
-      ...options,
-    }, 'Browser pool configuration updated');
-  }
-
-  /**
-   * Get browser instance by ID
-   */
-  getBrowser(browserId: string): BrowserInstance | undefined {
-    return this.browsers.get(browserId)?.instance;
-  }
-
-  /**
-   * List all browser instances
-   */
-  listBrowsers(): BrowserInstance[] {
-    return Array.from(this.browsers.values()).map(state => state.instance);
-  }
-
-  /**
-   * Clean up idle browsers
-   */
-  async cleanupIdle(): Promise<number> {
-    if (this.isShuttingDown) {
-      return 0;
-    }
-
-    const now = Date.now();
-    let cleaned = 0;
-
-    for (const [browserId, state] of this.browsers) {
-      if (state.status === 'idle' && state.idleSince) {
-        const idleTime = now - state.idleSince.getTime();
-        
-        if (idleTime > this.options.idleTimeout) {
-          logger.info({
-            browserId,
-            idleTime,
-          }, 'Cleaning up idle browser');
-          
-          await this.destroyBrowser(browserId);
-          cleaned++;
-        }
-      }
-    }
-
-    return cleaned;
+    this.browsers.clear();
+    logger.info('Browser pool shutdown complete');
   }
 
   /**
    * Find an idle browser
+   * @private
    */
-  private findIdleBrowser(): InternalBrowserState | undefined {
-    for (const state of this.browsers.values()) {
-      if (state.status === 'idle') {
-        return state;
+  private findIdleBrowser(): BrowserInstance | null {
+    for (const instance of this.browsers.values()) {
+      if (instance.state === 'idle' && instance.browser.isConnected()) {
+        return instance;
       }
     }
-    return undefined;
+    return null;
   }
 
   /**
-   * Activate a browser for use
+   * Activate a browser for a session
+   * @private
    */
-  private activateBrowser(
-    state: InternalBrowserState,
-    sessionId: string
-  ): BrowserInstance {
-    state.status = 'active';
-    state.acquiredBy = sessionId;
-    state.idleSince = undefined;
-    state.instance.useCount++;
-    state.instance.lastUsedAt = new Date();
+  private activateBrowser(instance: BrowserInstance, sessionId: string): BrowserInstance {
+    instance.state = 'active';
+    instance.sessionId = sessionId;
+    instance.lastActivity = new Date();
 
-    logger.info({
-      browserId: state.instance.id,
+    logger.debug({
+      browserId: instance.id,
       sessionId,
-      useCount: state.instance.useCount,
-    }, 'Browser activated from pool');
+    }, 'Browser activated for session');
 
-    return state.instance;
-  }
-
-  /**
-   * Create and acquire a new browser
-   */
-  private async createAndAcquireBrowser(sessionId: string): Promise<BrowserInstance> {
-    const browserId = uuidv4();
-    
-    logger.info({
-      browserId,
-      sessionId,
-    }, 'Creating new browser instance');
-
-    const browser = await puppeteer.launch(this.options.launchOptions);
-    const instance: BrowserInstance = {
-      id: browserId,
-      browser,
-      createdAt: new Date(),
-      lastUsedAt: new Date(),
-      useCount: 1,
-      pageCount: 0,
-      pid: browser.process()?.pid,
-    };
-
-    const state: InternalBrowserState = {
-      instance,
-      status: 'active',
-      acquiredBy: sessionId,
-      pages: new Map(),
-    };
-
-    this.browsers.set(browserId, state);
-    this.metrics.browsersCreated++;
-
-    await logSecurityEvent(SecurityEventType.RESOURCE_CREATED, {
-      resource: `browser:${browserId}`,
-      userId: sessionId,
-      result: 'success',
-    });
+    this.emit('browser:acquired', { browserId: instance.id, sessionId });
 
     return instance;
   }
 
   /**
-   * Queue an acquisition request
+   * Create and acquire a new browser
+   * @private
+   */
+  private async createAndAcquireBrowser(sessionId: string): Promise<BrowserInstance> {
+    const { browser, instance } = await this.launchNewBrowser();
+    
+    // Activate for session
+    instance.state = 'active';
+    instance.sessionId = sessionId;
+    instance.lastActivity = new Date();
+
+    this.emit('browser:acquired', { browserId: instance.id, sessionId });
+
+    return instance;
+  }
+
+  /**
+   * Queue a browser acquisition request
+   * @private
    */
   private queueAcquisition(sessionId: string): Promise<BrowserInstance> {
     return new Promise((resolve, reject) => {
-      const request: AcquisitionRequest = {
+      this.queue.enqueue({
         sessionId,
+        priority: 0, // Default priority
+        timeout: this.options.acquisitionTimeout,
         resolve,
         reject,
-        timestamp: new Date(),
-      };
-
-      this.acquisitionQueue.push(request);
-      
-      logger.debug({
-        sessionId,
-        queueLength: this.acquisitionQueue.length,
-      }, 'Browser acquisition queued');
-
-      // Set timeout
-      setTimeout(() => {
-        const index = this.acquisitionQueue.indexOf(request);
-        if (index !== -1) {
-          this.acquisitionQueue.splice(index, 1);
-          reject(new Error('Browser acquisition timeout'));
-        }
-      }, this.acquisitionTimeout);
+      });
     });
   }
 
   /**
-   * Process queued acquisition requests
+   * Launch a new browser
+   * @private
    */
-  private processQueue(): void {
-    while (this.acquisitionQueue.length > 0) {
-      const idleBrowser = this.findIdleBrowser();
-      if (!idleBrowser) {
-        break;
-      }
+  private async launchNewBrowser(): Promise<{ browser: Browser; instance: BrowserInstance }> {
+    const result = await launchBrowser(this.options);
+    
+    // Store instance
+    this.browsers.set(result.instance.id, result.instance);
 
-      const request = this.acquisitionQueue.shift()!;
-      const instance = this.activateBrowser(idleBrowser, request.sessionId);
-      request.resolve(instance);
-    }
+    // Start health monitoring
+    this.healthMonitor.startMonitoring(
+      result.instance.id,
+      result.browser,
+      result.instance,
+      () => void this.handleUnhealthyBrowser(result.instance.id),
+      this.options.healthCheckInterval
+    );
+
+    this.emit('browser:created', { browserId: result.instance.id });
+
+    return result;
   }
 
   /**
-   * Destroy a browser instance
+   * Handle unhealthy browser
+   * @private
    */
-  private async destroyBrowser(browserId: string): Promise<void> {
-    const state = this.browsers.get(browserId);
-    if (!state) {
+  private async handleUnhealthyBrowser(browserId: string): Promise<void> {
+    const instance = this.browsers.get(browserId);
+    if (!instance) {
       return;
     }
 
-    const lifetime = Date.now() - state.instance.createdAt.getTime();
-    this.metrics.totalLifetime += lifetime;
-    this.metrics.browsersDestroyed++;
+    logger.warn({ browserId }, 'Handling unhealthy browser');
 
     try {
-      // Close all pages
-      for (const page of state.pages.values()) {
-        await page.close();
-      }
-      
-      // Close browser
-      await state.instance.browser.close();
-    } catch (error) {
-      logger.error({
-        browserId,
-        error,
-      }, 'Failed to close browser');
-    }
-
-    this.browsers.delete(browserId);
-
-    await logSecurityEvent(SecurityEventType.RESOURCE_DELETED, {
-      resource: `browser:${browserId}`,
-      result: 'success',
-    });
-  }
-
-  /**
-   * Restart an unhealthy browser
-   */
-  private async restartUnhealthyBrowser(
-    browserId: string,
-    health: HealthCheckResult
-  ): Promise<void> {
-    const state = this.browsers.get(browserId);
-    if (!state || state.status !== 'idle') {
-      return;
-    }
-
-    try {
-      const newBrowser = await this.healthChecker.restartBrowser(
-        state.instance,
-        this.options.launchOptions
+      // Restart the browser
+      const result = await restartBrowser(
+        instance.browser,
+        instance,
+        this.options
       );
 
-      state.instance.browser = newBrowser;
-      state.instance.pid = newBrowser.process()?.pid;
-      state.pages.clear();
-      state.instance.pageCount = 0;
+      // Update instance
+      this.browsers.set(browserId, result.instance);
 
-      logger.info({
+      // Restart health monitoring
+      this.healthMonitor.startMonitoring(
         browserId,
-        reason: health.reason,
-      }, 'Browser restarted successfully');
+        result.browser,
+        result.instance,
+        () => void this.handleUnhealthyBrowser(browserId),
+        this.options.healthCheckInterval
+      );
+
+      this.emit('browser:restarted', { browserId });
+
     } catch (error) {
-      logger.error({
-        browserId,
-        error,
-      }, 'Failed to restart browser');
+      logger.error({ browserId, error }, 'Failed to restart unhealthy browser');
       
-      // Remove the failed browser
-      await this.destroyBrowser(browserId);
+      // Remove from pool
+      this.browsers.delete(browserId);
+      this.healthMonitor.stopMonitoring(browserId);
+      
+      this.emit('browser:removed', { browserId });
     }
   }
 
   /**
-   * Perform periodic health checks
+   * Start maintenance cycle
+   * @private
    */
-  private async performHealthChecks(): Promise<void> {
+  private startMaintenance(): void {
+    this.maintenanceInterval = setInterval(
+      () => void this.performMaintenance(),
+      60000 // 1 minute
+    );
+  }
+
+  /**
+   * Perform pool maintenance
+   * @private
+   */
+  private async performMaintenance(): Promise<void> {
     if (this.isShuttingDown) {
       return;
     }
 
-    try {
-      await this.healthCheck();
-    } catch (error) {
-      logger.error({ error }, 'Health check failed');
+    logger.debug('Performing pool maintenance');
+
+    // Remove idle browsers if above minimum
+    if (this.browsers.size > this.options.minBrowsers) {
+      for (const instance of this.browsers.values()) {
+        if (isIdleTooLong(instance, this.options.idleTimeout)) {
+          await this.removeBrowser(instance.id);
+          
+          if (this.browsers.size <= this.options.minBrowsers) {
+            break;
+          }
+        }
+      }
+    }
+
+    // Restart browsers that need it
+    for (const instance of this.browsers.values()) {
+      if (needsRestart(instance)) {
+        await this.handleUnhealthyBrowser(instance.id);
+      }
+    }
+
+    // Ensure minimum browsers
+    while (this.browsers.size < this.options.minBrowsers && !this.isShuttingDown) {
+      try {
+        await this.launchNewBrowser();
+      } catch (error) {
+        logger.error({ error }, 'Failed to launch browser during maintenance');
+        break;
+      }
     }
   }
 
   /**
-   * Check if browser should be recycled
+   * Remove a browser from the pool
+   * @private
    */
-  private shouldRecycle(instance: BrowserInstance): boolean {
-    if (!this.options.recycleAfterUses) {
-      return false;
+  private async removeBrowser(browserId: string): Promise<void> {
+    const instance = this.browsers.get(browserId);
+    if (!instance) {
+      return;
     }
 
-    return instance.useCount >= this.options.recycleAfterUses;
+    logger.info({ browserId }, 'Removing browser from pool');
+
+    // Stop health monitoring
+    this.healthMonitor.stopMonitoring(browserId);
+
+    // Close browser
+    await closeBrowser(instance.browser, instance);
+
+    // Remove from pool
+    this.browsers.delete(browserId);
+
+    this.emit('browser:removed', { browserId });
   }
 
   /**
-   * Validate pool options
+   * Set up queue event handlers
+   * @private
    */
-  private validateOptions(options: BrowserPoolOptions): BrowserPoolOptions {
-    if (options.maxBrowsers <= 0) {
-      throw new Error('Invalid configuration: maxBrowsers must be positive');
-    }
-
-    if (options.maxPagesPerBrowser <= 0) {
-      throw new Error('Invalid configuration: maxPagesPerBrowser must be positive');
-    }
-
-    if (options.idleTimeout <= 0) {
-      throw new Error('Invalid configuration: idleTimeout must be positive');
-    }
-
-    if (options.healthCheckInterval <= 0) {
-      throw new Error('Invalid configuration: healthCheckInterval must be positive');
-    }
-
-    if (options.recycleAfterUses !== undefined && options.recycleAfterUses <= 0) {
-      throw new Error('Invalid configuration: recycleAfterUses must be positive');
-    }
-
-    return options;
+  private setupQueueHandlers(): void {
+    // When a browser becomes available, try to process queue
+    this.on('browser:released', () => {
+      const idleBrowser = this.findIdleBrowser();
+      if (idleBrowser) {
+        this.queue.processNext(idleBrowser);
+      }
+    });
   }
 }
