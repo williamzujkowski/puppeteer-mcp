@@ -142,10 +142,9 @@ export interface BrowserPool {
   /**
    * Close a page in a browser
    * @param browserId - Browser instance ID
-   * @param pageId - Page identifier
    * @param sessionId - Session identifier
    */
-  closePage(browserId: string, pageId: string, sessionId: string): Promise<void>;
+  closePage(browserId: string, sessionId: string): Promise<void>;
   
   /**
    * Get current pool metrics

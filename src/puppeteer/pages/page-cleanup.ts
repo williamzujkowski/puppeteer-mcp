@@ -7,7 +7,8 @@
 
 import type { Page } from 'puppeteer';
 import { createLogger } from '../../utils/logger.js';
-import type { PageInfoStore, PageInfo } from './page-info-store.js';
+import type { PageInfoStore } from './page-info-store.js';
+import type { PageInfo } from '../interfaces/page-manager.interface.js';
 import { removePageEventHandlers } from './page-event-handler.js';
 
 const logger = createLogger('page-cleanup');
@@ -38,16 +39,16 @@ export async function closeContextPages(
 
   for (const pageInfo of contextPages) {
     try {
-      await closePage(pageInfo.pageId, pages, pageStore);
+      await closePage(pageInfo.id, pages, pageStore);
       closedCount++;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       logger.error({
         contextId,
-        pageId: pageInfo.pageId,
+        pageId: pageInfo.id,
         error: errorMessage,
       }, 'Failed to close page');
-      errors.push({ pageId: pageInfo.pageId, error: errorMessage });
+      errors.push({ pageId: pageInfo.id, error: errorMessage });
     }
   }
 
@@ -87,11 +88,11 @@ export async function closeSessionPages(
 
     for (const pageInfo of contextPages) {
       try {
-        await closePage(pageInfo.pageId, pages, pageStore);
+        await closePage(pageInfo.id, pages, pageStore);
         closedCount++;
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-        errors.push({ pageId: pageInfo.pageId, error: errorMessage });
+        errors.push({ pageId: pageInfo.id, error: errorMessage });
       }
     }
 
@@ -150,18 +151,18 @@ export async function performPeriodicCleanup(
 
   for (const pageInfo of allPages) {
     // Check if page is idle too long
-    const idleTime = now - pageInfo.lastActivity.getTime();
+    const idleTime = now - pageInfo.lastActivityAt.getTime();
     if (idleTime > maxIdleTime) {
       try {
-        await closePage(pageInfo.pageId, pages, pageStore);
+        await closePage(pageInfo.id, pages, pageStore);
         cleanedCount++;
         logger.info({
-          pageId: pageInfo.pageId,
+          pageId: pageInfo.id,
           idleTime,
         }, 'Cleaned up idle page');
       } catch (error) {
         logger.error({
-          pageId: pageInfo.pageId,
+          pageId: pageInfo.id,
           error: error instanceof Error ? error.message : 'Unknown error',
         }, 'Failed to clean up idle page');
       }

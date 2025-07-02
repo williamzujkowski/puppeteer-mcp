@@ -7,7 +7,7 @@
  * @nist sc-2 "Application partitioning"
  */
 
-import type { Page } from 'puppeteer';
+import type { Page, Cookie } from 'puppeteer';
 import { EventEmitter } from 'events';
 import { v4 as uuidv4 } from 'uuid';
 import { AppError } from '../../core/errors/app-error.js';
@@ -88,14 +88,14 @@ export class PageManager extends EventEmitter implements IPageManager {
     }
 
     try {
-      // Get browser from pool
-      const browser = await this.browserPool.getBrowser(browserId);
-      if (!browser) {
+      // Get browser instance from pool
+      const browserInstance = this.browserPool.getBrowser(browserId);
+      if (!browserInstance) {
         throw new AppError('Browser not found', 404);
       }
 
       // Create new page
-      const page = await browser.newPage();
+      const page = await browserInstance.browser.newPage();
       const pageId = uuidv4();
 
       // Configure page options
@@ -113,7 +113,7 @@ export class PageManager extends EventEmitter implements IPageManager {
         title: '',
         state: 'active',
         createdAt: new Date(),
-        lastActivity: new Date(),
+        lastActivityAt: new Date(),
         navigationHistory: [],
         errorCount: 0,
       };
@@ -148,7 +148,7 @@ export class PageManager extends EventEmitter implements IPageManager {
 
       throw error instanceof AppError 
         ? error 
-        : new AppError('Failed to create page', 500, error);
+        : new AppError('Failed to create page', 500, true, error instanceof Error ? { originalError: error.message } : undefined);
     }
   }
 
@@ -229,6 +229,78 @@ export class PageManager extends EventEmitter implements IPageManager {
   }
 
   /**
+   * Navigate to URL
+   * @param pageId - Page identifier
+   * @param url - Target URL
+   * @param sessionId - Session identifier for validation
+   * @param options - Navigation options
+   * @nist ac-4 "Information flow enforcement"
+   */
+  async navigateTo(
+    pageId: string,
+    url: string,
+    sessionId: string,
+    options?: NavigationOptions
+  ): Promise<void> {
+    const pageInfo = await this.pageStore.get(pageId);
+    if (!pageInfo || pageInfo.sessionId !== sessionId) {
+      throw new AppError('Page not found or access denied', 404);
+    }
+
+    const page = this.pages.get(pageId);
+    if (!page) {
+      throw new AppError('Page instance not found', 404);
+    }
+
+    await this.pageStore.updateState(pageId, 'navigating');
+    
+    try {
+      await page.goto(url, {
+        timeout: options?.timeout ?? 30000,
+        waitUntil: options?.waitUntil ?? 'load',
+        referer: options?.referer,
+      });
+      
+      const title = await page.title();
+      await this.pageStore.updateUrl(pageId, url);
+      await this.pageStore.updateTitle(pageId, title);
+      await this.pageStore.addNavigationHistory(pageId, url);
+      await this.pageStore.updateState(pageId, 'active');
+      
+      this.emit('page:navigated', { pageId, url });
+    } catch (error) {
+      await this.pageStore.updateState(pageId, 'active');
+      await this.pageStore.incrementErrorCount(pageId);
+      throw error;
+    }
+  }
+
+  /**
+   * Update page options
+   * @param pageId - Page identifier
+   * @param options - Page options to update
+   * @param sessionId - Session identifier for validation
+   */
+  async updatePageOptions(
+    pageId: string,
+    options: Partial<PageOptions>,
+    sessionId: string
+  ): Promise<void> {
+    const pageInfo = await this.pageStore.get(pageId);
+    if (!pageInfo || pageInfo.sessionId !== sessionId) {
+      throw new AppError('Page not found or access denied', 404);
+    }
+
+    const page = this.pages.get(pageId);
+    if (!page) {
+      throw new AppError('Page instance not found', 404);
+    }
+
+    await configurePageOptions(page, options);
+    await this.pageStore.touchActivity(pageId);
+  }
+
+  /**
    * Take screenshot
    * @nist ac-3 "Access enforcement"
    */
@@ -294,7 +366,7 @@ export class PageManager extends EventEmitter implements IPageManager {
    * Close all pages for context
    * @nist ac-12 "Session termination"
    */
-  async closePagesForContext(contextId: string, sessionId: string): Promise<void> {
+  async closePagesForContext(contextId: string): Promise<void> {
     const result = await closeContextPages(contextId, this.pages, this.pageStore);
     
     this.emit('context:pages-cleared', { 
@@ -346,6 +418,131 @@ export class PageManager extends EventEmitter implements IPageManager {
     } catch (error) {
       logger.error({ error }, 'Error during periodic cleanup');
     }
+  }
+
+  /**
+   * Get page metrics
+   * @nist au-6 "Audit review, analysis, and reporting"
+   */
+  async getPageMetrics(pageId: string, sessionId: string): Promise<Record<string, unknown>> {
+    const pageInfo = await this.pageStore.get(pageId);
+    if (!pageInfo || pageInfo.sessionId !== sessionId) {
+      throw new AppError('Page not found or access denied', 404);
+    }
+
+    const page = this.pages.get(pageId);
+    if (!page) {
+      throw new AppError('Page instance not found', 404);
+    }
+
+    const metrics = await page.metrics();
+    return metrics as Record<string, unknown>;
+  }
+
+  /**
+   * Set page cookies
+   */
+  async setCookies(pageId: string, cookies: Cookie[], sessionId: string): Promise<void> {
+    const pageInfo = await this.pageStore.get(pageId);
+    if (!pageInfo || pageInfo.sessionId !== sessionId) {
+      throw new AppError('Page not found or access denied', 404);
+    }
+
+    const page = this.pages.get(pageId);
+    if (!page) {
+      throw new AppError('Page instance not found', 404);
+    }
+
+    await page.setCookie(...cookies);
+    await this.pageStore.touchActivity(pageId);
+  }
+
+  /**
+   * Get page cookies
+   */
+  async getCookies(pageId: string, sessionId: string): Promise<Cookie[]> {
+    const pageInfo = await this.pageStore.get(pageId);
+    if (!pageInfo || pageInfo.sessionId !== sessionId) {
+      throw new AppError('Page not found or access denied', 404);
+    }
+
+    const page = this.pages.get(pageId);
+    if (!page) {
+      throw new AppError('Page instance not found', 404);
+    }
+
+    const cookies = await page.cookies();
+    return cookies;
+  }
+
+  /**
+   * Clear page data
+   */
+  async clearPageData(
+    pageId: string,
+    sessionId: string,
+    options?: {
+      cookies?: boolean;
+      cache?: boolean;
+      localStorage?: boolean;
+      sessionStorage?: boolean;
+    }
+  ): Promise<void> {
+    const pageInfo = await this.pageStore.get(pageId);
+    if (!pageInfo || pageInfo.sessionId !== sessionId) {
+      throw new AppError('Page not found or access denied', 404);
+    }
+
+    const page = this.pages.get(pageId);
+    if (!page) {
+      throw new AppError('Page instance not found', 404);
+    }
+
+    if (options?.cookies) {
+      await page.deleteCookie(...await page.cookies());
+    }
+
+    if (options?.localStorage || options?.sessionStorage) {
+      await page.evaluate((opts) => {
+        if (opts?.localStorage) {
+          // @ts-ignore - window is available in browser context
+          window.localStorage.clear();
+        }
+        if (opts?.sessionStorage) {
+          // @ts-ignore - window is available in browser context
+          window.sessionStorage.clear();
+        }
+      }, options);
+    }
+
+    await this.pageStore.touchActivity(pageId);
+  }
+
+  /**
+   * Check if page is active
+   */
+  async isPageActive(pageId: string): Promise<boolean> {
+    const pageInfo = await this.pageStore.get(pageId);
+    return pageInfo?.state === 'active';
+  }
+
+  /**
+   * Clean up idle pages
+   */
+  async cleanupIdlePages(idleTimeout: number): Promise<number> {
+    const now = Date.now();
+    const predicate = (pageInfo: PageInfo) => {
+      const idleTime = now - pageInfo.lastActivityAt.getTime();
+      return idleTime > idleTimeout;
+    };
+
+    const cleanedCount = await this.pageStore.cleanup(predicate);
+    
+    if (cleanedCount > 0) {
+      logger.info({ cleanedCount, idleTimeout }, 'Cleaned up idle pages');
+    }
+
+    return cleanedCount;
   }
 
   /**
@@ -407,3 +604,21 @@ export class PageManager extends EventEmitter implements IPageManager {
 
 // Re-export types
 export type { PageEvents };
+
+// Singleton factory
+let pageManagerInstance: PageManager | null = null;
+
+/**
+ * Get page manager instance
+ * @param browserPool - Browser pool instance (required on first call)
+ * @returns Page manager instance
+ */
+export function getPageManager(browserPool?: BrowserPool): PageManager {
+  if (!pageManagerInstance) {
+    if (!browserPool) {
+      throw new AppError('Browser pool required for page manager initialization', 500);
+    }
+    pageManagerInstance = new PageManager(browserPool);
+  }
+  return pageManagerInstance;
+}

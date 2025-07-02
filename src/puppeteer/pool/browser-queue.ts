@@ -149,7 +149,7 @@ export class BrowserQueue extends EventEmitter {
     priorityCounts: Record<number, number>;
   } {
     const now = Date.now();
-    const oldestWaitTime = this.queue.length > 0
+    const oldestWaitTime = this.queue.length > 0 && this.queue[0]
       ? now - this.queue[0].timestamp.getTime()
       : null;
 

@@ -269,11 +269,7 @@ describe('BrowserPool', () => {
     it('should close pages', async () => {
       await pool.createPage(instance.id, 'session-123');
       
-      // Get the page ID from the internal structure
-      const state = (pool as any).browsers.get(instance.id);
-      const pageId = Array.from(state.pages.keys())[0];
-      
-      await pool.closePage(instance.id, pageId, 'session-123');
+      await pool.closePage(instance.id, 'session-123');
       
       expect(mockPage.close).toHaveBeenCalled();
       expect(instance.pageCount).toBe(0);

@@ -31,8 +31,8 @@ export async function configurePageOptions(
   }
 
   // Set extra HTTP headers
-  if (options.extraHTTPHeaders) {
-    await page.setExtraHTTPHeaders(options.extraHTTPHeaders);
+  if (options.extraHeaders) {
+    await page.setExtraHTTPHeaders(options.extraHeaders);
   }
 
   // Set JavaScript enabled/disabled
@@ -45,22 +45,6 @@ export async function configurePageOptions(
     await page.setOfflineMode(options.offline);
   }
 
-  // Set HTTP credentials
-  if (options.httpCredentials) {
-    await page.authenticate(options.httpCredentials);
-  }
-
-  // Set geolocation
-  if (options.geolocation) {
-    await page.setGeolocation(options.geolocation);
-  }
-
-  // Set permissions
-  if (options.permissions && options.permissions.length > 0) {
-    const origin = page.url() || 'https://example.com';
-    await page.browserContext().overridePermissions(origin, options.permissions);
-  }
-
   // Set cookies
   if (options.cookies && options.cookies.length > 0) {
     await setCookies(page, options.cookies);
@@ -69,11 +53,6 @@ export async function configurePageOptions(
   // Set cache enabled/disabled
   if (options.cacheEnabled !== undefined) {
     await page.setCacheEnabled(options.cacheEnabled);
-  }
-
-  // Configure request interception
-  if (options.requestInterception) {
-    await configureRequestInterception(page, options.requestInterception);
   }
 }
 
@@ -108,30 +87,3 @@ async function setCookies(page: Page, cookies: Cookie[]): Promise<void> {
   }
 }
 
-/**
- * Configure request interception
- */
-async function configureRequestInterception(
-  page: Page,
-  config: NonNullable<PageOptions['requestInterception']>
-): Promise<void> {
-  await page.setRequestInterception(true);
-
-  page.on('request', (request) => {
-    const url = request.url();
-    
-    // Check blocked patterns
-    if (config.blockPatterns?.some(pattern => url.includes(pattern))) {
-      void request.abort('blockedbyclient');
-      return;
-    }
-
-    // Check resource types
-    if (config.blockResourceTypes?.includes(request.resourceType())) {
-      void request.abort('blockedbyclient');
-      return;
-    }
-
-    void request.continue();
-  });
-}

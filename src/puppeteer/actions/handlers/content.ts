@@ -36,6 +36,22 @@ function buildScreenshotOptions(action: ScreenshotAction): Parameters<Page['scre
 }
 
 /**
+ * Build PDF margin options
+ */
+function buildPdfMargins(margin?: PDFAction['margin']): Parameters<Page['pdf']>[0]['margin'] {
+  if (!margin) {
+    return undefined;
+  }
+  
+  return {
+    top: margin.top ?? '0.5in',
+    bottom: margin.bottom ?? '0.5in',
+    left: margin.left ?? '0.5in',
+    right: margin.right ?? '0.5in',
+  };
+}
+
+/**
  * Build PDF options from action
  */
 function buildPdfOptions(action: PDFAction): Parameters<Page['pdf']>[0] {
@@ -56,13 +72,9 @@ function buildPdfOptions(action: PDFAction): Parameters<Page['pdf']>[0] {
   }
 
   // Add margins if specified
-  if (action.margin) {
-    pdfOptions.margin = {
-      top: action.margin.top ?? '0.5in',
-      bottom: action.margin.bottom ?? '0.5in',
-      left: action.margin.left ?? '0.5in',
-      right: action.margin.right ?? '0.5in',
-    };
+  const margins = buildPdfMargins(action.margin);
+  if (margins) {
+    pdfOptions.margin = margins;
   }
 
   return pdfOptions;
@@ -332,12 +344,15 @@ export async function handleContent(
         timeout: action.timeout ?? 30000,
       });
 
-      content = await page.$eval(sanitizedSelector, (el) => {
-        const element = el as HTMLElement;
-        if (element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement) {
-          return element.value;
+      content = await page.$eval(sanitizedSelector, (el: Element): string => {
+        // Check if element has a value property (input/textarea)
+        if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement) {
+          const value: string = el.value;
+          return value;
         }
-        return element.textContent ?? '';
+        // Otherwise get text content
+        const textContent: string = el.textContent ?? '';
+        return textContent;
       });
       
       contentType = 'element';

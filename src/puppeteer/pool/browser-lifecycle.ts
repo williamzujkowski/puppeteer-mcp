@@ -5,7 +5,7 @@
  * @nist ac-12 "Session termination"
  */
 
-import puppeteer, { type Browser, type PuppeteerLaunchOptions } from 'puppeteer';
+import puppeteer, { type Browser, type LaunchOptions } from 'puppeteer';
 import { v4 as uuidv4 } from 'uuid';
 import { createLogger } from '../../utils/logger.js';
 import type { BrowserInstance, BrowserPoolOptions } from '../interfaces/browser-pool.interface.js';
@@ -25,9 +25,10 @@ export async function launchBrowser(
   logger.info({ browserId }, 'Launching new browser');
 
   try {
-    const launchOptions: PuppeteerLaunchOptions = {
-      headless: options.headless ?? true,
-      args: options.args ?? [
+    const launchOptions: LaunchOptions = {
+      ...options.launchOptions,
+      headless: options.launchOptions?.headless ?? true,
+      args: options.launchOptions?.args ?? [
         '--no-sandbox',
         '--disable-setuid-sandbox',
         '--disable-dev-shm-usage',
@@ -38,14 +39,11 @@ export async function launchBrowser(
         '--disable-features=IsolateOrigins',
         '--disable-site-isolation-trials',
       ],
-      defaultViewport: options.defaultViewport ?? {
+      defaultViewport: options.launchOptions?.defaultViewport ?? {
         width: 1920,
         height: 1080,
       },
-      timeout: options.launchTimeout ?? 30000,
-      ignoreDefaultArgs: options.ignoreDefaultArgs,
-      executablePath: options.executablePath,
-      env: options.env,
+      timeout: options.launchOptions?.timeout ?? 30000,
     };
 
     const browser = await puppeteer.launch(launchOptions);
@@ -56,12 +54,10 @@ export async function launchBrowser(
     const instance: BrowserInstance = {
       id: browserId,
       browser,
-      state: 'active',
       createdAt: new Date(),
-      lastActivity: new Date(),
-      sessionId: null,
+      lastUsedAt: new Date(),
+      useCount: 0,
       pageCount: 0,
-      errorCount: 0,
     };
 
     const launchTime = Date.now() - startTime;
@@ -159,8 +155,7 @@ export async function restartBrowser(
   const result = await launchBrowser(options);
 
   // Preserve some state
-  result.instance.sessionId = instance.sessionId;
-  result.instance.errorCount = 0; // Reset error count
+  result.instance.useCount = instance.useCount;
 
   return result;
 }
@@ -173,11 +168,8 @@ export function isIdleTooLong(
   instance: BrowserInstance,
   maxIdleTime: number
 ): boolean {
-  if (instance.state !== 'idle') {
-    return false;
-  }
-
-  const idleTime = Date.now() - instance.lastActivity.getTime();
+  // Check if the browser has been idle for too long
+  const idleTime = Date.now() - instance.lastUsedAt.getTime();
   return idleTime > maxIdleTime;
 }
 
@@ -186,16 +178,16 @@ export function isIdleTooLong(
  */
 export function needsRestart(
   instance: BrowserInstance,
-  maxErrors: number = 10,
+  maxUses: number = 100,
   maxAge: number = 24 * 60 * 60 * 1000 // 24 hours
 ): boolean {
-  // Too many errors
-  if (instance.errorCount >= maxErrors) {
+  // Too many uses
+  if (instance.useCount >= maxUses) {
     logger.warn({
       browserId: instance.id,
-      errorCount: instance.errorCount,
-      maxErrors,
-    }, 'Browser needs restart due to errors');
+      useCount: instance.useCount,
+      maxUses,
+    }, 'Browser needs restart due to usage');
     return true;
   }
 

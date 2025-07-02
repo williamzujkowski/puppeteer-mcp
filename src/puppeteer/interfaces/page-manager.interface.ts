@@ -217,9 +217,8 @@ export interface PageManager {
   /**
    * Close all pages for a context
    * @param contextId - Context identifier
-   * @param sessionId - Session identifier for validation
    */
-  closePagesForContext(contextId: string, sessionId: string): Promise<void>;
+  closePagesForContext(contextId: string): Promise<void>;
   
   /**
    * Close all pages for a session

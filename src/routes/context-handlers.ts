@@ -220,8 +220,7 @@ export class ContextHandlers {
         try {
           const pageManager = getPageManager(this.browserPool);
           await pageManager.closePagesForContext(
-            contextId as string,
-            req.user.sessionId || req.user.userId
+            contextId as string
           );
         } catch (pageError) {
           // Log but don't fail context deletion if page cleanup fails
