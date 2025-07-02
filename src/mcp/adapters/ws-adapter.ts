@@ -187,7 +187,7 @@ export class WebSocketAdapter implements ProtocolAdapter {
     // Set up auto-cleanup if duration specified
     if (operation.duration) {
       setTimeout(() => {
-        this.cleanupSubscription(connection, subscriptionId);
+        void this.cleanupSubscription(connection, subscriptionId);
       }, operation.duration);
     }
 

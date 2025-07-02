@@ -244,7 +244,7 @@ describe('WebSocketAdapter', () => {
       const endpoints = JSON.parse(result.content[0].text as string);
       
       expect(endpoints.endpoints).toHaveLength(4);
-      expect(endpoints.endpoints.map((e: any) => e.operation)).toEqual([
+      expect(endpoints.endpoints.map((e: any) => e.operation as string)).toEqual([
         'subscribe',
         'unsubscribe',
         'send',
@@ -393,7 +393,7 @@ describe('WebSocketAdapter', () => {
         on: jest.fn((event, handler) => {
           if (event === 'close') {
             // Simulate close event
-            setTimeout(() => handler(), 0);
+            setTimeout(() => { handler(); }, 0);
           }
         }),
       } as any;
@@ -404,8 +404,9 @@ describe('WebSocketAdapter', () => {
       await (adapter as any).ensureConnection(undefined, connectionId);
 
       // Wait for close handler to execute
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise<void>(resolve => { setTimeout(resolve, 10); });
 
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(mockConnectionManager.removeConnection).toHaveBeenCalledWith(connectionId);
     });
 
