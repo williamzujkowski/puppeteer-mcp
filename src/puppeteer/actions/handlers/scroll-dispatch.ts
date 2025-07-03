@@ -12,14 +12,24 @@ import { handleScrollPage, handleScrollToCoordinates, handleSmoothScroll } from 
  * Check if action is scroll to element
  */
 function isScrollToElement(action: ScrollAction): boolean {
-  return action.toElement === true && action.selector !== null && action.selector !== undefined && action.selector !== '';
+  return (
+    action.toElement === true &&
+    action.selector !== null &&
+    action.selector !== undefined &&
+    action.selector !== ''
+  );
 }
 
 /**
  * Check if action is scroll within element
  */
 function isScrollWithinElement(action: ScrollAction): boolean {
-  return action.selector !== null && action.selector !== undefined && action.selector !== '' && action.toElement !== true;
+  return (
+    action.selector !== null &&
+    action.selector !== undefined &&
+    action.selector !== '' &&
+    action.toElement !== true
+  );
 }
 
 /**
@@ -37,37 +47,78 @@ function isSmoothScroll(action: ScrollAction): boolean {
 }
 
 /**
+ * Handle scroll to element action
+ */
+function executeScrollToElement(
+  action: ScrollAction,
+  page: Page,
+  context: ActionContext,
+): Promise<unknown> {
+  if (!action.selector) {
+    throw new Error('Selector is required for scroll to element');
+  }
+  return handleScrollToElement(action.selector, page, context);
+}
+
+/**
+ * Handle scroll within element action
+ */
+function executeScrollWithinElement(
+  action: ScrollAction,
+  page: Page,
+  context: ActionContext,
+): Promise<unknown> {
+  if (!action.selector) {
+    throw new Error('Selector is required for scroll within element');
+  }
+  return handleScrollWithinElement({
+    selector: action.selector,
+    direction: action.direction ?? 'down',
+    distance: action.distance ?? 100,
+    page,
+    context,
+  });
+}
+
+/**
+ * Handle scroll to coordinates action
+ */
+function executeScrollToCoordinates(
+  action: ScrollAction,
+  page: Page,
+  context: ActionContext,
+): Promise<unknown> {
+  if (action.x === undefined || action.y === undefined) {
+    throw new Error('Both x and y coordinates are required');
+  }
+  return handleScrollToCoordinates(action.x, action.y, page, context);
+}
+
+/**
  * Dispatch scroll action to appropriate handler
  * @param action - Scroll action
  * @param page - Puppeteer page instance
  * @param context - Action execution context
  * @returns Scroll result
  */
-// eslint-disable-next-line @typescript-eslint/require-await, require-await
-export async function dispatchScrollAction(
+export function dispatchScrollAction(
   action: ScrollAction,
   page: Page,
-  context: ActionContext
+  context: ActionContext,
 ): Promise<unknown> {
   // Scroll to element
   if (isScrollToElement(action)) {
-    return handleScrollToElement(action.selector!, page, context);
+    return executeScrollToElement(action, page, context);
   }
 
   // Scroll within element
   if (isScrollWithinElement(action)) {
-    return handleScrollWithinElement({
-      selector: action.selector!,
-      direction: action.direction ?? 'down',
-      distance: action.distance ?? 100,
-      page,
-      context
-    });
+    return executeScrollWithinElement(action, page, context);
   }
 
   // Scroll to coordinates
   if (isScrollToCoordinates(action)) {
-    return handleScrollToCoordinates(action.x!, action.y!, page, context);
+    return executeScrollToCoordinates(action, page, context);
   }
 
   // Smooth scroll
@@ -75,6 +126,6 @@ export async function dispatchScrollAction(
     return handleSmoothScroll(action, page, context, action.duration);
   }
 
-  // Normal page scroll
+  // Default: Normal page scroll
   return handleScrollPage(action, page, context);
 }
