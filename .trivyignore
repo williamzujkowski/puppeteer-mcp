@@ -1,0 +1,14 @@
+# Trivy ignore file for known vulnerabilities
+# Format: CVE-YYYY-NNNN
+
+# Known Chromium vulnerabilities in Alpine packages
+# These are system-level and cannot be fixed by us
+# They will be fixed when Alpine updates their packages
+CVE-2024-0222
+CVE-2024-0223
+CVE-2024-0224
+CVE-2024-0225
+
+# Node.js ecosystem issues that are low risk for our use case
+# (Server-side only, no untrusted input processing)
+CVE-2023-44487

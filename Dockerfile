@@ -65,19 +65,19 @@ WORKDIR /app
 # @nist ac-6 "Least Privilege"
 # @nist sc-13 "Cryptographic Protection"
 
-# Install Puppeteer dependencies and security updates
-# Required for Chromium to run in Alpine
-RUN apk add --no-cache \
+# Update base image and install only essential Puppeteer dependencies
+# Using --no-cache to ensure we get the latest security patches
+RUN apk update && \
+    apk upgrade --no-cache && \
+    apk add --no-cache \
     dumb-init \
     chromium \
     nss \
     freetype \
-    freetype-dev \
     harfbuzz \
     ca-certificates \
     ttf-freefont \
-    && apk upgrade --no-cache \
-    && rm -rf /var/cache/apk/*
+    && rm -rf /var/cache/apk/* /tmp/*
 
 # Tell Puppeteer to use installed Chromium instead of downloading
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
