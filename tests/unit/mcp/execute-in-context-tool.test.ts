@@ -32,6 +32,7 @@ describe('MCP Execute-in-Context Tool', () => {
   let mcpServer: MCPServer;
   let mockApp: Partial<Application>;
   let mockRestAdapter: any;
+  let executeInContextTool: any;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -49,6 +50,10 @@ describe('MCP Execute-in-Context Tool', () => {
 
     // Replace the REST adapter with our mock
     (mcpServer as any).restAdapter = mockRestAdapter;
+
+    // Get the executeInContextTool instance and replace its restAdapter
+    executeInContextTool = (mcpServer as any).executeInContextTool;
+    executeInContextTool.restAdapter = mockRestAdapter;
   });
 
   describe('execute-in-context tool', () => {
@@ -76,7 +81,7 @@ describe('MCP Execute-in-Context Tool', () => {
       });
 
       // Act
-      const result = await (mcpServer as any).executeInContextTool.execute({
+      const result = await executeInContextTool.execute({
         contextId,
         command,
         parameters,
@@ -108,7 +113,7 @@ describe('MCP Execute-in-Context Tool', () => {
 
     it('should handle missing contextId', async () => {
       // Act
-      const result = await (mcpServer as any).executeInContextTool.execute({
+      const result = await executeInContextTool.execute({
         command: 'navigate',
         parameters: { url: 'https://example.com' },
       });
@@ -124,7 +129,7 @@ describe('MCP Execute-in-Context Tool', () => {
 
     it('should handle missing command', async () => {
       // Act
-      const result = await (mcpServer as any).executeInContextTool.execute({
+      const result = await executeInContextTool.execute({
         contextId: 'test-context-123',
         parameters: { url: 'https://example.com' },
       });
@@ -154,7 +159,7 @@ describe('MCP Execute-in-Context Tool', () => {
       });
 
       // Act
-      await (mcpServer as any).executeInContextTool.execute({
+      await executeInContextTool.execute({
         contextId,
         command,
         sessionId,
@@ -184,7 +189,7 @@ describe('MCP Execute-in-Context Tool', () => {
       mockRestAdapter.executeRequest.mockRejectedValue(error);
 
       // Act
-      const result = await (mcpServer as any).executeInContextTool.execute({
+      const result = await executeInContextTool.execute({
         contextId: 'test-context-123',
         command: 'navigate',
         parameters: { url: 'https://example.com' },
@@ -211,7 +216,7 @@ describe('MCP Execute-in-Context Tool', () => {
       });
 
       // Act
-      const result = await (mcpServer as any).executeInContextTool.execute({
+      const result = await executeInContextTool.execute({
         contextId: 'test-context-123',
         command: 'navigate',
       });

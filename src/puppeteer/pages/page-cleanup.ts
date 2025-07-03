@@ -29,7 +29,7 @@ export interface CleanupResult {
 export async function closeContextPages(
   contextId: string,
   pages: Map<string, Page>,
-  pageStore: PageInfoStore
+  pageStore: PageInfoStore,
 ): Promise<CleanupResult> {
   logger.info({ contextId }, 'Closing all pages for context');
 
@@ -43,11 +43,14 @@ export async function closeContextPages(
       closedCount++;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      logger.error({
-        contextId,
-        pageId: pageInfo.id,
-        error: errorMessage,
-      }, 'Failed to close page');
+      logger.error(
+        {
+          contextId,
+          pageId: pageInfo.id,
+          error: errorMessage,
+        },
+        'Failed to close page',
+      );
       errors.push({ pageId: pageInfo.id, error: errorMessage });
     }
   }
@@ -66,7 +69,7 @@ export async function closeContextPages(
 export async function closeSessionPages(
   sessionId: string,
   pages: Map<string, Page>,
-  pageStore: PageInfoStore
+  pageStore: PageInfoStore,
 ): Promise<Map<string, CleanupResult>> {
   logger.info({ sessionId }, 'Closing all pages for session');
 
@@ -113,7 +116,7 @@ export async function closeSessionPages(
 export async function closePage(
   pageId: string,
   pages: Map<string, Page>,
-  pageStore: PageInfoStore
+  pageStore: PageInfoStore,
 ): Promise<void> {
   const page = pages.get(pageId);
   if (!page) {
@@ -127,7 +130,12 @@ export async function closePage(
 
     // Close the page
     if (!page.isClosed()) {
-      await page.close();
+      try {
+        await page.close();
+      } catch (error) {
+        // Log the error but don't throw - cleanup should continue
+        logger.warn({ pageId, error }, 'Failed to close page, continuing with cleanup');
+      }
     }
   } finally {
     // Always clean up from stores
@@ -143,7 +151,7 @@ export async function closePage(
 export async function performPeriodicCleanup(
   pages: Map<string, Page>,
   pageStore: PageInfoStore,
-  maxIdleTime: number = 30 * 60 * 1000 // 30 minutes
+  maxIdleTime: number = 30 * 60 * 1000, // 30 minutes
 ): Promise<number> {
   const now = Date.now();
   const allPages = await pageStore.listAll();
@@ -156,15 +164,21 @@ export async function performPeriodicCleanup(
       try {
         await closePage(pageInfo.id, pages, pageStore);
         cleanedCount++;
-        logger.info({
-          pageId: pageInfo.id,
-          idleTime,
-        }, 'Cleaned up idle page');
+        logger.info(
+          {
+            pageId: pageInfo.id,
+            idleTime,
+          },
+          'Cleaned up idle page',
+        );
       } catch (error) {
-        logger.error({
-          pageId: pageInfo.id,
-          error: error instanceof Error ? error.message : 'Unknown error',
-        }, 'Failed to clean up idle page');
+        logger.error(
+          {
+            pageId: pageInfo.id,
+            error: error instanceof Error ? error.message : 'Unknown error',
+          },
+          'Failed to clean up idle page',
+        );
       }
     }
   }

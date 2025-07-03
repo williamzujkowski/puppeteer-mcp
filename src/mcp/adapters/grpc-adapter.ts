@@ -391,16 +391,32 @@ export class GrpcAdapter implements ProtocolAdapter {
     // The services are stored in the server's handlers
     // This is implementation-specific and may need adjustment
     const server = this.server.getServer() as unknown as {
-      handlers: Map<string, GrpcServiceHandler>;
+      handlers: Map<string, unknown>;
     };
     const handlers = server.handlers;
 
     if (handlers instanceof Map) {
+      // Build service object by collecting all methods for this service
+      const serviceObj: GrpcServiceHandler = {};
+
       for (const [key, handler] of handlers) {
         if (key.includes(serviceName)) {
-          return handler;
+          // Extract method name from the key (e.g., "/mcp.control.v1.SessionService/CreateSession" -> "CreateSession")
+          const methodName = key.split('/').pop();
+          if (methodName && typeof handler === 'function') {
+            // Use Object.defineProperty to avoid object injection vulnerability
+            Object.defineProperty(serviceObj, methodName, {
+              value: handler as GrpcServiceHandler[string],
+              writable: true,
+              enumerable: true,
+              configurable: true,
+            });
+          }
         }
       }
+
+      // Return the service object if it has methods, otherwise null
+      return Object.keys(serviceObj).length > 0 ? serviceObj : null;
     }
 
     return null;
@@ -456,33 +472,64 @@ export class GrpcAdapter implements ProtocolAdapter {
   }
 
   /**
-   * Transform error to MCP response format
-   * @nist au-3 "Content of audit records"
-   * @nist si-11 "Error handling"
+   * Check if error is a gRPC error
    */
-  private transformErrorToMCPResponse(error: unknown, requestId: string): MCPResponse {
-    let errorMessage = 'Unknown error occurred';
-    let errorCode = 'UNKNOWN';
-    let statusCode = 500;
-
-    if (
+  private isGrpcError(error: unknown): error is { code: grpc.status; message: string } {
+    return (
       error !== null &&
       error !== undefined &&
       typeof error === 'object' &&
       'code' in error &&
       'message' in error
-    ) {
-      const grpcError = error as { code: grpc.status; message: string };
-      errorMessage = grpcError.message;
-      errorCode = grpc.status[grpcError.code] ?? 'UNKNOWN';
-      statusCode = this.grpcStatusToHttp(grpcError.code);
-    } else if (error instanceof AppError) {
-      errorMessage = error.message;
-      errorCode = 'APP_ERROR';
-      statusCode = error.statusCode;
-    } else if (error instanceof Error) {
-      errorMessage = error.message;
+    );
+  }
+
+  /**
+   * Extract error details from various error types
+   */
+  private extractErrorDetails(error: unknown): {
+    errorMessage: string;
+    errorCode: string;
+    statusCode: number;
+  } {
+    if (this.isGrpcError(error)) {
+      return {
+        errorMessage: error.message,
+        errorCode: grpc.status[error.code] ?? 'UNKNOWN',
+        statusCode: this.grpcStatusToHttp(error.code),
+      };
     }
+
+    if (error instanceof AppError) {
+      return {
+        errorMessage: error.message,
+        errorCode: (error.details?.type as string) || error.name || 'APP_ERROR',
+        statusCode: error.statusCode,
+      };
+    }
+
+    if (error instanceof Error) {
+      return {
+        errorMessage: error.message,
+        errorCode: 'UNKNOWN',
+        statusCode: 500,
+      };
+    }
+
+    return {
+      errorMessage: 'Unknown error occurred',
+      errorCode: 'UNKNOWN',
+      statusCode: 500,
+    };
+  }
+
+  /**
+   * Transform error to MCP response format
+   * @nist au-3 "Content of audit records"
+   * @nist si-11 "Error handling"
+   */
+  private transformErrorToMCPResponse(error: unknown, requestId: string): MCPResponse {
+    const { errorMessage, errorCode, statusCode } = this.extractErrorDetails(error);
 
     return {
       content: [

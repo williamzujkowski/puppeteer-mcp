@@ -16,11 +16,11 @@ import {
 import { logger } from '../utils/logger.js';
 import { InMemorySessionStore } from '../store/in-memory-session-store.js';
 import { MCPAuthBridge } from './auth/mcp-auth.js';
-import { 
-  TransportType, 
-  getTransportType, 
-  createStdioTransport, 
-  createHttpTransport 
+import {
+  TransportType,
+  getTransportType,
+  createStdioTransport,
+  createHttpTransport,
 } from './transport/index.js';
 import { RestAdapter } from './adapters/rest-adapter.js';
 import { GrpcAdapter } from './adapters/grpc-adapter.js';
@@ -42,13 +42,13 @@ import { ApiCatalogResource } from './resources/api-catalog.js';
 import { SystemHealthResource } from './resources/system-health.js';
 
 // Import types
-import type { 
+import type {
   ExecuteApiArgs,
   CreateSessionArgs,
   ListSessionsArgs,
   DeleteSessionArgs,
   CreateBrowserContextArgs,
-  ExecuteInContextArgs 
+  ExecuteInContextArgs,
 } from './types/tool-types.js';
 
 // Create store instance
@@ -65,22 +65,18 @@ export class MCPServer {
   private restAdapter?: RestAdapter;
   private grpcAdapter?: GrpcAdapter;
   private wsAdapter?: WebSocketAdapter;
-  
+
   // Tool handlers
   private executeApiTool: ExecuteApiTool;
-  private sessionTools: SessionTools;
-  private browserContextTool: BrowserContextTool;
+  public sessionTools: SessionTools;
+  public browserContextTool: BrowserContextTool;
   private executeInContextTool: ExecuteInContextTool;
-  
+
   // Resource handlers
   private apiCatalogResource: ApiCatalogResource;
   private systemHealthResource: SystemHealthResource;
 
-  constructor(
-    app?: Application,
-    grpcServer?: GrpcServer,
-    wsServer?: any
-  ) {
+  constructor(app?: Application, grpcServer?: GrpcServer, wsServer?: any) {
     this.server = new Server(
       {
         name: 'puppeteer-mcp',
@@ -92,20 +88,20 @@ export class MCPServer {
           tools: {},
           prompts: {},
         },
-      }
+      },
     );
-    
+
     // Initialize protocol adapters
     if (app) {
       this.restAdapter = new RestAdapter(app);
     }
-    
+
     if (grpcServer) {
       // GrpcAdapter expects a specific GrpcServer type, not the generic grpc.Server
       // For now, we'll cast it as any to avoid type issues
       this.grpcAdapter = new GrpcAdapter(grpcServer as any);
     }
-    
+
     if (wsServer) {
       // WebSocketAdapter needs logger and managers, we'll create minimal ones
       const wsLogger = logger.child({ module: 'ws-adapter' });
@@ -113,17 +109,17 @@ export class MCPServer {
       const subscriptionManager = new WSSubscriptionManager(wsLogger, connectionManager);
       this.wsAdapter = new WebSocketAdapter(wsLogger, connectionManager, subscriptionManager);
     }
-    
+
     // Initialize tool handlers
     this.executeApiTool = new ExecuteApiTool(this.restAdapter, this.grpcAdapter, this.wsAdapter);
     this.sessionTools = new SessionTools(sessionStore);
     this.browserContextTool = new BrowserContextTool(authBridge);
     this.executeInContextTool = new ExecuteInContextTool(this.restAdapter);
-    
+
     // Initialize resource handlers
     this.apiCatalogResource = new ApiCatalogResource(this.restAdapter);
     this.systemHealthResource = new SystemHealthResource();
-    
+
     this.setupHandlers();
   }
 
@@ -149,7 +145,7 @@ export class MCPServer {
     // Execute tool calls
     this.server.setRequestHandler(CallToolRequestSchema, async (request) => {
       const { name, arguments: args } = request.params;
-      
+
       logger.info({
         msg: 'MCP tool execution',
         tool: name,
@@ -167,7 +163,9 @@ export class MCPServer {
           case 'delete-session':
             return await this.sessionTools.deleteSession(args as unknown as DeleteSessionArgs);
           case 'create-browser-context':
-            return await this.browserContextTool.createBrowserContext(args as unknown as CreateBrowserContextArgs);
+            return await this.browserContextTool.createBrowserContext(
+              args as unknown as CreateBrowserContextArgs,
+            );
           case 'execute-in-context':
             return await this.executeInContextTool.execute(args as unknown as ExecuteInContextArgs);
           default:
@@ -211,7 +209,7 @@ export class MCPServer {
     // Read resource content
     this.server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
       const { uri } = request.params;
-      
+
       logger.info({
         msg: 'MCP resource access',
         resource: uri,
@@ -242,7 +240,7 @@ export class MCPServer {
    */
   async start(): Promise<void> {
     const transportType = getTransportType();
-    
+
     logger.info({
       msg: 'Starting MCP server',
       transportType,
@@ -254,22 +252,24 @@ export class MCPServer {
         const stdioTransport = createStdioTransport();
         await this.server.connect(stdioTransport.getTransport());
         // Await any async connection setup
-        await new Promise<void>(resolve => { setImmediate(resolve); });
-        
+        await new Promise<void>((resolve) => {
+          setImmediate(resolve);
+        });
+
         logger.info({
           msg: 'MCP server started with stdio transport',
           timestamp: new Date().toISOString(),
         });
         break;
       }
-      
+
       case TransportType.HTTP: {
         // HTTP transport requires a different approach
         // The MCP SDK doesn't directly support HTTP transport yet
         // We'll need to implement a custom bridge
         const httpTransport = createHttpTransport();
         await httpTransport.start();
-        
+
         logger.info({
           msg: 'MCP HTTP transport started',
           note: 'HTTP transport bridge implementation pending',
@@ -277,7 +277,7 @@ export class MCPServer {
         });
         break;
       }
-      
+
       default:
         throw new Error(`Unsupported transport type: ${String(transportType)}`);
     }
@@ -288,7 +288,7 @@ export class MCPServer {
    */
   async stop(): Promise<void> {
     await this.server.close();
-    
+
     logger.info({
       msg: 'MCP server stopped',
       timestamp: new Date().toISOString(),
@@ -302,5 +302,9 @@ export function createMCPServer(options?: {
   grpcServer?: GrpcServer;
   wsServer?: any;
 }): MCPServer {
-  return new MCPServer(options?.app ?? undefined, options?.grpcServer ?? undefined, options?.wsServer ?? undefined);
+  return new MCPServer(
+    options?.app ?? undefined,
+    options?.grpcServer ?? undefined,
+    options?.wsServer ?? undefined,
+  );
 }

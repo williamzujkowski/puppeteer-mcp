@@ -80,7 +80,7 @@ export interface CreatePageParams {
  * Create and configure page
  */
 export async function createAndConfigurePage(params: CreatePageParams): Promise<PageInfo> {
-  const { browserPool, browserId, pageId, pageInfo, options, pages, pageStore, emitter } = params;
+  const { browserPool, browserId, pageInfo, options, pages, pageStore, emitter } = params;
 
   // Create new page through browser pool
   const page = await browserPool.createPage(browserId, pageInfo.sessionId);
@@ -95,22 +95,24 @@ export async function createAndConfigurePage(params: CreatePageParams): Promise<
   pageInfo.title = await page.title();
   pageInfo.navigationHistory = [page.url()];
 
-  // Store page
-  pages.set(pageId, page);
-  await pageStore.create(pageInfo);
+  // Store page info and get the actual ID assigned by the store
+  const storedPageInfo = await pageStore.create(pageInfo);
 
-  // Set up event listeners
-  configurePageEventHandlers(page, pageId, emitter);
+  // Use the store-assigned ID for the pages map
+  pages.set(storedPageInfo.id, page);
+
+  // Set up event listeners using the correct page ID
+  configurePageEventHandlers(page, storedPageInfo.id, emitter);
 
   logger.info(
     {
-      pageId,
-      contextId: pageInfo.contextId,
-      sessionId: pageInfo.sessionId,
+      pageId: storedPageInfo.id,
+      contextId: storedPageInfo.contextId,
+      sessionId: storedPageInfo.sessionId,
       browserId,
     },
     'Page created successfully',
   );
 
-  return pageInfo;
+  return storedPageInfo;
 }

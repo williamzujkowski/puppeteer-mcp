@@ -78,14 +78,14 @@ export async function createPageImpl(params: CreatePageImplParams): Promise<Page
       emitter,
     });
 
-    // Get the actual page from the pages Map
-    const page = pages.get(pageId);
+    // Get the actual page from the pages Map using the store-assigned ID
+    const page = pages.get(result.id);
     if (page) {
-      setupPageStoreHandlers(page, pageInfo, pageStore, emitter);
+      setupPageStoreHandlers(page, result, pageStore, emitter);
     }
 
     // Emit creation event
-    emitter.emit('page:created', { pageInfo });
+    emitter.emit('page:created', { pageInfo: result });
 
     return result;
   } catch (error) {

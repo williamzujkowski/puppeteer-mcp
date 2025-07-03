@@ -255,9 +255,9 @@ describe('GrpcAdapter', () => {
   });
 
   describe('listEndpoints', () => {
-    it('should return all available gRPC endpoints', () => {
+    it('should return all available gRPC endpoints', async () => {
       // Act
-      const result = adapter.listEndpoints();
+      const result = await adapter.listEndpoints();
 
       // Assert
       expect(result.content).toHaveLength(1);
@@ -278,9 +278,9 @@ describe('GrpcAdapter', () => {
   });
 
   describe('getCapabilities', () => {
-    it('should return gRPC adapter capabilities', () => {
+    it('should return gRPC adapter capabilities', async () => {
       // Act
-      const capabilities = adapter.getCapabilities();
+      const capabilities = await adapter.getCapabilities();
 
       // Assert
       expect(capabilities.protocol).toBe('grpc');
@@ -336,7 +336,7 @@ describe('GrpcAdapter', () => {
 
     it('should handle AppError instances', async () => {
       // Arrange
-      const appError = new AppError('Custom app error', 422, 'VALIDATION_ERROR');
+      const appError = new AppError('Custom app error', 422, true, { type: 'VALIDATION_ERROR' });
 
       const mockService = {
         CreateSession: jest.fn(() => {

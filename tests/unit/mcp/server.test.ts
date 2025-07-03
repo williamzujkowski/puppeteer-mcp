@@ -19,11 +19,75 @@ jest.mock('../../../src/utils/logger.js', () => ({
     })),
   },
   logSecurityEvent: jest.fn().mockResolvedValue(undefined),
+  logDataAccess: jest.fn().mockResolvedValue(undefined),
   SecurityEventType: {
+    // Authentication events
     LOGIN_SUCCESS: 'LOGIN_SUCCESS',
     LOGIN_FAILURE: 'LOGIN_FAILURE',
+    ACCESS_GRANTED: 'ACCESS_GRANTED',
+    ACCESS_DENIED: 'ACCESS_DENIED',
+    PERMISSION_CHANGE: 'PERMISSION_CHANGE',
+
+    // API Key events
+    API_KEY_CREATED: 'API_KEY_CREATED',
+    API_KEY_REVOKED: 'API_KEY_REVOKED',
+    API_KEY_USED: 'API_KEY_USED',
+
+    // Data access events
+    DATA_ACCESS: 'DATA_ACCESS',
+    DATA_MODIFICATION: 'DATA_MODIFICATION',
+    DATA_DELETION: 'DATA_DELETION',
+    API_ACCESS: 'API_ACCESS',
     RESOURCE_CREATED: 'RESOURCE_CREATED',
+    RESOURCE_UPDATED: 'RESOURCE_UPDATED',
+    RESOURCE_DELETED: 'RESOURCE_DELETED',
+
+    // Security violations
+    INVALID_TOKEN: 'INVALID_TOKEN',
+    RATE_LIMIT_EXCEEDED: 'RATE_LIMIT_EXCEEDED',
+    SUSPICIOUS_ACTIVITY: 'SUSPICIOUS_ACTIVITY',
+    VALIDATION_FAILURE: 'VALIDATION_FAILURE',
+
+    // Connection events
+    CONNECTION_ATTEMPT: 'CONNECTION_ATTEMPT',
+    CONNECTION_ESTABLISHED: 'CONNECTION_ESTABLISHED',
+    CONNECTION_TERMINATED: 'CONNECTION_TERMINATED',
+    CONNECTION_CLOSED: 'CONNECTION_CLOSED',
+
+    // System events
+    CONFIG_CHANGE: 'CONFIG_CHANGE',
+    SERVICE_START: 'SERVICE_START',
+    SERVICE_STOP: 'SERVICE_STOP',
+    ERROR: 'ERROR',
+
+    // Command execution events
+    COMMAND_EXECUTED: 'COMMAND_EXECUTED',
+
+    // Session events
+    SESSION_CREATED: 'SESSION_CREATED',
+    SESSION_UPDATED: 'SESSION_UPDATED',
+    SESSION_DELETED: 'SESSION_DELETED',
   },
+}));
+
+// Mock the config
+jest.mock('../../../src/core/config.js', () => ({
+  config: {
+    jwtSecret: 'test-secret-key-for-testing-purposes-only',
+    jwtExpiresIn: '1h',
+    jwtRefreshExpiresIn: '7d',
+  },
+}));
+
+// Mock the JWT generation
+jest.mock('../../../src/auth/jwt.js', () => ({
+  generateTokenPair: jest.fn().mockReturnValue({
+    accessToken: 'mock-access-token',
+    refreshToken: 'mock-refresh-token',
+    expiresIn: 3600,
+  }),
+  verifyToken: jest.fn(),
+  extractTokenFromHeader: jest.fn(),
 }));
 
 describe('MCP Server Session Management', () => {
@@ -64,7 +128,7 @@ describe('MCP Server Session Management', () => {
     it('should fail with invalid credentials', async () => {
       const args = {
         username: 'invalid',
-        password: 'wrong',
+        password: 'wrongpassword123',
       };
 
       const result = await (server as any).sessionTools.createSession(args);
