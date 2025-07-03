@@ -9,21 +9,21 @@ import { MCPServer } from '../../../src/mcp/server.js';
 // import { contextStore } from '../../../src/store/context-store.js';
 // import { userService } from '../../../src/mcp/auth/user-service.js';
 // import { logger } from '../../../src/utils/logger.js';
-import { vi, describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import type { Application } from 'express';
 
 // Mock dependencies
-vi.mock('../../../src/store/context-store.js');
-vi.mock('../../../src/mcp/auth/user-service.js');
-vi.mock('../../../src/utils/logger.js', () => ({
+jest.mock('../../../src/store/context-store.js');
+jest.mock('../../../src/mcp/auth/user-service.js');
+jest.mock('../../../src/utils/logger.js', () => ({
   logger: {
-    info: vi.fn(),
-    error: vi.fn(),
-    child: vi.fn(() => ({
-      info: vi.fn(),
-      error: vi.fn(),
-      warn: vi.fn(),
-      debug: vi.fn(),
+    info: jest.fn(),
+    error: jest.fn(),
+    child: jest.fn(() => ({
+      info: jest.fn(),
+      error: jest.fn(),
+      warn: jest.fn(),
+      debug: jest.fn(),
     })),
   },
 }));
@@ -34,19 +34,19 @@ describe('MCP Execute-in-Context Tool', () => {
   let mockRestAdapter: any;
 
   beforeEach(() => {
-    vi.clearAllMocks();
-    
+    jest.clearAllMocks();
+
     // Create a mock Express app
     mockApp = {};
-    
+
     // Create mock REST adapter
     mockRestAdapter = {
-      executeRequest: vi.fn(),
+      executeRequest: jest.fn(),
     };
-    
+
     // Create MCP server instance
     mcpServer = new MCPServer(mockApp as Application);
-    
+
     // Replace the REST adapter with our mock
     (mcpServer as any).restAdapter = mockRestAdapter;
   });
@@ -57,29 +57,31 @@ describe('MCP Execute-in-Context Tool', () => {
       const contextId = 'test-context-123';
       const command = 'navigate';
       const parameters = { url: 'https://example.com' };
-      
+
       // Mock successful REST adapter response
       mockRestAdapter.executeRequest.mockResolvedValue({
-        content: [{
-          type: 'text',
-          text: JSON.stringify({
-            success: true,
-            result: { currentUrl: 'https://example.com' },
-          }),
-        }],
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({
+              success: true,
+              result: { currentUrl: 'https://example.com' },
+            }),
+          },
+        ],
         metadata: {
           status: 200,
           requestId: 'test-request-123',
         },
       });
-      
+
       // Act
-      const result = await (mcpServer as any).executeInContextTool({
+      const result = await (mcpServer as any).executeInContextTool.execute({
         contextId,
         command,
         parameters,
       });
-      
+
       // Assert
       expect(mockRestAdapter.executeRequest).toHaveBeenCalledWith({
         operation: {
@@ -93,10 +95,10 @@ describe('MCP Execute-in-Context Tool', () => {
         auth: undefined,
         sessionId: undefined,
       });
-      
+
       expect(result.content).toHaveLength(1);
       expect(result.content[0].type).toBe('text');
-      
+
       const responseData = JSON.parse(result.content[0].text);
       expect(responseData).toEqual({
         success: true,
@@ -106,15 +108,15 @@ describe('MCP Execute-in-Context Tool', () => {
 
     it('should handle missing contextId', async () => {
       // Act
-      const result = await (mcpServer as any).executeInContextTool({
+      const result = await (mcpServer as any).executeInContextTool.execute({
         command: 'navigate',
         parameters: { url: 'https://example.com' },
       });
-      
+
       // Assert
       expect(result.content).toHaveLength(1);
       expect(result.content[0].type).toBe('text');
-      
+
       const responseData = JSON.parse(result.content[0].text);
       expect(responseData.error).toBe('Context ID is required');
       expect(responseData.code).toBe('INVALID_CONTEXT_ID');
@@ -122,15 +124,15 @@ describe('MCP Execute-in-Context Tool', () => {
 
     it('should handle missing command', async () => {
       // Act
-      const result = await (mcpServer as any).executeInContextTool({
+      const result = await (mcpServer as any).executeInContextTool.execute({
         contextId: 'test-context-123',
         parameters: { url: 'https://example.com' },
       });
-      
+
       // Assert
       expect(result.content).toHaveLength(1);
       expect(result.content[0].type).toBe('text');
-      
+
       const responseData = JSON.parse(result.content[0].text);
       expect(responseData.error).toBe('Command is required');
       expect(responseData.code).toBe('INVALID_COMMAND');
@@ -141,21 +143,23 @@ describe('MCP Execute-in-Context Tool', () => {
       const contextId = 'test-context-123';
       const command = 'navigate';
       const sessionId = 'test-session-456';
-      
+
       mockRestAdapter.executeRequest.mockResolvedValue({
-        content: [{
-          type: 'text',
-          text: JSON.stringify({ success: true }),
-        }],
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({ success: true }),
+          },
+        ],
       });
-      
+
       // Act
-      await (mcpServer as any).executeInContextTool({
+      await (mcpServer as any).executeInContextTool.execute({
         contextId,
         command,
         sessionId,
       });
-      
+
       // Assert
       expect(mockRestAdapter.executeRequest).toHaveBeenCalledWith({
         operation: {
@@ -178,18 +182,18 @@ describe('MCP Execute-in-Context Tool', () => {
       // Arrange
       const error = new Error('Network error');
       mockRestAdapter.executeRequest.mockRejectedValue(error);
-      
+
       // Act
-      const result = await (mcpServer as any).executeInContextTool({
+      const result = await (mcpServer as any).executeInContextTool.execute({
         contextId: 'test-context-123',
         command: 'navigate',
         parameters: { url: 'https://example.com' },
       });
-      
+
       // Assert
       expect(result.content).toHaveLength(1);
       expect(result.content[0].type).toBe('text');
-      
+
       const responseData = JSON.parse(result.content[0].text);
       expect(responseData.error).toBe('Network error');
       expect(responseData.code).toBe('EXECUTION_FAILED');
@@ -198,22 +202,24 @@ describe('MCP Execute-in-Context Tool', () => {
     it('should handle unparseable response gracefully', async () => {
       // Arrange
       mockRestAdapter.executeRequest.mockResolvedValue({
-        content: [{
-          type: 'text',
-          text: 'Not valid JSON',
-        }],
+        content: [
+          {
+            type: 'text',
+            text: 'Not valid JSON',
+          },
+        ],
       });
-      
+
       // Act
-      const result = await (mcpServer as any).executeInContextTool({
+      const result = await (mcpServer as any).executeInContextTool.execute({
         contextId: 'test-context-123',
         command: 'navigate',
       });
-      
+
       // Assert
       expect(result.content).toHaveLength(1);
       expect(result.content[0].type).toBe('text');
-      
+
       const responseData = JSON.parse(result.content[0].text);
       expect(responseData.result).toBe('Not valid JSON');
     });

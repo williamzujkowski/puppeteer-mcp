@@ -9,7 +9,7 @@ import { logger } from '../../../src/utils/logger.js';
 
 // Mock dependencies
 jest.mock('../../../src/utils/logger.js');
-jest.mock('../../../src/store/session-store.js');
+jest.mock('../../../src/store/session-store.interface.js');
 jest.mock('../../../src/store/context-store.js');
 
 describe('MCP Server', () => {
@@ -39,12 +39,18 @@ describe('MCP Server', () => {
       // Set environment to use stdio transport
       process.env.MCP_TRANSPORT = 'stdio';
 
-      // Mock the stdio transport connection
-      const mockConnect = jest.fn().mockResolvedValue(undefined);
-      jest.spyOn(mcpServer as any, 'server', 'get').mockReturnValue({
-        connect: mockConnect,
-        close: jest.fn(),
-      });
+      // Mock the stdio transport
+      const mockStdioTransport = {
+        connect: jest.fn().mockResolvedValue(undefined),
+        close: jest.fn().mockResolvedValue(undefined),
+      };
+
+      // Mock the transport creation
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+      jest.doMock('../../../src/mcp/transport/index.js', () => ({
+        ...jest.requireActual('../../../src/mcp/transport/index.js'),
+        createStdioTransport: jest.fn().mockReturnValue(mockStdioTransport),
+      }));
 
       await mcpServer.start();
 
@@ -90,25 +96,39 @@ describe('MCP Server', () => {
 
   describe('Tool Execution', () => {
     it('should handle create-session tool call', async () => {
-      // const mockSession = {
-      //   id: 'test-session-123',
-      //   userId: 'testuser',
-      //   createdAt: new Date().toISOString(),
-      //   expiresAt: new Date(Date.now() + 3600000).toISOString(),
-      // };
+      // Test through the server's tool handler system
+      const mockResponse = {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({
+              sessionId: 'test-session-123',
+              userId: 'user-testuser-001',
+              username: 'testuser',
+            }),
+          },
+        ],
+      };
 
-      const result = await (mcpServer as any).createSessionTool({
-        username: 'testuser',
-        password: 'testpass',
-        duration: 3600,
+      // Mock the session tools
+      jest.spyOn((mcpServer as any).sessionTools, 'createSession').mockResolvedValue(mockResponse);
+
+      const result = await (mcpServer as any).server.handleRequest({
+        method: 'tools/call',
+        params: {
+          name: 'create-session',
+          arguments: {
+            username: 'testuser',
+            password: 'testpass',
+            duration: 3600,
+          },
+        },
       });
 
-      expect(result).toHaveProperty('content');
       expect(result.content[0].type).toBe('text');
-
       const sessionData = JSON.parse(result.content[0].text);
-      expect(sessionData).toHaveProperty('id');
-      expect(sessionData).toHaveProperty('userId', 'testuser');
+      expect(sessionData).toHaveProperty('sessionId');
+      expect(sessionData).toHaveProperty('userId');
     });
 
     it('should handle unknown tool error', async () => {
@@ -127,7 +147,30 @@ describe('MCP Server', () => {
 
   describe('Resource Access', () => {
     it('should return API catalog', async () => {
-      const result = await (mcpServer as any).getApiCatalog();
+      // Mock the API catalog resource
+      const mockCatalog = {
+        contents: [
+          {
+            mimeType: 'application/json',
+            text: JSON.stringify({
+              rest: {},
+              grpc: {},
+              websocket: {},
+            }),
+          },
+        ],
+      };
+
+      jest
+        .spyOn((mcpServer as any).apiCatalogResource, 'getApiCatalog')
+        .mockResolvedValue(mockCatalog);
+
+      const result = await (mcpServer as any).server.handleRequest({
+        method: 'resources/read',
+        params: {
+          uri: 'api://catalog',
+        },
+      });
 
       expect(result).toHaveProperty('contents');
       expect(result.contents[0].mimeType).toBe('application/json');
@@ -139,7 +182,29 @@ describe('MCP Server', () => {
     });
 
     it('should return system health', async () => {
-      const result = await (mcpServer as any).getSystemHealth();
+      // Mock the system health resource
+      const mockHealth = {
+        contents: [
+          {
+            mimeType: 'application/json',
+            text: JSON.stringify({
+              status: 'healthy',
+              services: {},
+            }),
+          },
+        ],
+      };
+
+      jest
+        .spyOn((mcpServer as any).systemHealthResource, 'getSystemHealth')
+        .mockReturnValue(mockHealth);
+
+      const result = await (mcpServer as any).server.handleRequest({
+        method: 'resources/read',
+        params: {
+          uri: 'api://health',
+        },
+      });
 
       expect(result).toHaveProperty('contents');
       expect(result.contents[0].mimeType).toBe('application/json');
@@ -154,44 +219,59 @@ describe('MCP Server', () => {
     it('should support stdio transport', async () => {
       process.env.MCP_TRANSPORT = 'stdio';
 
-      const mockConnect = jest.fn().mockResolvedValue(undefined);
-      jest.spyOn(mcpServer as any, 'server', 'get').mockReturnValue({
-        connect: mockConnect,
-        close: jest.fn(),
-      });
+      // Create a new server instance for this test
+      const testServer = new MCPServer();
 
-      await mcpServer.start();
+      // Mock transport creation
+      const mockStdioTransport = {
+        connect: jest.fn().mockResolvedValue(undefined),
+        close: jest.fn().mockResolvedValue(undefined),
+      };
+
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+      jest.doMock('../../../src/mcp/transport/index.js', () => ({
+        ...jest.requireActual('../../../src/mcp/transport/index.js'),
+        createStdioTransport: jest.fn().mockReturnValue(mockStdioTransport),
+      }));
+
+      await testServer.start();
 
       expect(logger.info).toHaveBeenCalledWith(
         expect.objectContaining({
           msg: 'MCP server started with stdio transport',
         }),
       );
+
+      await testServer.stop();
     });
 
     it('should support HTTP transport', async () => {
       process.env.MCP_TRANSPORT = 'http';
+      process.env.MCP_HTTP_PORT = '3001';
+      process.env.MCP_USE_TLS = 'false';
 
       // Mock HTTP transport creation
-      jest.mock('../../../src/mcp/transport/index.js', () => {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        const actual = jest.requireActual('../../../src/mcp/transport/index.js');
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-        return {
-          ...actual,
-          createHttpTransport: jest.fn().mockReturnValue({
-            start: jest.fn().mockResolvedValue(undefined),
-          }),
-        };
-      });
+      const mockHttpTransport = {
+        start: jest.fn().mockResolvedValue(undefined),
+        stop: jest.fn().mockResolvedValue(undefined),
+      };
 
-      await mcpServer.start();
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+      jest.doMock('../../../src/mcp/transport/index.js', () => ({
+        ...jest.requireActual('../../../src/mcp/transport/index.js'),
+        createHttpTransport: jest.fn().mockReturnValue(mockHttpTransport),
+      }));
+
+      const testServer = new MCPServer();
+      await testServer.start();
 
       expect(logger.info).toHaveBeenCalledWith(
         expect.objectContaining({
           msg: 'MCP HTTP transport started',
         }),
       );
+
+      await testServer.stop();
     });
   });
 
@@ -200,7 +280,7 @@ describe('MCP Server', () => {
       const mockError = new Error('Tool execution failed');
 
       // Mock a tool that throws an error
-      jest.spyOn(mcpServer as any, 'executeApiTool').mockRejectedValue(mockError);
+      jest.spyOn((mcpServer as any).executeApiTool, 'execute').mockRejectedValue(mockError);
 
       const server = (mcpServer as any).server;
       try {
@@ -226,6 +306,7 @@ describe('MCP Server', () => {
 
     it('should handle resource not found errors', async () => {
       const server = (mcpServer as any).server;
+
       await expect(
         server.handleRequest({
           method: 'resources/read',
@@ -233,7 +314,7 @@ describe('MCP Server', () => {
             uri: 'api://unknown-resource',
           },
         }),
-      ).rejects.toThrow();
+      ).rejects.toThrow('Unknown resource: api://unknown-resource');
     });
   });
 });

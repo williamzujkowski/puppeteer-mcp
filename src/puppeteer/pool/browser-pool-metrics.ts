@@ -13,25 +13,27 @@ import type { InternalBrowserInstance } from './browser-pool-maintenance.js';
  */
 export function getPoolMetrics(
   browsers: Map<string, InternalBrowserInstance>,
-  maxBrowsers: number
+  maxBrowsers: number,
 ): PoolMetrics {
   const instances = Array.from(browsers.values());
 
   const totalPages = instances.reduce((sum, i) => sum + i.pageCount, 0);
   const activePages = totalPages; // Simplified - all pages are considered active
-  
+
+  // Use state for determining active vs idle instead of pageCount
+  const activeBrowsers = instances.filter((i) => i.state === 'active').length;
+  const idleBrowsers = instances.filter((i) => i.state === 'idle').length;
+
   return {
     totalBrowsers: browsers.size,
-    activeBrowsers: instances.filter(i => i.pageCount > 0).length,
-    idleBrowsers: instances.filter(i => i.pageCount === 0).length,
+    activeBrowsers,
+    idleBrowsers,
     totalPages,
     activePages,
     browsersCreated: 0, // TODO: Track this metric
     browsersDestroyed: 0, // TODO: Track this metric
     avgBrowserLifetime: 0, // TODO: Calculate this metric
-    utilizationPercentage: browsers.size > 0 
-      ? (instances.filter(i => i.pageCount > 0).length / maxBrowsers) * 100
-      : 0,
+    utilizationPercentage: browsers.size > 0 ? (activeBrowsers / maxBrowsers) * 100 : 0,
     lastHealthCheck: new Date(),
   };
 }

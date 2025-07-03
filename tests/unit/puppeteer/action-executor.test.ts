@@ -6,10 +6,10 @@
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
 import type { Page } from 'puppeteer';
 import { BrowserActionExecutor } from '../../../src/puppeteer/actions/action-executor.js';
-import type { 
-  ActionContext, 
+import type {
+  ActionContext,
   NavigateAction,
-  BrowserAction
+  BrowserAction,
 } from '../../../src/puppeteer/interfaces/action-executor.interface.js';
 
 // Mock logger
@@ -55,7 +55,7 @@ describe('BrowserActionExecutor', () => {
 
   beforeEach(() => {
     executor = new BrowserActionExecutor();
-    
+
     mockPage = {
       url: jest.fn().mockReturnValue('https://example.com'),
       goto: jest.fn(),
@@ -81,7 +81,7 @@ describe('BrowserActionExecutor', () => {
   describe('Constructor', () => {
     it('should initialize with default handlers', () => {
       const supportedActions = executor.getSupportedActions();
-      
+
       expect(supportedActions).toContain('navigate');
       expect(supportedActions).toContain('click');
       expect(supportedActions).toContain('type');
@@ -106,19 +106,19 @@ describe('BrowserActionExecutor', () => {
   describe('registerHandler and unregisterHandler', () => {
     it('should register custom handler', () => {
       const customHandler = jest.fn();
-      
+
       executor.registerHandler('custom-action', customHandler);
-      
+
       expect(executor.isActionSupported('custom-action')).toBe(true);
       expect(executor.getSupportedActions()).toContain('custom-action');
     });
 
     it('should unregister handler', () => {
       const customHandler = jest.fn();
-      
+
       executor.registerHandler('custom-action', customHandler);
       expect(executor.isActionSupported('custom-action')).toBe(true);
-      
+
       executor.unregisterHandler('custom-action');
       expect(executor.isActionSupported('custom-action')).toBe(false);
     });
@@ -162,9 +162,7 @@ describe('BrowserActionExecutor', () => {
       const { validateAction } = await import('../../../src/puppeteer/actions/validation.js');
       (validateAction as jest.jest.MockedFunction<typeof validateAction>).mockReturnValue({
         valid: false,
-        errors: [
-          { field: 'url', message: 'Invalid URL format', code: 'INVALID_URL' }
-        ],
+        errors: [{ field: 'url', message: 'Invalid URL format', code: 'INVALID_URL' }],
       });
 
       const action: NavigateAction = {
@@ -184,10 +182,12 @@ describe('BrowserActionExecutor', () => {
   describe('validateBatch', () => {
     it('should validate multiple actions', async () => {
       const { validateActionBatch } = await import('../../../src/puppeteer/actions/validation.js');
-      (validateActionBatch as jest.jest.MockedFunction<typeof validateActionBatch>).mockReturnValue([
-        { valid: true, errors: [] },
-        { valid: true, errors: [] },
-      ]);
+      (validateActionBatch as jest.jest.MockedFunction<typeof validateActionBatch>).mockReturnValue(
+        [
+          { valid: true, errors: [] },
+          { valid: true, errors: [] },
+        ],
+      );
 
       const actions: BrowserAction[] = [
         {
@@ -205,13 +205,15 @@ describe('BrowserActionExecutor', () => {
       const results = await executor.validateBatch(actions, context);
 
       expect(results).toHaveLength(2);
-      expect(results.every(r => r.valid)).toBe(true);
+      expect(results.every((r) => r.valid)).toBe(true);
       expect(validateActionBatch).toHaveBeenCalledWith(actions);
     });
 
     it('should handle batch validation errors', async () => {
       const { validateActionBatch } = await import('../../../src/puppeteer/actions/validation.js');
-      (validateActionBatch as jest.jest.MockedFunction<typeof validateActionBatch>).mockImplementation(() => {
+      (
+        validateActionBatch as jest.jest.MockedFunction<typeof validateActionBatch>
+      ).mockImplementation(() => {
         throw new Error('Batch validation error');
       });
 
@@ -234,12 +236,18 @@ describe('BrowserActionExecutor', () => {
   describe('execute', () => {
     beforeEach(() => {
       // Mock the private getPageInstance method
-      jest.spyOn(executor as any, 'getPageInstance').mockResolvedValue(mockPage);
+      if (!(executor as unknown as { getPageInstance?: unknown }).getPageInstance) {
+        (executor as any).getPageInstance = jest.fn().mockResolvedValue(mockPage);
+      } else {
+        jest.spyOn(executor as any, 'getPageInstance').mockResolvedValue(mockPage);
+      }
     });
 
     it('should execute valid action successfully', async () => {
       const { validateAction } = await import('../../../src/puppeteer/actions/validation.js');
-      const { handleNavigate } = await import('../../../src/puppeteer/actions/handlers/navigation.js');
+      const { handleNavigate } = await import(
+        '../../../src/puppeteer/actions/handlers/navigation.js'
+      );
 
       (validateAction as jest.MockedFunction<typeof validateAction>).mockReturnValue({
         valid: true,
@@ -272,9 +280,7 @@ describe('BrowserActionExecutor', () => {
 
       (validateAction as jest.MockedFunction<typeof validateAction>).mockReturnValue({
         valid: false,
-        errors: [
-          { field: 'url', message: 'Invalid URL', code: 'INVALID_URL' }
-        ],
+        errors: [{ field: 'url', message: 'Invalid URL', code: 'INVALID_URL' }],
       });
 
       const action: NavigateAction = {
@@ -314,7 +320,9 @@ describe('BrowserActionExecutor', () => {
 
     it('should handle handler execution errors', async () => {
       const { validateAction } = await import('../../../src/puppeteer/actions/validation.js');
-      const { handleNavigate } = await import('../../../src/puppeteer/actions/handlers/navigation.js');
+      const { handleNavigate } = await import(
+        '../../../src/puppeteer/actions/handlers/navigation.js'
+      );
 
       (validateAction as jest.MockedFunction<typeof validateAction>).mockReturnValue({
         valid: true,
@@ -322,7 +330,7 @@ describe('BrowserActionExecutor', () => {
       });
 
       (handleNavigate as jest.MockedFunction<typeof handleNavigate>).mockRejectedValue(
-        new Error('Navigation failed')
+        new Error('Navigation failed'),
       );
 
       const action: NavigateAction = {
@@ -340,13 +348,22 @@ describe('BrowserActionExecutor', () => {
 
   describe('executeBatch', () => {
     beforeEach(() => {
-      jest.spyOn(executor as any, 'getPageInstance').mockResolvedValue(mockPage);
+      // Mock the private getPageInstance method
+      if (!(executor as unknown as { getPageInstance?: unknown }).getPageInstance) {
+        (executor as any).getPageInstance = jest.fn().mockResolvedValue(mockPage);
+      } else {
+        jest.spyOn(executor as any, 'getPageInstance').mockResolvedValue(mockPage);
+      }
     });
 
     it('should execute multiple actions sequentially', async () => {
       const { validateActionBatch } = await import('../../../src/puppeteer/actions/validation.js');
-      const { handleNavigate } = await import('../../../src/puppeteer/actions/handlers/navigation.js');
-      const { handleClick } = await import('../../../src/puppeteer/actions/handlers/interaction.js');
+      const { handleNavigate } = await import(
+        '../../../src/puppeteer/actions/handlers/navigation.js'
+      );
+      const { handleClick } = await import(
+        '../../../src/puppeteer/actions/handlers/interaction.js'
+      );
 
       (validateActionBatch as jest.MockedFunction<typeof validateActionBatch>).mockReturnValue([
         { valid: true, errors: [] },
@@ -385,13 +402,15 @@ describe('BrowserActionExecutor', () => {
       const results = await executor.executeBatch(actions, context);
 
       expect(results).toHaveLength(2);
-      expect(results.every(r => r.success)).toBe(true);
+      expect(results.every((r) => r.success)).toBe(true);
     });
 
     it('should stop on error when stopOnError is true', async () => {
-      jest.spyOn(executor as any, 'getPageInstance').mockResolvedValue(mockPage);
-      
-      const { validateAction, validateActionBatch } = await import('../../../src/puppeteer/actions/validation.js');
+      // getPageInstance is already mocked in beforeEach
+
+      const { validateAction, validateActionBatch } = await import(
+        '../../../src/puppeteer/actions/validation.js'
+      );
 
       (validateAction as jest.MockedFunction<typeof validateAction>).mockReturnValue({
         valid: true,
@@ -404,7 +423,8 @@ describe('BrowserActionExecutor', () => {
       ]);
 
       // Mock the handler directly on the executor
-      const mockHandler = jest.fn()
+      const mockHandler = jest
+        .fn()
         .mockResolvedValueOnce({
           success: false,
           actionType: 'navigate',
@@ -419,7 +439,7 @@ describe('BrowserActionExecutor', () => {
           duration: 100,
           timestamp: new Date(),
         });
-      
+
       // Replace the navigate handler
       (executor as any).handlers.set('navigate', mockHandler);
 
@@ -446,7 +466,9 @@ describe('BrowserActionExecutor', () => {
 
     it('should execute actions in parallel when parallel is true', async () => {
       const { validateActionBatch } = await import('../../../src/puppeteer/actions/validation.js');
-      const { handleClick } = await import('../../../src/puppeteer/actions/handlers/interaction.js');
+      const { handleClick } = await import(
+        '../../../src/puppeteer/actions/handlers/interaction.js'
+      );
 
       (validateActionBatch as jest.MockedFunction<typeof validateActionBatch>).mockReturnValue([
         { valid: true, errors: [] },
@@ -482,7 +504,7 @@ describe('BrowserActionExecutor', () => {
       const duration = Date.now() - startTime;
 
       expect(results).toHaveLength(2);
-      expect(results.every(r => r.success)).toBe(true);
+      expect(results.every((r) => r.success)).toBe(true);
       // Parallel execution should be faster than sequential
       expect(duration).toBeLessThan(200);
     });
@@ -495,12 +517,21 @@ describe('BrowserActionExecutor', () => {
       });
 
       await expect(executor.executeBatch(actions, context)).rejects.toThrow(
-        'Too many actions in batch'
+        'Too many actions in batch',
       );
     });
   });
 
   describe('getHistory', () => {
+    beforeEach(() => {
+      // Mock the private getPageInstance method
+      if (!(executor as unknown as { getPageInstance?: unknown }).getPageInstance) {
+        (executor as any).getPageInstance = jest.fn().mockResolvedValue(mockPage);
+      } else {
+        jest.spyOn(executor as any, 'getPageInstance').mockResolvedValue(mockPage);
+      }
+    });
+
     it('should return empty history for new context', async () => {
       const history = await executor.getHistory(context);
       expect(history).toHaveLength(0);
@@ -508,9 +539,10 @@ describe('BrowserActionExecutor', () => {
 
     it('should return action history with filtering', async () => {
       // Execute some actions to populate history
-      jest.spyOn(executor as any, 'getPageInstance').mockResolvedValue(mockPage);
       const { validateAction } = await import('../../../src/puppeteer/actions/validation.js');
-      const { handleNavigate } = await import('../../../src/puppeteer/actions/handlers/navigation.js');
+      const { handleNavigate } = await import(
+        '../../../src/puppeteer/actions/handlers/navigation.js'
+      );
 
       (validateAction as jest.MockedFunction<typeof validateAction>).mockReturnValue({
         valid: true,
@@ -556,11 +588,21 @@ describe('BrowserActionExecutor', () => {
   });
 
   describe('clearHistory', () => {
+    beforeEach(() => {
+      // Mock the private getPageInstance method
+      if (!(executor as unknown as { getPageInstance?: unknown }).getPageInstance) {
+        (executor as any).getPageInstance = jest.fn().mockResolvedValue(mockPage);
+      } else {
+        jest.spyOn(executor as any, 'getPageInstance').mockResolvedValue(mockPage);
+      }
+    });
+
     it('should clear all history when no date provided', async () => {
       // Execute an action to populate history
-      jest.spyOn(executor as any, 'getPageInstance').mockResolvedValue(mockPage);
       const { validateAction } = await import('../../../src/puppeteer/actions/validation.js');
-      const { handleNavigate } = await import('../../../src/puppeteer/actions/handlers/navigation.js');
+      const { handleNavigate } = await import(
+        '../../../src/puppeteer/actions/handlers/navigation.js'
+      );
 
       (validateAction as jest.MockedFunction<typeof validateAction>).mockReturnValue({
         valid: true,

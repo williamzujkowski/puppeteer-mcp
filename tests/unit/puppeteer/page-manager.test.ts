@@ -128,7 +128,15 @@ describe('PageManager', () => {
       recycleBrowser: jest.fn(() => Promise.resolve()),
       shutdown: jest.fn(() => Promise.resolve()),
       configure: jest.fn(),
-      getBrowser: jest.fn(() => ({ id: 'test-browser', browser: mockBrowser })),
+      getBrowser: jest.fn(() => ({
+        id: 'test-browser',
+        browser: mockBrowser,
+        createdAt: new Date(),
+        lastUsedAt: new Date(),
+        useCount: 1,
+        pageCount: 0,
+        pid: 12345,
+      })),
       listBrowsers: jest.fn(() => []),
       cleanupIdle: jest.fn(() => Promise.resolve(0)),
     } as MockedBrowserPool;
