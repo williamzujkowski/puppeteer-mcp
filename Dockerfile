@@ -5,7 +5,7 @@
 # @nist si-3 "Malicious Code Protection"
 
 # Security scanning stage
-FROM node:20-alpine AS security-scan
+FROM node:24-alpine AS security-scan
 WORKDIR /scan
 
 # Install security scanning tools
@@ -19,7 +19,7 @@ RUN npm ci && \
     npm audit --production --audit-level=high || true
 
 # Stage 1: Dependencies
-FROM node:20-alpine AS deps
+FROM node:24-alpine AS deps
 WORKDIR /app
 
 # Install dependencies for building native modules
@@ -35,7 +35,7 @@ COPY package*.json ./
 RUN npm ci --only=production
 
 # Stage 2: Builder
-FROM node:20-alpine AS builder
+FROM node:24-alpine AS builder
 WORKDIR /app
 
 # Install build dependencies
@@ -57,7 +57,7 @@ COPY . .
 RUN npm run build
 
 # Stage 3: Runner
-FROM node:20-alpine AS runner
+FROM node:24-alpine AS runner
 WORKDIR /app
 
 # Security hardening
