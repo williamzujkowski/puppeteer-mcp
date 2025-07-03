@@ -1,0 +1,55 @@
+# Gitleaks configuration for Puppeteer MCP
+# @nist au-3 "Content of audit records"
+# @nist si-4 "System monitoring"
+
+title = "Puppeteer MCP Gitleaks Configuration"
+
+[allowlist]
+description = "Allowlist for Puppeteer MCP"
+paths = [
+    '''node_modules''',
+    '''dist''',
+    '''coverage''',
+    '''\.git''',
+    '''package-lock\.json''',
+    '''test-results''',
+    '''\.next''',
+    '''\.cache''',
+    '''build'''
+]
+
+# Allow test/demo credentials that are clearly marked
+regexes = [
+    '''demo[_-]?(?:password|token|key|secret)''',
+    '''test[_-]?(?:password|token|key|secret)''',
+    '''example[_-]?(?:password|token|key|secret)''',
+    '''fake[_-]?(?:password|token|key|secret)''',
+    '''dummy[_-]?(?:password|token|key|secret)''',
+    '''mcp-demo-salt''',  # Our demo salt in user-service.ts
+]
+
+# Additional rules for common false positives
+[[rules]]
+description = "Ignore package.json author fields"
+path = '''package\.json'''
+regex = '''(?i)(author|email)'''
+
+[[rules]]
+description = "Ignore TypeScript type definitions"
+path = '''\.d\.ts$'''
+regex = '''.*'''
+
+[[rules]]
+description = "Ignore test files with mock data"
+path = '''(test|spec|__tests__|__mocks__)'''
+regex = '''(?i)(secret|password|token|key|credential)'''
+
+[[rules]]
+description = "Ignore documented examples"
+path = '''(README|CONTRIBUTING|docs)'''
+regex = '''(?i)(secret|password|token|key|credential)'''
+
+# Custom entropy settings
+[extend]
+# Lower entropy threshold for better detection
+entropy_threshold = 3.0

@@ -25,6 +25,9 @@ WORKDIR /app
 # Install dependencies for building native modules
 RUN apk add --no-cache python3 make g++
 
+# Skip Puppeteer Chromium download
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+
 # Copy package files
 COPY package*.json ./
 
@@ -37,6 +40,9 @@ WORKDIR /app
 
 # Install build dependencies
 RUN apk add --no-cache python3 make g++
+
+# Skip Puppeteer Chromium download
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 
 # Copy package files
 COPY package*.json ./
@@ -59,14 +65,27 @@ WORKDIR /app
 # @nist ac-6 "Least Privilege"
 # @nist sc-13 "Cryptographic Protection"
 
+# Install Puppeteer dependencies and security updates
+# Required for Chromium to run in Alpine
+RUN apk add --no-cache \
+    dumb-init \
+    chromium \
+    nss \
+    freetype \
+    freetype-dev \
+    harfbuzz \
+    ca-certificates \
+    ttf-freefont \
+    && apk upgrade --no-cache \
+    && rm -rf /var/cache/apk/*
+
+# Tell Puppeteer to use installed Chromium instead of downloading
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
+    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+
 # Create non-root user
 RUN addgroup -g 1001 -S nodejs && \
     adduser -S nodejs -u 1001
-
-# Install dumb-init for proper signal handling and security updates
-RUN apk add --no-cache dumb-init && \
-    apk upgrade --no-cache && \
-    rm -rf /var/cache/apk/*
 
 # Copy production dependencies
 COPY --from=deps --chown=nodejs:nodejs /app/node_modules ./node_modules
@@ -82,6 +101,9 @@ ENV NODE_ENV=production
 # Security environment variables
 # @nist sc-8 "Transmission Confidentiality and Integrity"
 ENV NODE_OPTIONS="--enable-source-maps --max-old-space-size=256"
+
+# Docker environment flag for Puppeteer configuration
+ENV RUNNING_IN_DOCKER=true
 
 # Make filesystem read-only where possible
 RUN chmod -R 755 /app && \

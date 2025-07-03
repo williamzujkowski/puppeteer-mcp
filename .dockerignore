@@ -73,6 +73,9 @@ security-report-*.md
 npm-audit-results.json
 audit-report.json
 compliance-reports/
+.gitleaks.toml
+trivy-results.sarif
+*-results.sarif
 
 # Build artifacts
 build-artifacts/
