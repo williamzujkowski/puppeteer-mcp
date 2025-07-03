@@ -79,7 +79,7 @@ jobs:
           JEST_JUNIT_OUTPUT_NAME: junit-${{ matrix.node-version }}.xml
 
       - name: Upload coverage reports
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           flags: unittests
