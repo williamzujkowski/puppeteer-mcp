@@ -19,6 +19,31 @@ import type { ProtocolAdapter, MCPResponse, AuthParams } from './adapter.interfa
 import type { GrpcServer } from '../../grpc/server.js';
 
 /**
+ * Generic service interface for gRPC services
+ */
+interface GrpcServiceHandler {
+  [methodName: string]: (
+    call: {
+      request: Record<string, unknown>;
+      metadata: grpc.Metadata;
+      getPeer: () => string;
+      sendMetadata: () => void;
+      end?: () => void;
+      write?: (chunk: unknown) => boolean;
+      destroy?: (error?: Error) => void;
+      on?: (event: string, listener: (...args: unknown[]) => void) => unknown;
+      emit?: (event: string, ...args: unknown[]) => boolean;
+    },
+    callback?: (error: grpc.ServiceError | null, response?: Record<string, unknown>) => void,
+  ) => void;
+}
+
+/**
+ * gRPC response type for transformations
+ */
+type GrpcResponse = Record<string, unknown> | Record<string, unknown>[];
+
+/**
  * gRPC operation parameters schema
  */
 const GrpcOperationSchema = z.object({
@@ -91,7 +116,7 @@ export class GrpcAdapter implements ProtocolAdapter {
 
       // Validate auth if provided
       let auth: AuthParams | undefined;
-      if (params.auth) {
+      if (params.auth !== null && params.auth !== undefined) {
         auth = AuthParamsSchema.parse(params.auth) as AuthParams;
       }
 
@@ -120,7 +145,10 @@ export class GrpcAdapter implements ProtocolAdapter {
       // Log failed execution
       await logSecurityEvent(SecurityEventType.ACCESS_DENIED, {
         userId: params.sessionId,
-        resource: params.operation ? JSON.stringify(params.operation) : 'unknown',
+        resource:
+          params.operation !== null && params.operation !== undefined
+            ? JSON.stringify(params.operation)
+            : 'unknown',
         action: 'execute',
         result: 'failure',
         reason: error instanceof Error ? error.message : 'Unknown error',
@@ -145,31 +173,75 @@ export class GrpcAdapter implements ProtocolAdapter {
     const metadata = new grpc.Metadata();
 
     // Add authentication
-    if (auth) {
-      switch (auth.type) {
-        case 'jwt':
-          metadata.add('authorization', `Bearer ${auth.credentials}`);
-          break;
-        case 'apikey':
-          metadata.add('x-api-key', auth.credentials);
-          break;
-        case 'session':
-          metadata.add('x-session-id', auth.credentials);
-          break;
-      }
-    }
+    this.addAuthenticationToMetadata(metadata, auth);
 
     // Add session ID if provided separately
-    if (sessionId && (!auth || auth.type !== 'session')) {
-      metadata.add('x-session-id', sessionId);
-    }
+    this.addSessionIdToMetadata(metadata, sessionId, auth);
 
     // Add request ID for tracing
-    if (requestId) {
-      metadata.add('x-request-id', requestId);
-    }
+    this.addRequestIdToMetadata(metadata, requestId);
 
     return metadata;
+  }
+
+  /**
+   * Add authentication headers to metadata
+   * @nist ia-2 "Identification and authentication"
+   */
+  private addAuthenticationToMetadata(metadata: grpc.Metadata, auth?: AuthParams): void {
+    if (auth === null || auth === undefined) {
+      return;
+    }
+
+    switch (auth.type) {
+      case 'jwt':
+        metadata.add('authorization', `Bearer ${auth.credentials}`);
+        break;
+      case 'apikey':
+        metadata.add('x-api-key', auth.credentials);
+        break;
+      case 'session':
+        metadata.add('x-session-id', auth.credentials);
+        break;
+    }
+  }
+
+  /**
+   * Add session ID to metadata if valid
+   * @nist ac-3 "Access enforcement"
+   */
+  private addSessionIdToMetadata(
+    metadata: grpc.Metadata,
+    sessionId?: string,
+    auth?: AuthParams,
+  ): void {
+    if (this.isValidSessionId(sessionId) && (!auth || auth.type !== 'session')) {
+      metadata.add('x-session-id', sessionId);
+    }
+  }
+
+  /**
+   * Add request ID to metadata if valid
+   * @nist au-3 "Content of audit records"
+   */
+  private addRequestIdToMetadata(metadata: grpc.Metadata, requestId?: string): void {
+    if (this.isValidString(requestId)) {
+      metadata.add('x-request-id', requestId);
+    }
+  }
+
+  /**
+   * Check if session ID is valid
+   */
+  private isValidSessionId(sessionId?: string): sessionId is string {
+    return sessionId !== null && sessionId !== undefined && sessionId !== '';
+  }
+
+  /**
+   * Check if string is valid and non-empty
+   */
+  private isValidString(str?: string): str is string {
+    return str !== null && str !== undefined && str !== '';
   }
 
   /**
@@ -177,24 +249,37 @@ export class GrpcAdapter implements ProtocolAdapter {
    * @nist ac-3 "Access enforcement"
    * @nist si-10 "Information input validation"
    */
-  private executeGrpcCall(operation: GrpcOperation, metadata: grpc.Metadata): Promise<any> {
+  private executeGrpcCall(
+    operation: GrpcOperation,
+    metadata: grpc.Metadata,
+  ): Promise<GrpcResponse> {
     // Get the service implementation from the server
     const service = this.getServiceFromServer(operation.service);
 
-    if (!service) {
+    if (service === null || service === undefined) {
       throw new AppError(`Service ${operation.service} not found`, 404);
     }
 
     const method = service[operation.method];
-    if (!method || typeof method !== 'function') {
+    if (method === null || method === undefined || typeof method !== 'function') {
       throw new AppError(`Method ${operation.method} not found in ${operation.service}`, 404);
     }
 
     // Handle streaming vs unary calls
     if (operation.streaming) {
-      return this.handleStreamingCall(service, operation.method, operation.request, metadata);
+      return this.handleStreamingCall(
+        service,
+        operation.method,
+        operation.request as Record<string, unknown>,
+        metadata,
+      );
     } else {
-      return this.handleUnaryCall(service, operation.method, operation.request, metadata);
+      return this.handleUnaryCall(
+        service,
+        operation.method,
+        operation.request as Record<string, unknown>,
+        metadata,
+      );
     }
   }
 
@@ -203,15 +288,15 @@ export class GrpcAdapter implements ProtocolAdapter {
    * @nist ac-3 "Access enforcement"
    */
   private handleUnaryCall(
-    service: any,
+    service: GrpcServiceHandler,
     methodName: string,
-    request: any,
+    request: Record<string, unknown>,
     metadata: grpc.Metadata,
-  ): Promise<any> {
+  ): Promise<Record<string, unknown>> {
     return new Promise((resolve, reject) => {
       // Create a mock call object that matches gRPC's ServerUnaryCall interface
       const call = {
-        request: request || {},
+        request: request ?? {},
         metadata,
         getPeer: () => 'mcp-internal',
         sendMetadata: () => {},
@@ -219,17 +304,25 @@ export class GrpcAdapter implements ProtocolAdapter {
       };
 
       // Create callback
-      const callback = (error: grpc.ServiceError | null, response?: any) => {
-        if (error) {
+      const callback = (
+        error: grpc.ServiceError | null,
+        response?: Record<string, unknown>,
+      ): void => {
+        if (error !== null) {
           reject(error);
         } else {
-          resolve(response);
+          resolve(response ?? {});
         }
       };
 
       // Execute the method
       // eslint-disable-next-line security/detect-object-injection
-      service[methodName](call, callback);
+      const method = service[methodName];
+      if (typeof method === 'function') {
+        method(call, callback);
+      } else {
+        reject(new AppError(`Method ${methodName} is not a function`, 500));
+      }
     });
   }
 
@@ -239,40 +332,47 @@ export class GrpcAdapter implements ProtocolAdapter {
    * @nist sc-8 "Transmission confidentiality and integrity"
    */
   private handleStreamingCall(
-    service: any,
+    service: GrpcServiceHandler,
     methodName: string,
-    request: any,
+    request: Record<string, unknown>,
     metadata: grpc.Metadata,
-  ): Promise<any[]> {
+  ): Promise<Record<string, unknown>[]> {
     return new Promise((resolve, reject) => {
-      const responses: any[] = [];
+      const responses: Record<string, unknown>[] = [];
 
       // Create a mock call object that matches gRPC's ServerWritableStream interface
-      const call = {
-        request: request || {},
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const call: any = {
+        request: request ?? {},
         metadata,
         getPeer: () => 'mcp-internal',
         sendMetadata: () => {},
-        write: (chunk: any) => {
-          responses.push(chunk);
+        write: (chunk: unknown) => {
+          responses.push(chunk as Record<string, unknown>);
           return true;
         },
         end: () => {
           resolve(responses);
         },
         destroy: (error?: Error) => {
-          if (error) {
+          if (error !== null && error !== undefined) {
             reject(error);
           }
         },
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         on: () => call,
-        emit: () => true,
+        emit: (): boolean => true,
       };
 
       try {
         // Execute the streaming method
         // eslint-disable-next-line security/detect-object-injection
-        service[methodName](call);
+        const method = service[methodName];
+        if (typeof method === 'function') {
+          method(call);
+        } else {
+          reject(new AppError(`Method ${methodName} is not a function`, 500));
+        }
       } catch (error) {
         reject(error);
       }
@@ -283,18 +383,23 @@ export class GrpcAdapter implements ProtocolAdapter {
    * Get service implementation from the server
    * @nist cm-7 "Least functionality"
    */
-  private getServiceFromServer(serviceName: string): any {
+  private getServiceFromServer(serviceName: string): GrpcServiceHandler | null {
     // Access the service implementations through the server's internal structure
     // This is a simplified approach - in production, you might want to expose
     // a proper API for accessing services
 
     // The services are stored in the server's handlers
     // This is implementation-specific and may need adjustment
-    const handlers = (this.server.getServer() as any).handlers;
+    const server = this.server.getServer() as unknown as {
+      handlers: Map<string, GrpcServiceHandler>;
+    };
+    const handlers = server.handlers;
 
-    for (const [key, handler] of handlers) {
-      if (key.includes(serviceName)) {
-        return handler;
+    if (handlers instanceof Map) {
+      for (const [key, handler] of handlers) {
+        if (key.includes(serviceName)) {
+          return handler;
+        }
       }
     }
 
@@ -306,14 +411,14 @@ export class GrpcAdapter implements ProtocolAdapter {
    * @nist au-3 "Content of audit records"
    */
   private transformToMCPResponse(
-    response: any,
+    response: GrpcResponse,
     operation: GrpcOperation,
     requestId: string,
   ): MCPResponse {
     // Handle streaming responses
     if (Array.isArray(response)) {
       return {
-        content: response.map((item) => ({
+        content: response.map((item: Record<string, unknown>) => ({
           type: 'text' as const,
           text: JSON.stringify(item, null, 2),
           data: item,
@@ -360,10 +465,17 @@ export class GrpcAdapter implements ProtocolAdapter {
     let errorCode = 'UNKNOWN';
     let statusCode = 500;
 
-    if (error && typeof error === 'object' && 'code' in error && 'message' in error) {
-      errorMessage = (error as any).message;
-      errorCode = grpc.status[(error as any).code] ?? 'UNKNOWN';
-      statusCode = this.grpcStatusToHttp((error as any).code);
+    if (
+      error !== null &&
+      error !== undefined &&
+      typeof error === 'object' &&
+      'code' in error &&
+      'message' in error
+    ) {
+      const grpcError = error as { code: grpc.status; message: string };
+      errorMessage = grpcError.message;
+      errorCode = grpc.status[grpcError.code] ?? 'UNKNOWN';
+      statusCode = this.grpcStatusToHttp(grpcError.code);
     } else if (error instanceof AppError) {
       errorMessage = error.message;
       errorCode = 'APP_ERROR';

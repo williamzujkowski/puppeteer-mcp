@@ -181,13 +181,11 @@ describe('BrowserActionExecutor', () => {
 
   describe('validateBatch', () => {
     it('should validate multiple actions', async () => {
-      const { validateActionBatch } = await import('../../../src/puppeteer/actions/validation.js');
-      (validateActionBatch as jest.jest.MockedFunction<typeof validateActionBatch>).mockReturnValue(
-        [
-          { valid: true, errors: [] },
-          { valid: true, errors: [] },
-        ],
-      );
+      const { validateAction } = await import('../../../src/puppeteer/actions/validation.js');
+      (validateAction as jest.jest.MockedFunction<typeof validateAction>).mockReturnValue({
+        valid: true,
+        errors: [],
+      });
 
       const actions: BrowserAction[] = [
         {
@@ -206,15 +204,14 @@ describe('BrowserActionExecutor', () => {
 
       expect(results).toHaveLength(2);
       expect(results.every((r) => r.valid)).toBe(true);
-      expect(validateActionBatch).toHaveBeenCalledWith(actions);
+      expect(validateAction).toHaveBeenCalledTimes(2);
     });
 
     it('should handle batch validation errors', async () => {
-      const { validateActionBatch } = await import('../../../src/puppeteer/actions/validation.js');
-      (
-        validateActionBatch as jest.jest.MockedFunction<typeof validateActionBatch>
-      ).mockImplementation(() => {
-        throw new Error('Batch validation error');
+      const { validateAction } = await import('../../../src/puppeteer/actions/validation.js');
+      (validateAction as jest.jest.MockedFunction<typeof validateAction>).mockReturnValue({
+        valid: false,
+        errors: [{ message: 'Invalid URL format', field: 'url', code: 'INVALID_URL' }],
       });
 
       const actions: BrowserAction[] = [
@@ -229,13 +226,14 @@ describe('BrowserActionExecutor', () => {
 
       expect(results).toHaveLength(1);
       expect(results[0].valid).toBe(false);
-      expect(results[0].errors[0].message).toBe('Batch validation error');
+      expect(results[0].errors[0].message).toBe('Invalid URL format');
     });
   });
 
   describe('execute', () => {
     beforeEach(() => {
       // Mock the private getPageInstance method
+      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       if (!(executor as unknown as { getPageInstance?: unknown }).getPageInstance) {
         (executor as any).getPageInstance = jest.fn().mockResolvedValue(mockPage);
       } else {
@@ -349,6 +347,7 @@ describe('BrowserActionExecutor', () => {
   describe('executeBatch', () => {
     beforeEach(() => {
       // Mock the private getPageInstance method
+      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       if (!(executor as unknown as { getPageInstance?: unknown }).getPageInstance) {
         (executor as any).getPageInstance = jest.fn().mockResolvedValue(mockPage);
       } else {
@@ -406,25 +405,16 @@ describe('BrowserActionExecutor', () => {
     });
 
     it('should stop on error when stopOnError is true', async () => {
-      // getPageInstance is already mocked in beforeEach
-
-      const { validateAction, validateActionBatch } = await import(
-        '../../../src/puppeteer/actions/validation.js'
-      );
-
-      (validateAction as jest.MockedFunction<typeof validateAction>).mockReturnValue({
-        valid: true,
-        errors: [],
-      });
-
+      // Mock the validateActionBatch function
+      const { validateActionBatch } = await import('../../../src/puppeteer/actions/validation.js');
       (validateActionBatch as jest.MockedFunction<typeof validateActionBatch>).mockReturnValue([
         { valid: true, errors: [] },
         { valid: true, errors: [] },
       ]);
 
-      // Mock the handler directly on the executor
-      const mockHandler = jest
-        .fn()
+      // Mock execute method to return specific results
+      const executeSpy = jest
+        .spyOn(executor, 'execute')
         .mockResolvedValueOnce({
           success: false,
           actionType: 'navigate',
@@ -439,9 +429,6 @@ describe('BrowserActionExecutor', () => {
           duration: 100,
           timestamp: new Date(),
         });
-
-      // Replace the navigate handler
-      (executor as any).handlers.set('navigate', mockHandler);
 
       const actions: BrowserAction[] = [
         {
@@ -462,6 +449,9 @@ describe('BrowserActionExecutor', () => {
 
       expect(results).toHaveLength(1);
       expect(results[0].success).toBe(false);
+      expect(executeSpy).toHaveBeenCalledTimes(1); // Should stop after first error
+
+      executeSpy.mockRestore();
     });
 
     it('should execute actions in parallel when parallel is true', async () => {
@@ -525,6 +515,7 @@ describe('BrowserActionExecutor', () => {
   describe('getHistory', () => {
     beforeEach(() => {
       // Mock the private getPageInstance method
+      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       if (!(executor as unknown as { getPageInstance?: unknown }).getPageInstance) {
         (executor as any).getPageInstance = jest.fn().mockResolvedValue(mockPage);
       } else {
@@ -590,6 +581,7 @@ describe('BrowserActionExecutor', () => {
   describe('clearHistory', () => {
     beforeEach(() => {
       // Mock the private getPageInstance method
+      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       if (!(executor as unknown as { getPageInstance?: unknown }).getPageInstance) {
         (executor as any).getPageInstance = jest.fn().mockResolvedValue(mockPage);
       } else {

@@ -214,7 +214,14 @@ describe('PageManager', () => {
       );
 
       expect(pageInfo).toBeDefined();
-      expect(mockPage.setViewport).toHaveBeenCalledWith(options.viewport);
+      expect(mockPage.setViewport).toHaveBeenCalledWith({
+        width: 1920,
+        height: 1080,
+        deviceScaleFactor: 1,
+        isMobile: false,
+        hasTouch: false,
+        isLandscape: false,
+      });
       expect(mockPage.setUserAgent).toHaveBeenCalledWith(options.userAgent);
       expect(mockPage.setExtraHTTPHeaders).toHaveBeenCalledWith(options.extraHeaders);
       expect(mockPage.setJavaScriptEnabled).toHaveBeenCalledWith(false);

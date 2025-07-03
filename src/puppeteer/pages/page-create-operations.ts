@@ -10,10 +10,7 @@ import { AppError } from '../../core/errors/app-error.js';
 import { logSecurityEvent, SecurityEventType, createLogger } from '../../utils/logger.js';
 import { contextStore } from '../../store/context-store.js';
 import type { BrowserPool } from '../interfaces/browser-pool.interface.js';
-import type {
-  PageInfo,
-  PageOptions,
-} from '../interfaces/page-manager.interface.js';
+import type { PageInfo, PageOptions } from '../interfaces/page-manager.interface.js';
 import type { PageInfoStore } from './page-info-store.js';
 import { configurePageOptions } from './page-configuration.js';
 import { configurePageEventHandlers } from './page-event-handler.js';
@@ -28,7 +25,7 @@ export function createPageInfo(
   pageId: string,
   contextId: string,
   sessionId: string,
-  browserId: string
+  browserId: string,
 ): PageInfo {
   return {
     id: pageId,
@@ -48,10 +45,7 @@ export function createPageInfo(
 /**
  * Verify context access
  */
-export async function verifyContextAccess(
-  contextId: string,
-  sessionId: string
-): Promise<void> {
+export async function verifyContextAccess(contextId: string, sessionId: string): Promise<void> {
   const context = await contextStore.get(contextId);
   if (!context) {
     throw new AppError('Context not found', 404);
@@ -85,24 +79,21 @@ export interface CreatePageParams {
 /**
  * Create and configure page
  */
-export async function createAndConfigurePage(
-  params: CreatePageParams
-): Promise<PageInfo> {
+export async function createAndConfigurePage(params: CreatePageParams): Promise<PageInfo> {
   const { browserPool, browserId, pageId, pageInfo, options, pages, pageStore, emitter } = params;
-  
-  // Get browser instance from pool
-  const browserInstance = browserPool.getBrowser(browserId);
-  if (!browserInstance) {
-    throw new AppError('Browser not found', 404);
-  }
 
-  // Create new page
-  const page = await browserInstance.browser.newPage();
+  // Create new page through browser pool
+  const page = await browserPool.createPage(browserId, pageInfo.sessionId);
 
   // Configure page options
   if (options) {
     await configurePageOptions(page, options);
   }
+
+  // Update page info with actual page details
+  pageInfo.url = page.url();
+  pageInfo.title = await page.title();
+  pageInfo.navigationHistory = [page.url()];
 
   // Store page
   pages.set(pageId, page);
@@ -111,12 +102,15 @@ export async function createAndConfigurePage(
   // Set up event listeners
   configurePageEventHandlers(page, pageId, emitter);
 
-  logger.info({
-    pageId,
-    contextId: pageInfo.contextId,
-    sessionId: pageInfo.sessionId,
-    browserId,
-  }, 'Page created successfully');
+  logger.info(
+    {
+      pageId,
+      contextId: pageInfo.contextId,
+      sessionId: pageInfo.sessionId,
+      browserId,
+    },
+    'Page created successfully',
+  );
 
   return pageInfo;
 }
