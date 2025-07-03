@@ -7,6 +7,7 @@
 import type { Page } from 'puppeteer';
 import { AppError } from '../../core/errors/app-error.js';
 import { logSecurityEvent, SecurityEventType } from '../../utils/logger.js';
+import type { PageInfo } from '../interfaces/page-manager.interface.js';
 import type { PageInfoStore } from './page-info-store.js';
 
 /**
@@ -17,7 +18,7 @@ export async function getPageWithAccessControl(
   pageId: string,
   sessionId: string,
   pages: Map<string, Page>,
-  pageStore: PageInfoStore
+  pageStore: PageInfoStore,
 ): Promise<Page> {
   const pageInfo = await pageStore.get(pageId);
   if (!pageInfo) {
@@ -54,7 +55,7 @@ export async function getPageWithAccessControl(
 export async function getPageInfoWithAccessControl(
   pageId: string,
   sessionId: string,
-  pageStore: PageInfoStore
+  pageStore: PageInfoStore,
 ): Promise<PageInfo> {
   const pageInfo = await pageStore.get(pageId);
   if (!pageInfo) {

@@ -4,10 +4,10 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
-import { MCPServer } from './server.js';
+import { MCPServer } from '../../../src/mcp/server.js';
 
 // Mock the logger
-jest.mock('../utils/logger.js', () => ({
+jest.mock('../../../src/utils/logger.js', () => ({
   logger: {
     info: jest.fn(),
     error: jest.fn(),
@@ -46,11 +46,11 @@ describe('MCP Server Session Management', () => {
       };
 
       const result = await (server as any).createSessionTool(args);
-      
+
       expect(result).toBeDefined();
       expect(result.content).toHaveLength(1);
       expect(result.content[0].type).toBe('text');
-      
+
       const response = JSON.parse(result.content[0].text);
       expect(response.sessionId).toBeDefined();
       expect(response.userId).toBe('user-demo-001');
@@ -68,10 +68,10 @@ describe('MCP Server Session Management', () => {
       };
 
       const result = await (server as any).createSessionTool(args);
-      
+
       expect(result).toBeDefined();
       expect(result.content).toHaveLength(1);
-      
+
       const response = JSON.parse(result.content[0].text);
       expect(response.error).toBe('Invalid username or password');
       expect(response.code).toBe('AUTH_FAILED');
@@ -84,7 +84,7 @@ describe('MCP Server Session Management', () => {
       };
 
       const result = await (server as any).createSessionTool(args);
-      
+
       const response = JSON.parse(result.content[0].text);
       expect(response.error).toBe('Username and password are required');
       expect(response.code).toBe('INVALID_CREDENTIALS');
@@ -99,7 +99,7 @@ describe('MCP Server Session Management', () => {
 
       const result = await (server as any).createSessionTool(args);
       const response = JSON.parse(result.content[0].text);
-      
+
       expect(response.sessionId).toBeDefined();
       // Default duration is 3600 seconds (1 hour)
       const createdAt = new Date(response.createdAt);
@@ -124,10 +124,10 @@ describe('MCP Server Session Management', () => {
       };
 
       const result = await (server as any).listSessionsTool(listArgs);
-      
+
       expect(result).toBeDefined();
       expect(result.content).toHaveLength(1);
-      
+
       const response = JSON.parse(result.content[0].text);
       expect(response.sessions).toBeDefined();
       expect(Array.isArray(response.sessions)).toBe(true);
@@ -141,7 +141,7 @@ describe('MCP Server Session Management', () => {
 
       const result = await (server as any).listSessionsTool(args);
       const response = JSON.parse(result.content[0].text);
-      
+
       expect(response.sessions).toEqual([]);
       expect(response.count).toBe(0);
     });
@@ -163,7 +163,7 @@ describe('MCP Server Session Management', () => {
       };
 
       const result = await (server as any).deleteSessionTool(deleteArgs);
-      
+
       expect(result).toBeDefined();
       const response = JSON.parse(result.content[0].text);
       expect(response.success).toBe(true);
@@ -177,7 +177,7 @@ describe('MCP Server Session Management', () => {
 
       const result = await (server as any).deleteSessionTool(args);
       const response = JSON.parse(result.content[0].text);
-      
+
       expect(response.error).toBe('Session not found');
       expect(response.code).toBe('SESSION_NOT_FOUND');
     });
@@ -187,7 +187,7 @@ describe('MCP Server Session Management', () => {
 
       const result = await (server as any).deleteSessionTool(args);
       const response = JSON.parse(result.content[0].text);
-      
+
       expect(response.error).toBe('Session ID is required');
       expect(response.code).toBe('INVALID_SESSION_ID');
     });
@@ -213,7 +213,7 @@ describe('MCP Server Session Management', () => {
       };
 
       const result = await (server as any).createBrowserContextTool(contextArgs);
-      
+
       expect(result).toBeDefined();
       const response = JSON.parse(result.content[0].text);
       expect(response.contextId).toBeDefined();
@@ -229,7 +229,7 @@ describe('MCP Server Session Management', () => {
 
       const result = await (server as any).createBrowserContextTool(args);
       const response = JSON.parse(result.content[0].text);
-      
+
       expect(response.error).toBeDefined();
       expect(response.code).toBe('CONTEXT_CREATION_FAILED');
     });
@@ -239,7 +239,7 @@ describe('MCP Server Session Management', () => {
 
       const result = await (server as any).createBrowserContextTool(args);
       const response = JSON.parse(result.content[0].text);
-      
+
       expect(response.error).toBe('Session ID is required');
       expect(response.code).toBe('INVALID_SESSION');
     });
@@ -254,24 +254,24 @@ describe('MCP Server Session Management', () => {
       };
       const createResult = await (server as any).createSessionTool(createArgs);
       const session = JSON.parse(createResult.content[0].text);
-      
+
       expect(session.sessionId).toBeDefined();
       expect(session.roles).toContain('admin');
-      
+
       // 2. List sessions
       const listResult = await (server as any).listSessionsTool({
         userId: session.userId,
       });
       const sessions = JSON.parse(listResult.content[0].text);
       expect(sessions.count).toBeGreaterThan(0);
-      
+
       // 3. Create browser context
       const contextResult = await (server as any).createBrowserContextTool({
         sessionId: session.sessionId,
       });
       const context = JSON.parse(contextResult.content[0].text);
       expect(context.contextId).toBeDefined();
-      
+
       // 4. Delete session
       const deleteResult = await (server as any).deleteSessionTool({
         sessionId: session.sessionId,

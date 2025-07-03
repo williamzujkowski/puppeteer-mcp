@@ -8,10 +8,7 @@
 import type { Page, Cookie } from 'puppeteer';
 import { AppError } from '../../core/errors/app-error.js';
 import { logSecurityEvent, SecurityEventType } from '../../utils/logger.js';
-import type { 
-  PageInfo,
-  ScreenshotOptions 
-} from '../interfaces/page-manager.interface.js';
+import type { PageInfo, ScreenshotOptions } from '../interfaces/page-manager.interface.js';
 import type { PageInfoStore } from './page-info-store.js';
 
 /**
@@ -22,7 +19,7 @@ export async function getPageMetrics(
   pageId: string,
   sessionId: string,
   pages: Map<string, Page>,
-  pageStore: PageInfoStore
+  pageStore: PageInfoStore,
 ): Promise<Record<string, unknown>> {
   const pageInfo = await pageStore.get(pageId);
   if (!pageInfo || pageInfo.sessionId !== sessionId) {
@@ -58,11 +55,9 @@ export interface SetCookiesParams extends PageOperationParams {
 /**
  * Set page cookies
  */
-export async function setCookies(
-  params: SetCookiesParams
-): Promise<void> {
+export async function setCookies(params: SetCookiesParams): Promise<void> {
   const { pageId, cookies, sessionId, pages, pageStore } = params;
-  
+
   const pageInfo = await pageStore.get(pageId);
   if (!pageInfo || pageInfo.sessionId !== sessionId) {
     throw new AppError('Page not found or access denied', 404);
@@ -84,7 +79,7 @@ export async function getCookies(
   pageId: string,
   sessionId: string,
   pages: Map<string, Page>,
-  pageStore: PageInfoStore
+  pageStore: PageInfoStore,
 ): Promise<Cookie[]> {
   const pageInfo = await pageStore.get(pageId);
   if (!pageInfo || pageInfo.sessionId !== sessionId) {
@@ -104,22 +99,22 @@ export async function getCookies(
  * Parameters for clearPageData
  */
 export interface ClearPageDataParams extends PageOperationParams {
-  options: {
-    cookies?: boolean;
-    cache?: boolean;
-    localStorage?: boolean;
-    sessionStorage?: boolean;
-  } | undefined;
+  options:
+    | {
+        cookies?: boolean;
+        cache?: boolean;
+        localStorage?: boolean;
+        sessionStorage?: boolean;
+      }
+    | undefined;
 }
 
 /**
  * Clear page data
  */
-export async function clearPageData(
-  params: ClearPageDataParams
-): Promise<void> {
+export async function clearPageData(params: ClearPageDataParams): Promise<void> {
   const { pageId, sessionId, options, pages, pageStore } = params;
-  
+
   const pageInfo = await pageStore.get(pageId);
   if (!pageInfo || pageInfo.sessionId !== sessionId) {
     throw new AppError('Page not found or access denied', 404);
@@ -131,7 +126,7 @@ export async function clearPageData(
   }
 
   if (options?.cookies) {
-    await page.deleteCookie(...await page.cookies());
+    await page.deleteCookie(...(await page.cookies()));
   }
 
   if (options?.localStorage === true || options?.sessionStorage === true) {
@@ -161,11 +156,9 @@ export interface TakeScreenshotParams extends PageOperationParams {
  * Take screenshot
  * @nist ac-3 "Access enforcement"
  */
-export async function takeScreenshot(
-  params: TakeScreenshotParams
-): Promise<Buffer> {
+export async function takeScreenshot(params: TakeScreenshotParams): Promise<Buffer> {
   const { pageId, sessionId, options, pages, pageStore } = params;
-  
+
   const pageInfo = await pageStore.get(pageId);
   if (!pageInfo || pageInfo.sessionId !== sessionId) {
     await logSecurityEvent(SecurityEventType.ACCESS_DENIED, {
@@ -201,11 +194,9 @@ export async function takeScreenshot(
 /**
  * Check if page is active
  */
-export function isPageActive(
-  pageId: string,
-  pageStore: PageInfoStore
-): boolean {
-  const pageInfo = pageStore.get(pageId);
+// eslint-disable-next-line require-await, @typescript-eslint/require-await
+export async function isPageActive(pageId: string, pageStore: PageInfoStore): Promise<boolean> {
+  const pageInfo = await pageStore.get(pageId);
   return pageInfo?.state === 'active';
 }
 
@@ -214,7 +205,7 @@ export function isPageActive(
  */
 export async function cleanupIdlePages(
   idleTimeout: number,
-  pageStore: PageInfoStore
+  pageStore: PageInfoStore,
 ): Promise<number> {
   const now = Date.now();
   const predicate = (pageInfo: PageInfo) => {
@@ -223,6 +214,6 @@ export async function cleanupIdlePages(
   };
 
   const cleanedCount = await pageStore.cleanup(predicate);
-  
+
   return cleanedCount;
 }

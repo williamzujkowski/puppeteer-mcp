@@ -8,12 +8,12 @@
 
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import * as grpc from '@grpc/grpc-js';
-import { GrpcAdapter } from './grpc-adapter.js';
-import { AppError } from '../../core/errors/app-error.js';
-import type { GrpcServer } from '../../grpc/server.js';
+import { GrpcAdapter } from '../../../src/mcp/adapters/grpc-adapter.js';
+import { AppError } from '../../../src/core/errors/app-error.js';
+import type { GrpcServer } from '../../../src/grpc/server.js';
 
 // Mock dependencies
-jest.mock('../../utils/logger.js', () => ({
+jest.mock('../../../src/utils/logger.js', () => ({
   logSecurityEvent: jest.fn().mockResolvedValue(undefined),
   SecurityEventType: {
     API_ACCESS: 'API_ACCESS',
@@ -46,7 +46,7 @@ describe('GrpcAdapter', () => {
 
       const mockHandlers = new Map();
       mockHandlers.set('/mcp.control.v1.SessionService/CreateSession', mockService.CreateSession);
-      
+
       mockServer.getServer.mockReturnValue({
         handlers: mockHandlers,
       });
@@ -80,17 +80,22 @@ describe('GrpcAdapter', () => {
         { type: 'created', sessionId: '123' },
         { type: 'updated', sessionId: '123' },
       ];
-      
+
       const mockService = {
         StreamSessionEvents: jest.fn((call) => {
-          mockEvents.forEach(event => { call.write(event); });
+          mockEvents.forEach((event) => {
+            call.write(event);
+          });
           call.end();
         }),
       };
 
       const mockHandlers = new Map();
-      mockHandlers.set('/mcp.control.v1.SessionService/StreamSessionEvents', mockService.StreamSessionEvents);
-      
+      mockHandlers.set(
+        '/mcp.control.v1.SessionService/StreamSessionEvents',
+        mockService.StreamSessionEvents,
+      );
+
       mockServer.getServer.mockReturnValue({
         handlers: mockHandlers,
       });
@@ -124,7 +129,7 @@ describe('GrpcAdapter', () => {
 
       const mockHandlers = new Map();
       mockHandlers.set('/mcp.control.v1.SessionService/GetSession', mockService.GetSession);
-      
+
       mockServer.getServer.mockReturnValue({
         handlers: mockHandlers,
       });
@@ -159,7 +164,7 @@ describe('GrpcAdapter', () => {
 
       const mockHandlers = new Map();
       mockHandlers.set('/mcp.control.v1.SessionService/GetSession', mockService.GetSession);
-      
+
       mockServer.getServer.mockReturnValue({
         handlers: mockHandlers,
       });
@@ -185,7 +190,7 @@ describe('GrpcAdapter', () => {
       // Arrange
       const grpcError = new Error('Permission denied') as grpc.ServiceError;
       (grpcError as any).code = grpc.status.PERMISSION_DENIED;
-      
+
       const mockService = {
         DeleteSession: jest.fn((call, callback) => {
           callback(grpcError);
@@ -194,7 +199,7 @@ describe('GrpcAdapter', () => {
 
       const mockHandlers = new Map();
       mockHandlers.set('/mcp.control.v1.SessionService/DeleteSession', mockService.DeleteSession);
-      
+
       mockServer.getServer.mockReturnValue({
         handlers: mockHandlers,
       });
@@ -257,17 +262,17 @@ describe('GrpcAdapter', () => {
       // Assert
       expect(result.content).toHaveLength(1);
       expect(result.content[0].type).toBe('text');
-      
+
       const services = result.content[0].data as any[];
       expect(services).toHaveLength(3); // SessionService, ContextService, HealthService
-      
-      const sessionService = services.find(s => s.name === 'SessionService');
+
+      const sessionService = services.find((s) => s.name === 'SessionService');
       expect(sessionService).toBeDefined();
       expect(sessionService.methods).toContainEqual(
-        expect.objectContaining({ name: 'CreateSession', type: 'unary' })
+        expect.objectContaining({ name: 'CreateSession', type: 'unary' }),
       );
       expect(sessionService.methods).toContainEqual(
-        expect.objectContaining({ name: 'StreamSessionEvents', type: 'server-streaming' })
+        expect.objectContaining({ name: 'StreamSessionEvents', type: 'server-streaming' }),
       );
     });
   });
@@ -303,7 +308,7 @@ describe('GrpcAdapter', () => {
       for (const { grpcCode, expectedHttp } of testCases) {
         const grpcError = new Error('Test error') as grpc.ServiceError;
         (grpcError as any).code = grpcCode;
-        
+
         const mockService = {
           TestMethod: jest.fn((call, callback) => {
             callback(grpcError);
@@ -312,7 +317,7 @@ describe('GrpcAdapter', () => {
 
         const mockHandlers = new Map();
         mockHandlers.set('/mcp.control.v1.SessionService/TestMethod', mockService.TestMethod);
-        
+
         mockServer.getServer.mockReturnValue({
           handlers: mockHandlers,
         });
@@ -332,7 +337,7 @@ describe('GrpcAdapter', () => {
     it('should handle AppError instances', async () => {
       // Arrange
       const appError = new AppError('Custom app error', 422, 'VALIDATION_ERROR');
-      
+
       const mockService = {
         CreateSession: jest.fn(() => {
           throw appError;
@@ -341,7 +346,7 @@ describe('GrpcAdapter', () => {
 
       const mockHandlers = new Map();
       mockHandlers.set('/mcp.control.v1.SessionService/CreateSession', mockService.CreateSession);
-      
+
       mockServer.getServer.mockReturnValue({
         handlers: mockHandlers,
       });

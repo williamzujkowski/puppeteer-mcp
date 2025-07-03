@@ -7,7 +7,10 @@ import { jest, describe, it, expect, beforeEach, afterEach } from '@jest/globals
 import type { Page, Viewport, Cookie } from 'puppeteer';
 import { PageManager } from '../../../src/puppeteer/pages/page-manager.js';
 import { InMemoryPageInfoStore } from '../../../src/puppeteer/pages/page-info-store.js';
-import type { BrowserPool, BrowserInstance } from '../../../src/puppeteer/interfaces/browser-pool.interface.js';
+import type {
+  BrowserPool,
+  BrowserInstance,
+} from '../../../src/puppeteer/interfaces/browser-pool.interface.js';
 import type { Context } from '../../../src/store/context-store.js';
 import { contextStore } from '../../../src/store/context-store.js';
 
@@ -45,6 +48,7 @@ describe('PageManager', () => {
   let mockBrowserPool: MockedBrowserPool;
   let pageStore: InMemoryPageInfoStore;
   let mockPage: MockedPage;
+  let mockBrowser: any;
 
   // Mock types
   interface MockedBrowserPool extends BrowserPool {
@@ -76,7 +80,6 @@ describe('PageManager', () => {
     mainFrame: jest.MockedFunction<Page['mainFrame']>;
   }
 
-
   beforeEach(() => {
     // Create mock page
     mockPage = {
@@ -103,6 +106,12 @@ describe('PageManager', () => {
       mainFrame: jest.fn(() => ({ url: (): string => 'https://example.com' })),
     } as MockedPage;
 
+    // Create mock browser
+    mockBrowser = {
+      newPage: jest.fn().mockResolvedValue(mockPage),
+      close: jest.fn(),
+      pages: jest.fn(() => Promise.resolve([mockPage])),
+    };
 
     // Create mock browser pool
     mockBrowserPool = {
@@ -110,14 +119,16 @@ describe('PageManager', () => {
       closePage: jest.fn(() => Promise.resolve()),
       // Add other required methods as no-ops
       initialize: jest.fn(() => Promise.resolve()),
-      acquireBrowser: jest.fn((): Promise<BrowserInstance> => Promise.resolve({} as BrowserInstance)),
+      acquireBrowser: jest.fn(
+        (): Promise<BrowserInstance> => Promise.resolve({} as BrowserInstance),
+      ),
       releaseBrowser: jest.fn(() => Promise.resolve()),
-      getMetrics: jest.fn(() => ({} as unknown)),
+      getMetrics: jest.fn(() => ({}) as unknown),
       healthCheck: jest.fn(() => Promise.resolve(new Map())),
       recycleBrowser: jest.fn(() => Promise.resolve()),
       shutdown: jest.fn(() => Promise.resolve()),
       configure: jest.fn(),
-      getBrowser: jest.fn(),
+      getBrowser: jest.fn(() => ({ id: 'test-browser', browser: mockBrowser })),
       listBrowsers: jest.fn(() => []),
       cleanupIdle: jest.fn(() => Promise.resolve(0)),
     } as MockedBrowserPool;
@@ -146,7 +157,7 @@ describe('PageManager', () => {
   afterEach(async () => {
     await pageManager.shutdown();
     jest.clearAllMocks();
-    
+
     // Reset context store mock to default value
     (contextStore.get as jest.MockedFunction<typeof contextStore.get>).mockResolvedValue({
       id: 'test-context',
@@ -164,11 +175,7 @@ describe('PageManager', () => {
 
   describe('createPage', () => {
     it('should create a new page successfully', async () => {
-      const pageInfo = await pageManager.createPage(
-        'test-context',
-        'test-session',
-        'test-browser'
-      );
+      const pageInfo = await pageManager.createPage('test-context', 'test-session', 'test-browser');
 
       expect(pageInfo).toBeDefined();
       expect(pageInfo.contextId).toBe('test-context');
@@ -195,7 +202,7 @@ describe('PageManager', () => {
         'test-context',
         'test-session',
         'test-browser',
-        options
+        options,
       );
 
       expect(pageInfo).toBeDefined();
@@ -209,7 +216,7 @@ describe('PageManager', () => {
       (contextStore.get as jest.MockedFunction<typeof contextStore.get>).mockResolvedValue(null);
 
       await expect(
-        pageManager.createPage('invalid-context', 'test-session', 'test-browser')
+        pageManager.createPage('invalid-context', 'test-session', 'test-browser'),
       ).rejects.toThrow('Context not found');
     });
 
@@ -228,7 +235,7 @@ describe('PageManager', () => {
       } as Context);
 
       await expect(
-        pageManager.createPage('test-context', 'test-session', 'test-browser')
+        pageManager.createPage('test-context', 'test-session', 'test-browser'),
       ).rejects.toThrow('Access denied: Context does not belong to session');
     });
 
@@ -236,11 +243,7 @@ describe('PageManager', () => {
       const eventSpy = jest.fn();
       pageManager.on('page:created', eventSpy);
 
-      const pageInfo = await pageManager.createPage(
-        'test-context',
-        'test-session',
-        'test-browser'
-      );
+      const pageInfo = await pageManager.createPage('test-context', 'test-session', 'test-browser');
 
       expect(eventSpy).toHaveBeenCalledWith({ pageInfo });
     });
@@ -250,11 +253,7 @@ describe('PageManager', () => {
     let pageInfo: any;
 
     beforeEach(async () => {
-      pageInfo = await pageManager.createPage(
-        'test-context',
-        'test-session',
-        'test-browser'
-      );
+      pageInfo = await pageManager.createPage('test-context', 'test-session', 'test-browser');
     });
 
     it('should return page for valid session', async () => {
@@ -268,9 +267,9 @@ describe('PageManager', () => {
     });
 
     it('should throw error for unauthorized session', async () => {
-      await expect(
-        pageManager.getPage(pageInfo.id, 'different-session')
-      ).rejects.toThrow('Access denied: Page does not belong to session');
+      await expect(pageManager.getPage(pageInfo.id, 'different-session')).rejects.toThrow(
+        'Access denied: Page does not belong to session',
+      );
     });
   });
 
@@ -278,11 +277,7 @@ describe('PageManager', () => {
     let pageInfo: any;
 
     beforeEach(async () => {
-      pageInfo = await pageManager.createPage(
-        'test-context',
-        'test-session',
-        'test-browser'
-      );
+      pageInfo = await pageManager.createPage('test-context', 'test-session', 'test-browser');
     });
 
     it('should return page info for valid session', async () => {
@@ -302,19 +297,19 @@ describe('PageManager', () => {
       const pageInfo1 = await pageManager.createPage(
         'test-context',
         'test-session',
-        'test-browser'
+        'test-browser',
       );
       const pageInfo2 = await pageManager.createPage(
         'test-context',
         'test-session',
-        'test-browser'
+        'test-browser',
       );
 
       const pages = await pageManager.listPagesForContext('test-context', 'test-session');
-      
+
       expect(pages).toHaveLength(2);
-      expect(pages.map(p => p.id)).toContain(pageInfo1.id);
-      expect(pages.map(p => p.id)).toContain(pageInfo2.id);
+      expect(pages.map((p) => p.id)).toContain(pageInfo1.id);
+      expect(pages.map((p) => p.id)).toContain(pageInfo2.id);
     });
 
     it('should throw error for unauthorized session', async () => {
@@ -331,9 +326,9 @@ describe('PageManager', () => {
         userId: 'test-user',
       } as Context);
 
-      await expect(
-        pageManager.listPagesForContext('test-context', 'test-session')
-      ).rejects.toThrow('Access denied: Context does not belong to session');
+      await expect(pageManager.listPagesForContext('test-context', 'test-session')).rejects.toThrow(
+        'Access denied: Context does not belong to session',
+      );
     });
   });
 
@@ -342,19 +337,19 @@ describe('PageManager', () => {
       const pageInfo1 = await pageManager.createPage(
         'test-context',
         'test-session',
-        'test-browser'
+        'test-browser',
       );
       const pageInfo2 = await pageManager.createPage(
         'test-context',
         'test-session',
-        'test-browser'
+        'test-browser',
       );
 
-      const pages = pageManager.listPagesForSession('test-session');
-      
+      const pages = await pageManager.listPagesForSession('test-session');
+
       expect(pages).toHaveLength(2);
-      expect(pages.map(p => p.id)).toContain(pageInfo1.id);
-      expect(pages.map(p => p.id)).toContain(pageInfo2.id);
+      expect(pages.map((p) => p.id)).toContain(pageInfo1.id);
+      expect(pages.map((p) => p.id)).toContain(pageInfo2.id);
     });
   });
 
@@ -362,11 +357,7 @@ describe('PageManager', () => {
     let pageInfo: any;
 
     beforeEach(async () => {
-      pageInfo = await pageManager.createPage(
-        'test-context',
-        'test-session',
-        'test-browser'
-      );
+      pageInfo = await pageManager.createPage('test-context', 'test-session', 'test-browser');
     });
 
     it('should navigate page to URL', async () => {
@@ -407,7 +398,7 @@ describe('PageManager', () => {
       mockPage.goto.mockRejectedValue(error);
 
       await expect(
-        pageManager.navigateTo(pageInfo.id, 'https://invalid.com', 'test-session')
+        pageManager.navigateTo(pageInfo.id, 'https://invalid.com', 'test-session'),
       ).rejects.toThrow('Navigation failed');
 
       // Verify error count was incremented
@@ -418,7 +409,7 @@ describe('PageManager', () => {
     it('should emit navigation events', async () => {
       const navigatedSpy = jest.fn();
       const stateChangedSpy = jest.fn();
-      
+
       pageManager.on('page:navigated', navigatedSpy);
       pageManager.on('page:state-changed', stateChangedSpy);
 
@@ -436,11 +427,7 @@ describe('PageManager', () => {
     let pageInfo: any;
 
     beforeEach(async () => {
-      pageInfo = await pageManager.createPage(
-        'test-context',
-        'test-session',
-        'test-browser'
-      );
+      pageInfo = await pageManager.createPage('test-context', 'test-session', 'test-browser');
     });
 
     it('should close page successfully', async () => {
@@ -450,7 +437,7 @@ describe('PageManager', () => {
       expect(mockBrowserPool.closePage).toHaveBeenCalledWith(
         'test-browser',
         pageInfo.id,
-        'test-session'
+        'test-session',
       );
 
       // Verify page was removed from store
@@ -474,31 +461,21 @@ describe('PageManager', () => {
       mockPage.close.mockRejectedValue(new Error('Close failed'));
 
       // Should not throw despite page close error
-      await expect(
-        pageManager.closePage(pageInfo.id, 'test-session')
-      ).resolves.not.toThrow();
+      await expect(pageManager.closePage(pageInfo.id, 'test-session')).resolves.not.toThrow();
     });
   });
 
   describe('closePagesForContext', () => {
-    beforeEach(async (): Promise<void> => {
-      await pageManager.createPage(
-        'test-context',
-        'test-session',
-        'test-browser'
-      );
-      await pageManager.createPage(
-        'test-context',
-        'test-session',
-        'test-browser'
-      );
+    beforeEach(async () => {
+      await pageManager.createPage('test-context', 'test-session', 'test-browser');
+      await pageManager.createPage('test-context', 'test-session', 'test-browser');
     });
 
     it('should close all pages for context', async () => {
       await pageManager.closePagesForContext('test-context', 'test-session');
 
       expect(mockPage.close).toHaveBeenCalledTimes(2);
-      
+
       // Verify pages were removed
       const pages = await pageManager.listPagesForContext('test-context', 'test-session');
       expect(pages).toHaveLength(0);
@@ -518,26 +495,18 @@ describe('PageManager', () => {
   });
 
   describe('closePagesForSession', () => {
-    beforeEach(async (): Promise<void> => {
-      await pageManager.createPage(
-        'test-context',
-        'test-session',
-        'test-browser'
-      );
-      await pageManager.createPage(
-        'test-context',
-        'test-session',
-        'test-browser'
-      );
+    beforeEach(async () => {
+      await pageManager.createPage('test-context', 'test-session', 'test-browser');
+      await pageManager.createPage('test-context', 'test-session', 'test-browser');
     });
 
     it('should close all pages for session', async () => {
       await pageManager.closePagesForSession('test-session');
 
       expect(mockPage.close).toHaveBeenCalledTimes(2);
-      
+
       // Verify pages were removed
-      const pages = pageManager.listPagesForSession('test-session');
+      const pages = await pageManager.listPagesForSession('test-session');
       expect(pages).toHaveLength(0);
     });
 
@@ -558,11 +527,7 @@ describe('PageManager', () => {
     let pageInfo: any;
 
     beforeEach(async () => {
-      pageInfo = await pageManager.createPage(
-        'test-context',
-        'test-session',
-        'test-browser'
-      );
+      pageInfo = await pageManager.createPage('test-context', 'test-session', 'test-browser');
     });
 
     it('should take screenshot with default options', async () => {
@@ -604,17 +569,11 @@ describe('PageManager', () => {
     let pageInfo: any;
 
     beforeEach(async () => {
-      pageInfo = await pageManager.createPage(
-        'test-context',
-        'test-session',
-        'test-browser'
-      );
+      pageInfo = await pageManager.createPage('test-context', 'test-session', 'test-browser');
     });
 
     it('should set cookies on page', async () => {
-      const cookies: Cookie[] = [
-        { name: 'test', value: 'value', domain: 'example.com' },
-      ];
+      const cookies: Cookie[] = [{ name: 'test', value: 'value', domain: 'example.com' }];
 
       await pageManager.setCookies(pageInfo.id, cookies, 'test-session');
 
@@ -622,9 +581,7 @@ describe('PageManager', () => {
     });
 
     it('should get cookies from page', async () => {
-      const mockCookies: Cookie[] = [
-        { name: 'test', value: 'value', domain: 'example.com' },
-      ];
+      const mockCookies: Cookie[] = [{ name: 'test', value: 'value', domain: 'example.com' }];
       mockPage.cookies.mockResolvedValue(mockCookies);
 
       const cookies = await pageManager.getCookies(pageInfo.id, 'test-session');
@@ -638,17 +595,11 @@ describe('PageManager', () => {
     let pageInfo: any;
 
     beforeEach(async () => {
-      pageInfo = await pageManager.createPage(
-        'test-context',
-        'test-session',
-        'test-browser'
-      );
+      pageInfo = await pageManager.createPage('test-context', 'test-session', 'test-browser');
     });
 
     it('should clear all data by default', async () => {
-      mockPage.cookies.mockResolvedValue([
-        { name: 'test', value: 'value', domain: 'example.com' },
-      ]);
+      mockPage.cookies.mockResolvedValue([{ name: 'test', value: 'value', domain: 'example.com' }]);
 
       await pageManager.clearPageData(pageInfo.id, 'test-session');
 
@@ -668,15 +619,12 @@ describe('PageManager', () => {
 
       expect(mockPage.cookies).not.toHaveBeenCalled();
       expect(mockPage.reload).not.toHaveBeenCalled();
-      expect(mockPage.evaluate).toHaveBeenCalledWith(
-        expect.any(Function),
-        { 
-          cookies: false,
-          cache: false,
-          localStorage: true, 
-          sessionStorage: false 
-        }
-      );
+      expect(mockPage.evaluate).toHaveBeenCalledWith(expect.any(Function), {
+        cookies: false,
+        cache: false,
+        localStorage: true,
+        sessionStorage: false,
+      });
     });
   });
 
@@ -684,11 +632,7 @@ describe('PageManager', () => {
     let pageInfo: any;
 
     beforeEach(async () => {
-      pageInfo = await pageManager.createPage(
-        'test-context',
-        'test-session',
-        'test-browser'
-      );
+      pageInfo = await pageManager.createPage('test-context', 'test-session', 'test-browser');
     });
 
     it('should return page metrics', async () => {
@@ -706,20 +650,16 @@ describe('PageManager', () => {
     let pageInfo: any;
 
     beforeEach(async () => {
-      pageInfo = await pageManager.createPage(
-        'test-context',
-        'test-session',
-        'test-browser'
-      );
+      pageInfo = await pageManager.createPage('test-context', 'test-session', 'test-browser');
     });
 
-    it('should return true for active page', () => {
-      const isActive = pageManager.isPageActive(pageInfo.id);
+    it('should return true for active page', async () => {
+      const isActive = await pageManager.isPageActive(pageInfo.id);
       expect(isActive).toBe(true);
     });
 
-    it('should return false for non-existent page', () => {
-      const isActive = pageManager.isPageActive('invalid-page');
+    it('should return false for non-existent page', async () => {
+      const isActive = await pageManager.isPageActive('invalid-page');
       expect(isActive).toBe(false);
     });
   });
@@ -727,30 +667,26 @@ describe('PageManager', () => {
   describe('cleanupIdlePages', () => {
     it('should clean up idle pages', async () => {
       // Create page and mark as idle
-      const pageInfo = await pageManager.createPage(
-        'test-context',
-        'test-session',
-        'test-browser'
-      );
-      
+      const pageInfo = await pageManager.createPage('test-context', 'test-session', 'test-browser');
+
       // Set the page to idle state and old timestamp
-      pageStore.updateState(pageInfo.id, 'idle');
-      void pageStore.update(pageInfo.id, {
+      await pageStore.updateState(pageInfo.id, 'idle');
+      await pageStore.update(pageInfo.id, {
         lastActivityAt: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
-        state: 'idle'
+        state: 'idle',
       });
 
       // Verify the page info was updated correctly before cleanup
-      const beforeCleanup = pageStore.get(pageInfo.id);
+      const beforeCleanup = await pageStore.get(pageInfo.id);
       expect(beforeCleanup?.state).toBe('idle');
       expect(beforeCleanup?.lastActivityAt.getTime()).toBeLessThan(Date.now() - 60 * 60 * 1000);
 
       const cleaned = await pageManager.cleanupIdlePages(60 * 60 * 1000); // 1 hour timeout
 
       expect(cleaned).toBe(1);
-      
+
       // Verify page was removed
-      const retrievedInfo = pageStore.get(pageInfo.id);
+      const retrievedInfo = await pageStore.get(pageInfo.id);
       expect(retrievedInfo).toBeUndefined();
     });
   });
@@ -760,7 +696,7 @@ describe('PageManager', () => {
       mockBrowserPool.createPage.mockRejectedValue(new Error('Pool error'));
 
       await expect(
-        pageManager.createPage('test-context', 'test-session', 'test-browser')
+        pageManager.createPage('test-context', 'test-session', 'test-browser'),
       ).rejects.toThrow('Pool error');
     });
 
@@ -770,7 +706,7 @@ describe('PageManager', () => {
       await expect(
         pageManager.createPage('test-context', 'test-session', 'test-browser', {
           viewport: { width: 1920, height: 1080 },
-        })
+        }),
       ).rejects.toThrow('Viewport error');
     });
   });
@@ -779,11 +715,7 @@ describe('PageManager', () => {
     let pageInfo: any;
 
     beforeEach(async () => {
-      pageInfo = await pageManager.createPage(
-        'test-context',
-        'test-session',
-        'test-browser'
-      );
+      pageInfo = await pageManager.createPage('test-context', 'test-session', 'test-browser');
     });
 
     it('should emit page:error event', () => {
@@ -791,7 +723,7 @@ describe('PageManager', () => {
       pageManager.on('page:error', errorSpy);
 
       const testError = new Error('Test error');
-      
+
       // Simulate page error by calling the error handler directly
       // (since we can't easily trigger real page events in tests)
       pageManager.emit('page:error', { pageId: pageInfo.id, error: testError });

@@ -91,17 +91,18 @@ describe('BrowserHealthChecker', () => {
   describe('Connection Health', () => {
     it('should detect healthy browser connection', async () => {
       const result = await healthChecker.checkHealth(mockInstance);
-      
+
       expect(result.isHealthy).toBe(true);
       expect(result.connectionHealthy).toBe(true);
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(mockBrowser.isConnected).toHaveBeenCalled();
     });
 
     it('should detect disconnected browser', async () => {
       mockBrowser.isConnected.mockReturnValue(false);
-      
+
       const result = await healthChecker.checkHealth(mockInstance);
-      
+
       expect(result.isHealthy).toBe(false);
       expect(result.connectionHealthy).toBe(false);
       expect(result.reason).toContain('Browser disconnected');
@@ -109,9 +110,9 @@ describe('BrowserHealthChecker', () => {
 
     it('should handle browser without process', async () => {
       mockBrowser.process.mockReturnValue(null);
-      
+
       const result = await healthChecker.checkHealth(mockInstance);
-      
+
       expect(result.isHealthy).toBe(false);
       expect(result.reason).toContain('Browser process not found');
     });
@@ -120,22 +121,26 @@ describe('BrowserHealthChecker', () => {
   describe('Responsiveness Check', () => {
     it('should detect responsive browser', async () => {
       mockPage.evaluate.mockResolvedValue(42);
-      
+
       const result = await healthChecker.checkHealth(mockInstance);
-      
+
       expect(result.isHealthy).toBe(true);
       expect(result.responsive).toBe(true);
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(mockPage.evaluate).toHaveBeenCalledWith(expect.any(Function));
     });
 
     it('should detect unresponsive browser', async () => {
       // Mock a long-running promise that exceeds the timeout
-      mockPage.evaluate.mockImplementation(() => 
-        new Promise(resolve => { setTimeout(resolve, 2000); }) // Longer than 1000ms timeout
+      mockPage.evaluate.mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            setTimeout(resolve, 2000);
+          }), // Longer than 1000ms timeout
       );
-      
+
       const result = await healthChecker.checkHealth(mockInstance);
-      
+
       expect(result.isHealthy).toBe(false);
       expect(result.responsive).toBe(false);
       expect(result.reason).toContain('Browser unresponsive');
@@ -143,9 +148,9 @@ describe('BrowserHealthChecker', () => {
 
     it('should handle evaluation errors', async () => {
       mockPage.evaluate.mockRejectedValue(new Error('Evaluation failed'));
-      
+
       const result = await healthChecker.checkHealth(mockInstance);
-      
+
       expect(result.isHealthy).toBe(false);
       expect(result.responsive).toBe(false);
       expect(result.reason).toContain('Browser unresponsive');
@@ -158,9 +163,9 @@ describe('BrowserHealthChecker', () => {
         JSHeapUsedSize: 100 * 1024 * 1024, // 100MB
         JSHeapTotalSize: 200 * 1024 * 1024,
       } as any);
-      
+
       const result = await healthChecker.checkHealth(mockInstance);
-      
+
       expect(result.isHealthy).toBe(true);
       expect(result.memoryHealthy).toBe(true);
       expect(result.metrics.memoryUsageMB).toBeCloseTo(100, 1);
@@ -171,9 +176,9 @@ describe('BrowserHealthChecker', () => {
         JSHeapUsedSize: 600 * 1024 * 1024, // 600MB
         JSHeapTotalSize: 800 * 1024 * 1024,
       } as any);
-      
+
       const result = await healthChecker.checkHealth(mockInstance);
-      
+
       expect(result.isHealthy).toBe(false);
       expect(result.memoryHealthy).toBe(false);
       expect(result.reason).toContain('Excessive memory usage');
@@ -182,9 +187,9 @@ describe('BrowserHealthChecker', () => {
 
     it('should handle memory check failures', async () => {
       mockPage.metrics.mockRejectedValue(new Error('Metrics failed'));
-      
+
       const result = await healthChecker.checkHealth(mockInstance);
-      
+
       // Should still be healthy if only metrics fail
       expect(result.isHealthy).toBe(true);
       expect(result.memoryHealthy).toBe(true);
@@ -195,9 +200,9 @@ describe('BrowserHealthChecker', () => {
   describe('Page Count Check', () => {
     it('should detect normal page count', async () => {
       mockBrowser.pages.mockResolvedValue([mockPage, mockPage, mockPage]);
-      
+
       const result = await healthChecker.checkHealth(mockInstance);
-      
+
       expect(result.isHealthy).toBe(true);
       expect(result.pageCountHealthy).toBe(true);
       expect(result.metrics.pageCount).toBe(3);
@@ -206,9 +211,9 @@ describe('BrowserHealthChecker', () => {
     it('should detect excessive page count', async () => {
       const pages = Array(15).fill(mockPage);
       mockBrowser.pages.mockResolvedValue(pages);
-      
+
       const result = await healthChecker.checkHealth(mockInstance);
-      
+
       expect(result.isHealthy).toBe(false);
       expect(result.pageCountHealthy).toBe(false);
       expect(result.reason).toContain('Too many pages');
@@ -220,42 +225,48 @@ describe('BrowserHealthChecker', () => {
     it('should restart unhealthy browser', async () => {
       const newBrowser = { ...mockBrowser };
       (puppeteer.launch as jest.Mock).mockResolvedValue(newBrowser);
-      
+
       mockBrowser.isConnected.mockReturnValue(false);
-      
+
       const launchOptions = { headless: true };
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       const result = await healthChecker.restartBrowser(mockInstance, launchOptions);
-      
+
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(mockBrowser.close).toHaveBeenCalled();
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(puppeteer.launch).toHaveBeenCalledWith(launchOptions);
       expect(result).toBe(newBrowser);
     });
 
     it('should handle restart failures', async () => {
       (puppeteer.launch as jest.Mock).mockRejectedValue(new Error('Launch failed'));
-      
+
       const launchOptions = { headless: true };
-      
-      await expect(healthChecker.restartBrowser(mockInstance, launchOptions))
-        .rejects.toThrow('Launch failed');
-      
+
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      await expect(healthChecker.restartBrowser(mockInstance, launchOptions)).rejects.toThrow(
+        'Launch failed',
+      );
+
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(mockBrowser.close).toHaveBeenCalled();
     });
 
     it('should handle close failures during restart', async () => {
       const newBrowser = { ...mockBrowser };
       (puppeteer.launch as jest.Mock).mockResolvedValue(newBrowser);
-      
+
       mockBrowser.close.mockRejectedValue(new Error('Close failed'));
-      
+
       const launchOptions = { headless: true };
       const result = await healthChecker.restartBrowser(mockInstance, launchOptions);
-      
+
       // Should still launch new browser
       expect(result).toBe(newBrowser);
       expect(mockLogger.error).toHaveBeenCalledWith(
         expect.objectContaining({ error: expect.any(Error) }),
-        'Failed to close unhealthy browser'
+        'Failed to close unhealthy browser',
       );
     });
   });
@@ -267,11 +278,11 @@ describe('BrowserHealthChecker', () => {
         JSHeapTotalSize: 200 * 1024 * 1024,
         Timestamp: Date.now(),
       } as any);
-      
+
       mockBrowser.pages.mockResolvedValue([mockPage, mockPage]);
-      
+
       const result = await healthChecker.checkHealth(mockInstance);
-      
+
       expect(result.metrics).toEqual({
         memoryUsageMB: expect.any(Number),
         pageCount: 2,
@@ -284,9 +295,9 @@ describe('BrowserHealthChecker', () => {
     it('should calculate uptime correctly', async () => {
       const createdAt = new Date(Date.now() - 60000); // 1 minute ago
       mockInstance.createdAt = createdAt;
-      
+
       const result = await healthChecker.checkHealth(mockInstance);
-      
+
       expect(result.metrics.uptime).toBeGreaterThanOrEqual(59000);
       expect(result.metrics.uptime).toBeLessThanOrEqual(61000);
     });
@@ -299,9 +310,9 @@ describe('BrowserHealthChecker', () => {
         { ...mockInstance, id: 'browser-456' },
         { ...mockInstance, id: 'browser-789' },
       ];
-      
+
       const results = await healthChecker.checkMultiple(instances);
-      
+
       expect(results.size).toBe(3);
       expect(results.get('browser-123')).toBeDefined();
       expect(results.get('browser-456')).toBeDefined();
@@ -319,12 +330,9 @@ describe('BrowserHealthChecker', () => {
         id: 'browser-456',
         browser: unhealthyBrowser,
       };
-      
-      const results = await healthChecker.checkMultiple([
-        healthyInstance,
-        unhealthyInstance,
-      ]);
-      
+
+      const results = await healthChecker.checkMultiple([healthyInstance, unhealthyInstance]);
+
       expect(results.get('browser-123')?.isHealthy).toBe(true);
       expect(results.get('browser-456')?.isHealthy).toBe(false);
     });
@@ -334,7 +342,7 @@ describe('BrowserHealthChecker', () => {
     it('should perform auto-recovery when enabled', async () => {
       const newBrowser = { ...mockBrowser };
       (puppeteer.launch as jest.Mock).mockResolvedValue(newBrowser);
-      
+
       healthChecker = new BrowserHealthChecker({
         maxMemoryMB: 512,
         maxPageCount: 10,
@@ -342,12 +350,12 @@ describe('BrowserHealthChecker', () => {
         checkInterval: 10000,
         enableAutoRecovery: true,
       });
-      
+
       mockBrowser.isConnected.mockReturnValue(false);
-      
+
       const launchOptions = { headless: true };
       const result = await healthChecker.checkAndRecover(mockInstance, launchOptions);
-      
+
       expect(result.recovered).toBe(true);
       expect(result.newBrowser).toBe(newBrowser);
       expect(puppeteer.launch).toHaveBeenCalled();
@@ -361,18 +369,18 @@ describe('BrowserHealthChecker', () => {
         checkInterval: 10000,
         enableAutoRecovery: true,
       });
-      
+
       const result = await healthChecker.checkAndRecover(mockInstance, {});
-      
+
       expect(result.recovered).toBe(false);
       expect(result.newBrowser).toBeUndefined();
     });
 
     it('should respect auto-recovery disabled setting', async () => {
       mockBrowser.isConnected.mockReturnValue(false);
-      
+
       const result = await healthChecker.checkAndRecover(mockInstance, {});
-      
+
       expect(result.recovered).toBe(false);
       expect(result.health.isHealthy).toBe(false);
     });
@@ -384,13 +392,13 @@ describe('BrowserHealthChecker', () => {
         maxMemoryMB: 1024,
         responseTimeout: 10000,
       });
-      
+
       expect(mockLogger.info).toHaveBeenCalledWith(
-        expect.objectContaining({ 
+        expect.objectContaining({
           maxMemoryMB: 1024,
           responseTimeout: 10000,
         }),
-        'Health checker configuration updated'
+        'Health checker configuration updated',
       );
     });
 
@@ -398,11 +406,11 @@ describe('BrowserHealthChecker', () => {
       expect(() => {
         healthChecker.updateConfig({ maxMemoryMB: -1 });
       }).toThrow('Invalid configuration: maxMemoryMB must be positive');
-      
+
       expect(() => {
         healthChecker.updateConfig({ maxPageCount: 0 });
       }).toThrow('Invalid configuration: maxPageCount must be positive');
-      
+
       expect(() => {
         healthChecker.updateConfig({ responseTimeout: -1000 });
       }).toThrow('Invalid configuration: responseTimeout must be positive');

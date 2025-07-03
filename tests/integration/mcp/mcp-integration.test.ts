@@ -83,24 +83,26 @@ describe('MCP Server Integration Tests', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockHandlers = new Map();
-    
+
     // Mock the Server class from MCP SDK
-    jest.spyOn(Server.prototype, 'setRequestHandler').mockImplementation((schema: any, handler: any) => {
-      // Map schema to handler name
-      let schemaName = 'unknown';
-      if (schema === ListToolsRequestSchema) {
-        schemaName = 'listTools';
-      } else if (schema === CallToolRequestSchema) {
-        schemaName = 'callTool';
-      } else if (schema === ListResourcesRequestSchema) {
-        schemaName = 'listResources';
-      } else if (schema === ReadResourceRequestSchema) {
-        schemaName = 'readResource';
-      }
-      mockHandlers.set(schemaName, handler);
-      return undefined;
-    });
-    
+    jest
+      .spyOn(Server.prototype, 'setRequestHandler')
+      .mockImplementation((schema: any, handler: any) => {
+        // Map schema to handler name
+        let schemaName = 'unknown';
+        if (schema === ListToolsRequestSchema) {
+          schemaName = 'listTools';
+        } else if (schema === CallToolRequestSchema) {
+          schemaName = 'callTool';
+        } else if (schema === ListResourcesRequestSchema) {
+          schemaName = 'listResources';
+        } else if (schema === ReadResourceRequestSchema) {
+          schemaName = 'readResource';
+        }
+        mockHandlers.set(schemaName, handler);
+        return undefined;
+      });
+
     // Create MCP server without protocol adapters
     mcpServer = createMCPServer();
   });
@@ -116,10 +118,13 @@ describe('MCP Server Integration Tests', () => {
 
     it('should register all request handlers', () => {
       // The server registers handlers in setupHandlers() and may call additional ones during initialization
-      const setRequestHandlerMock = Server.prototype.setRequestHandler as jest.Mock;
-      expect(setRequestHandlerMock).toHaveBeenCalled();
-      expect(setRequestHandlerMock.mock.calls.length).toBeGreaterThanOrEqual(4);
-      
+      const serverPrototype = Server.prototype;
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      expect(serverPrototype.setRequestHandler).toHaveBeenCalled();
+      expect(
+        (serverPrototype.setRequestHandler as jest.Mock).mock.calls.length,
+      ).toBeGreaterThanOrEqual(4);
+
       // Verify each handler is registered
       expect(mockHandlers.has('listTools')).toBeTruthy();
       expect(mockHandlers.has('callTool')).toBeTruthy();
@@ -180,7 +185,9 @@ describe('MCP Server Integration Tests', () => {
       expect(deleteSessionTool.inputSchema.required).toEqual(['sessionId']);
 
       // Verify create-browser-context tool
-      const createBrowserContextTool = response.tools.find((t: any) => t.name === 'create-browser-context');
+      const createBrowserContextTool = response.tools.find(
+        (t: any) => t.name === 'create-browser-context',
+      );
       expect(createBrowserContextTool).toBeDefined();
       expect(createBrowserContextTool.inputSchema.properties).toHaveProperty('sessionId');
       expect(createBrowserContextTool.inputSchema.properties).toHaveProperty('options');
@@ -234,23 +241,25 @@ describe('MCP Server Integration Tests', () => {
       expect(callToolHandler).toBeDefined();
 
       // Test execute-api tool without adapters - should throw an error
-      await expect(callToolHandler({
-        params: {
-          name: 'execute-api',
-          arguments: {
-            protocol: 'rest',
-            operation: {
-              method: 'GET',
-              endpoint: '/health',
+      await expect(
+        callToolHandler({
+          params: {
+            name: 'execute-api',
+            arguments: {
+              protocol: 'rest',
+              operation: {
+                method: 'GET',
+                endpoint: '/health',
+              },
             },
           },
-        },
-      })).rejects.toThrow('REST adapter not initialized');
+        }),
+      ).rejects.toThrow('REST adapter not initialized');
     });
 
     it('should log tool execution attempts', async () => {
       const callToolHandler = mockHandlers.get('callTool');
-      
+
       await callToolHandler({
         params: {
           name: 'list-sessions',
@@ -262,7 +271,7 @@ describe('MCP Server Integration Tests', () => {
         expect.objectContaining({
           msg: 'MCP tool execution',
           tool: 'list-sessions',
-        })
+        }),
       );
     });
   });
@@ -280,7 +289,7 @@ describe('MCP Server Integration Tests', () => {
       expect(healthResponse.contents).toHaveLength(1);
       expect(healthResponse.contents[0].uri).toBe('api://health');
       expect(healthResponse.contents[0].mimeType).toBe('application/json');
-      
+
       const healthData = JSON.parse(healthResponse.contents[0].text);
       expect(healthData).toHaveProperty('status', 'healthy');
       expect(healthData).toHaveProperty('services');
@@ -299,7 +308,7 @@ describe('MCP Server Integration Tests', () => {
       expect(catalogResponse.contents).toHaveLength(1);
       expect(catalogResponse.contents[0].uri).toBe('api://catalog');
       expect(catalogResponse.contents[0].mimeType).toBe('application/json');
-      
+
       const catalogData = JSON.parse(catalogResponse.contents[0].text);
       expect(catalogData).toHaveProperty('rest');
       expect(catalogData).toHaveProperty('grpc');
@@ -308,7 +317,7 @@ describe('MCP Server Integration Tests', () => {
 
     it('should log resource access', async () => {
       const readResourceHandler = mockHandlers.get('readResource');
-      
+
       await readResourceHandler({
         params: { uri: 'api://health' },
       });
@@ -317,7 +326,7 @@ describe('MCP Server Integration Tests', () => {
         expect.objectContaining({
           msg: 'MCP resource access',
           resource: 'api://health',
-        })
+        }),
       );
     });
   });
@@ -341,21 +350,25 @@ describe('MCP Server Integration Tests', () => {
   describe('Error Handling', () => {
     it('should handle unknown tool requests', async () => {
       const callToolHandler = mockHandlers.get('callTool');
-      
-      await expect(callToolHandler({
-        params: {
-          name: 'unknown-tool',
-          arguments: {},
-        },
-      })).rejects.toThrow('Unknown tool: unknown-tool');
+
+      await expect(
+        callToolHandler({
+          params: {
+            name: 'unknown-tool',
+            arguments: {},
+          },
+        }),
+      ).rejects.toThrow('Unknown tool: unknown-tool');
     });
 
     it('should handle unknown resource requests', async () => {
       const readResourceHandler = mockHandlers.get('readResource');
-      
-      await expect(readResourceHandler({
-        params: { uri: 'api://unknown' },
-      })).rejects.toThrow('Unknown resource: api://unknown');
+
+      await expect(
+        readResourceHandler({
+          params: { uri: 'api://unknown' },
+        }),
+      ).rejects.toThrow('Unknown resource: api://unknown');
     });
   });
 });

@@ -40,6 +40,7 @@ const mockBrowser = {
   pages: jest.fn().mockResolvedValue([mockPage]),
   process: jest.fn(() => ({ pid: 12345 })),
   isConnected: jest.fn(() => true),
+  version: jest.fn().mockResolvedValue('HeadlessChrome/120.0.0.0'),
   on: jest.fn(),
   off: jest.fn(),
 };
@@ -128,7 +129,7 @@ describe('Browser Pool Integration', () => {
     expect(metrics.totalPages).toBe(2);
 
     // Release browser
-    pool.releaseBrowser(instance.id);
+    await pool.releaseBrowser(instance.id, 'session-123');
 
     const metricsAfterRelease = pool.getMetrics();
     expect(metricsAfterRelease.activeBrowsers).toBe(0);
@@ -142,13 +143,14 @@ describe('Browser Pool Integration', () => {
     const unhealthyBrowser = {
       ...mockBrowser,
       isConnected: jest.fn(() => false),
+      version: jest.fn().mockResolvedValue('HeadlessChrome/120.0.0.0'),
     };
-    
+
     const puppeteer = await import('puppeteer');
     (puppeteer.launch as jest.Mock).mockResolvedValueOnce(unhealthyBrowser);
 
     const instance = await pool.acquireBrowser('session-1');
-    
+
     // Check health - should detect as unhealthy
     const healthResult = await healthChecker.checkHealth(instance);
     expect(healthResult.isHealthy).toBe(false);
@@ -171,21 +173,19 @@ describe('Browser Pool Integration', () => {
     const unhealthyBrowser = {
       ...mockBrowser,
       isConnected: jest.fn(() => false),
+      version: jest.fn().mockResolvedValue('HeadlessChrome/120.0.0.0'),
     };
-    
+
     const puppeteer = await import('puppeteer');
     (puppeteer.launch as jest.Mock)
       .mockResolvedValueOnce(unhealthyBrowser)
       .mockResolvedValueOnce(mockBrowser); // Recovery browser
 
     const instance = await pool.acquireBrowser('session-1');
-    
+
     // Test auto-recovery
-    const recoveryResult = await recoveryChecker.checkAndRecover(
-      instance,
-      options.launchOptions
-    );
-    
+    const recoveryResult = await recoveryChecker.checkAndRecover(instance, options.launchOptions);
+
     expect(recoveryResult.recovered).toBe(true);
     expect(recoveryResult.newBrowser).toBe(mockBrowser);
     expect(recoveryResult.health.isHealthy).toBe(false);
@@ -220,26 +220,28 @@ describe('Browser Pool Integration', () => {
 
     // Acquire browser
     const instance = await pool.acquireBrowser('session-test');
-    
+
     // Create pages
     await pool.createPage(instance.id, 'session-test');
     await pool.createPage(instance.id, 'session-test');
-    
+
     // Update the mock to return 3 pages (1 default + 2 created)
     mockBrowser.pages.mockResolvedValue([mockPage, mockPage, mockPage]);
-    
+
     // Monitor health
     const initialHealth = await healthChecker.checkHealth(instance);
     expect(initialHealth.isHealthy).toBe(true);
     expect(initialHealth.metrics.pageCount).toBe(3);
-    
+
     // Add small delay for lifetime calculation
-    await new Promise<void>(resolve => { setTimeout(resolve, 10); });
-    
+    await new Promise((resolve) => {
+      setTimeout(resolve, 10);
+    });
+
     // Release and recycle
-    pool.releaseBrowser(instance.id);
+    await pool.releaseBrowser(instance.id, 'session-456');
     await pool.recycleBrowser(instance.id);
-    
+
     // Check final metrics
     const finalMetrics = pool.getMetrics();
     expect(finalMetrics.browsersCreated).toBe(1);

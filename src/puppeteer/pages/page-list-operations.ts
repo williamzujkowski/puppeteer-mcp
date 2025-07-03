@@ -13,10 +13,11 @@ import type { PageInfoStore } from './page-info-store.js';
  * List pages for session
  * @nist ac-3 "Access enforcement"
  */
-export function listPagesForSession(
+// eslint-disable-next-line require-await, @typescript-eslint/require-await
+export async function listPagesForSession(
   sessionId: string,
-  pageStore: PageInfoStore
-): PageInfo[] {
+  pageStore: PageInfoStore,
+): Promise<PageInfo[]> {
   return pageStore.listBySession(sessionId);
 }
 
@@ -27,7 +28,7 @@ export function listPagesForSession(
 export async function listPagesForContext(
   contextId: string,
   sessionId: string,
-  pageStore: PageInfoStore
+  pageStore: PageInfoStore,
 ): Promise<PageInfo[]> {
   // Verify context belongs to session
   const context = await contextStore.get(contextId);

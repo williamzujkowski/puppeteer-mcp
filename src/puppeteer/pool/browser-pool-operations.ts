@@ -17,7 +17,7 @@ const logger = createLogger('browser-pool-operations');
  * Find an idle browser
  */
 export function findIdleBrowser(
-  browsers: Map<string, InternalBrowserInstance>
+  browsers: Map<string, InternalBrowserInstance>,
 ): InternalBrowserInstance | null {
   for (const instance of browsers.values()) {
     if (instance.state === 'idle' && instance.browser.isConnected()) {
@@ -32,16 +32,19 @@ export function findIdleBrowser(
  */
 export function activateBrowser(
   instance: InternalBrowserInstance,
-  sessionId: string
+  sessionId: string,
 ): InternalBrowserInstance {
   instance.state = 'active';
   instance.sessionId = sessionId;
   instance.lastUsedAt = new Date();
 
-  logger.debug({
-    browserId: instance.id,
-    sessionId,
-  }, 'Browser activated for session');
+  logger.debug(
+    {
+      browserId: instance.id,
+      sessionId,
+    },
+    'Browser activated for session',
+  );
 
   return instance;
 }
@@ -53,7 +56,7 @@ export function activateBrowser(
 export async function createPage(
   browserId: string,
   sessionId: string,
-  browsers: Map<string, InternalBrowserInstance>
+  browsers: Map<string, InternalBrowserInstance>,
 ): Promise<Page> {
   const instance = browsers.get(browserId);
   if (!instance) {
@@ -74,10 +77,11 @@ export async function createPage(
 /**
  * Close a page in a browser
  */
-export function closePage(
+// eslint-disable-next-line require-await, @typescript-eslint/require-await
+export async function closePage(
   browserId: string,
   sessionId: string,
-  browsers: Map<string, InternalBrowserInstance>
+  browsers: Map<string, InternalBrowserInstance>,
 ): Promise<void> {
   const instance = browsers.get(browserId);
   if (!instance) {
@@ -96,10 +100,8 @@ export function closePage(
 /**
  * List all browser instances
  */
-export function listBrowsers(
-  browsers: Map<string, InternalBrowserInstance>
-): BrowserInstance[] {
-  return Array.from(browsers.values()).map(internal => {
+export function listBrowsers(browsers: Map<string, InternalBrowserInstance>): BrowserInstance[] {
+  return Array.from(browsers.values()).map((internal) => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { state, sessionId, errorCount, ...browserInstance } = internal;
     return browserInstance;

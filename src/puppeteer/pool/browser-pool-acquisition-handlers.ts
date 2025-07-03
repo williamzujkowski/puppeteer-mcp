@@ -19,7 +19,10 @@ export interface AcquireBrowserParams {
   sessionId: string;
   isShuttingDown: boolean;
   findIdleBrowser: () => InternalBrowserInstance | null;
-  activateBrowser: (instance: InternalBrowserInstance, sessionId: string) => InternalBrowserInstance;
+  activateBrowser: (
+    instance: InternalBrowserInstance,
+    sessionId: string,
+  ) => InternalBrowserInstance;
   createAndAcquireBrowser: (sessionId: string) => Promise<BrowserInstance>;
   canCreateNewBrowser: () => boolean;
   queueAcquisition: (sessionId: string) => Promise<BrowserInstance>;
@@ -30,9 +33,8 @@ export interface AcquireBrowserParams {
  * @nist ac-3 "Access enforcement"
  * @nist ac-4 "Information flow enforcement"
  */
-export function acquireBrowser(
-  params: AcquireBrowserParams
-): Promise<BrowserInstance> {
+// eslint-disable-next-line require-await, @typescript-eslint/require-await
+export async function acquireBrowser(params: AcquireBrowserParams): Promise<BrowserInstance> {
   const {
     sessionId,
     isShuttingDown,
@@ -40,9 +42,9 @@ export function acquireBrowser(
     activateBrowser,
     createAndAcquireBrowser,
     canCreateNewBrowser,
-    queueAcquisition
+    queueAcquisition,
   } = params;
-  
+
   if (isShuttingDown) {
     throw new AppError('Browser pool is shutting down', 503);
   }
@@ -52,7 +54,11 @@ export function acquireBrowser(
   // Try to find an idle browser
   const idleBrowser = findIdleBrowser();
   if (idleBrowser) {
-    return activateBrowser(idleBrowser, sessionId);
+    const activatedInstance = activateBrowser(idleBrowser, sessionId);
+    // Convert InternalBrowserInstance to BrowserInstance
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { state, sessionId: sid, errorCount, ...browserInstance } = activatedInstance;
+    return browserInstance;
   }
 
   // Check if we can create a new browser
@@ -72,7 +78,7 @@ export function releaseBrowser(
   browserId: string,
   browsers: Map<string, InternalBrowserInstance>,
   queue: any,
-  onReleased: (browserId: string) => void
+  onReleased: (browserId: string) => void,
 ): void {
   const instance = browsers.get(browserId);
   if (!instance) {

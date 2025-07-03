@@ -27,38 +27,18 @@ import {
   clearPageData,
   takeScreenshot,
   isPageActive,
-  type PageOperationParams,
-  type SetCookiesParams,
-  type ClearPageDataParams,
-  type TakeScreenshotParams,
 } from './page-operations.js';
-import {
-  navigatePage,
-  navigateToWithEvents,
-  updatePageOptions,
-  type NavigateParams,
-  type NavigateWithEventsParams,
-  type UpdatePageOptionsParams,
-} from './page-navigation.js';
-import {
-  performCleanup,
-  shutdownPageManager,
-} from './page-manager-lifecycle.js';
-import { 
-  getPageWithAccessControl,
-  getPageInfoWithAccessControl
-} from './page-access-control.js';
-import {
-  listPagesForSession,
-  listPagesForContext,
-} from './page-list-operations.js';
+import { navigatePage, navigateToWithEvents, updatePageOptions } from './page-navigation.js';
+import { performCleanup, shutdownPageManager } from './page-manager-lifecycle.js';
+import { getPageWithAccessControl, getPageInfoWithAccessControl } from './page-access-control.js';
+import { listPagesForSession, listPagesForContext } from './page-list-operations.js';
 import {
   closePageOperation,
   closePagesForContextOperation,
   closePagesForSessionOperation,
 } from './page-close-operations.js';
 import { initializePageManager } from './page-manager-init.js';
-import { createPageImpl, type CreatePageImplParams } from './page-manager-methods.js';
+import { createPageImpl } from './page-manager-methods.js';
 import { cleanupIdlePagesWithLogging } from './page-cleanup-methods.js';
 
 // Type imports only for return types
@@ -78,13 +58,8 @@ export class PageManager extends EventEmitter implements IPageManager {
 
   constructor(browserPool: BrowserPool, pageStore?: PageInfoStore) {
     super();
-    const init = initializePageManager(
-      browserPool,
-      pageStore,
-      this,
-      () => this.performCleanup()
-    );
-    
+    const init = initializePageManager(browserPool, pageStore, this, () => this.performCleanup());
+
     this.browserPool = init.browserPool;
     this.pageStore = init.pageStore;
     this.pages = init.pages;
@@ -101,7 +76,7 @@ export class PageManager extends EventEmitter implements IPageManager {
     contextId: string,
     sessionId: string,
     browserId: string,
-    options?: PageOptions
+    options?: PageOptions,
   ): Promise<PageInfo> {
     return createPageImpl({
       contextId,
@@ -112,7 +87,7 @@ export class PageManager extends EventEmitter implements IPageManager {
       pages: this.pages,
       pageStore: this.pageStore,
       emitter: this,
-      isShuttingDown: this.isShuttingDown
+      isShuttingDown: this.isShuttingDown,
     });
   }
 
@@ -121,14 +96,14 @@ export class PageManager extends EventEmitter implements IPageManager {
   }
 
   getPageInfo(pageId: string, sessionId: string): Promise<PageInfo> {
-    return getPageInfoWithAccessControl(pageId, sessionId, this.pageStore) as Promise<PageInfo>;
+    return getPageInfoWithAccessControl(pageId, sessionId, this.pageStore);
   }
 
   navigatePage(
     pageId: string,
     sessionId: string,
     url: string,
-    options?: NavigationOptions
+    options?: NavigationOptions,
   ): Promise<void> {
     return navigatePage({
       pageId,
@@ -136,7 +111,7 @@ export class PageManager extends EventEmitter implements IPageManager {
       url,
       options,
       pages: this.pages,
-      pageStore: this.pageStore
+      pageStore: this.pageStore,
     });
   }
 
@@ -144,7 +119,7 @@ export class PageManager extends EventEmitter implements IPageManager {
     pageId: string,
     url: string,
     sessionId: string,
-    options?: NavigationOptions
+    options?: NavigationOptions,
   ): Promise<void> {
     return navigateToWithEvents({
       pageId,
@@ -153,14 +128,14 @@ export class PageManager extends EventEmitter implements IPageManager {
       options,
       pages: this.pages,
       pageStore: this.pageStore,
-      emitter: this
+      emitter: this,
     });
   }
 
   updatePageOptions(
     pageId: string,
     options: Partial<PageOptions>,
-    sessionId: string
+    sessionId: string,
   ): Promise<void> {
     return updatePageOptions({
       pageId,
@@ -168,25 +143,22 @@ export class PageManager extends EventEmitter implements IPageManager {
       sessionId,
       pages: this.pages,
       pageStore: this.pageStore,
-      configurePageOptions
+      configurePageOptions,
     });
   }
 
-  takeScreenshot(
-    pageId: string,
-    sessionId: string,
-    options?: ScreenshotOptions
-  ): Promise<Buffer> {
+  takeScreenshot(pageId: string, sessionId: string, options?: ScreenshotOptions): Promise<Buffer> {
     return takeScreenshot({
       pageId,
       sessionId,
       options,
       pages: this.pages,
-      pageStore: this.pageStore
+      pageStore: this.pageStore,
     });
   }
 
-  listPagesForSession(sessionId: string): PageInfo[] {
+  // eslint-disable-next-line require-await, @typescript-eslint/require-await
+  async listPagesForSession(sessionId: string): Promise<PageInfo[]> {
     return listPagesForSession(sessionId, this.pageStore);
   }
 
@@ -201,7 +173,7 @@ export class PageManager extends EventEmitter implements IPageManager {
       pages: this.pages,
       pageStore: this.pageStore,
       getPageInfo: (pid, sid) => this.getPageInfo(pid, sid),
-      emitter: this
+      emitter: this,
     });
   }
 
@@ -210,7 +182,7 @@ export class PageManager extends EventEmitter implements IPageManager {
       contextId,
       pages: this.pages,
       pageStore: this.pageStore,
-      emitter: this
+      emitter: this,
     });
   }
 
@@ -219,7 +191,7 @@ export class PageManager extends EventEmitter implements IPageManager {
       sessionId,
       pages: this.pages,
       pageStore: this.pageStore,
-      emitter: this
+      emitter: this,
     });
   }
 
@@ -237,7 +209,7 @@ export class PageManager extends EventEmitter implements IPageManager {
       cookies,
       sessionId,
       pages: this.pages,
-      pageStore: this.pageStore
+      pageStore: this.pageStore,
     });
   }
 
@@ -253,25 +225,25 @@ export class PageManager extends EventEmitter implements IPageManager {
       cache?: boolean;
       localStorage?: boolean;
       sessionStorage?: boolean;
-    }
+    },
   ): Promise<void> {
     return clearPageData({
       pageId,
       sessionId,
       options,
       pages: this.pages,
-      pageStore: this.pageStore
+      pageStore: this.pageStore,
     });
   }
 
-  isPageActive(pageId: string): boolean {
+  // eslint-disable-next-line require-await, @typescript-eslint/require-await
+  async isPageActive(pageId: string): Promise<boolean> {
     return isPageActive(pageId, this.pageStore);
   }
 
   cleanupIdlePages(idleTimeout: number): Promise<number> {
     return cleanupIdlePagesWithLogging(idleTimeout, this.pageStore);
   }
-
 
   async shutdown(): Promise<void> {
     this.isShuttingDown = true;

@@ -30,6 +30,7 @@ const mockBrowser = {
   pages: jest.fn(),
   process: jest.fn(() => ({ pid: 12345 })),
   isConnected: jest.fn(() => true),
+  version: jest.fn().mockResolvedValue('HeadlessChrome/120.0.0.0'),
   on: jest.fn(),
   off: jest.fn(),
 } as unknown as jest.Mocked<Browser>;
@@ -68,7 +69,10 @@ jest.mock('../../../src/utils/logger.js', () => ({
 
 // Import modules
 import { BrowserPool } from '../../../src/puppeteer/pool/browser-pool.js';
-import type { BrowserPoolOptions, BrowserInstance } from '../../../src/puppeteer/interfaces/browser-pool.interface.js';
+import type {
+  BrowserPoolOptions,
+  BrowserInstance,
+} from '../../../src/puppeteer/interfaces/browser-pool.interface.js';
 import * as puppeteer from 'puppeteer';
 
 describe('BrowserPool', () => {
@@ -78,7 +82,7 @@ describe('BrowserPool', () => {
   beforeEach(() => {
     // Reset all mocks
     jest.clearAllMocks();
-    
+
     // Reset puppeteer mock
     (puppeteer.launch as jest.Mock).mockResolvedValue(mockBrowser);
 
@@ -106,7 +110,7 @@ describe('BrowserPool', () => {
   describe('Pool Initialization', () => {
     it('should initialize pool with correct configuration', async () => {
       await pool.initialize();
-      
+
       const metrics = pool.getMetrics();
       expect(metrics.totalBrowsers).toBe(0);
       expect(metrics.activeBrowsers).toBe(0);
@@ -118,7 +122,7 @@ describe('BrowserPool', () => {
       // Configuration should be updated
       expect(mockLogger.info).toHaveBeenCalledWith(
         expect.objectContaining({ maxBrowsers: 5 }),
-        'Browser pool configuration updated'
+        'Browser pool configuration updated',
       );
     });
 
@@ -136,12 +140,12 @@ describe('BrowserPool', () => {
 
     it('should acquire a browser instance', async () => {
       const instance = await pool.acquireBrowser('session-123');
-      
+
       expect(instance).toBeDefined();
       expect(instance.id).toBeDefined();
       expect(instance.browser).toBe(mockBrowser);
       expect(instance.useCount).toBe(1);
-      
+
       const metrics = pool.getMetrics();
       expect(metrics.totalBrowsers).toBe(1);
       expect(metrics.activeBrowsers).toBe(1);
@@ -150,8 +154,8 @@ describe('BrowserPool', () => {
 
     it('should release a browser back to pool', async () => {
       const instance = await pool.acquireBrowser('session-123');
-      pool.releaseBrowser(instance.id);
-      
+      await pool.releaseBrowser(instance.id, 'session-123');
+
       const metrics = pool.getMetrics();
       expect(metrics.activeBrowsers).toBe(0);
       expect(metrics.idleBrowsers).toBe(1);
@@ -159,10 +163,10 @@ describe('BrowserPool', () => {
 
     it('should reuse idle browsers', async () => {
       const instance1 = await pool.acquireBrowser('session-123');
-      pool.releaseBrowser(instance1.id);
-      
+      await pool.releaseBrowser(instance1.id, 'session-123');
+
       const instance2 = await pool.acquireBrowser('session-456');
-      
+
       expect(instance2.id).toBe(instance1.id);
       expect(instance2.useCount).toBe(2);
       expect(puppeteer.launch).toHaveBeenCalledTimes(1);
@@ -186,9 +190,9 @@ describe('BrowserPool', () => {
       ];
 
       const instances = await Promise.all(promises);
-      
+
       expect(instances).toHaveLength(3);
-      expect(new Set(instances.map(i => i.id)).size).toBe(3);
+      expect(new Set(instances.map((i) => i.id)).size).toBe(3);
       expect(puppeteer.launch).toHaveBeenCalledTimes(3);
     });
   });
@@ -208,13 +212,15 @@ describe('BrowserPool', () => {
 
       // Should queue when at limit
       const acquirePromise = pool.acquireBrowser('session-4');
-      
+
       // Give some time to ensure it's queued
-      await new Promise<void>(resolve => { setTimeout(resolve, 100); });
-      
+      await new Promise<void>((resolve) => {
+        setTimeout(resolve, 100);
+      });
+
       // Release one browser
-      pool.releaseBrowser(instances[0].id);
-      
+      await pool.releaseBrowser(instances[0].id, 'session-1');
+
       // Now the queued request should complete
       const instance4 = await acquirePromise;
       expect(instance4).toBeDefined();
@@ -232,9 +238,7 @@ describe('BrowserPool', () => {
       pool.configure({ acquisitionTimeout: 100 } as any);
 
       // This should timeout
-      await expect(pool.acquireBrowser('session-4')).rejects.toThrow(
-        'Browser acquisition timeout'
-      );
+      await expect(pool.acquireBrowser('session-4')).rejects.toThrow('Browser acquisition timeout');
     });
   });
 
@@ -248,8 +252,9 @@ describe('BrowserPool', () => {
 
     it('should create a new page', async () => {
       const page = await pool.createPage(instance.id, 'session-123');
-      
+
       expect(page).toBe(mockPage);
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(mockBrowser.newPage).toHaveBeenCalled();
       expect(instance.pageCount).toBe(1);
     });
@@ -262,15 +267,16 @@ describe('BrowserPool', () => {
 
       // Should reject when at limit
       await expect(pool.createPage(instance.id, 'session-123')).rejects.toThrow(
-        'Page limit reached for browser'
+        'Page limit reached for browser',
       );
     });
 
     it('should close pages', async () => {
       await pool.createPage(instance.id, 'session-123');
-      
-      pool.closePage(instance.id, 'session-123');
-      
+
+      await pool.closePage(instance.id, 'session-123');
+
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(mockPage.close).toHaveBeenCalled();
       expect(instance.pageCount).toBe(0);
     });
@@ -284,16 +290,20 @@ describe('BrowserPool', () => {
 
     it('should clean up idle browsers after timeout', async () => {
       const instance = await pool.acquireBrowser('session-123');
-      pool.releaseBrowser(instance.id);
+      await pool.releaseBrowser(instance.id, 'session-123');
 
       // Wait for idle timeout
-      await new Promise<void>(resolve => { setTimeout(resolve, 150); });
-      
-      const cleaned = pool.cleanupIdle();
-      
+      await new Promise<void>((resolve) => {
+        setTimeout(resolve, 150);
+      });
+
+      const cleaned = await pool.cleanupIdle();
+
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(cleaned).toBe(1);
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(mockBrowser.close).toHaveBeenCalled();
-      
+
       const metrics = pool.getMetrics();
       expect(metrics.totalBrowsers).toBe(0);
     });
@@ -301,11 +311,15 @@ describe('BrowserPool', () => {
     it('should not clean up active browsers', async () => {
       await pool.acquireBrowser('session-123'); // Keep active
 
-      await new Promise<void>(resolve => { setTimeout(resolve, 150); });
-      
+      await new Promise<void>((resolve) => {
+        setTimeout(resolve, 150);
+      });
+
       const cleaned = pool.cleanupIdle();
-      
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+
       expect(cleaned).toBe(0);
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(mockBrowser.close).not.toHaveBeenCalled();
     });
   });
@@ -320,7 +334,7 @@ describe('BrowserPool', () => {
       const instance2 = await pool.acquireBrowser('session-2');
 
       const healthResults = pool.healthCheck();
-      
+
       expect(healthResults.size).toBe(2);
       expect(healthResults.get(instance1.id)).toBe(true);
       expect(healthResults.get(instance2.id)).toBe(true);
@@ -334,9 +348,9 @@ describe('BrowserPool', () => {
       (puppeteer.launch as jest.Mock).mockResolvedValue(unhealthyBrowser);
 
       const instance = await pool.acquireBrowser('session-123');
-      
+
       const healthResults = pool.healthCheck();
-      
+
       expect(healthResults.get(instance.id)).toBe(false);
     });
 
@@ -345,17 +359,19 @@ describe('BrowserPool', () => {
         ...mockBrowser,
         isConnected: jest.fn(() => false),
       };
-      
+
       (puppeteer.launch as jest.Mock)
         .mockResolvedValueOnce(unhealthyBrowser)
         .mockResolvedValueOnce(mockBrowser); // New healthy browser
 
       const instance = await pool.acquireBrowser('session-123');
-      pool.releaseBrowser(instance.id);
-      
+      await pool.releaseBrowser(instance.id, 'session-123');
+
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       // Perform health check which should trigger restart
-      pool.healthCheck();
-      
+      await pool.healthCheck();
+
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(unhealthyBrowser.close).toHaveBeenCalled();
       expect(puppeteer.launch).toHaveBeenCalledTimes(2);
     });
@@ -370,29 +386,33 @@ describe('BrowserPool', () => {
     it('should recycle browser after specified uses', async () => {
       let instance = await pool.acquireBrowser('session-1');
       const originalId = instance.id;
-      
+
       // Use the browser 3 times
       for (let i = 0; i < 2; i++) {
-        pool.releaseBrowser(instance.id);
-        instance = await pool.acquireBrowser('session-1');
+        await pool.releaseBrowser(instance.id, `session-${i}`);
+        instance = await pool.acquireBrowser(`session-${i + 1}`);
         expect(instance.useCount).toBe(i + 2);
       }
 
       // Release the browser after 3rd use - this should trigger recycling
-      pool.releaseBrowser(instance.id);
+      await pool.releaseBrowser(instance.id, 'session-2');
+      // eslint-disable-next-line @typescript-eslint/unbound-method
 
       // Next acquisition should get a new browser
       const newInstance = await pool.acquireBrowser('session-new');
       expect(newInstance.id).not.toBe(originalId);
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(mockBrowser.close).toHaveBeenCalled();
     });
 
     it('should manually recycle a browser', async () => {
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       const instance = await pool.acquireBrowser('session-123');
-      pool.releaseBrowser(instance.id);
-      
+      await pool.releaseBrowser(instance.id, 'session-123');
+
       await pool.recycleBrowser(instance.id);
-      
+
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(mockBrowser.close).toHaveBeenCalled();
       const metrics = pool.getMetrics();
       expect(metrics.totalBrowsers).toBe(0);
@@ -405,31 +425,35 @@ describe('BrowserPool', () => {
     });
 
     it('should shutdown gracefully', async () => {
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       await pool.acquireBrowser('session-1');
       const instance2 = await pool.acquireBrowser('session-2');
-      pool.releaseBrowser(instance2.id);
+      await pool.releaseBrowser(instance2.id, 'session-2');
 
       await pool.shutdown();
-      
+
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(mockBrowser.close).toHaveBeenCalledTimes(2);
-      
+
       const metrics = pool.getMetrics();
       expect(metrics.totalBrowsers).toBe(0);
+      // eslint-disable-next-line @typescript-eslint/unbound-method
     });
 
     it('should force shutdown when requested', async () => {
       await pool.acquireBrowser('session-1'); // Keep active
-      
+
       await pool.shutdown(true);
-      
+
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(mockBrowser.close).toHaveBeenCalled();
     });
 
     it('should reject new acquisitions after shutdown', async () => {
       await pool.shutdown();
-      
+
       await expect(pool.acquireBrowser('session-123')).rejects.toThrow(
-        'Browser pool is shutting down'
+        'Browser pool is shutting down',
       );
     });
   });
@@ -441,17 +465,19 @@ describe('BrowserPool', () => {
 
     it('should track browser lifecycle metrics', async () => {
       const instance = await pool.acquireBrowser('session-123');
-      
+
       // Add a small delay to ensure measurable lifetime
-      await new Promise<void>(resolve => { setTimeout(resolve, 10); });
-      
-      pool.releaseBrowser(instance.id);
-      
+      await new Promise<void>((resolve) => {
+        setTimeout(resolve, 10);
+      });
+
+      await pool.releaseBrowser(instance.id, 'session-123');
+
       // Manually destroy the browser to test lifetime calculation
       await pool.recycleBrowser(instance.id);
-      
+
       const metrics = pool.getMetrics();
-      
+
       expect(metrics.browsersCreated).toBe(1);
       expect(metrics.browsersDestroyed).toBe(1);
       expect(metrics.avgBrowserLifetime).toBeGreaterThan(0);
@@ -460,9 +486,9 @@ describe('BrowserPool', () => {
     it('should calculate utilization percentage', async () => {
       await pool.acquireBrowser('session-1');
       await pool.acquireBrowser('session-2');
-      
+
       const metrics = pool.getMetrics();
-      
+
       expect(metrics.utilizationPercentage).toBeCloseTo(66.67, 1); // 2/3 * 100
     });
 
@@ -470,9 +496,9 @@ describe('BrowserPool', () => {
       const instance = await pool.acquireBrowser('session-123');
       await pool.createPage(instance.id, 'session-123');
       await pool.createPage(instance.id, 'session-123');
-      
+
       const metrics = pool.getMetrics();
-      
+
       expect(metrics.totalPages).toBe(2);
       expect(metrics.activePages).toBe(2);
     });
@@ -487,7 +513,7 @@ describe('BrowserPool', () => {
       (puppeteer.launch as jest.Mock).mockRejectedValue(new Error('Launch failed'));
 
       await expect(pool.acquireBrowser('session-123')).rejects.toThrow('Launch failed');
-      
+
       const metrics = pool.getMetrics();
       expect(metrics.totalBrowsers).toBe(0);
     });
@@ -496,9 +522,9 @@ describe('BrowserPool', () => {
       mockBrowser.newPage.mockRejectedValue(new Error('Page creation failed'));
 
       const instance = await pool.acquireBrowser('session-123');
-      
+
       await expect(pool.createPage(instance.id, 'session-123')).rejects.toThrow(
-        'Page creation failed'
+        'Page creation failed',
       );
     });
 
@@ -506,23 +532,23 @@ describe('BrowserPool', () => {
       mockBrowser.close.mockRejectedValue(new Error('Close failed'));
 
       const instance = await pool.acquireBrowser('session-123');
-      pool.releaseBrowser(instance.id);
-      
+      await pool.releaseBrowser(instance.id, 'session-123');
+
       // Should not throw
       await expect(pool.recycleBrowser(instance.id)).resolves.not.toThrow();
-      
+
       expect(mockLogger.error).toHaveBeenCalledWith(
         expect.objectContaining({ error: expect.any(Error) }),
-        'Failed to close browser'
+        'Failed to close browser',
       );
     });
 
     it('should validate session IDs', async () => {
       const instance = await pool.acquireBrowser('session-123');
-      
+
       // Try to release with wrong session ID
       await expect(pool.releaseBrowser(instance.id, 'wrong-session')).rejects.toThrow(
-        'Unauthorized: Browser not acquired by this session'
+        'Unauthorized: Browser not acquired by this session',
       );
     });
   });
@@ -534,7 +560,7 @@ describe('BrowserPool', () => {
 
     it('should get browser by ID', async () => {
       const instance = await pool.acquireBrowser('session-123');
-      
+
       const retrieved = pool.getBrowser(instance.id);
       expect(retrieved).toBe(instance);
     });
@@ -542,7 +568,7 @@ describe('BrowserPool', () => {
     it('should list all browsers', async () => {
       await pool.acquireBrowser('session-1');
       await pool.acquireBrowser('session-2');
-      
+
       const browsers = pool.listBrowsers();
       expect(browsers).toHaveLength(2);
     });

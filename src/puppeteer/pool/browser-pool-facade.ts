@@ -4,7 +4,6 @@
  */
 
 import type { BrowserInstance } from '../interfaces/browser-pool.interface.js';
-import type { InternalBrowserInstance } from './browser-pool-maintenance.js';
 import { acquireBrowser, type AcquireBrowserParams } from './browser-pool-acquisition-handlers.js';
 
 /**
@@ -12,8 +11,6 @@ import { acquireBrowser, type AcquireBrowserParams } from './browser-pool-acquis
  * @nist ac-3 "Access enforcement"
  * @nist ac-4 "Information flow enforcement"
  */
-export function acquireBrowserFacade(
-  params: AcquireBrowserParams
-): Promise<BrowserInstance> {
+export function acquireBrowserFacade(params: AcquireBrowserParams): Promise<BrowserInstance> {
   return acquireBrowser(params);
 }

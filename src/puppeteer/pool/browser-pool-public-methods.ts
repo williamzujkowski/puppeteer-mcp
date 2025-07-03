@@ -5,14 +5,14 @@
 
 import type { Page } from 'puppeteer';
 import { createLogger } from '../../utils/logger.js';
-import type { 
+import type {
   BrowserInstance,
   BrowserPoolOptions,
   PoolMetrics,
 } from '../interfaces/browser-pool.interface.js';
 import type { InternalBrowserInstance } from './browser-pool-maintenance.js';
 import { BrowserPoolMaintenance } from './browser-pool-maintenance.js';
-import { 
+import {
   createPage as createBrowserPage,
   closePage as closeBrowserPage,
   listBrowsers,
@@ -27,9 +27,9 @@ const logger = createLogger('browser-pool-public-methods');
  * @nist ac-4 "Information flow enforcement"
  */
 export function createPage(
-  browserId: string, 
+  browserId: string,
   sessionId: string,
-  browsers: Map<string, InternalBrowserInstance>
+  browsers: Map<string, InternalBrowserInstance>,
 ): Promise<Page> {
   return createBrowserPage(browserId, sessionId, browsers);
 }
@@ -38,9 +38,9 @@ export function createPage(
  * Close a page in a browser
  */
 export function closePage(
-  browserId: string, 
+  browserId: string,
   sessionId: string,
-  browsers: Map<string, InternalBrowserInstance>
+  browsers: Map<string, InternalBrowserInstance>,
 ): Promise<void> {
   return closeBrowserPage(browserId, sessionId, browsers);
 }
@@ -51,7 +51,7 @@ export function closePage(
  */
 export function healthCheck(
   maintenance: BrowserPoolMaintenance,
-  browsers: Map<string, InternalBrowserInstance>
+  browsers: Map<string, InternalBrowserInstance>,
 ): Promise<Map<string, boolean>> {
   return maintenance.healthCheck(browsers);
 }
@@ -70,17 +70,11 @@ export interface RecycleBrowserParams {
 /**
  * Recycle a browser instance
  */
-export async function recycleBrowser(
-  params: RecycleBrowserParams
-): Promise<void> {
+export async function recycleBrowser(params: RecycleBrowserParams): Promise<void> {
   const { browserId, browsers, options, maintenance, removeBrowser } = params;
-  
+
   try {
-    await maintenance.recycleBrowser(
-      browserId,
-      browsers,
-      options
-    );
+    await maintenance.recycleBrowser(browserId, browsers, options);
   } catch (error) {
     logger.error({ browserId, error }, 'Failed to recycle browser');
     await removeBrowser(browserId);
@@ -91,7 +85,7 @@ export async function recycleBrowser(
  * List all browser instances
  */
 export function listBrowsersPublic(
-  browsers: Map<string, InternalBrowserInstance>
+  browsers: Map<string, InternalBrowserInstance>,
 ): BrowserInstance[] {
   return listBrowsers(browsers);
 }
@@ -103,13 +97,9 @@ export function cleanupIdle(
   maintenance: BrowserPoolMaintenance,
   browsers: Map<string, InternalBrowserInstance>,
   options: BrowserPoolOptions,
-  removeBrowser: (browserId: string) => Promise<void>
+  removeBrowser: (browserId: string) => Promise<void>,
 ): Promise<number> {
-  return maintenance.cleanupIdle(
-    browsers,
-    options,
-    removeBrowser
-  );
+  return maintenance.cleanupIdle(browsers, options, removeBrowser);
 }
 
 /**
@@ -120,19 +110,27 @@ export function configure(
   currentOptions: BrowserPoolOptions,
   newOptions: Partial<BrowserPoolOptions>,
   maintenance: BrowserPoolMaintenance,
-  performMaintenance: () => Promise<void>
+  performMaintenance: () => Promise<void>,
 ): BrowserPoolOptions {
+  // Validate configuration
+  if (newOptions.maxBrowsers !== undefined && newOptions.maxBrowsers <= 0) {
+    throw new Error('Invalid configuration: maxBrowsers must be positive');
+  }
+  if (newOptions.maxPagesPerBrowser !== undefined && newOptions.maxPagesPerBrowser <= 0) {
+    throw new Error('Invalid configuration: maxPagesPerBrowser must be positive');
+  }
+
   const updatedOptions = configurePoolOptions(currentOptions, newOptions);
-  
+
+  // Log configuration update
+  logger.info(newOptions, 'Browser pool configuration updated');
+
   // Restart maintenance if interval changed
   if (newOptions.healthCheckInterval) {
     maintenance.stopMaintenance();
-    maintenance.startMaintenance(
-      performMaintenance,
-      60000
-    );
+    maintenance.startMaintenance(performMaintenance, 60000);
   }
-  
+
   return updatedOptions;
 }
 
@@ -142,7 +140,7 @@ export function configure(
  */
 export function getBrowser(
   browserId: string,
-  browsers: Map<string, InternalBrowserInstance>
+  browsers: Map<string, InternalBrowserInstance>,
 ): BrowserInstance | undefined {
   return browsers.get(browserId);
 }
@@ -153,7 +151,7 @@ export function getBrowser(
  */
 export function getMetrics(
   browsers: Map<string, InternalBrowserInstance>,
-  maxBrowsers: number
+  maxBrowsers: number,
 ): PoolMetrics {
   return getPoolMetrics(browsers, maxBrowsers);
 }

@@ -7,16 +7,16 @@
 import { describe, it, expect, jest, beforeEach, afterEach } from '@jest/globals';
 import { WebSocket } from 'ws';
 import { pino } from 'pino';
-import { WebSocketAdapter } from './ws-adapter.js';
-import { WSConnectionManager } from '../../ws/connection-manager.js';
-import { WSSubscriptionManager } from '../../ws/subscription-manager.js';
-import { AppError } from '../../core/errors/app-error.js';
-import { WSMessageType } from '../../types/websocket.js';
-import type { AuthParams } from './adapter.interface.js';
+import { WebSocketAdapter } from '../../../src/mcp/adapters/ws-adapter.js';
+import { WSConnectionManager } from '../../../src/ws/connection-manager.js';
+import { WSSubscriptionManager } from '../../../src/ws/subscription-manager.js';
+import { AppError } from '../../../src/core/errors/app-error.js';
+import { WSMessageType } from '../../../src/types/websocket.js';
+import type { AuthParams } from '../../../src/mcp/adapters/adapter.interface.js';
 
 // Mock dependencies
 jest.mock('ws');
-jest.mock('../../utils/logger.js', () => ({
+jest.mock('../../../src/utils/logger.js', () => ({
   logSecurityEvent: jest.fn(),
   SecurityEventType: {
     API_ACCESS: 'API_ACCESS',
@@ -75,7 +75,7 @@ describe('WebSocketAdapter', () => {
         on: jest.fn(),
         close: jest.fn(),
       } as any;
-      
+
       // Override the createWebSocketConnection method to return our mock
       jest.spyOn(adapter as any, 'createWebSocketConnection').mockResolvedValue(mockWs);
       jest.spyOn(adapter as any, 'authenticateConnection').mockResolvedValue(undefined);
@@ -114,7 +114,7 @@ describe('WebSocketAdapter', () => {
 
       jest.spyOn(adapter as any, 'createWebSocketConnection').mockResolvedValue(mockWs);
       jest.spyOn(adapter as any, 'authenticateConnection').mockResolvedValue(undefined);
-      
+
       const params = {
         operation: {
           type: 'unsubscribe',
@@ -122,7 +122,7 @@ describe('WebSocketAdapter', () => {
         },
         sessionId: 'test-session',
       };
-      
+
       // Pre-populate a subscription
       const connection = await (adapter as any).ensureConnection(undefined, params.sessionId);
       connection.subscriptions.set('sub-123', {
@@ -160,7 +160,8 @@ describe('WebSocketAdapter', () => {
       };
 
       // Mock response handling
-      const sendRequestSpy = jest.spyOn(adapter as any, 'sendRequestAndWaitForResponse')
+      const sendRequestSpy = jest
+        .spyOn(adapter as any, 'sendRequestAndWaitForResponse')
         .mockResolvedValue({
           content: [{ type: 'text', text: 'Response received' }],
           metadata: { status: 200 },
@@ -199,7 +200,7 @@ describe('WebSocketAdapter', () => {
       expect(mockSubscriptionManager.broadcastEvent).toHaveBeenCalledWith(
         'system.alerts',
         'maintenance',
-        { message: 'System maintenance scheduled' }
+        { message: 'System maintenance scheduled' },
       );
       expect(result.content[0].text).toContain('Broadcast sent to topic system.alerts');
     });
@@ -232,7 +233,9 @@ describe('WebSocketAdapter', () => {
       jest.spyOn(adapter as any, 'createWebSocketConnection').mockResolvedValue(mockWs);
 
       await expect(adapter.executeRequest(params)).rejects.toThrow(AppError);
-      await expect(adapter.executeRequest(params)).rejects.toThrow('Topic is required for subscription');
+      await expect(adapter.executeRequest(params)).rejects.toThrow(
+        'Topic is required for subscription',
+      );
     });
   });
 
@@ -242,7 +245,7 @@ describe('WebSocketAdapter', () => {
 
       expect(result.content[0].type).toBe('text');
       const endpoints = JSON.parse(result.content[0].text as string);
-      
+
       expect(endpoints.endpoints).toHaveLength(4);
       expect(endpoints.endpoints.map((e: any) => e.operation as string)).toEqual([
         'subscribe',
@@ -277,13 +280,13 @@ describe('WebSocketAdapter', () => {
       jest.spyOn(adapter as any, 'createWebSocketConnection').mockResolvedValue(mockWs);
 
       const connection = await (adapter as any).ensureConnection(undefined, 'test-session');
-      
+
       // Set up pending request
       const requestId = 'req-123';
       const resolveSpy = jest.fn();
       const rejectSpy = jest.fn();
       const timeout = setTimeout(() => {}, 1000);
-      
+
       connection.pendingRequests.set(requestId, {
         resolve: resolveSpy,
         reject: rejectSpy,
@@ -322,7 +325,7 @@ describe('WebSocketAdapter', () => {
       jest.spyOn(adapter as any, 'createWebSocketConnection').mockResolvedValue(mockWs);
 
       const connection = await (adapter as any).ensureConnection(undefined, 'test-session');
-      
+
       // Set up subscription
       const handlerSpy = jest.fn();
       connection.subscriptions.set('sub-123', {
@@ -355,13 +358,13 @@ describe('WebSocketAdapter', () => {
       jest.spyOn(adapter as any, 'createWebSocketConnection').mockResolvedValue(mockWs);
 
       const connection = await (adapter as any).ensureConnection(undefined, 'test-session');
-      
+
       // Set up pending request
       const requestId = 'req-123';
       const resolveSpy = jest.fn();
       const rejectSpy = jest.fn();
       const timeout = setTimeout(() => {}, 1000);
-      
+
       connection.pendingRequests.set(requestId, {
         resolve: resolveSpy,
         reject: rejectSpy,
@@ -393,7 +396,9 @@ describe('WebSocketAdapter', () => {
         on: jest.fn((event, handler) => {
           if (event === 'close') {
             // Simulate close event
-            setTimeout(() => { handler(); }, 0);
+            setTimeout(() => {
+              handler();
+            }, 0);
           }
         }),
       } as any;
@@ -404,7 +409,9 @@ describe('WebSocketAdapter', () => {
       await (adapter as any).ensureConnection(undefined, connectionId);
 
       // Wait for close handler to execute
-      await new Promise<void>(resolve => { setTimeout(resolve, 10); });
+      await new Promise<void>((resolve) => {
+        setTimeout(resolve, 10);
+      });
 
       // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(mockConnectionManager.removeConnection).toHaveBeenCalledWith(connectionId);
@@ -417,14 +424,15 @@ describe('WebSocketAdapter', () => {
         on: jest.fn(),
       } as any;
 
-      const createSpy = jest.spyOn(adapter as any, 'createWebSocketConnection')
+      const createSpy = jest
+        .spyOn(adapter as any, 'createWebSocketConnection')
         .mockResolvedValue(mockWs);
 
       const sessionId = 'test-session';
-      
+
       // First call creates connection
       const conn1 = await (adapter as any).ensureConnection(undefined, sessionId);
-      
+
       // Second call should reuse
       const conn2 = await (adapter as any).ensureConnection(undefined, sessionId);
 
@@ -448,7 +456,9 @@ describe('WebSocketAdapter', () => {
       const events = [];
       for await (const response of generator) {
         events.push(response);
-        if (events.length >= 2) {break;}
+        if (events.length >= 2) {
+          break;
+        }
       }
 
       expect(events).toHaveLength(2);

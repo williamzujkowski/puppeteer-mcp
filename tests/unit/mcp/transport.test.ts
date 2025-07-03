@@ -4,7 +4,12 @@
  */
 
 import { describe, it, expect, jest, beforeEach, afterEach } from '@jest/globals';
-import { StdioTransport, HttpTransport, TransportType, getTransportType } from '../../../src/mcp/transport/index.js';
+import {
+  StdioTransport,
+  HttpTransport,
+  TransportType,
+  getTransportType,
+} from '../../../src/mcp/transport/index.js';
 import { logger } from '../../../src/utils/logger.js';
 
 // Mock dependencies
@@ -49,11 +54,11 @@ describe('MCP Transport Layer', () => {
 
   describe('StdioTransport', () => {
     let transport: StdioTransport;
-    
+
     beforeEach(() => {
       transport = new StdioTransport();
     });
-    
+
     afterEach(() => {
       transport.close();
     });
@@ -66,35 +71,35 @@ describe('MCP Transport Layer', () => {
     it('should handle stdin errors', () => {
       const mockError = new Error('stdin error');
       process.stdin.emit('error', mockError);
-      
+
       expect(logger.error).toHaveBeenCalledWith(
         expect.objectContaining({
           msg: 'MCP stdio input error',
           error: 'stdin error',
-        })
+        }),
       );
     });
 
     it('should handle stdout errors', () => {
       const mockError = new Error('stdout error');
       process.stdout.emit('error', mockError);
-      
+
       expect(logger.error).toHaveBeenCalledWith(
         expect.objectContaining({
           msg: 'MCP stdio output error',
           error: 'stdout error',
-        })
+        }),
       );
     });
 
     it('should handle SIGINT signal', () => {
       const closeSpy = jest.spyOn(transport, 'close');
       process.emit('SIGINT', 'SIGINT');
-      
+
       expect(logger.info).toHaveBeenCalledWith(
         expect.objectContaining({
           msg: 'MCP stdio transport received SIGINT',
-        })
+        }),
       );
       expect(closeSpy).toHaveBeenCalled();
     });
@@ -102,29 +107,29 @@ describe('MCP Transport Layer', () => {
     it('should handle SIGTERM signal', () => {
       const closeSpy = jest.spyOn(transport, 'close');
       process.emit('SIGTERM', 'SIGTERM');
-      
+
       expect(logger.info).toHaveBeenCalledWith(
         expect.objectContaining({
           msg: 'MCP stdio transport received SIGTERM',
-        })
+        }),
       );
       expect(closeSpy).toHaveBeenCalled();
     });
 
     it('should close transport gracefully', () => {
       transport.close();
-      
+
       expect(logger.info).toHaveBeenCalledWith(
         expect.objectContaining({
           msg: 'Closing MCP stdio transport',
-        })
+        }),
       );
     });
   });
 
   describe('HttpTransport', () => {
     let transport: HttpTransport;
-    
+
     afterEach(async () => {
       if (transport) {
         try {
@@ -157,11 +162,11 @@ describe('MCP Transport Layer', () => {
         tlsCertPath: '/path/to/cert',
         tlsKeyPath: '/path/to/key',
       });
-      
+
       expect(logger.info).toHaveBeenCalledWith(
         expect.objectContaining({
           msg: 'Creating HTTPS server for MCP',
-        })
+        }),
       );
     });
 
@@ -175,25 +180,25 @@ describe('MCP Transport Layer', () => {
 
     it('should start HTTP transport', async () => {
       transport = new HttpTransport({ port: 0 }); // Use port 0 for random available port
-      
+
       const startPromise = transport.start();
-      
+
       // Simulate server listening
       const server = transport.getHttpServer();
       server.emit('listening');
-      
+
       await startPromise;
-      
+
       expect(logger.info).toHaveBeenCalledWith(
         expect.objectContaining({
           msg: 'MCP HTTP transport started',
-        })
+        }),
       );
     });
 
     it('should handle WebSocket connections', () => {
       transport = new HttpTransport({ port: 0 });
-      
+
       const wsServer = transport.getWebSocketServer();
       const mockWs = {
         on: jest.fn(),
@@ -204,71 +209,75 @@ describe('MCP Transport Layer', () => {
           remoteAddress: '127.0.0.1',
         },
       };
-      
+
       // Simulate WebSocket connection
       wsServer.emit('connection', mockWs, mockRequest);
-      
+
       expect(logger.info).toHaveBeenCalledWith(
         expect.objectContaining({
           msg: 'MCP HTTP transport connection established',
           clientIp: '127.0.0.1',
-        })
+        }),
       );
-      
+
       expect(mockWs.on).toHaveBeenCalledWith('error', expect.any(Function));
       expect(mockWs.on).toHaveBeenCalledWith('close', expect.any(Function));
     });
 
     it('should handle WebSocket errors', () => {
       transport = new HttpTransport({ port: 0 });
-      
+
       const wsServer = transport.getWebSocketServer();
       const mockError = new Error('WebSocket server error');
-      
+
       wsServer.emit('error', mockError);
-      
+
       expect(logger.error).toHaveBeenCalledWith(
         expect.objectContaining({
           msg: 'MCP WebSocket server error',
           error: 'WebSocket server error',
-        })
+        }),
       );
     });
 
     it('should stop HTTP transport gracefully', async () => {
       transport = new HttpTransport({ port: 0 });
-      
+
       // Mock server close methods
       const httpServer = transport.getHttpServer();
       const wsServer = transport.getWebSocketServer();
-      
+
       jest.spyOn(wsServer, 'close').mockImplementation((callback) => {
-        if (callback) {callback();}
+        if (callback && typeof callback === 'function') {
+          callback();
+        }
       });
-      
+
       jest.spyOn(httpServer, 'close').mockImplementation((callback) => {
-        if (callback) {callback();}
+        if (callback && typeof callback === 'function') {
+          callback();
+        }
         return httpServer;
       });
-      
+
       await transport.stop();
-      
+
       expect(logger.info).toHaveBeenCalledWith(
         expect.objectContaining({
           msg: 'Stopping MCP HTTP transport',
-        })
+        }),
       );
-      
+
       expect(logger.info).toHaveBeenCalledWith(
         expect.objectContaining({
           msg: 'MCP WebSocket server closed',
-        })
+        }),
       );
-      
+
       expect(logger.info).toHaveBeenCalledWith(
         expect.objectContaining({
           msg: 'MCP HTTP server closed',
-        })
+        }),
       );
     });
   });

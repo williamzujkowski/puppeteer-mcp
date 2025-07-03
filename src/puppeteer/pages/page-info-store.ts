@@ -83,8 +83,8 @@ export class InMemoryPageInfoStore implements PageInfoStore {
   /**
    * Get page info by ID
    */
-
-  get(pageId: string): PageInfo | undefined {
+  // eslint-disable-next-line require-await, @typescript-eslint/require-await
+  async get(pageId: string): Promise<PageInfo | undefined> {
     return this.pages.get(pageId);
   }
 
@@ -157,8 +157,8 @@ export class InMemoryPageInfoStore implements PageInfoStore {
   /**
    * List pages by context ID
    */
-
-  listByContext(contextId: string): PageInfo[] {
+  // eslint-disable-next-line require-await, @typescript-eslint/require-await
+  async listByContext(contextId: string): Promise<PageInfo[]> {
     const pageIds = this.contextToPages.get(contextId) ?? new Set();
     return Array.from(pageIds)
       .map((id) => this.pages.get(id))
@@ -168,8 +168,8 @@ export class InMemoryPageInfoStore implements PageInfoStore {
   /**
    * List pages by session ID
    */
-
-  listBySession(sessionId: string): PageInfo[] {
+  // eslint-disable-next-line require-await, @typescript-eslint/require-await
+  async listBySession(sessionId: string): Promise<PageInfo[]> {
     const pageIds = this.sessionToPages.get(sessionId) ?? new Set();
     return Array.from(pageIds)
       .map((id) => this.pages.get(id))
@@ -179,8 +179,8 @@ export class InMemoryPageInfoStore implements PageInfoStore {
   /**
    * List pages by browser ID
    */
-
-  listByBrowser(browserId: string): PageInfo[] {
+  // eslint-disable-next-line require-await, @typescript-eslint/require-await
+  async listByBrowser(browserId: string): Promise<PageInfo[]> {
     const pageIds = this.browserToPages.get(browserId) ?? new Set();
     return Array.from(pageIds)
       .map((id) => this.pages.get(id))
@@ -190,8 +190,8 @@ export class InMemoryPageInfoStore implements PageInfoStore {
   /**
    * Update page activity timestamp
    */
-
-  touchActivity(pageId: string): void {
+  // eslint-disable-next-line require-await, @typescript-eslint/require-await
+  async touchActivity(pageId: string): Promise<void> {
     const pageInfo = this.pages.get(pageId);
     if (pageInfo) {
       pageInfo.lastActivityAt = new Date();
@@ -201,8 +201,8 @@ export class InMemoryPageInfoStore implements PageInfoStore {
   /**
    * Update page state
    */
-
-  updateState(pageId: string, state: PageInfo['state']): void {
+  // eslint-disable-next-line require-await, @typescript-eslint/require-await
+  async updateState(pageId: string, state: PageInfo['state']): Promise<void> {
     const pageInfo = this.pages.get(pageId);
     if (pageInfo) {
       pageInfo.state = state;
@@ -213,8 +213,8 @@ export class InMemoryPageInfoStore implements PageInfoStore {
   /**
    * Update page URL
    */
-
-  updateUrl(pageId: string, url: string): void {
+  // eslint-disable-next-line require-await, @typescript-eslint/require-await
+  async updateUrl(pageId: string, url: string): Promise<void> {
     const pageInfo = this.pages.get(pageId);
     if (pageInfo) {
       pageInfo.url = url;
@@ -225,8 +225,8 @@ export class InMemoryPageInfoStore implements PageInfoStore {
   /**
    * Update page title
    */
-
-  updateTitle(pageId: string, title: string): void {
+  // eslint-disable-next-line require-await, @typescript-eslint/require-await
+  async updateTitle(pageId: string, title: string): Promise<void> {
     const pageInfo = this.pages.get(pageId);
     if (pageInfo) {
       pageInfo.title = title;
@@ -237,13 +237,13 @@ export class InMemoryPageInfoStore implements PageInfoStore {
   /**
    * Add URL to navigation history
    */
-
-  addNavigationHistory(pageId: string, url: string): void {
+  // eslint-disable-next-line require-await, @typescript-eslint/require-await
+  async addNavigationHistory(pageId: string, url: string): Promise<void> {
     const pageInfo = this.pages.get(pageId);
     if (pageInfo) {
       pageInfo.navigationHistory.push(url);
       pageInfo.lastActivityAt = new Date();
-      
+
       // Keep only last 50 entries to prevent memory bloat
       if (pageInfo.navigationHistory.length > 50) {
         pageInfo.navigationHistory = pageInfo.navigationHistory.slice(-50);
@@ -254,8 +254,8 @@ export class InMemoryPageInfoStore implements PageInfoStore {
   /**
    * Increment error count
    */
-
-  incrementErrorCount(pageId: string): void {
+  // eslint-disable-next-line require-await, @typescript-eslint/require-await
+  async incrementErrorCount(pageId: string): Promise<void> {
     const pageInfo = this.pages.get(pageId);
     if (pageInfo) {
       pageInfo.errorCount++;
@@ -266,16 +266,16 @@ export class InMemoryPageInfoStore implements PageInfoStore {
   /**
    * List all pages
    */
-
-  listAll(): PageInfo[] {
+  // eslint-disable-next-line require-await, @typescript-eslint/require-await
+  async listAll(): Promise<PageInfo[]> {
     return Array.from(this.pages.values());
   }
 
   /**
    * Clear all page info
    */
-
-  clear(): void {
+  // eslint-disable-next-line require-await, @typescript-eslint/require-await
+  async clear(): Promise<void> {
     this.pages.clear();
     this.contextToPages.clear();
     this.sessionToPages.clear();
@@ -287,14 +287,14 @@ export class InMemoryPageInfoStore implements PageInfoStore {
    */
   async cleanup(predicate: (pageInfo: PageInfo) => boolean): Promise<number> {
     let cleaned = 0;
-    
+
     for (const [pageId, pageInfo] of this.pages) {
       if (predicate(pageInfo)) {
         await this.delete(pageId);
         cleaned++;
       }
     }
-    
+
     return cleaned;
   }
 
