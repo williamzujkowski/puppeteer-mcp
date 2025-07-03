@@ -7,6 +7,7 @@ import { McpError, ErrorCode } from '@modelcontextprotocol/sdk/types.js';
 import { logger } from '../../utils/logger.js';
 import type { RestAdapter } from '../adapters/rest-adapter.js';
 import type { ExecuteInContextArgs, ToolResponse } from '../types/tool-types.js';
+import type { MCPResponse } from '../adapters/adapter.interface.js';
 
 /**
  * Execute in context tool handler
@@ -26,13 +27,13 @@ export class ExecuteInContextTool {
       if (validation) {
         return validation;
       }
-      
+
       // Check adapter availability
       this.ensureRestAdapter();
-      
+
       // Execute the command
       const result = await this.executeCommand(args);
-      
+
       // Parse and return response
       return this.parseResponse(result);
     } catch (error) {
@@ -42,15 +43,15 @@ export class ExecuteInContextTool {
         contextId: args.contextId,
         command: args.command,
       });
-      
+
       // Handle specific error types
       if (error instanceof McpError) {
         throw error;
       }
-      
+
       return this.errorResponse(
         error instanceof Error ? error.message : 'Failed to execute command',
-        'EXECUTION_FAILED'
+        'EXECUTION_FAILED',
       );
     }
   }
@@ -62,11 +63,11 @@ export class ExecuteInContextTool {
     if (!args.contextId) {
       return this.errorResponse('Context ID is required', 'INVALID_CONTEXT_ID');
     }
-    
+
     if (!args.command) {
       return this.errorResponse('Command is required', 'INVALID_COMMAND');
     }
-    
+
     return null;
   }
 
@@ -76,8 +77,8 @@ export class ExecuteInContextTool {
   private ensureRestAdapter(): void {
     if (!this.restAdapter) {
       throw new McpError(
-        ErrorCode.InvalidRequest, 
-        'REST adapter not initialized. Express app required.'
+        ErrorCode.InvalidRequest,
+        'REST adapter not initialized. Express app required.',
       );
     }
   }
@@ -85,12 +86,9 @@ export class ExecuteInContextTool {
   /**
    * Execute the command via REST adapter
    */
-  private async executeCommand(args: ExecuteInContextArgs): Promise<any> {
+  private async executeCommand(args: ExecuteInContextArgs): Promise<MCPResponse> {
     if (!this.restAdapter) {
-      throw new McpError(
-        ErrorCode.InvalidRequest, 
-        'REST adapter not initialized'
-      );
+      throw new McpError(ErrorCode.InvalidRequest, 'REST adapter not initialized');
     }
     const result = await this.restAdapter.executeRequest({
       operation: {
@@ -102,30 +100,39 @@ export class ExecuteInContextTool {
         },
       },
       // Use session authentication if provided
-      auth: (args.sessionId !== null && args.sessionId !== undefined && args.sessionId !== '') ? {
-        type: 'session',
-        credentials: args.sessionId,
-      } : undefined,
+      auth:
+        args.sessionId !== undefined && args.sessionId !== null && args.sessionId !== ''
+          ? {
+              type: 'session',
+              credentials: args.sessionId,
+            }
+          : undefined,
       sessionId: args.sessionId,
     });
-    
+
     logger.info({
       msg: 'MCP context command executed',
       contextId: args.contextId,
       command: args.command,
       hasParameters: !!args.parameters,
     });
-    
+
     return result;
   }
 
   /**
    * Parse the response from the adapter
    */
-  private parseResponse(result: import('../adapters/adapter.interface.js').MCPResponse): ToolResponse {
+  private parseResponse(result: MCPResponse): ToolResponse {
     let responseBody = {};
-    
-    if (result.content?.[0] !== null && result.content?.[0] !== undefined && result.content[0].type === 'text' && result.content[0].text !== null && result.content[0].text !== undefined) {
+
+    if (
+      result.content?.[0] &&
+      result.content[0].type === 'text' &&
+      result.content[0].text !== undefined &&
+      result.content[0].text !== null &&
+      result.content[0].text !== ''
+    ) {
       try {
         responseBody = JSON.parse(result.content[0].text);
       } catch (parseError) {
@@ -133,12 +140,14 @@ export class ExecuteInContextTool {
         responseBody = { result: result.content[0].text };
       }
     }
-    
+
     return {
-      content: [{
-        type: 'text',
-        text: JSON.stringify(responseBody),
-      }],
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(responseBody),
+        },
+      ],
     };
   }
 
@@ -147,10 +156,12 @@ export class ExecuteInContextTool {
    */
   private errorResponse(error: string, code: string): ToolResponse {
     return {
-      content: [{
-        type: 'text',
-        text: JSON.stringify({ error, code }),
-      }],
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify({ error, code }),
+        },
+      ],
     };
   }
 }

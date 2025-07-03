@@ -28,7 +28,8 @@ import { WebSocketAdapter } from './adapters/ws-adapter.js';
 import { WSConnectionManager } from '../ws/connection-manager.js';
 import { WSSubscriptionManager } from '../ws/subscription-manager.js';
 import { Application } from 'express';
-import type { Server as GrpcServer } from '@grpc/grpc-js';
+import type { GrpcServer } from '../grpc/server.js';
+import { WebSocketServer } from 'ws';
 
 // Import tool handlers
 import { ExecuteApiTool } from './tools/execute-api.js';
@@ -76,7 +77,7 @@ export class MCPServer {
   private apiCatalogResource: ApiCatalogResource;
   private systemHealthResource: SystemHealthResource;
 
-  constructor(app?: Application, grpcServer?: GrpcServer, wsServer?: unknown) {
+  constructor(app?: Application, grpcServer?: GrpcServer, wsServer?: WebSocketServer) {
     this.server = new Server(
       {
         name: 'puppeteer-mcp',
@@ -97,10 +98,8 @@ export class MCPServer {
     }
 
     if (grpcServer) {
-      // GrpcAdapter expects a specific GrpcServer type, not the generic grpc.Server
-      // For now, we'll cast it as any to avoid type issues
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      this.grpcAdapter = new GrpcAdapter(grpcServer as any);
+      // GrpcAdapter expects our custom GrpcServer type
+      this.grpcAdapter = new GrpcAdapter(grpcServer);
     }
 
     if (wsServer !== null && wsServer !== undefined) {
@@ -301,7 +300,7 @@ export class MCPServer {
 export function createMCPServer(options?: {
   app?: Application;
   grpcServer?: GrpcServer;
-  wsServer?: any;
+  wsServer?: WebSocketServer;
 }): MCPServer {
   return new MCPServer(
     options?.app ?? undefined,

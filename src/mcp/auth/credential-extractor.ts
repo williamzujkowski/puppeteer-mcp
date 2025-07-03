@@ -12,7 +12,7 @@ import { MCPAuthCredentials } from './mcp-auth.js';
 function extractJwtFromHeaders(
   headers?: Record<string, string | string[] | undefined>,
 ): string | undefined {
-  if (headers?.authorization === null || headers?.authorization === undefined) {
+  if (!headers?.authorization) {
     return undefined;
   }
 
@@ -20,12 +20,7 @@ function extractJwtFromHeaders(
     ? headers.authorization[0]
     : headers.authorization;
 
-  if (
-    authHeader !== null &&
-    authHeader !== undefined &&
-    authHeader !== '' &&
-    authHeader.startsWith('Bearer ')
-  ) {
+  if (authHeader && authHeader.startsWith('Bearer ')) {
     return authHeader.substring(7);
   }
 
@@ -39,7 +34,7 @@ function extractApiKeyFromHeaders(
   headers?: Record<string, string | string[] | undefined>,
 ): string | undefined {
   const apiKeyHeader = headers?.['x-api-key'] ?? headers?.['apikey'];
-  if (apiKeyHeader === null || apiKeyHeader === undefined) {
+  if (!apiKeyHeader) {
     return undefined;
   }
 
@@ -52,7 +47,7 @@ function extractApiKeyFromHeaders(
 function extractTokenFromQuery(
   query?: Record<string, string | string[] | undefined>,
 ): string | undefined {
-  if (query?.token === null || query?.token === undefined) {
+  if (!query?.token) {
     return undefined;
   }
   return Array.isArray(query.token) ? query.token[0] : query.token;
@@ -64,7 +59,7 @@ function extractTokenFromQuery(
 function extractApiKeyFromQuery(
   query?: Record<string, string | string[] | undefined>,
 ): string | undefined {
-  if (query?.apikey === null || query?.apikey === undefined) {
+  if (!query?.apikey) {
     return undefined;
   }
   return Array.isArray(query.apikey) ? query.apikey[0] : query.apikey;
@@ -76,7 +71,7 @@ function extractApiKeyFromQuery(
 function extractSessionIdFromQuery(
   query?: Record<string, string | string[] | undefined>,
 ): string | undefined {
-  if (query?.sessionId === null || query?.sessionId === undefined) {
+  if (!query?.sessionId) {
     return undefined;
   }
   return Array.isArray(query.sessionId) ? query.sessionId[0] : query.sessionId;
@@ -86,20 +81,12 @@ function extractSessionIdFromQuery(
  * Extract credentials from WebSocket metadata
  */
 function extractFromMetadata(metadata?: Record<string, unknown>): MCPAuthCredentials | undefined {
-  if (metadata?.auth === null || metadata?.auth === undefined) {
+  if (!metadata?.auth) {
     return undefined;
   }
 
   const auth = metadata.auth as { type?: string; credentials?: string };
-  if (
-    auth.type !== null &&
-    auth.type !== undefined &&
-    auth.type !== '' &&
-    auth.credentials !== null &&
-    auth.credentials !== undefined &&
-    auth.credentials !== '' &&
-    ['jwt', 'apikey', 'session'].includes(auth.type)
-  ) {
+  if (auth.type && auth.credentials && ['jwt', 'apikey', 'session'].includes(auth.type)) {
     return {
       type: auth.type as 'jwt' | 'apikey' | 'session',
       credentials: auth.credentials,
@@ -112,8 +99,8 @@ function extractFromMetadata(metadata?: Record<string, unknown>): MCPAuthCredent
 /**
  * Check if a credential value is valid
  */
-function isValidCredential(value: string | undefined): boolean {
-  return value !== null && value !== undefined && value !== '';
+function isValidCredential(value: string | undefined): value is string {
+  return !!value && value !== '';
 }
 
 /**
@@ -123,12 +110,12 @@ function extractFromHeaders(
   headers?: Record<string, string | string[] | undefined>,
 ): MCPAuthCredentials | undefined {
   const jwt = extractJwtFromHeaders(headers);
-  if (isValidCredential(jwt) && jwt) {
+  if (isValidCredential(jwt)) {
     return { type: 'jwt', credentials: jwt };
   }
 
   const apiKey = extractApiKeyFromHeaders(headers);
-  if (isValidCredential(apiKey) && apiKey) {
+  if (isValidCredential(apiKey)) {
     return { type: 'apikey', credentials: apiKey };
   }
 
@@ -142,17 +129,17 @@ function extractFromQuery(
   query?: Record<string, string | string[] | undefined>,
 ): MCPAuthCredentials | undefined {
   const token = extractTokenFromQuery(query);
-  if (isValidCredential(token) && token) {
+  if (isValidCredential(token)) {
     return { type: 'jwt', credentials: token };
   }
 
   const apiKey = extractApiKeyFromQuery(query);
-  if (isValidCredential(apiKey) && apiKey) {
+  if (isValidCredential(apiKey)) {
     return { type: 'apikey', credentials: apiKey };
   }
 
   const sessionId = extractSessionIdFromQuery(query);
-  if (isValidCredential(sessionId) && sessionId) {
+  if (isValidCredential(sessionId)) {
     return { type: 'session', credentials: sessionId };
   }
 
