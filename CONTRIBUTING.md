@@ -136,7 +136,7 @@ and **78 warnings** (significantly reduced from 768 issues through systematic im
 warnings are primarily style preferences that don't affect functionality:
 
 ```bash
-# Check linting (currently shows 0 errors, 197 warnings)
+# Check linting (currently shows 0 errors, 78 warnings)
 npm run lint
 
 # Fix linting issues
