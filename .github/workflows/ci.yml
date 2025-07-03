@@ -2,9 +2,14 @@ name: CI
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
   pull_request:
-    branches: [ main, develop ]
+    branches: [main, develop]
+
+permissions:
+  contents: read
+  security-events: write
+  actions: read
 
 env:
   NODE_ENV: test
@@ -14,29 +19,29 @@ jobs:
   ci:
     name: CI - Node.js ${{ matrix.node-version }}
     runs-on: ubuntu-latest
-    
+
     strategy:
       matrix:
         node-version: ['20.x', '22.x']
       fail-fast: false
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      
+
       - name: Setup Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
-      
+
       - name: Get npm cache directory
         id: npm-cache-dir
         shell: bash
         run: echo "dir=$(npm config get cache)" >> ${GITHUB_OUTPUT}
-      
+
       - name: Cache dependencies
         uses: actions/cache@v4
         with:
@@ -48,31 +53,31 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-${{ matrix.node-version }}-
             ${{ runner.os }}-node-
-      
+
       - name: Install dependencies
         run: npm ci --prefer-offline --no-audit
-      
+
       - name: Security audit
         run: |
           npm audit --production --audit-level=high || true
           npm audit --omit=dev --json > audit-report.json || true
         continue-on-error: true
-      
+
       - name: Check code formatting
         run: npm run format:check || npm run format -- --check
-      
+
       - name: Lint code
         run: npm run lint
-      
+
       - name: Type check
         run: npm run typecheck
-      
+
       - name: Run tests with coverage
         run: npm run test:coverage
         env:
           JEST_JUNIT_OUTPUT_DIR: ./test-results
           JEST_JUNIT_OUTPUT_NAME: junit-${{ matrix.node-version }}.xml
-      
+
       - name: Upload coverage reports
         uses: codecov/codecov-action@v4
         with:
@@ -81,7 +86,7 @@ jobs:
           name: node-${{ matrix.node-version }}
           file: ./coverage/lcov.info
           fail_ci_if_error: false
-      
+
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
@@ -91,36 +96,36 @@ jobs:
             ./test-results/
             ./coverage/
           retention-days: 7
-      
+
       - name: Standards compliance check
         run: npm run standards:check || node scripts/standards-check.js
-      
+
       - name: Build project
         run: npm run build
-      
+
       - name: Verify build output
         run: |
           if [ ! -d "dist" ]; then
             echo "Build failed: dist directory not found"
             exit 1
           fi
-      
+
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
           name: build-node-${{ matrix.node-version }}
           path: dist/
           retention-days: 7
-  
+
   security-scan:
     name: Security Scanning
     runs-on: ubuntu-latest
     needs: ci
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
         with:
@@ -129,26 +134,26 @@ jobs:
           format: 'sarif'
           output: 'trivy-results.sarif'
           severity: 'CRITICAL,HIGH'
-      
+
       - name: Upload Trivy scan results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v3
-        if: always()
+        if: always() && github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
         with:
           sarif_file: 'trivy-results.sarif'
-  
+
   docker-scan:
     name: Docker Security Scan
     runs-on: ubuntu-latest
     needs: ci
     if: github.event_name == 'push'
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Build Docker image for scanning
         run: docker build -t puppeteer-mcp:scan .
-      
+
       - name: Run Trivy on Docker image
         uses: aquasecurity/trivy-action@master
         with:
@@ -156,9 +161,9 @@ jobs:
           format: 'sarif'
           output: 'docker-trivy-results.sarif'
           severity: 'CRITICAL,HIGH'
-      
+
       - name: Upload Docker scan results
         uses: github/codeql-action/upload-sarif@v3
-        if: always()
+        if: always() && github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
         with:
           sarif_file: 'docker-trivy-results.sarif'
