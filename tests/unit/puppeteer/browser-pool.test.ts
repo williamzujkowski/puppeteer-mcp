@@ -210,7 +210,7 @@ describe('BrowserPool', () => {
       const acquirePromise = pool.acquireBrowser('session-4');
       
       // Give some time to ensure it's queued
-      await new Promise<void>(resolve => setTimeout(resolve, 100));
+      await new Promise<void>(resolve => { setTimeout(resolve, 100); });
       
       // Release one browser
       await pool.releaseBrowser(instances[0].id, 'session-1');
@@ -250,7 +250,7 @@ describe('BrowserPool', () => {
       const page = await pool.createPage(instance.id, 'session-123');
       
       expect(page).toBe(mockPage);
-      expect(mockBrowser.newPage).toHaveBeenCalled();
+      expect(mockBrowser.newPage as jest.Mock).toHaveBeenCalled();
       expect(instance.pageCount).toBe(1);
     });
 
@@ -287,12 +287,12 @@ describe('BrowserPool', () => {
       await pool.releaseBrowser(instance.id, 'session-123');
 
       // Wait for idle timeout
-      await new Promise<void>(resolve => setTimeout(resolve, 150));
+      await new Promise<void>(resolve => { setTimeout(resolve, 150); });
       
       const cleaned = await pool.cleanupIdle();
       
       expect(cleaned).toBe(1);
-      expect(mockBrowser.close).toHaveBeenCalled();
+      expect(mockBrowser.close as jest.Mock).toHaveBeenCalled();
       
       const metrics = pool.getMetrics();
       expect(metrics.totalBrowsers).toBe(0);
@@ -301,7 +301,7 @@ describe('BrowserPool', () => {
     it('should not clean up active browsers', async () => {
       await pool.acquireBrowser('session-123'); // Keep active
 
-      await new Promise<void>(resolve => setTimeout(resolve, 150));
+      await new Promise<void>(resolve => { setTimeout(resolve, 150); });
       
       const cleaned = await pool.cleanupIdle();
       
@@ -384,7 +384,7 @@ describe('BrowserPool', () => {
       // Next acquisition should get a new browser
       const newInstance = await pool.acquireBrowser('session-new');
       expect(newInstance.id).not.toBe(originalId);
-      expect(mockBrowser.close).toHaveBeenCalled();
+      expect(mockBrowser.close as jest.Mock).toHaveBeenCalled();
     });
 
     it('should manually recycle a browser', async () => {
@@ -393,7 +393,7 @@ describe('BrowserPool', () => {
       
       await pool.recycleBrowser(instance.id);
       
-      expect(mockBrowser.close).toHaveBeenCalled();
+      expect(mockBrowser.close as jest.Mock).toHaveBeenCalled();
       const metrics = pool.getMetrics();
       expect(metrics.totalBrowsers).toBe(0);
     });
@@ -422,7 +422,7 @@ describe('BrowserPool', () => {
       
       await pool.shutdown(true);
       
-      expect(mockBrowser.close).toHaveBeenCalled();
+      expect(mockBrowser.close as jest.Mock).toHaveBeenCalled();
     });
 
     it('should reject new acquisitions after shutdown', async () => {

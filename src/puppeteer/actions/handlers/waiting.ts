@@ -126,15 +126,15 @@ export async function handleWait(
  * @param page - Puppeteer page instance
  * @returns Element handle or null
  */
-async function handleWaitForSelector(action: WaitAction, page: Page) {
+function handleWaitForSelector(action: WaitAction, page: Page) {
   if (!action.selector) {
     throw new Error('Selector is required for waitForSelector');
   }
 
   const sanitizedSelector = sanitizeSelector(action.selector);
   
-  return await page.waitForSelector(sanitizedSelector, {
-    timeout: action.timeout || 30000,
+  return page.waitForSelector(sanitizedSelector, {
+    timeout: action.timeout ?? 30000,
     visible: true,
   });
 }
@@ -145,9 +145,9 @@ async function handleWaitForSelector(action: WaitAction, page: Page) {
  * @param page - Puppeteer page instance
  * @returns Navigation response
  */
-async function handleWaitForNavigation(action: WaitAction, page: Page) {
-  return await page.waitForNavigation({
-    timeout: action.timeout || 30000,
+function handleWaitForNavigation(action: WaitAction, page: Page) {
+  return page.waitForNavigation({
+    timeout: action.timeout ?? 30000,
     waitUntil: 'load',
   });
 }
@@ -175,7 +175,7 @@ async function handleWaitForTimeout(action: WaitAction): Promise<void> {
  * @param page - Puppeteer page instance
  * @returns Function result
  */
-async function handleWaitForFunction(action: WaitAction, page: Page) {
+function handleWaitForFunction(action: WaitAction, page: Page) {
   if (!action.function) {
     throw new Error('Function is required for waitForFunction');
   }
@@ -186,8 +186,8 @@ async function handleWaitForFunction(action: WaitAction, page: Page) {
   // Create a safe evaluation function
   const safeFunction = createSafeWaitFunction(action.function);
 
-  return await page.waitForFunction(safeFunction, {
-    timeout: action.timeout || 30000,
+  return page.waitForFunction(safeFunction, {
+    timeout: action.timeout ?? 30000,
     polling: 'mutation', // Poll on DOM mutations
   });
 }

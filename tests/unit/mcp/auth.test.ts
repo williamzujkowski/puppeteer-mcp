@@ -5,7 +5,7 @@
 
 import { describe, it, expect, beforeEach, jest, afterEach } from '@jest/globals';
 import { MCPAuthBridge, MCP_TOOL_PERMISSIONS, type AuthContext, type MCPAuthCredentials } from '../../../src/mcp/auth/mcp-auth.js';
-import { generateToken, generateTokenPair } from '../../../src/auth/jwt.js';
+import { generateToken } from '../../../src/auth/jwt.js';
 import { apiKeyStore } from '../../../src/store/api-key-store.js';
 import { InMemorySessionStore } from '../../../src/store/in-memory-session-store.js';
 import { Permission } from '../../../src/auth/permissions.js';

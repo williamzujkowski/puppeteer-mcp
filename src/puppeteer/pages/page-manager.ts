@@ -90,7 +90,7 @@ export class PageManager extends EventEmitter implements IPageManager {
    * @nist ac-2 "Account management"
    * @nist ac-3 "Access enforcement"
    */
-  async createPage(
+  createPage(
     contextId: string,
     sessionId: string,
     browserId: string,
@@ -109,15 +109,15 @@ export class PageManager extends EventEmitter implements IPageManager {
     );
   }
 
-  async getPage(pageId: string, sessionId: string): Promise<Page> {
+  getPage(pageId: string, sessionId: string): Promise<Page> {
     return getPageWithAccessControl(pageId, sessionId, this.pages, this.pageStore);
   }
 
-  async getPageInfo(pageId: string, sessionId: string): Promise<PageInfo> {
+  getPageInfo(pageId: string, sessionId: string): Promise<PageInfo> {
     return getPageInfoWithAccessControl(pageId, sessionId, this.pageStore);
   }
 
-  async navigatePage(
+  navigatePage(
     pageId: string,
     sessionId: string,
     url: string,
@@ -126,7 +126,7 @@ export class PageManager extends EventEmitter implements IPageManager {
     return navigatePage(pageId, sessionId, url, options, this.pages, this.pageStore);
   }
 
-  async navigateTo(
+  navigateTo(
     pageId: string,
     url: string,
     sessionId: string,
@@ -135,7 +135,7 @@ export class PageManager extends EventEmitter implements IPageManager {
     return navigateToWithEvents(pageId, url, sessionId, options, this.pages, this.pageStore, this);
   }
 
-  async updatePageOptions(
+  updatePageOptions(
     pageId: string,
     options: Partial<PageOptions>,
     sessionId: string
@@ -143,7 +143,7 @@ export class PageManager extends EventEmitter implements IPageManager {
     return updatePageOptions(pageId, options, sessionId, this.pages, this.pageStore, configurePageOptions);
   }
 
-  async takeScreenshot(
+  takeScreenshot(
     pageId: string,
     sessionId: string,
     options?: ScreenshotOptions
@@ -151,15 +151,15 @@ export class PageManager extends EventEmitter implements IPageManager {
     return takeScreenshot(pageId, sessionId, options, this.pages, this.pageStore);
   }
 
-  async listPagesForSession(sessionId: string): Promise<PageInfo[]> {
+  listPagesForSession(sessionId: string): PageInfo[] {
     return listPagesForSession(sessionId, this.pageStore);
   }
 
-  async listPagesForContext(contextId: string, sessionId: string): Promise<PageInfo[]> {
+  listPagesForContext(contextId: string, sessionId: string): Promise<PageInfo[]> {
     return listPagesForContext(contextId, sessionId, this.pageStore);
   }
 
-  async closePage(pageId: string, sessionId: string): Promise<void> {
+  closePage(pageId: string, sessionId: string): Promise<void> {
     return closePageOperation({
       pageId,
       sessionId,
@@ -170,7 +170,7 @@ export class PageManager extends EventEmitter implements IPageManager {
     });
   }
 
-  async closePagesForContext(contextId: string): Promise<void> {
+  closePagesForContext(contextId: string): Promise<void> {
     return closePagesForContextOperation({
       contextId,
       pages: this.pages,
@@ -179,7 +179,7 @@ export class PageManager extends EventEmitter implements IPageManager {
     });
   }
 
-  async closePagesForSession(sessionId: string): Promise<void> {
+  closePagesForSession(sessionId: string): Promise<void> {
     return closePagesForSessionOperation({
       sessionId,
       pages: this.pages,
@@ -192,19 +192,19 @@ export class PageManager extends EventEmitter implements IPageManager {
     await performCleanup(this.pages, this.pageStore, this.isShuttingDown);
   }
 
-  async getPageMetrics(pageId: string, sessionId: string): Promise<Record<string, unknown>> {
+  getPageMetrics(pageId: string, sessionId: string): Promise<Record<string, unknown>> {
     return getPageMetrics(pageId, sessionId, this.pages, this.pageStore);
   }
 
-  async setCookies(pageId: string, cookies: Cookie[], sessionId: string): Promise<void> {
+  setCookies(pageId: string, cookies: Cookie[], sessionId: string): Promise<void> {
     return setCookies(pageId, cookies, sessionId, this.pages, this.pageStore);
   }
 
-  async getCookies(pageId: string, sessionId: string): Promise<Cookie[]> {
+  getCookies(pageId: string, sessionId: string): Promise<Cookie[]> {
     return getCookies(pageId, sessionId, this.pages, this.pageStore);
   }
 
-  async clearPageData(
+  clearPageData(
     pageId: string,
     sessionId: string,
     options?: {
@@ -217,11 +217,11 @@ export class PageManager extends EventEmitter implements IPageManager {
     return clearPageData(pageId, sessionId, options, this.pages, this.pageStore);
   }
 
-  async isPageActive(pageId: string): Promise<boolean> {
+  isPageActive(pageId: string): boolean {
     return isPageActive(pageId, this.pageStore);
   }
 
-  async cleanupIdlePages(idleTimeout: number): Promise<number> {
+  cleanupIdlePages(idleTimeout: number): Promise<number> {
     return cleanupIdlePagesWithLogging(idleTimeout, this.pageStore);
   }
 

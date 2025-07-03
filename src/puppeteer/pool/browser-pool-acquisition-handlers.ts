@@ -17,7 +17,7 @@ const logger = createLogger('browser-pool-acquisition-handlers');
  * @nist ac-3 "Access enforcement"
  * @nist ac-4 "Information flow enforcement"
  */
-export async function acquireBrowser(
+export function acquireBrowser(
   sessionId: string,
   isShuttingDown: boolean,
   findIdleBrowser: () => InternalBrowserInstance | null,

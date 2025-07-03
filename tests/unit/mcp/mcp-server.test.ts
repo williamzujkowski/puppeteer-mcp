@@ -59,19 +59,16 @@ describe('MCP Server', () => {
 
   describe('Tool Registration', () => {
     it('should register execute-api tool', () => {
-      const _tools = (mcpServer as any).server._handlers?.get('tools/list');
       // This test will be implemented once we can access the registered tools
       expect(mcpServer).toBeDefined();
     });
 
     it('should register session management tools', () => {
-      const _tools = (mcpServer as any).server._handlers?.get('tools/list');
       // This test will be implemented once we can access the registered tools
       expect(mcpServer).toBeDefined();
     });
 
     it('should register browser context tools', () => {
-      const _tools = (mcpServer as any).server._handlers?.get('tools/list');
       // This test will be implemented once we can access the registered tools
       expect(mcpServer).toBeDefined();
     });
@@ -79,13 +76,13 @@ describe('MCP Server', () => {
 
   describe('Resource Registration', () => {
     it('should register API catalog resource', () => {
-      const _resources = (mcpServer as any).server._handlers?.get('resources/list');
+      // const _resources = (mcpServer as any).server._handlers?.get('resources/list');
       // This test will be implemented once we can access the registered resources
       expect(mcpServer).toBeDefined();
     });
 
     it('should register health resource', () => {
-      const _resources = (mcpServer as any).server._handlers?.get('resources/list');
+      // const _resources = (mcpServer as any).server._handlers?.get('resources/list');
       // This test will be implemented once we can access the registered resources
       expect(mcpServer).toBeDefined();
     });
@@ -93,12 +90,12 @@ describe('MCP Server', () => {
 
   describe('Tool Execution', () => {
     it('should handle create-session tool call', async () => {
-      const mockSession = {
-        id: 'test-session-123',
-        userId: 'testuser',
-        createdAt: new Date().toISOString(),
-        expiresAt: new Date(Date.now() + 3600000).toISOString(),
-      };
+      // const mockSession = {
+      //   id: 'test-session-123',
+      //   userId: 'testuser',
+      //   createdAt: new Date().toISOString(),
+      //   expiresAt: new Date(Date.now() + 3600000).toISOString(),
+      // };
       
       const result = await (mcpServer as any).createSessionTool({
         username: 'testuser',

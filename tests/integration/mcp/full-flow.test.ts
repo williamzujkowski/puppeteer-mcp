@@ -7,12 +7,12 @@ import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 import { MCPServer } from '../../../src/mcp/server.js';
 import { sessionStore } from '../../../src/store/session-store.js';
 import { contextStore } from '../../../src/store/context-store.js';
-import { Client } from '@modelcontextprotocol/sdk/client/index.js';
-import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
+// import { Client } from '@modelcontextprotocol/sdk/client/index.js';
+// import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 
 describe('MCP Full Integration Flow', () => {
   let mcpServer: MCPServer;
-  let mcpClient: Client;
+  // let mcpClient: Client;
   
   beforeAll(async () => {
     // Set up MCP server

@@ -83,10 +83,13 @@ export class ContextPageHandlers {
       const { contextId } = req.params;
 
       // Verify context exists and user has access
-      const context = await this.storage.getContext(contextId as string, req.user!.userId, req.user!.roles);
+      if (!req.user) {
+        throw new Error('User not authenticated');
+      }
+      const context = await this.storage.getContext(contextId as string, req.user.userId, req.user.roles);
 
       // Acquire browser for this session
-      const sessionId = getUserSessionId(req.user!);
+      const sessionId = getUserSessionId(req.user);
       const browser = await this.browserPool.acquireBrowser(sessionId);
 
       // Create page with context configuration and optional overrides

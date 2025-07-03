@@ -5,10 +5,10 @@
  */
 
 import { MCPServer } from '../../../src/mcp/server.js';
-import { InMemorySessionStore } from '../../../src/store/in-memory-session-store.js';
-import { contextStore } from '../../../src/store/context-store.js';
-import { userService } from '../../../src/mcp/auth/user-service.js';
-import { logger } from '../../../src/utils/logger.js';
+// import { InMemorySessionStore } from '../../../src/store/in-memory-session-store.js';
+// import { contextStore } from '../../../src/store/context-store.js';
+// import { userService } from '../../../src/mcp/auth/user-service.js';
+// import { logger } from '../../../src/utils/logger.js';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import type { Application } from 'express';
 

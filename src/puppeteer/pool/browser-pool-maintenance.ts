@@ -261,7 +261,7 @@ export class BrowserPoolMaintenance {
    * Perform health check on all browsers
    * @nist si-4 "Information system monitoring"
    */
-  async healthCheck(browsers: Map<string, InternalBrowserInstance>): Promise<Map<string, boolean>> {
+  healthCheck(browsers: Map<string, InternalBrowserInstance>): Map<string, boolean> {
     const results = new Map<string, boolean>();
 
     for (const [browserId, instance] of browsers) {

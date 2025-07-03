@@ -42,7 +42,7 @@ export async function handleWaitForLoadState(
 
     // Use page.waitForLoadState if available, otherwise use navigation
     await page.waitForNavigation({
-      timeout: timeout || 30000,
+      timeout: timeout ?? 30000,
       waitUntil: loadState,
     });
 
@@ -221,7 +221,7 @@ export async function handleWaitForElementState(
 ): Promise<ActionResult> {
   const { selector, state, page, context, timeout } = params;
   const startTime = Date.now();
-  const effectiveTimeout = timeout || 30000;
+  const effectiveTimeout = timeout ?? 30000;
   
   try {
     logWaitForElementState({

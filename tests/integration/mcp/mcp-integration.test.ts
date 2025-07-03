@@ -117,7 +117,7 @@ describe('MCP Server Integration Tests', () => {
     it('should register all request handlers', () => {
       // The server registers handlers in setupHandlers() and may call additional ones during initialization
       expect(Server.prototype.setRequestHandler).toHaveBeenCalled();
-      expect(Server.prototype.setRequestHandler.mock.calls.length).toBeGreaterThanOrEqual(4);
+      expect((Server.prototype.setRequestHandler as jest.Mock).mock.calls.length).toBeGreaterThanOrEqual(4);
       
       // Verify each handler is registered
       expect(mockHandlers.has('listTools')).toBeTruthy();
@@ -135,7 +135,7 @@ describe('MCP Server Integration Tests', () => {
       const response = await listToolsHandler({});
       expect(response.tools).toHaveLength(6);
 
-      const toolNames = response.tools.map((tool: any) => tool.name);
+      const toolNames = response.tools.map((tool: { name: string }) => tool.name);
       expect(toolNames).toEqual([
         'execute-api',
         'create-session',

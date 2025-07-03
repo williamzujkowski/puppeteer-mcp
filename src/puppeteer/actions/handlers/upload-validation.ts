@@ -76,6 +76,7 @@ export interface ValidatedFile {
  * @returns MIME type
  */
 export function getMimeType(extension: string): string {
+  // eslint-disable-next-line security/detect-object-injection
   return MIME_TYPES[extension] ?? 'application/octet-stream';
 }
 

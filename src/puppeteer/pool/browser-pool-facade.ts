@@ -12,7 +12,7 @@ import { acquireBrowser } from './browser-pool-acquisition-handlers.js';
  * @nist ac-3 "Access enforcement"
  * @nist ac-4 "Information flow enforcement"
  */
-export async function acquireBrowserFacade(
+export function acquireBrowserFacade(
   sessionId: string,
   isShuttingDown: boolean,
   findIdleBrowser: () => InternalBrowserInstance | null,

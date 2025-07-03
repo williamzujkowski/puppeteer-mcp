@@ -117,11 +117,11 @@ export async function clearPageData(
   if (options?.localStorage || options?.sessionStorage) {
     await page.evaluate((opts) => {
       if (opts?.localStorage) {
-        // @ts-ignore - window is available in browser context
+        // @ts-expect-error - window is available in browser context
         window.localStorage.clear();
       }
       if (opts?.sessionStorage) {
-        // @ts-ignore - window is available in browser context
+        // @ts-expect-error - window is available in browser context
         window.sessionStorage.clear();
       }
     }, options);
@@ -176,11 +176,11 @@ export async function takeScreenshot(
 /**
  * Check if page is active
  */
-export async function isPageActive(
+export function isPageActive(
   pageId: string,
   pageStore: PageInfoStore
-): Promise<boolean> {
-  const pageInfo = await pageStore.get(pageId);
+): boolean {
+  const pageInfo = pageStore.get(pageId);
   return pageInfo?.state === 'active';
 }
 

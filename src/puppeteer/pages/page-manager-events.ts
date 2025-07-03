@@ -20,21 +20,27 @@ export function setupPageStoreHandlers(
   const pageId = pageInfo.id;
 
   // Update store on navigation
-  emitter.on('page:navigated', async ({ pageId: navPageId, url }) => {
+  emitter.on('page:navigated', ({ pageId: navPageId, url }) => {
     if (navPageId === pageId) {
-      const title = await page.title().catch(() => '');
-      await pageStore.updateUrl(pageId, url);
-      await pageStore.updateTitle(pageId, title);
-      await pageStore.addNavigationHistory(pageId, url);
-      await pageStore.touchActivity(pageId);
+      void page.title().then(title => {
+        pageStore.updateUrl(pageId, url);
+        pageStore.updateTitle(pageId, title);
+        pageStore.addNavigationHistory(pageId, url);
+        pageStore.touchActivity(pageId);
+      }).catch(() => {
+        // If title fails, still update other fields
+        pageStore.updateUrl(pageId, url);
+        pageStore.addNavigationHistory(pageId, url);
+        pageStore.touchActivity(pageId);
+      });
     }
   });
 
   // Update error count
-  emitter.on('page:error', async ({ pageId: errorPageId }) => {
+  emitter.on('page:error', ({ pageId: errorPageId }) => {
     if (errorPageId === pageId) {
-      await pageStore.incrementErrorCount(pageId);
-      await pageStore.touchActivity(pageId);
+      pageStore.incrementErrorCount(pageId);
+      pageStore.touchActivity(pageId);
     }
   });
 }

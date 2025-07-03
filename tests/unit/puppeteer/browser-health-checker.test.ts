@@ -94,7 +94,7 @@ describe('BrowserHealthChecker', () => {
       
       expect(result.isHealthy).toBe(true);
       expect(result.connectionHealthy).toBe(true);
-      expect(mockBrowser.isConnected).toHaveBeenCalled();
+      expect(mockBrowser.isConnected as jest.Mock).toHaveBeenCalled();
     });
 
     it('should detect disconnected browser', async () => {
@@ -125,13 +125,13 @@ describe('BrowserHealthChecker', () => {
       
       expect(result.isHealthy).toBe(true);
       expect(result.responsive).toBe(true);
-      expect(mockPage.evaluate).toHaveBeenCalledWith(expect.any(Function));
+      expect(mockPage.evaluate as jest.Mock).toHaveBeenCalledWith(expect.any(Function));
     });
 
     it('should detect unresponsive browser', async () => {
       // Mock a long-running promise that exceeds the timeout
       mockPage.evaluate.mockImplementation(() => 
-        new Promise(resolve => setTimeout(resolve, 2000)) // Longer than 1000ms timeout
+        new Promise(resolve => { setTimeout(resolve, 2000); }) // Longer than 1000ms timeout
       );
       
       const result = await healthChecker.checkHealth(mockInstance);
@@ -226,7 +226,7 @@ describe('BrowserHealthChecker', () => {
       const launchOptions = { headless: true };
       const result = await healthChecker.restartBrowser(mockInstance, launchOptions);
       
-      expect(mockBrowser.close).toHaveBeenCalled();
+      expect(mockBrowser.close as jest.Mock).toHaveBeenCalled();
       expect(puppeteer.launch).toHaveBeenCalledWith(launchOptions);
       expect(result).toBe(newBrowser);
     });
@@ -239,7 +239,7 @@ describe('BrowserHealthChecker', () => {
       await expect(healthChecker.restartBrowser(mockInstance, launchOptions))
         .rejects.toThrow('Launch failed');
       
-      expect(mockBrowser.close).toHaveBeenCalled();
+      expect(mockBrowser.close as jest.Mock).toHaveBeenCalled();
     });
 
     it('should handle close failures during restart', async () => {
