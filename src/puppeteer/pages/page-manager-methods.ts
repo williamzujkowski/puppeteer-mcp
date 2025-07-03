@@ -7,6 +7,7 @@
 
 import type { Page } from 'puppeteer';
 import type { EventEmitter } from 'events';
+import { randomBytes } from 'crypto';
 import { AppError } from '../../core/errors/app-error.js';
 import { createLogger } from '../../utils/logger.js';
 import type { BrowserPool } from '../interfaces/browser-pool.interface.js';
@@ -64,7 +65,7 @@ export async function createPageImpl(params: CreatePageImplParams): Promise<Page
   await verifyContextAccess(contextId, sessionId);
 
   try {
-    const pageId = `page-${Date.now()}-${Math.random().toString(36).substring(7)}`;
+    const pageId = `page-${Date.now()}-${randomBytes(4).toString('hex')}`;
     const pageInfo = createPageInfo(pageId, contextId, sessionId, browserId);
 
     const result = await createAndConfigurePage({

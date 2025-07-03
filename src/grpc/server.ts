@@ -170,20 +170,25 @@ export class GrpcServer {
         throw new Error(`Invalid ${fileType} path: contains null bytes`);
       }
 
-      // Check if file exists and is a file (not directory)
+      // Read file directly to avoid TOCTOU race condition
       try {
+        // eslint-disable-next-line security/detect-non-literal-fs-filename
+        const content = fs.readFileSync(absolutePath);
+
+        // Verify it's a file after reading (not a directory)
         // eslint-disable-next-line security/detect-non-literal-fs-filename
         const stats = fs.statSync(absolutePath);
         if (!stats.isFile()) {
           throw new Error(`${fileType} path is not a file: ${absolutePath}`);
         }
+
+        return content;
       } catch (error) {
+        if ((error as NodeJS.ErrnoException).code === 'EISDIR') {
+          throw new Error(`${fileType} path is a directory, not a file: ${absolutePath}`);
+        }
         throw new Error(`${fileType} file not found or inaccessible: ${absolutePath}`);
       }
-
-      // Read file with explicit encoding
-      // eslint-disable-next-line security/detect-non-literal-fs-filename
-      return fs.readFileSync(absolutePath);
     };
 
     // Read TLS files with validation

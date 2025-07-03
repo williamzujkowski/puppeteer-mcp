@@ -7,7 +7,7 @@
  */
 
 import { randomUUID } from 'crypto';
-import { createHash } from 'crypto';
+import { createHash, pbkdf2Sync, randomBytes } from 'crypto';
 import { AppError } from '../../core/errors/app-error.js';
 import { logSecurityEvent, SecurityEventType } from '../../utils/logger.js';
 import { z } from 'zod';
@@ -82,14 +82,46 @@ class UserService {
   }
 
   /**
-   * Hash password using SHA-256
-   * Note: In production, use bcrypt or argon2 for proper password hashing
+   * Hash password using PBKDF2
+   * Note: This is more secure than SHA-256 but still use bcrypt or argon2 in production
    * @nist ia-5 "Authenticator management"
    */
   private hashPassword(password: string): string {
-    // Add salt for demo purposes (in production, use unique salt per password)
-    const salt = 'mcp-demo-salt';
-    return createHash('sha256').update(password + salt).digest('hex');
+    // Generate a random salt for each password (16 bytes = 128 bits)
+    const salt = randomBytes(16).toString('hex');
+    // Use PBKDF2 with 100,000 iterations and SHA-256
+    const hash = pbkdf2Sync(password, salt, 100000, 64, 'sha256').toString('hex');
+    // Return salt and hash combined (salt:hash format)
+    return `${salt}:${hash}`;
+  }
+
+  /**
+   * Verify password against stored hash
+   * @nist ia-5 "Authenticator management"
+   */
+  private verifyPassword(password: string, storedHash: string): boolean {
+    // Handle legacy SHA-256 hashes (for backward compatibility)
+    if (!storedHash.includes(':')) {
+      const salt = 'mcp-demo-salt';
+      return (
+        storedHash ===
+        createHash('sha256')
+          .update(password + salt)
+          .digest('hex')
+      );
+    }
+
+    // Parse salt and hash from stored value
+    const [salt, hash] = storedHash.split(':');
+    if (!salt || !hash) {
+      return false;
+    }
+
+    // Compute hash with the same salt
+    const computedHash = pbkdf2Sync(password, salt, 100000, 64, 'sha256').toString('hex');
+
+    // Constant-time comparison to prevent timing attacks
+    return computedHash === hash;
   }
 
   /**
@@ -105,30 +137,29 @@ class UserService {
 
       // Find user
       const user = this.users.get(credentials.username);
-      
+
       if (!user) {
         await logSecurityEvent(SecurityEventType.LOGIN_FAILURE, {
           reason: 'User not found',
           result: 'failure',
-          metadata: { 
+          metadata: {
             context: 'mcp',
-            username: credentials.username
-          }
+            username: credentials.username,
+          },
         });
         throw new AppError('Invalid username or password', 401);
       }
 
       // Verify password
-      const passwordHash = this.hashPassword(credentials.password);
-      if (user.passwordHash !== passwordHash) {
+      if (!this.verifyPassword(credentials.password, user.passwordHash)) {
         await logSecurityEvent(SecurityEventType.LOGIN_FAILURE, {
           userId: user.id,
           reason: 'Invalid password',
           result: 'failure',
-          metadata: { 
+          metadata: {
             context: 'mcp',
-            username: user.username
-          }
+            username: user.username,
+          },
         });
         throw new AppError('Invalid username or password', 401);
       }
@@ -141,12 +172,12 @@ class UserService {
       await logSecurityEvent(SecurityEventType.LOGIN_SUCCESS, {
         userId: user.id,
         result: 'success',
-        metadata: { 
+        metadata: {
           context: 'mcp',
           method: 'password',
           username: user.username,
-          roles: user.roles
-        }
+          roles: user.roles,
+        },
       });
 
       return user;
@@ -155,10 +186,10 @@ class UserService {
         await logSecurityEvent(SecurityEventType.LOGIN_FAILURE, {
           reason: 'Invalid credentials format',
           result: 'failure',
-          metadata: { 
+          metadata: {
             context: 'mcp',
-            errors: error.errors
-          }
+            errors: error.errors,
+          },
         });
         throw new AppError('Invalid credentials format', 400);
       }
@@ -183,7 +214,11 @@ class UserService {
    * Create a new user (for future use)
    * @nist ia-5 "Authenticator management"
    */
-  async createUser(username: string, password: string, roles: string[] = ['user']): Promise<UserData> {
+  async createUser(
+    username: string,
+    password: string,
+    roles: string[] = ['user'],
+  ): Promise<UserData> {
     // Validate input
     const credentials = userCredentialsSchema.parse({ username, password });
 
@@ -207,11 +242,11 @@ class UserService {
       userId: user.id,
       resource: `user:${user.username}`,
       result: 'success',
-      metadata: { 
+      metadata: {
         context: 'mcp',
         roles: user.roles,
-        action: 'user_created'
-      }
+        action: 'user_created',
+      },
     });
 
     return user;

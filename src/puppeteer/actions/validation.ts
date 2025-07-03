@@ -29,58 +29,68 @@ const baseActionSchema = z.object({
  * URL validation schema
  * @nist si-10 "Information input validation"
  */
-const urlSchema = z.string().url().refine(
-  (url) => {
-    const parsed = new URL(url);
-    // Only allow HTTP and HTTPS protocols
-    return ['http:', 'https:'].includes(parsed.protocol);
-  },
-  {
-    message: 'Only HTTP and HTTPS URLs are allowed',
-  }
-);
+const urlSchema = z
+  .string()
+  .url()
+  .refine(
+    (url) => {
+      const parsed = new URL(url);
+      // Only allow HTTP and HTTPS protocols
+      return ['http:', 'https:'].includes(parsed.protocol);
+    },
+    {
+      message: 'Only HTTP and HTTPS URLs are allowed',
+    },
+  );
 
 /**
  * Selector validation schema
  */
-const selectorSchema = z.string().min(1).max(1000).refine(
-  (selector) => {
-    // Basic CSS selector validation
-    try {
-      // Attempt to parse as CSS selector
-      if (selector.includes('<') || selector.includes('>') || selector.includes('&')) {
+const selectorSchema = z
+  .string()
+  .min(1)
+  .max(1000)
+  .refine(
+    (selector) => {
+      // Basic CSS selector validation
+      try {
+        // Attempt to parse as CSS selector
+        if (selector.includes('<') || selector.includes('>') || selector.includes('&')) {
+          return false;
+        }
+        return true;
+      } catch {
         return false;
       }
-      return true;
-    } catch {
-      return false;
-    }
-  },
-  {
-    message: 'Invalid CSS selector format',
-  }
-);
+    },
+    {
+      message: 'Invalid CSS selector format',
+    },
+  );
 
 /**
  * Text input validation schema
  */
-const textInputSchema = z.string().max(10000).refine(
-  (text) => {
-    // Check for potentially malicious content
-    const suspiciousPatterns = [
-      /<script[^>]*>/i,
-      /javascript:/i,
-      /data:text\/html/i,
-      /vbscript:/i,
-      /on\w+\s*=/i,
-    ];
-    
-    return !suspiciousPatterns.some(pattern => pattern.test(text));
-  },
-  {
-    message: 'Text contains potentially malicious content',
-  }
-);
+const textInputSchema = z
+  .string()
+  .max(10000)
+  .refine(
+    (text) => {
+      // Check for potentially malicious content
+      const suspiciousPatterns = [
+        /<script[^>]*>/i,
+        /javascript:/i,
+        /data:text\/html/i,
+        /vbscript:/i,
+        /on\w+\s*=/i,
+      ];
+
+      return !suspiciousPatterns.some((pattern) => pattern.test(text));
+    },
+    {
+      message: 'Text contains potentially malicious content',
+    },
+  );
 
 /**
  * File path validation schema
@@ -93,7 +103,7 @@ const filePathSchema = z.string().refine(
   },
   {
     message: 'Invalid file path - path traversal not allowed',
-  }
+  },
 );
 
 /**
@@ -101,20 +111,23 @@ const filePathSchema = z.string().refine(
  * @nist si-10 "Information input validation"
  * @nist ac-4 "Information flow enforcement"
  */
-const javascriptCodeSchema = z.string().max(50000).refine(
-  (code) => {
-    // Additional security checks
-    const lowerCode = code.toLowerCase();
-    if (lowerCode.includes('eval(') || lowerCode.includes('function(')) {
-      throw new Error('Dynamic code execution is not allowed');
-    }
-    
-    return true;
-  },
-  {
-    message: 'JavaScript code contains potentially dangerous operations',
-  }
-);
+const javascriptCodeSchema = z
+  .string()
+  .max(50000)
+  .refine(
+    (code) => {
+      // Additional security checks
+      const lowerCode = code.toLowerCase();
+      if (lowerCode.includes('eval(') || lowerCode.includes('function(')) {
+        throw new Error('Dynamic code execution is not allowed');
+      }
+
+      return true;
+    },
+    {
+      message: 'JavaScript code contains potentially dangerous operations',
+    },
+  );
 
 /**
  * Action-specific validation schemas
@@ -174,16 +187,20 @@ const actionSchemas = {
 
   pdf: baseActionSchema.extend({
     type: z.literal('pdf'),
-    format: z.enum(['letter', 'legal', 'tabloid', 'ledger', 'a0', 'a1', 'a2', 'a3', 'a4', 'a5', 'a6']).optional(),
+    format: z
+      .enum(['letter', 'legal', 'tabloid', 'ledger', 'a0', 'a1', 'a2', 'a3', 'a4', 'a5', 'a6'])
+      .optional(),
     landscape: z.boolean().optional(),
     scale: z.number().min(0.1).max(2).optional(),
     displayHeaderFooter: z.boolean().optional(),
-    margin: z.object({
-      top: z.string().optional(),
-      bottom: z.string().optional(),
-      left: z.string().optional(),
-      right: z.string().optional(),
-    }).optional(),
+    margin: z
+      .object({
+        top: z.string().optional(),
+        bottom: z.string().optional(),
+        left: z.string().optional(),
+        right: z.string().optional(),
+      })
+      .optional(),
   }),
 
   wait: baseActionSchema.extend({
@@ -217,16 +234,21 @@ const actionSchemas = {
   cookie: baseActionSchema.extend({
     type: z.literal('cookie'),
     operation: z.enum(['set', 'get', 'delete', 'clear']),
-    cookies: z.array(z.object({
-      name: z.string().min(1).max(255),
-      value: z.string().max(4096).optional(),
-      domain: z.string().max(255).optional(),
-      path: z.string().max(255).optional(),
-      expires: z.number().int().positive().optional(),
-      httpOnly: z.boolean().optional(),
-      secure: z.boolean().optional(),
-      sameSite: z.enum(['Strict', 'Lax', 'None']).optional(),
-    })).max(50).optional(),
+    cookies: z
+      .array(
+        z.object({
+          name: z.string().min(1).max(255),
+          value: z.string().max(4096).optional(),
+          domain: z.string().max(255).optional(),
+          path: z.string().max(255).optional(),
+          expires: z.number().int().positive().optional(),
+          httpOnly: z.boolean().optional(),
+          secure: z.boolean().optional(),
+          sameSite: z.enum(['Strict', 'Lax', 'None']).optional(),
+        }),
+      )
+      .max(50)
+      .optional(),
   }),
 };
 
@@ -244,7 +266,7 @@ export function validateAction(action: BrowserAction): ValidationResult {
   try {
     // Get the appropriate schema for the action type
     const schema = actionSchemas[action.type as keyof typeof actionSchemas];
-    
+
     if (schema === undefined) {
       errors.push({
         field: 'type',
@@ -268,14 +290,15 @@ export function validateAction(action: BrowserAction): ValidationResult {
       errors,
       warnings,
     };
-
   } catch (error) {
     if (error instanceof z.ZodError) {
-      errors.push(...error.errors.map(err => ({
-        field: err.path.join('.'),
-        message: err.message,
-        code: err.code,
-      })));
+      errors.push(
+        ...error.errors.map((err) => ({
+          field: err.path.join('.'),
+          message: err.message,
+          code: err.code,
+        })),
+      );
     } else {
       errors.push({
         field: 'unknown',
@@ -298,10 +321,11 @@ export function validateAction(action: BrowserAction): ValidationResult {
  * @returns Sanitized selector
  */
 export function sanitizeSelector(selector: string): string {
-  // Remove potentially dangerous characters
+  // Remove potentially dangerous characters and protocols
+  const dangerousProtocols = /(?:javascript|data|vbscript|about|file):/gi;
   const sanitized = selector
     .replace(/[<>]/g, '') // Remove angle brackets
-    .replace(/javascript:/gi, '') // Remove javascript: protocol
+    .replace(dangerousProtocols, '') // Remove dangerous protocols
     .trim();
 
   if (sanitized.length === 0) {
@@ -329,7 +353,7 @@ export function validateActionBatch(actions: BrowserAction[]): ValidationResult[
     throw new Error('Too many actions in batch (max 100)');
   }
 
-  return actions.map(action => validateAction(action));
+  return actions.map((action) => validateAction(action));
 }
 
 /**
