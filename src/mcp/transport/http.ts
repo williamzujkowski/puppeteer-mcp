@@ -49,7 +49,7 @@ export class HttpTransport {
    */
   private createServer(): HttpServer | HttpsServer {
     if (this.config.useTls) {
-      if (!this.config.tlsCertPath || !this.config.tlsKeyPath) {
+      if ((this.config.tlsCertPath === null || this.config.tlsCertPath === undefined || this.config.tlsCertPath === '') || (this.config.tlsKeyPath === null || this.config.tlsKeyPath === undefined || this.config.tlsKeyPath === '')) {
         throw new Error('TLS certificate and key paths required when TLS is enabled');
       }
 

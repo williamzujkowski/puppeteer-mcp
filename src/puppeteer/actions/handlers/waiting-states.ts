@@ -151,7 +151,7 @@ function createWaitForElementStateResult(
   params: WaitForElementStateResultParams
 ): ActionResult {
   const { success, selector, sanitizedSelector, state, duration, error } = params;
-  if (success) {
+  if (success === true) {
     return {
       success: true,
       actionType: 'waitForElementState',

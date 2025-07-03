@@ -14,7 +14,7 @@ const log = logger.child({ module: 'mcp-startup' });
 /**
  * Start the MCP server with all protocol integrations
  */
-async function startMCPServer() {
+async function startMCPServer(): Promise<void> {
   try {
     log.info('Starting MCP server with all protocol adapters...');
     

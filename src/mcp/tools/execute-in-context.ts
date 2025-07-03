@@ -102,7 +102,7 @@ export class ExecuteInContextTool {
         },
       },
       // Use session authentication if provided
-      auth: args.sessionId ? {
+      auth: (args.sessionId !== null && args.sessionId !== undefined && args.sessionId !== '') ? {
         type: 'session',
         credentials: args.sessionId,
       } : undefined,
@@ -122,10 +122,10 @@ export class ExecuteInContextTool {
   /**
    * Parse the response from the adapter
    */
-  private parseResponse(result: any): ToolResponse {
+  private parseResponse(result: import('../adapters/adapter.interface.js').MCPResponse): ToolResponse {
     let responseBody = {};
     
-    if (result.content?.[0] && result.content[0].type === 'text' && result.content[0].text) {
+    if (result.content?.[0] !== null && result.content?.[0] !== undefined && result.content[0].type === 'text' && result.content[0].text !== null && result.content[0].text !== undefined) {
       try {
         responseBody = JSON.parse(result.content[0].text);
       } catch (parseError) {

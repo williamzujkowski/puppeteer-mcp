@@ -38,7 +38,7 @@ export class ContextHandlers {
    */
   createContext = (req: Request, res: Response, next: NextFunction): void => void (async () => {
     try {
-      if (!req.user) {
+      if (req.user === null || req.user === undefined) {
         throw new AppError('Not authenticated', 401);
       }
 

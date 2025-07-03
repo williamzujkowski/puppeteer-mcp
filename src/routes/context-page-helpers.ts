@@ -10,12 +10,12 @@ import { AppError } from '../core/errors/app-error.js';
  * Validate request for page creation
  */
 export function validatePageRequest(req: Request): void {
-  if (!req.user) {
+  if (req.user === null || req.user === undefined) {
     throw new AppError('Not authenticated', 401);
   }
 
   const { contextId } = req.params;
-  if (!contextId || contextId === '') {
+  if (contextId === null || contextId === undefined || contextId === '') {
     throw new AppError('Context ID is required', 400);
   }
 }
@@ -24,8 +24,8 @@ export function validatePageRequest(req: Request): void {
  * Build page options from request and context
  */
 export function buildPageOptions(
-  requestBody: any,
-  contextConfig: any
+  requestBody: Record<string, unknown>,
+  contextConfig: Record<string, unknown>
 ): {
   viewport?: { width: number; height: number };
   userAgent?: string;
@@ -35,12 +35,12 @@ export function buildPageOptions(
   ignoreHTTPSErrors?: boolean;
 } {
   return {
-    viewport: requestBody.viewport ?? contextConfig.viewport,
-    userAgent: requestBody.userAgent ?? contextConfig.userAgent,
-    extraHeaders: requestBody.extraHeaders ?? contextConfig.extraHTTPHeaders,
-    javaScriptEnabled: requestBody.javaScriptEnabled ?? contextConfig.javaScriptEnabled,
-    bypassCSP: requestBody.bypassCSP ?? contextConfig.bypassCSP,
-    ignoreHTTPSErrors: requestBody.ignoreHTTPSErrors ?? contextConfig.ignoreHTTPSErrors,
+    viewport: (requestBody.viewport ?? contextConfig.viewport) as { width: number; height: number } | undefined,
+    userAgent: (requestBody.userAgent ?? contextConfig.userAgent) as string | undefined,
+    extraHeaders: (requestBody.extraHeaders ?? contextConfig.extraHTTPHeaders) as Record<string, string> | undefined,
+    javaScriptEnabled: (requestBody.javaScriptEnabled ?? contextConfig.javaScriptEnabled) as boolean | undefined,
+    bypassCSP: (requestBody.bypassCSP ?? contextConfig.bypassCSP) as boolean | undefined,
+    ignoreHTTPSErrors: (requestBody.ignoreHTTPSErrors ?? contextConfig.ignoreHTTPSErrors) as boolean | undefined,
   };
 }
 

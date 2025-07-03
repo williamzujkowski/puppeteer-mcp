@@ -139,9 +139,9 @@ function extendAdapterForServer(
   void wss; // Would be used in production for connection management
   
   // Override the createWebSocketConnection method to use existing connections
-  (adapter as any).createWebSocketConnection = function(connectionId?: string): Promise<WebSocket> {
+  (adapter as unknown as Record<string, unknown>).createWebSocketConnection = function(connectionId?: string): Promise<WebSocket> {
     return new Promise((resolve, reject) => {
-      if (connectionId) {
+      if (connectionId !== null && connectionId !== undefined && connectionId !== '') {
         // Try to get existing connection
         const existingWs = connectionManager.getWebSocket(connectionId);
         if (existingWs) {
@@ -164,7 +164,7 @@ function extendAdapterForServer(
   };
 
   // Add method to execute MCP requests for existing connections
-  (adapter as any).executeForConnection = async function(
+  (adapter as unknown as Record<string, unknown>).executeForConnection = async function(
     connectionId: string,
     operation: unknown
   ): Promise<MCPResponse> {
@@ -174,7 +174,7 @@ function extendAdapterForServer(
     }
 
     // Use 'this' with proper typing context
-    const response = await this.executeRequest({
+    const response = await (this as { executeRequest: (params: unknown) => Promise<unknown> }).executeRequest({
       operation,
       sessionId: connectionId,
       auth: connectionState.authenticated ? {

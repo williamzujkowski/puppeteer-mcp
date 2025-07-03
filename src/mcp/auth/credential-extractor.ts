@@ -10,7 +10,7 @@ import { MCPAuthCredentials } from './mcp-auth.js';
  * Extract JWT token from headers
  */
 function extractJwtFromHeaders(headers?: Record<string, string | string[] | undefined>): string | undefined {
-  if (!headers?.authorization) {
+  if (headers?.authorization === null || headers?.authorization === undefined) {
     return undefined;
   }
   
@@ -18,7 +18,7 @@ function extractJwtFromHeaders(headers?: Record<string, string | string[] | unde
     ? headers.authorization[0] 
     : headers.authorization;
   
-  if (authHeader && authHeader.startsWith('Bearer ')) {
+  if (authHeader !== null && authHeader !== undefined && authHeader !== '' && authHeader.startsWith('Bearer ')) {
     return authHeader.substring(7);
   }
   
@@ -30,7 +30,7 @@ function extractJwtFromHeaders(headers?: Record<string, string | string[] | unde
  */
 function extractApiKeyFromHeaders(headers?: Record<string, string | string[] | undefined>): string | undefined {
   const apiKeyHeader = headers?.['x-api-key'] ?? headers?.['apikey'];
-  if (!apiKeyHeader) {
+  if (apiKeyHeader === null || apiKeyHeader === undefined) {
     return undefined;
   }
   
@@ -41,7 +41,7 @@ function extractApiKeyFromHeaders(headers?: Record<string, string | string[] | u
  * Extract token from query parameters
  */
 function extractTokenFromQuery(query?: Record<string, string | string[] | undefined>): string | undefined {
-  if (!query?.token) {
+  if (query?.token === null || query?.token === undefined) {
     return undefined;
   }
   return Array.isArray(query.token) ? query.token[0] : query.token;
@@ -51,7 +51,7 @@ function extractTokenFromQuery(query?: Record<string, string | string[] | undefi
  * Extract API key from query parameters
  */
 function extractApiKeyFromQuery(query?: Record<string, string | string[] | undefined>): string | undefined {
-  if (!query?.apikey) {
+  if (query?.apikey === null || query?.apikey === undefined) {
     return undefined;
   }
   return Array.isArray(query.apikey) ? query.apikey[0] : query.apikey;
@@ -61,7 +61,7 @@ function extractApiKeyFromQuery(query?: Record<string, string | string[] | undef
  * Extract session ID from query parameters
  */
 function extractSessionIdFromQuery(query?: Record<string, string | string[] | undefined>): string | undefined {
-  if (!query?.sessionId) {
+  if (query?.sessionId === null || query?.sessionId === undefined) {
     return undefined;
   }
   return Array.isArray(query.sessionId) ? query.sessionId[0] : query.sessionId;
@@ -71,16 +71,62 @@ function extractSessionIdFromQuery(query?: Record<string, string | string[] | un
  * Extract credentials from WebSocket metadata
  */
 function extractFromMetadata(metadata?: Record<string, unknown>): MCPAuthCredentials | undefined {
-  if (!metadata?.auth) {
+  if (metadata?.auth === null || metadata?.auth === undefined) {
     return undefined;
   }
   
   const auth = metadata.auth as { type?: string; credentials?: string };
-  if (auth.type && auth.credentials && ['jwt', 'apikey', 'session'].includes(auth.type)) {
+  if (auth.type !== null && auth.type !== undefined && auth.type !== '' && auth.credentials !== null && auth.credentials !== undefined && auth.credentials !== '' && ['jwt', 'apikey', 'session'].includes(auth.type)) {
     return {
       type: auth.type as 'jwt' | 'apikey' | 'session',
       credentials: auth.credentials
     };
+  }
+  
+  return undefined;
+}
+
+/**
+ * Check if a credential value is valid
+ */
+function isValidCredential(value: string | undefined): boolean {
+  return value !== null && value !== undefined && value !== '';
+}
+
+/**
+ * Extract credentials from headers
+ */
+function extractFromHeaders(headers?: Record<string, string | string[] | undefined>): MCPAuthCredentials | undefined {
+  const jwt = extractJwtFromHeaders(headers);
+  if (isValidCredential(jwt)) {
+    return { type: 'jwt', credentials: jwt! };
+  }
+  
+  const apiKey = extractApiKeyFromHeaders(headers);
+  if (isValidCredential(apiKey)) {
+    return { type: 'apikey', credentials: apiKey! };
+  }
+  
+  return undefined;
+}
+
+/**
+ * Extract credentials from query parameters
+ */
+function extractFromQuery(query?: Record<string, string | string[] | undefined>): MCPAuthCredentials | undefined {
+  const token = extractTokenFromQuery(query);
+  if (isValidCredential(token)) {
+    return { type: 'jwt', credentials: token! };
+  }
+  
+  const apiKey = extractApiKeyFromQuery(query);
+  if (isValidCredential(apiKey)) {
+    return { type: 'apikey', credentials: apiKey! };
+  }
+  
+  const sessionId = extractSessionIdFromQuery(query);
+  if (isValidCredential(sessionId)) {
+    return { type: 'session', credentials: sessionId! };
   }
   
   return undefined;
@@ -96,34 +142,18 @@ export function extractCredentials(source: {
   query?: Record<string, string | string[] | undefined>;
   metadata?: Record<string, unknown>;
 }): MCPAuthCredentials | undefined {
-  // Check JWT in Authorization header
-  const jwt = extractJwtFromHeaders(source.headers);
-  if (jwt) {
-    return { type: 'jwt', credentials: jwt };
+  // Try headers first
+  const headerCreds = extractFromHeaders(source.headers);
+  if (headerCreds) {
+    return headerCreds;
   }
   
-  // Check API key in headers
-  const apiKeyHeader = extractApiKeyFromHeaders(source.headers);
-  if (apiKeyHeader) {
-    return { type: 'apikey', credentials: apiKeyHeader };
+  // Try query parameters
+  const queryCreds = extractFromQuery(source.query);
+  if (queryCreds) {
+    return queryCreds;
   }
   
-  // Check query parameters
-  const token = extractTokenFromQuery(source.query);
-  if (token) {
-    return { type: 'jwt', credentials: token };
-  }
-  
-  const apiKeyQuery = extractApiKeyFromQuery(source.query);
-  if (apiKeyQuery) {
-    return { type: 'apikey', credentials: apiKeyQuery };
-  }
-  
-  const sessionId = extractSessionIdFromQuery(source.query);
-  if (sessionId) {
-    return { type: 'session', credentials: sessionId };
-  }
-  
-  // Check WebSocket metadata
+  // Finally try WebSocket metadata
   return extractFromMetadata(source.metadata);
 }

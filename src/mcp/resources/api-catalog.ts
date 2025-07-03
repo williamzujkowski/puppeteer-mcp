@@ -80,7 +80,7 @@ export class ApiCatalogResource {
   private async getRestEndpoints(): Promise<RestEndpoint[]> {
     if (this.restAdapter) {
       const endpointsResponse = await this.restAdapter.listEndpoints();
-      if (endpointsResponse.content[0]?.text) {
+      if (endpointsResponse.content[0]?.text !== null && endpointsResponse.content[0]?.text !== undefined && endpointsResponse.content[0]?.text !== '') {
         const data = JSON.parse(endpointsResponse.content[0].text);
         return data.endpoints as RestEndpoint[];
       }

@@ -92,7 +92,7 @@ export class BrowserContextTool {
   /**
    * Create success response
    */
-  private successResponse(data: any): ToolResponse {
+  private successResponse(data: unknown): ToolResponse {
     return {
       content: [{
         type: 'text',

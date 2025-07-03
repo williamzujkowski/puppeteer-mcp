@@ -291,7 +291,7 @@ export class BrowserHealthChecker {
   ): Promise<RecoveryResult> {
     const health = await this.checkHealth(instance);
     
-    if (!health.isHealthy && this.config.enableAutoRecovery) {
+    if (health.isHealthy === false && this.config.enableAutoRecovery === true) {
       try {
         const newBrowser = await this.restartBrowser(instance, launchOptions);
         

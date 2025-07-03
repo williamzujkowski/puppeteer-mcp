@@ -67,7 +67,7 @@ export class RestAdapter implements ProtocolAdapter {
 
       // Validate auth if provided
       let auth;
-      if (params.auth) {
+      if (params.auth !== null && params.auth !== undefined) {
         auth = AuthParamsSchema.parse(params.auth);
       }
 
@@ -95,7 +95,7 @@ export class RestAdapter implements ProtocolAdapter {
     } catch (error) {
       // Log failed execution
       await logSecurityEvent(SecurityEventType.ACCESS_DENIED, {
-        resource: params.operation ? String(params.operation) : 'unknown',
+        resource: params.operation !== null && params.operation !== undefined ? String(params.operation) : 'unknown',
         action: 'execute',
         result: 'failure',
         reason: error instanceof Error ? error.message : 'Unknown error',
@@ -139,7 +139,7 @@ export class RestAdapter implements ProtocolAdapter {
     // Handle authentication
     if (auth) {
       await applyAuthentication(req, auth, sessionId);
-    } else if (sessionId) {
+    } else if (sessionId !== null && sessionId !== undefined && sessionId !== '') {
       // Use session ID directly
       req.user = await createUserFromSession(sessionId);
     }
@@ -205,7 +205,7 @@ export class RestAdapter implements ProtocolAdapter {
 
       // Create next function for error handling
       const next: NextFunction = (error?: unknown) => {
-        if (error) {
+        if (error !== null && error !== undefined) {
           reject(error);
         } else {
           resolve({
@@ -219,14 +219,14 @@ export class RestAdapter implements ProtocolAdapter {
       // Find and execute the matching route
       const layer = this.findMatchingRoute(operation.method, operation.endpoint);
 
-      if (!layer) {
+      if (layer === null || layer === undefined) {
         reject(new AppError(`Route not found: ${operation.method} ${operation.endpoint}`, 404));
         return;
       }
 
       // Execute route handler
       try {
-        layer.handle(req, res, next);
+        (layer as { handle: (req: unknown, res: unknown, next: unknown) => void }).handle(req, res, next);
       } catch (error) {
         reject(error);
       }
@@ -236,19 +236,19 @@ export class RestAdapter implements ProtocolAdapter {
   /**
    * Find matching route in Express app
    */
-  private findMatchingRoute(method: string, path: string): any {
+  private findMatchingRoute(method: string, path: string): unknown {
     // This is a simplified implementation
     // In production, we would need to properly match routes with parameters
-    const router = (this.app as any)._router;
+    const router = (this.app as unknown as Record<string, { _router?: unknown }>)._router;
 
-    if (!router) {
+    if (router === null || router === undefined) {
       return null;
     }
 
     // Find matching layer
-    for (const layer of router.stack) {
-      if (layer.route?.methods[method.toLowerCase()] && this.pathMatches(layer.route.path, path)) {
-        return layer;
+    for (const layer of (router as { stack: Array<{ route?: { methods?: Record<string, boolean>; path?: string | RegExp } }> }).stack) {
+      if (layer.route?.methods?.[method.toLowerCase()] === true && layer.route.path !== undefined && this.pathMatches(layer.route.path, path)) {
+        return layer as { handle: (req: unknown, res: unknown, next: unknown) => void };
       }
     }
 

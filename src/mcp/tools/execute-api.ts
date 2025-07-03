@@ -69,7 +69,7 @@ export class ExecuteApiTool {
     
     // If session type but no credentials, try to use sessionId from args
     if (auth && auth.type === 'session' && !auth.credentials) {
-      if (args.sessionId) {
+      if (args.sessionId !== null && args.sessionId !== undefined && args.sessionId !== '') {
         return {
           ...auth,
           credentials: args.sessionId,
@@ -85,7 +85,7 @@ export class ExecuteApiTool {
    */
   private async executeForProtocol(
     protocol: string, 
-    request: any
+    request: { operation: unknown; auth?: ExecuteApiArgs['auth']; sessionId?: string }
   ): Promise<ToolResponse> {
     switch (protocol) {
       case 'rest': {
@@ -111,7 +111,7 @@ export class ExecuteApiTool {
   /**
    * Execute REST request
    */
-  private async executeRestRequest(request: any): Promise<ToolResponse> {
+  private async executeRestRequest(request: { operation: unknown; auth?: ExecuteApiArgs['auth']; sessionId?: string }): Promise<ToolResponse> {
     if (!this.restAdapter) {
       throw new McpError(
         ErrorCode.InvalidRequest, 
@@ -126,7 +126,7 @@ export class ExecuteApiTool {
   /**
    * Execute gRPC request
    */
-  private async executeGrpcRequest(request: any): Promise<ToolResponse> {
+  private async executeGrpcRequest(request: { operation: unknown; auth?: ExecuteApiArgs['auth']; sessionId?: string }): Promise<ToolResponse> {
     if (!this.grpcAdapter) {
       throw new McpError(
         ErrorCode.InvalidRequest, 
@@ -141,7 +141,7 @@ export class ExecuteApiTool {
   /**
    * Execute WebSocket request
    */
-  private async executeWebSocketRequest(request: any): Promise<ToolResponse> {
+  private async executeWebSocketRequest(request: { operation: unknown; auth?: ExecuteApiArgs['auth']; sessionId?: string }): Promise<ToolResponse> {
     if (!this.wsAdapter) {
       throw new McpError(
         ErrorCode.InvalidRequest, 

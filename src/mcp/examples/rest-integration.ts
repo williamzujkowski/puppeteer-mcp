@@ -10,7 +10,7 @@ import { createMCPServer } from '../server.js';
 /**
  * Example: Integrating MCP with existing Express app
  */
-async function setupMCPWithExpress() {
+async function setupMCPWithExpress(): Promise<void> {
   // Create the Express app with all routes and middleware
   const app = createApp();
   
@@ -26,7 +26,7 @@ async function setupMCPWithExpress() {
 /**
  * Example: Using MCP to execute REST API calls
  */
-function exampleMCPRestCalls() {
+function exampleMCPRestCalls(): Record<string, unknown> {
   // These examples show the MCP tool call format
   
   // Example 1: Health check (no auth required)
@@ -129,7 +129,7 @@ function exampleMCPRestCalls() {
 /**
  * Example: Error handling scenarios
  */
-function exampleErrorScenarios() {
+function exampleErrorScenarios(): { invalidAuth: unknown; validationError: unknown; notFound: unknown; unsupportedProtocol: unknown } {
   // Example 1: Invalid authentication
   const invalidAuth = {
     name: 'execute-api',
@@ -196,7 +196,7 @@ function exampleErrorScenarios() {
 /**
  * Example: Using the API catalog resource
  */
-function exampleApiCatalog() {
+function exampleApiCatalog(): Record<string, unknown> {
   // MCP resource request to get API catalog
   const catalogRequest = {
     method: 'resources/read',

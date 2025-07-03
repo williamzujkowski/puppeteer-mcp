@@ -403,7 +403,7 @@ export class GrpcAdapter implements ProtocolAdapter {
         if (key.includes(serviceName)) {
           // Extract method name from the key (e.g., "/mcp.control.v1.SessionService/CreateSession" -> "CreateSession")
           const methodName = key.split('/').pop();
-          if (methodName && typeof handler === 'function') {
+          if (methodName !== null && methodName !== undefined && methodName !== '' && typeof handler === 'function') {
             // Use Object.defineProperty to avoid object injection vulnerability
             Object.defineProperty(serviceObj, methodName, {
               value: handler as GrpcServiceHandler[string],

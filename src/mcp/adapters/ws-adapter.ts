@@ -151,7 +151,7 @@ export class WebSocketAdapter implements ProtocolAdapter {
     connection: MCPWebSocketConnection,
     operation: WebSocketOperation
   ): Promise<MCPResponse> {
-    if (!operation.topic) {
+    if (operation.topic === null || operation.topic === undefined || operation.topic === '') {
       throw new AppError('Topic is required for subscription', 400);
     }
 
@@ -170,7 +170,7 @@ export class WebSocketAdapter implements ProtocolAdapter {
     await this.sendMessage(connection, subscriptionMessage);
 
     // Set up subscription handler
-    const handler = (data: unknown) => {
+    const handler = (data: unknown): void => {
       this.eventEmitter.emit(`subscription:${subscriptionId}`, data);
     };
 
@@ -185,7 +185,7 @@ export class WebSocketAdapter implements ProtocolAdapter {
     this.connectionManager.addSubscription(connection.connectionId, operation.topic);
 
     // Set up auto-cleanup if duration specified
-    if (operation.duration) {
+    if (operation.duration !== null && operation.duration !== undefined && operation.duration > 0) {
       setTimeout(() => {
         void this.cleanupSubscription(connection, subscriptionId);
       }, operation.duration);
@@ -213,7 +213,7 @@ export class WebSocketAdapter implements ProtocolAdapter {
     connection: MCPWebSocketConnection,
     operation: WebSocketOperation
   ): Promise<MCPResponse> {
-    if (!operation.topic) {
+    if (operation.topic === null || operation.topic === undefined || operation.topic === '') {
       throw new AppError('Topic is required for unsubscription', 400);
     }
 
@@ -226,7 +226,7 @@ export class WebSocketAdapter implements ProtocolAdapter {
       }
     }
 
-    if (!subscriptionId) {
+    if (subscriptionId === null || subscriptionId === undefined || subscriptionId === '') {
       throw new AppError('Subscription not found', 404);
     }
 
@@ -283,7 +283,7 @@ export class WebSocketAdapter implements ProtocolAdapter {
     _connection: MCPWebSocketConnection,
     operation: WebSocketOperation
   ): Promise<MCPResponse> {
-    if (!operation.topic || !operation.event) {
+    if ((operation.topic === null || operation.topic === undefined || operation.topic === '') || (operation.event === null || operation.event === undefined || operation.event === '')) {
       throw new AppError('Topic and event are required for broadcast', 400);
     }
 
@@ -541,7 +541,7 @@ export class WebSocketAdapter implements ProtocolAdapter {
   ): void {
     // Emit event for subscriptions
     const eventData = message.data as { topic?: string; data?: unknown };
-    if (eventData.topic) {
+    if (eventData.topic !== null && eventData.topic !== undefined && eventData.topic !== '') {
       for (const [id, sub] of connection.subscriptions) {
         if (sub.topic === eventData.topic) {
           sub.handler(eventData.data);
@@ -753,7 +753,7 @@ export class WebSocketAdapter implements ProtocolAdapter {
       let resolveNext: ((value: unknown) => void) | null = null;
 
       // Set up event listener
-      const handler = (data: unknown) => {
+      const handler = (data: unknown): void => {
         if (resolveNext) {
           resolveNext(data);
           resolveNext = null;
@@ -767,7 +767,7 @@ export class WebSocketAdapter implements ProtocolAdapter {
       try {
         while (true) {
           // Get next event
-          const data = events.shift() || await new Promise(resolve => {
+          const data = events.shift() ?? await new Promise(resolve => {
             resolveNext = resolve;
           });
 

@@ -12,7 +12,7 @@ import type { Cookie } from 'puppeteer';
  * @throws Error if name is invalid
  */
 export function validateCookieName(name: string): void {
-  if (!name || name.trim() === '') {
+  if (name === null || name === undefined || name === '' || name.trim() === '') {
     throw new Error('Cookie name is required');
   }
 
@@ -31,7 +31,7 @@ export function validateCookieName(name: string): void {
  * @throws Error if value is invalid
  */
 export function validateCookieValue(value?: string): void {
-  if (value && value.length > 4096) {
+  if (value !== null && value !== undefined && value !== '' && value.length > 4096) {
     throw new Error('Cookie value too long');
   }
 }
@@ -44,7 +44,7 @@ export function validateCookieValue(value?: string): void {
  * @throws Error if domain is invalid
  */
 export function validateCookieDomain(domain: string | undefined, currentUrl: string): string | undefined {
-  if (!domain) {
+  if (domain === null || domain === undefined || domain === '') {
     return undefined;
   }
 
@@ -71,7 +71,7 @@ export function validateCookieDomain(domain: string | undefined, currentUrl: str
  * @throws Error if path is invalid
  */
 export function validateCookiePath(path?: string): void {
-  if (path && (path.length > 255 || !path.startsWith('/'))) {
+  if (path !== null && path !== undefined && path !== '' && (path.length > 255 || path.startsWith('/') === false)) {
     throw new Error('Invalid cookie path');
   }
 }
@@ -94,7 +94,7 @@ export function validateCookieExpiration(expires?: number): void {
  * @throws Error if settings are invalid
  */
 export function validateCookieSecurity(sameSite?: 'Strict' | 'Lax' | 'None', secure?: boolean): void {
-  if (sameSite && !['Strict', 'Lax', 'None'].includes(sameSite)) {
+  if (sameSite !== null && sameSite !== undefined && ['Strict', 'Lax', 'None'].includes(sameSite) === false) {
     throw new Error('Invalid SameSite value');
   }
 

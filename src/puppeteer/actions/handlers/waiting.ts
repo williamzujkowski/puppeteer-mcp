@@ -126,8 +126,8 @@ export async function handleWait(
  * @param page - Puppeteer page instance
  * @returns Element handle or null
  */
-function handleWaitForSelector(action: WaitAction, page: Page) {
-  if (!action.selector) {
+function handleWaitForSelector(action: WaitAction, page: Page): ReturnType<Page['waitForSelector']> {
+  if (action.selector === null || action.selector === undefined || action.selector === '') {
     throw new Error('Selector is required for waitForSelector');
   }
 
@@ -145,7 +145,7 @@ function handleWaitForSelector(action: WaitAction, page: Page) {
  * @param page - Puppeteer page instance
  * @returns Navigation response
  */
-function handleWaitForNavigation(action: WaitAction, page: Page) {
+function handleWaitForNavigation(action: WaitAction, page: Page): Promise<import('puppeteer').HTTPResponse | null> {
   return page.waitForNavigation({
     timeout: action.timeout ?? 30000,
     waitUntil: 'load',
@@ -158,7 +158,7 @@ function handleWaitForNavigation(action: WaitAction, page: Page) {
  * @returns Promise that resolves after timeout
  */
 async function handleWaitForTimeout(action: WaitAction): Promise<void> {
-  if (!action.duration) {
+  if (action.duration === null || action.duration === undefined || action.duration <= 0) {
     throw new Error('Duration is required for waitForTimeout');
   }
 
@@ -177,8 +177,8 @@ async function handleWaitForTimeout(action: WaitAction): Promise<void> {
  * @param page - Puppeteer page instance
  * @returns Function result
  */
-function handleWaitForFunction(action: WaitAction, page: Page) {
-  if (!action.function) {
+function handleWaitForFunction(action: WaitAction, page: Page): ReturnType<Page['waitForFunction']> {
+  if (action.function === null || action.function === undefined || action.function === '') {
     throw new Error('Function is required for waitForFunction');
   }
 

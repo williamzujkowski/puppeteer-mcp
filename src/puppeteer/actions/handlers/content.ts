@@ -52,7 +52,7 @@ export async function handleScreenshot(
     const screenshotOptions = buildScreenshotOptions(action);
 
     // Delegate to specific screenshot method
-    const result = action.selector 
+    const result = (action.selector !== null && action.selector !== undefined && action.selector !== '')
       ? await captureElementScreenshot(action, page, screenshotOptions, context)
       : await capturePageScreenshot(action, page, screenshotOptions, context);
 

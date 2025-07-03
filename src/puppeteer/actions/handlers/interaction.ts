@@ -141,7 +141,7 @@ export async function handleType(
 
     // Get element
     const element = await page.$(sanitizedSelector);
-    if (!element) {
+    if (element === null || element === undefined) {
       throw new Error(`Element not found: ${sanitizedSelector}`);
     }
 
@@ -149,7 +149,8 @@ export async function handleType(
     await element.focus();
 
     // Clear existing content if requested
-    if (action.clearFirst) {
+    if (action.clearFirst === true) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await element.evaluate((el: any) => {
         if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
           el.value = '';

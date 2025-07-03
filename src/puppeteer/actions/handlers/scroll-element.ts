@@ -93,8 +93,10 @@ export async function handleScrollWithinElement(
   // Scroll within the element
   const actualDistance = await page.evaluate(
     (sel: string, scrollDirection: string, scrollDistance: number) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const el = (globalThis as any).document.querySelector(sel);
-      if (!el || !(el instanceof (globalThis as any).HTMLElement)) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      if (el === null || el === undefined || !(el instanceof (globalThis as any).HTMLElement)) {
         throw new Error('Element not found or not scrollable');
       }
 

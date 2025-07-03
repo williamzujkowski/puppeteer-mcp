@@ -9,6 +9,34 @@ import { handleScrollToElement, handleScrollWithinElement } from './scroll-eleme
 import { handleScrollPage, handleScrollToCoordinates, handleSmoothScroll } from './scroll-page.js';
 
 /**
+ * Check if action is scroll to element
+ */
+function isScrollToElement(action: ScrollAction): boolean {
+  return action.toElement === true && action.selector !== null && action.selector !== undefined && action.selector !== '';
+}
+
+/**
+ * Check if action is scroll within element
+ */
+function isScrollWithinElement(action: ScrollAction): boolean {
+  return action.selector !== null && action.selector !== undefined && action.selector !== '' && action.toElement !== true;
+}
+
+/**
+ * Check if action is scroll to coordinates
+ */
+function isScrollToCoordinates(action: ScrollAction): boolean {
+  return action.x !== undefined && action.y !== undefined;
+}
+
+/**
+ * Check if action is smooth scroll
+ */
+function isSmoothScroll(action: ScrollAction): boolean {
+  return action.smooth === true;
+}
+
+/**
  * Dispatch scroll action to appropriate handler
  * @param action - Scroll action
  * @param page - Puppeteer page instance
@@ -21,15 +49,15 @@ export async function dispatchScrollAction(
   page: Page,
   context: ActionContext
 ): Promise<unknown> {
-  if (action.toElement && action.selector) {
-    // Scroll to element
-    return handleScrollToElement(action.selector, page, context);
+  // Scroll to element
+  if (isScrollToElement(action)) {
+    return handleScrollToElement(action.selector!, page, context);
   }
 
-  if (action.selector) {
-    // Scroll within element
+  // Scroll within element
+  if (isScrollWithinElement(action)) {
     return handleScrollWithinElement({
-      selector: action.selector,
+      selector: action.selector!,
       direction: action.direction ?? 'down',
       distance: action.distance ?? 100,
       page,
@@ -37,13 +65,13 @@ export async function dispatchScrollAction(
     });
   }
 
-  if (action.x !== undefined && action.y !== undefined) {
-    // Scroll to coordinates
-    return handleScrollToCoordinates(action.x, action.y, page, context);
+  // Scroll to coordinates
+  if (isScrollToCoordinates(action)) {
+    return handleScrollToCoordinates(action.x!, action.y!, page, context);
   }
 
-  if (action.smooth) {
-    // Smooth scroll
+  // Smooth scroll
+  if (isSmoothScroll(action)) {
     return handleSmoothScroll(action, page, context, action.duration);
   }
 

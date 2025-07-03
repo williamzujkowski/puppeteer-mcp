@@ -22,12 +22,12 @@ export async function getPageMetrics(
   pageStore: PageInfoStore,
 ): Promise<Record<string, unknown>> {
   const pageInfo = await pageStore.get(pageId);
-  if (!pageInfo || pageInfo.sessionId !== sessionId) {
+  if ((pageInfo === null || pageInfo === undefined) || pageInfo.sessionId !== sessionId) {
     throw new AppError('Page not found or access denied', 404);
   }
 
   const page = pages.get(pageId);
-  if (!page) {
+  if (page === null || page === undefined) {
     throw new AppError('Page instance not found', 404);
   }
 
@@ -59,12 +59,12 @@ export async function setCookies(params: SetCookiesParams): Promise<void> {
   const { pageId, cookies, sessionId, pages, pageStore } = params;
 
   const pageInfo = await pageStore.get(pageId);
-  if (!pageInfo || pageInfo.sessionId !== sessionId) {
+  if ((pageInfo === null || pageInfo === undefined) || pageInfo.sessionId !== sessionId) {
     throw new AppError('Page not found or access denied', 404);
   }
 
   const page = pages.get(pageId);
-  if (!page) {
+  if (page === null || page === undefined) {
     throw new AppError('Page instance not found', 404);
   }
 
@@ -82,12 +82,12 @@ export async function getCookies(
   pageStore: PageInfoStore,
 ): Promise<Cookie[]> {
   const pageInfo = await pageStore.get(pageId);
-  if (!pageInfo || pageInfo.sessionId !== sessionId) {
+  if ((pageInfo === null || pageInfo === undefined) || pageInfo.sessionId !== sessionId) {
     throw new AppError('Page not found or access denied', 404);
   }
 
   const page = pages.get(pageId);
-  if (!page) {
+  if (page === null || page === undefined) {
     throw new AppError('Page instance not found', 404);
   }
 
@@ -116,12 +116,12 @@ export async function clearPageData(params: ClearPageDataParams): Promise<void> 
   const { pageId, sessionId, options, pages, pageStore } = params;
 
   const pageInfo = await pageStore.get(pageId);
-  if (!pageInfo || pageInfo.sessionId !== sessionId) {
+  if ((pageInfo === null || pageInfo === undefined) || pageInfo.sessionId !== sessionId) {
     throw new AppError('Page not found or access denied', 404);
   }
 
   const page = pages.get(pageId);
-  if (!page) {
+  if (page === null || page === undefined) {
     throw new AppError('Page instance not found', 404);
   }
 
@@ -160,7 +160,7 @@ export async function takeScreenshot(params: TakeScreenshotParams): Promise<Buff
   const { pageId, sessionId, options, pages, pageStore } = params;
 
   const pageInfo = await pageStore.get(pageId);
-  if (!pageInfo || pageInfo.sessionId !== sessionId) {
+  if ((pageInfo === null || pageInfo === undefined) || pageInfo.sessionId !== sessionId) {
     await logSecurityEvent(SecurityEventType.ACCESS_DENIED, {
       userId: sessionId,
       resource: `page:${pageId}`,

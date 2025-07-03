@@ -33,7 +33,7 @@ export async function checkBrowserHealth(
 ): Promise<HealthCheckResult> {
   try {
     // Check if browser is connected
-    if (!browser.isConnected()) {
+    if (browser.isConnected() === false) {
       return {
         healthy: false,
         responsive: false,

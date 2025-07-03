@@ -110,7 +110,7 @@ export function getDefaultLaunchOptions(): LaunchOptions {
   ];
 
   // Parse additional args from environment
-  if (config.PUPPETEER_ARGS) {
+  if (config.PUPPETEER_ARGS !== null && config.PUPPETEER_ARGS !== undefined && config.PUPPETEER_ARGS !== '') {
     const additionalArgs = config.PUPPETEER_ARGS.split(',').map(arg => arg.trim());
     args.push(...additionalArgs);
   }
@@ -136,7 +136,7 @@ export function getDefaultLaunchOptions(): LaunchOptions {
  * @nist cm-7 "Least functionality"
  */
 export function getBrowserExecutablePath(): string | undefined {
-  if (config.PUPPETEER_EXECUTABLE_PATH) {
+  if (config.PUPPETEER_EXECUTABLE_PATH !== null && config.PUPPETEER_EXECUTABLE_PATH !== undefined && config.PUPPETEER_EXECUTABLE_PATH !== '') {
     return config.PUPPETEER_EXECUTABLE_PATH;
   }
 
@@ -154,7 +154,7 @@ export function getBrowserExecutablePath(): string | undefined {
  * @nist cm-6 "Configuration settings"
  */
 export function getCacheDirectory(): string {
-  if (config.PUPPETEER_DOWNLOAD_PATH) {
+  if (config.PUPPETEER_DOWNLOAD_PATH !== null && config.PUPPETEER_DOWNLOAD_PATH !== undefined && config.PUPPETEER_DOWNLOAD_PATH !== '') {
     return config.PUPPETEER_DOWNLOAD_PATH;
   }
 
@@ -231,7 +231,7 @@ export function validatePoolConfig(poolSize: number, idleTimeout: number): void 
  * @nist ac-4 "Information flow enforcement"
  * @nist sc-8 "Transmission confidentiality and integrity"
  */
-export function getSecureContextOptions() {
+export function getSecureContextOptions(): Record<string, unknown> {
   return {
     // Disable all permissions by default
     permissions: [],

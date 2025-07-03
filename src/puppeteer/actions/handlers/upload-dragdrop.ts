@@ -113,7 +113,7 @@ export async function handleDragDropUpload(
  * Prepare file data for drag and drop
  */
 // eslint-disable-next-line @typescript-eslint/require-await, require-await
-async function prepareFileData(validatedFiles: Array<{ path: string; name: string; type: string }>) {
+async function prepareFileData(validatedFiles: Array<{ path: string; name: string; type: string }>): Promise<Array<{ name: string; type: string; content: number[] }>> {
   return Promise.all(
     validatedFiles.map(async (file) => {
       // Security: File path is validated by validateFilePaths

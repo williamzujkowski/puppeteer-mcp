@@ -30,7 +30,7 @@ export interface ExecuteApiArgs extends BaseToolArgs {
     service?: string;
     procedure?: string;
     type?: string;
-    body?: any;
+    body?: unknown;
     headers?: Record<string, string>;
     metadata?: Record<string, string>;
   };
@@ -79,7 +79,7 @@ export interface CreateBrowserContextArgs extends BaseToolArgs {
 export interface ExecuteInContextArgs extends BaseToolArgs {
   contextId: string;
   command: string;
-  parameters?: Record<string, any>;
+  parameters?: Record<string, unknown>;
 }
 
 /**
@@ -107,7 +107,7 @@ export interface ToolErrorResponse {
 /**
  * Tool success response
  */
-export interface ToolSuccessResponse<T = any> {
+export interface ToolSuccessResponse<T = unknown> {
   data?: T;
   success?: boolean;
   message?: string;

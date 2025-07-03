@@ -109,9 +109,18 @@ export class SessionTools {
    */
   async listSessions(args: ListSessionsArgs): Promise<ToolResponse> {
     try {
-      let sessions: any[] = [];
+      let sessions: Array<{
+        id: string;
+        userId: string;
+        username: string;
+        roles: string[];
+        createdAt: Date;
+        expiresAt: Date;
+        lastAccessedAt: Date;
+        metadata?: Record<string, unknown>;
+      }> = [];
       
-      if (args.userId) {
+      if (args.userId !== null && args.userId !== undefined && args.userId !== '') {
         // Get sessions for specific user
         const userSessions = await this.sessionStore.getByUserId(args.userId);
         sessions = userSessions.map(session => ({
@@ -119,9 +128,9 @@ export class SessionTools {
           userId: session.data.userId,
           username: session.data.username,
           roles: session.data.roles,
-          createdAt: session.data.createdAt,
-          expiresAt: session.data.expiresAt,
-          lastAccessedAt: session.lastAccessedAt,
+          createdAt: new Date(session.data.createdAt),
+          expiresAt: new Date(session.data.expiresAt),
+          lastAccessedAt: new Date(session.lastAccessedAt),
           metadata: session.data.metadata,
         }));
         
@@ -218,7 +227,7 @@ export class SessionTools {
   /**
    * Create success response
    */
-  private successResponse(data: any): ToolResponse {
+  private successResponse(data: unknown): ToolResponse {
     return {
       content: [{
         type: 'text',
