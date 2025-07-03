@@ -172,12 +172,15 @@ describe('MCP Server', () => {
       process.env.MCP_TRANSPORT = 'http';
       
       // Mock HTTP transport creation
-      jest.mock('../../../src/mcp/transport/index.js', () => ({
-        ...jest.requireActual('../../../src/mcp/transport/index.js'),
-        createHttpTransport: jest.fn().mockReturnValue({
-          start: jest.fn().mockResolvedValue(undefined),
-        }),
-      }));
+      jest.mock('../../../src/mcp/transport/index.js', () => {
+        const actual = jest.requireActual('../../../src/mcp/transport/index.js');
+        return {
+          ...actual,
+          createHttpTransport: jest.fn().mockReturnValue({
+            start: jest.fn().mockResolvedValue(undefined),
+          }),
+        };
+      });
       
       await mcpServer.start();
       

@@ -39,15 +39,30 @@ export async function getPageMetrics(
 }
 
 /**
+ * Parameters for page operation functions
+ */
+export interface PageOperationParams {
+  pageId: string;
+  sessionId: string;
+  pages: Map<string, Page>;
+  pageStore: PageInfoStore;
+}
+
+/**
+ * Parameters for setCookies
+ */
+export interface SetCookiesParams extends PageOperationParams {
+  cookies: Cookie[];
+}
+
+/**
  * Set page cookies
  */
 export async function setCookies(
-  pageId: string,
-  cookies: Cookie[],
-  sessionId: string,
-  pages: Map<string, Page>,
-  pageStore: PageInfoStore
+  params: SetCookiesParams
 ): Promise<void> {
+  const { pageId, cookies, sessionId, pages, pageStore } = params;
+  
   const pageInfo = await pageStore.get(pageId);
   if (!pageInfo || pageInfo.sessionId !== sessionId) {
     throw new AppError('Page not found or access denied', 404);
@@ -86,20 +101,25 @@ export async function getCookies(
 }
 
 /**
- * Clear page data
+ * Parameters for clearPageData
  */
-export async function clearPageData(
-  pageId: string,
-  sessionId: string,
+export interface ClearPageDataParams extends PageOperationParams {
   options: {
     cookies?: boolean;
     cache?: boolean;
     localStorage?: boolean;
     sessionStorage?: boolean;
-  } | undefined,
-  pages: Map<string, Page>,
-  pageStore: PageInfoStore
+  } | undefined;
+}
+
+/**
+ * Clear page data
+ */
+export async function clearPageData(
+  params: ClearPageDataParams
 ): Promise<void> {
+  const { pageId, sessionId, options, pages, pageStore } = params;
+  
   const pageInfo = await pageStore.get(pageId);
   if (!pageInfo || pageInfo.sessionId !== sessionId) {
     throw new AppError('Page not found or access denied', 404);
@@ -114,7 +134,7 @@ export async function clearPageData(
     await page.deleteCookie(...await page.cookies());
   }
 
-  if (options?.localStorage || options?.sessionStorage) {
+  if (options?.localStorage === true || options?.sessionStorage === true) {
     await page.evaluate((opts) => {
       if (opts?.localStorage) {
         // @ts-expect-error - window is available in browser context
@@ -131,16 +151,21 @@ export async function clearPageData(
 }
 
 /**
+ * Parameters for takeScreenshot
+ */
+export interface TakeScreenshotParams extends PageOperationParams {
+  options: ScreenshotOptions | undefined;
+}
+
+/**
  * Take screenshot
  * @nist ac-3 "Access enforcement"
  */
 export async function takeScreenshot(
-  pageId: string,
-  sessionId: string,
-  options: ScreenshotOptions | undefined,
-  pages: Map<string, Page>,
-  pageStore: PageInfoStore
+  params: TakeScreenshotParams
 ): Promise<Buffer> {
+  const { pageId, sessionId, options, pages, pageStore } = params;
+  
   const pageInfo = await pageStore.get(pageId);
   if (!pageInfo || pageInfo.sessionId !== sessionId) {
     await logSecurityEvent(SecurityEventType.ACCESS_DENIED, {

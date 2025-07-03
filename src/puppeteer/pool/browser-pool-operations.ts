@@ -74,7 +74,7 @@ export async function createPage(
 /**
  * Close a page in a browser
  */
-export async function closePage(
+export function closePage(
   browserId: string,
   sessionId: string,
   browsers: Map<string, InternalBrowserInstance>
@@ -100,6 +100,7 @@ export function listBrowsers(
   browsers: Map<string, InternalBrowserInstance>
 ): BrowserInstance[] {
   return Array.from(browsers.values()).map(internal => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { state, sessionId, errorCount, ...browserInstance } = internal;
     return browserInstance;
   });

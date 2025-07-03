@@ -166,7 +166,9 @@ async function handleWaitForTimeout(action: WaitAction): Promise<void> {
     throw new Error('Duration cannot exceed 5 minutes');
   }
 
-  await new Promise(resolve => setTimeout(resolve, action.duration));
+  await new Promise<void>(resolve => {
+    setTimeout(resolve, action.duration);
+  });
 }
 
 /**

@@ -47,15 +47,24 @@ export async function handleRemoveBrowser(
 }
 
 /**
+ * Parameters for handleUnhealthyBrowserWithEvent
+ */
+export interface HandleUnhealthyBrowserWithEventParams {
+  browserId: string;
+  browsers: Map<string, InternalBrowserInstance>;
+  handleUnhealthy: (browserId: string) => Promise<void>;
+  onRestarted: (browserId: string) => void;
+  onRemoved: (browserId: string) => void;
+}
+
+/**
  * Handle unhealthy browser with event
  */
 export async function handleUnhealthyBrowserWithEvent(
-  browserId: string,
-  browsers: Map<string, InternalBrowserInstance>,
-  handleUnhealthy: (browserId: string) => Promise<void>,
-  onRestarted: (browserId: string) => void,
-  onRemoved: (browserId: string) => void
+  params: HandleUnhealthyBrowserWithEventParams
 ): Promise<void> {
+  const { browserId, browsers, handleUnhealthy, onRestarted, onRemoved } = params;
+  
   await handleUnhealthy(browserId);
 
   if (browsers.has(browserId)) {
@@ -75,45 +84,63 @@ export async function performMaintenanceWrapper(
 }
 
 /**
+ * Parameters for handleUnhealthyBrowserDelegate
+ */
+export interface HandleUnhealthyBrowserDelegateParams {
+  browserId: string;
+  browsers: Map<string, InternalBrowserInstance>;
+  maintenance: BrowserPoolMaintenance;
+  healthMonitor: BrowserHealthMonitor;
+  options: BrowserPoolOptions;
+  emitEvent: (event: string, data: any) => void;
+  handleUnhealthyBrowser: (browserId: string) => Promise<void>;
+}
+
+/**
  * Handle unhealthy browser
  */
 export async function handleUnhealthyBrowserDelegate(
-  browserId: string,
-  browsers: Map<string, InternalBrowserInstance>,
-  maintenance: BrowserPoolMaintenance,
-  healthMonitor: BrowserHealthMonitor,
-  options: BrowserPoolOptions,
-  emitEvent: (event: string, data: any) => void,
-  handleUnhealthyBrowser: (browserId: string) => Promise<void>
+  params: HandleUnhealthyBrowserDelegateParams
 ): Promise<void> {
-  await handleUnhealthyBrowserWithEvent(
+  const { browserId, browsers, maintenance, healthMonitor, options, emitEvent, handleUnhealthyBrowser } = params;
+  
+  await handleUnhealthyBrowserWithEvent({
     browserId,
     browsers,
-    async (id) => {
-      await maintenance.handleUnhealthyBrowser(
-        id,
+    handleUnhealthy: async (id) => {
+      await maintenance.handleUnhealthyBrowser({
+        browserId: id,
         browsers,
         healthMonitor,
         options,
-        (bid) => void handleUnhealthyBrowser(bid)
-      );
+        onHealthCheckFailed: (bid) => void handleUnhealthyBrowser(bid)
+      });
     },
-    (id) => emitEvent('browser:restarted', { browserId: id }),
-    (id) => emitEvent('browser:removed', { browserId: id })
-  );
+    onRestarted: (id) => emitEvent('browser:restarted', { browserId: id }),
+    onRemoved: (id) => emitEvent('browser:removed', { browserId: id })
+  });
+}
+
+/**
+ * Parameters for performPoolMaintenance
+ */
+export interface PerformPoolMaintenanceParams {
+  browsers: Map<string, InternalBrowserInstance>;
+  options: BrowserPoolOptions;
+  maintenance: BrowserPoolMaintenance;
+  removeBrowser: (browserId: string) => Promise<void>;
+  handleUnhealthyBrowser: (browserId: string) => Promise<void>;
+  launchNewBrowser: () => Promise<{ browser: Browser; instance: InternalBrowserInstance }>;
 }
 
 /**
  * Perform pool maintenance
  */
 export async function performPoolMaintenance(
-  browsers: Map<string, InternalBrowserInstance>,
-  options: BrowserPoolOptions,
-  maintenance: BrowserPoolMaintenance,
-  removeBrowser: (browserId: string) => Promise<void>,
-  handleUnhealthyBrowser: (browserId: string) => Promise<void>,
-  launchNewBrowser: () => Promise<{ browser: Browser; instance: InternalBrowserInstance }>
+  params: PerformPoolMaintenanceParams
 ): Promise<void> {
+  const { browsers, options, maintenance, removeBrowser, handleUnhealthyBrowser, launchNewBrowser } = params;
+  
   await performMaintenanceWrapper(
     () => maintenance.performMaintenance({
       browsers,
@@ -129,15 +156,17 @@ export async function performPoolMaintenance(
  * Remove browser from pool
  */
 export async function removeBrowserFromPool(
-  browserId: string,
-  browsers: Map<string, InternalBrowserInstance>,
-  healthMonitor: BrowserHealthMonitor,
-  maintenance: BrowserPoolMaintenance,
-  emitEvent: (event: string, data: any) => void
+  params: RemoveBrowserFromPoolParams
 ): Promise<void> {
+  const { browserId, browsers, healthMonitor, maintenance, emitEvent } = params;
+  
   await handleRemoveBrowser(
     browserId,
-    (id) => maintenance.removeBrowser(id, browsers, healthMonitor),
-    (id) => emitEvent('browser:removed', { browserId: id })
+    (id) => {
+      void maintenance.removeBrowser(id, browsers, healthMonitor);
+    },
+    (id) => {
+      void emitEvent('browser:removed', { browserId: id });
+    }
   );
 }

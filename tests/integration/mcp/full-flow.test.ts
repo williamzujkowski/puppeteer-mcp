@@ -14,7 +14,7 @@ describe('MCP Full Integration Flow', () => {
   let mcpServer: MCPServer;
   // let mcpClient: Client;
   
-  beforeAll(async () => {
+  beforeAll(() => {
     // Set up MCP server
     process.env.MCP_TRANSPORT = 'stdio';
     mcpServer = new MCPServer();

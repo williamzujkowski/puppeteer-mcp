@@ -69,18 +69,27 @@ export async function verifyContextAccess(
 }
 
 /**
+ * Parameters for createAndConfigurePage
+ */
+export interface CreatePageParams {
+  browserPool: BrowserPool;
+  browserId: string;
+  pageId: string;
+  pageInfo: PageInfo;
+  options: PageOptions | undefined;
+  pages: Map<string, Page>;
+  pageStore: PageInfoStore;
+  emitter: EventEmitter;
+}
+
+/**
  * Create and configure page
  */
 export async function createAndConfigurePage(
-  browserPool: BrowserPool,
-  browserId: string,
-  pageId: string,
-  pageInfo: PageInfo,
-  options: PageOptions | undefined,
-  pages: Map<string, Page>,
-  pageStore: PageInfoStore,
-  emitter: EventEmitter
+  params: CreatePageParams
 ): Promise<PageInfo> {
+  const { browserPool, browserId, pageId, pageInfo, options, pages, pageStore, emitter } = params;
+  
   // Get browser instance from pool
   const browserInstance = browserPool.getBrowser(browserId);
   if (!browserInstance) {

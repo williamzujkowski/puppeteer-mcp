@@ -19,10 +19,26 @@ import {
   createPageInfo,
   verifyContextAccess,
   createAndConfigurePage,
+  type CreatePageParams,
 } from './page-create-operations.js';
 import { setupPageStoreHandlers } from './page-manager-events.js';
 
 const logger = createLogger('page-manager-methods');
+
+/**
+ * Parameters for createPageImpl
+ */
+export interface CreatePageImplParams {
+  contextId: string;
+  sessionId: string;
+  browserId: string;
+  options: PageOptions | undefined;
+  browserPool: BrowserPool;
+  pages: Map<string, Page>;
+  pageStore: PageInfoStore;
+  emitter: EventEmitter;
+  isShuttingDown: boolean;
+}
 
 /**
  * Create page implementation
@@ -30,16 +46,10 @@ const logger = createLogger('page-manager-methods');
  * @nist ac-3 "Access enforcement"
  */
 export async function createPageImpl(
-  contextId: string,
-  sessionId: string,
-  browserId: string,
-  options: PageOptions | undefined,
-  browserPool: BrowserPool,
-  pages: Map<string, Page>,
-  pageStore: PageInfoStore,
-  emitter: EventEmitter,
-  isShuttingDown: boolean
+  params: CreatePageImplParams
 ): Promise<PageInfo> {
+  const { contextId, sessionId, browserId, options, browserPool, pages, pageStore, emitter, isShuttingDown } = params;
+  
   if (isShuttingDown) {
     throw new AppError('Page manager is shutting down', 503);
   }
@@ -53,7 +63,7 @@ export async function createPageImpl(
     const pageId = `page-${Date.now()}-${Math.random().toString(36).substring(7)}`;
     const pageInfo = createPageInfo(pageId, contextId, sessionId, browserId);
     
-    const result = await createAndConfigurePage(
+    const result = await createAndConfigurePage({
       browserPool,
       browserId,
       pageId,
@@ -62,7 +72,7 @@ export async function createPageImpl(
       pages,
       pageStore,
       emitter
-    );
+    });
 
     // Get the actual page from the pages Map
     const page = pages.get(pageId);

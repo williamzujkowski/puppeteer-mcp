@@ -42,6 +42,17 @@ export interface InternalBrowserInstance extends BrowserInstance {
 }
 
 /**
+ * Parameters for handleUnhealthyBrowser
+ */
+interface HandleUnhealthyBrowserParams {
+  browserId: string;
+  browsers: Map<string, InternalBrowserInstance>;
+  healthMonitor: BrowserHealthMonitor;
+  options: BrowserPoolOptions;
+  onHealthCheckFailed: (browserId: string) => void;
+}
+
+/**
  * Browser pool maintenance manager
  */
 export class BrowserPoolMaintenance {
@@ -165,12 +176,10 @@ export class BrowserPoolMaintenance {
    * Handle unhealthy browser
    */
   async handleUnhealthyBrowser(
-    browserId: string,
-    browsers: Map<string, InternalBrowserInstance>,
-    healthMonitor: BrowserHealthMonitor,
-    options: BrowserPoolOptions,
-    onHealthCheckFailed: (browserId: string) => void
+    params: HandleUnhealthyBrowserParams
   ): Promise<void> {
+    const { browserId, browsers, healthMonitor, options, onHealthCheckFailed } = params;
+    
     const instance = browsers.get(browserId);
     if (!instance) {
       return;
@@ -193,13 +202,13 @@ export class BrowserPoolMaintenance {
       // browsers.set(browserId, instance); - not needed, already in map
 
       // Restart health monitoring
-      healthMonitor.startMonitoring(
+      healthMonitor.startMonitoring({
         browserId,
-        newBrowser,
+        browser: newBrowser,
         instance,
-        () => onHealthCheckFailed(browserId),
-        options.healthCheckInterval
-      );
+        onUnhealthy: () => onHealthCheckFailed(browserId),
+        intervalMs: options.healthCheckInterval
+      });
 
     } catch (error) {
       logger.error({ browserId, error }, 'Failed to restart unhealthy browser');

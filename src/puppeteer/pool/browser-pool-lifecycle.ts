@@ -83,23 +83,34 @@ export async function shutdownBrowserPool(
 }
 
 /**
+ * Parameters for createAndAcquireNewBrowser
+ */
+export interface CreateAndAcquireNewBrowserParams {
+  sessionId: string;
+  options: BrowserPoolOptions;
+  browsers: Map<string, InternalBrowserInstance>;
+  healthMonitor: BrowserHealthMonitor;
+  handleUnhealthyBrowser: (browserId: string) => Promise<void>;
+  emitEvent: (event: string, data: any) => void;
+}
+
+/**
  * Create and acquire a new browser
  */
 export async function createAndAcquireNewBrowser(
-  sessionId: string,
-  options: BrowserPoolOptions,
-  browsers: Map<string, InternalBrowserInstance>,
-  healthMonitor: BrowserHealthMonitor,
-  handleUnhealthyBrowser: (browserId: string) => Promise<void>,
-  emitEvent: (event: string, data: any) => void
+  params: CreateAndAcquireNewBrowserParams
 ): Promise<BrowserInstance> {
-  const instance = await createAndAcquireBrowser(
+  const { sessionId, options, browsers, healthMonitor, handleUnhealthyBrowser, emitEvent } = params;
+  
+  const instance = await createAndAcquireBrowser({
     sessionId,
     options,
     browsers,
     healthMonitor,
-    handleUnhealthyBrowser
-  );
+    onHealthCheckFailed: (browserId: string) => {
+      void handleUnhealthyBrowser(browserId);
+    }
+  });
   
   emitEvent('browser:acquired', { browserId: instance.id, sessionId });
   return instance;
@@ -117,20 +128,31 @@ export function queueBrowserAcquisition(
 }
 
 /**
+ * Parameters for launchBrowser
+ */
+export interface LaunchBrowserParams {
+  options: BrowserPoolOptions;
+  browsers: Map<string, InternalBrowserInstance>;
+  healthMonitor: BrowserHealthMonitor;
+  handleUnhealthyBrowser: (browserId: string) => Promise<void>;
+  emitEvent: (event: string, data: any) => void;
+}
+
+/**
  * Launch a new browser
  */
 export async function launchBrowser(
-  options: BrowserPoolOptions,
-  browsers: Map<string, InternalBrowserInstance>,
-  healthMonitor: BrowserHealthMonitor,
-  handleUnhealthyBrowser: (browserId: string) => Promise<void>,
-  emitEvent: (event: string, data: any) => void
+  params: LaunchBrowserParams
 ): Promise<{ browser: Browser; instance: InternalBrowserInstance }> {
+  const { options, browsers, healthMonitor, handleUnhealthyBrowser, emitEvent } = params;
+  
   const result = await launchNewBrowser(
     options,
     browsers,
     healthMonitor,
-    handleUnhealthyBrowser
+    (browserId: string) => {
+      void handleUnhealthyBrowser(browserId);
+    }
   );
   
   emitEvent('browser:created', { browserId: result.instance.id });

@@ -38,13 +38,20 @@ export const delegateMethods = {
   getPage: getPageWithAccessControl,
   getPageInfo: getPageInfoWithAccessControl,
   navigatePage: navigatePageImpl,
-  updatePageOptions: (
-    pageId: string,
-    options: Partial<PageOptions>,
-    sessionId: string,
-    pages: Map<string, Page>,
-    pageStore: PageInfoStore
-  ) => updatePageOptionsImpl(pageId, options, sessionId, pages, pageStore, configurePageOptions),
+  updatePageOptions: (params: {
+    pageId: string;
+    options: Partial<PageOptions>;
+    sessionId: string;
+    pages: Map<string, Page>;
+    pageStore: PageInfoStore;
+  }) => updatePageOptionsImpl({
+    pageId: params.pageId,
+    options: params.options,
+    sessionId: params.sessionId,
+    pages: params.pages,
+    pageStore: params.pageStore,
+    configurePageOptions
+  }),
   takeScreenshot: takeScreenshotImpl,
   listPagesForSession: listPagesForSessionImpl,
   listPagesForContext: listPagesForContextImpl,

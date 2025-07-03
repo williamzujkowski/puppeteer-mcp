@@ -350,7 +350,7 @@ describe('PageManager', () => {
         'test-browser'
       );
 
-      const pages = await pageManager.listPagesForSession('test-session');
+      const pages = pageManager.listPagesForSession('test-session');
       
       expect(pages).toHaveLength(2);
       expect(pages.map(p => p.id)).toContain(pageInfo1.id);
@@ -537,7 +537,7 @@ describe('PageManager', () => {
       expect(mockPage.close).toHaveBeenCalledTimes(2);
       
       // Verify pages were removed
-      const pages = await pageManager.listPagesForSession('test-session');
+      const pages = pageManager.listPagesForSession('test-session');
       expect(pages).toHaveLength(0);
     });
 
@@ -713,13 +713,13 @@ describe('PageManager', () => {
       );
     });
 
-    it('should return true for active page', async () => {
-      const isActive = await pageManager.isPageActive(pageInfo.id);
+    it('should return true for active page', () => {
+      const isActive = pageManager.isPageActive(pageInfo.id);
       expect(isActive).toBe(true);
     });
 
-    it('should return false for non-existent page', async () => {
-      const isActive = await pageManager.isPageActive('invalid-page');
+    it('should return false for non-existent page', () => {
+      const isActive = pageManager.isPageActive('invalid-page');
       expect(isActive).toBe(false);
     });
   });
@@ -734,8 +734,8 @@ describe('PageManager', () => {
       );
       
       // Set the page to idle state and old timestamp
-      await pageStore.updateState(pageInfo.id, 'idle');
-      await pageStore.update(pageInfo.id, {
+      pageStore.updateState(pageInfo.id, 'idle');
+      void pageStore.update(pageInfo.id, {
         lastActivityAt: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
         state: 'idle'
       });

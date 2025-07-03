@@ -13,19 +13,36 @@ import type { InternalBrowserInstance } from './browser-pool-maintenance.js';
 const logger = createLogger('browser-pool-acquisition-handlers');
 
 /**
+ * Parameters for acquireBrowser
+ */
+export interface AcquireBrowserParams {
+  sessionId: string;
+  isShuttingDown: boolean;
+  findIdleBrowser: () => InternalBrowserInstance | null;
+  activateBrowser: (instance: InternalBrowserInstance, sessionId: string) => InternalBrowserInstance;
+  createAndAcquireBrowser: (sessionId: string) => Promise<BrowserInstance>;
+  canCreateNewBrowser: () => boolean;
+  queueAcquisition: (sessionId: string) => Promise<BrowserInstance>;
+}
+
+/**
  * Acquire a browser for a session
  * @nist ac-3 "Access enforcement"
  * @nist ac-4 "Information flow enforcement"
  */
 export function acquireBrowser(
-  sessionId: string,
-  isShuttingDown: boolean,
-  findIdleBrowser: () => InternalBrowserInstance | null,
-  activateBrowser: (instance: InternalBrowserInstance, sessionId: string) => InternalBrowserInstance,
-  createAndAcquireBrowser: (sessionId: string) => Promise<BrowserInstance>,
-  canCreateNewBrowser: () => boolean,
-  queueAcquisition: (sessionId: string) => Promise<BrowserInstance>
+  params: AcquireBrowserParams
 ): Promise<BrowserInstance> {
+  const {
+    sessionId,
+    isShuttingDown,
+    findIdleBrowser,
+    activateBrowser,
+    createAndAcquireBrowser,
+    canCreateNewBrowser,
+    queueAcquisition
+  } = params;
+  
   if (isShuttingDown) {
     throw new AppError('Browser pool is shutting down', 503);
   }

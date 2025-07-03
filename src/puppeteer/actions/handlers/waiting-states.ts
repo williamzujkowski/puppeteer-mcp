@@ -133,7 +133,7 @@ async function waitForElementByState(
       );
       break;
     default:
-      throw new Error(`Unsupported element state: ${state}`);
+      throw new Error(`Unsupported element state: ${state as string}`);
   }
 }
 

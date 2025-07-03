@@ -128,7 +128,7 @@ describe('Browser Pool Integration', () => {
     expect(metrics.totalPages).toBe(2);
 
     // Release browser
-    await pool.releaseBrowser(instance.id, 'session-1');
+    pool.releaseBrowser(instance.id);
 
     const metricsAfterRelease = pool.getMetrics();
     expect(metricsAfterRelease.activeBrowsers).toBe(0);
@@ -237,7 +237,7 @@ describe('Browser Pool Integration', () => {
     await new Promise<void>(resolve => { setTimeout(resolve, 10); });
     
     // Release and recycle
-    await pool.releaseBrowser(instance.id, 'session-test');
+    pool.releaseBrowser(instance.id);
     await pool.recycleBrowser(instance.id);
     
     // Check final metrics

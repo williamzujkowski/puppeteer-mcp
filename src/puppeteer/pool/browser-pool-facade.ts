@@ -5,7 +5,7 @@
 
 import type { BrowserInstance } from '../interfaces/browser-pool.interface.js';
 import type { InternalBrowserInstance } from './browser-pool-maintenance.js';
-import { acquireBrowser } from './browser-pool-acquisition-handlers.js';
+import { acquireBrowser, type AcquireBrowserParams } from './browser-pool-acquisition-handlers.js';
 
 /**
  * Acquire browser facade method
@@ -13,21 +13,7 @@ import { acquireBrowser } from './browser-pool-acquisition-handlers.js';
  * @nist ac-4 "Information flow enforcement"
  */
 export function acquireBrowserFacade(
-  sessionId: string,
-  isShuttingDown: boolean,
-  findIdleBrowser: () => InternalBrowserInstance | null,
-  activateBrowser: (instance: InternalBrowserInstance, sessionId: string) => InternalBrowserInstance,
-  createAndAcquireBrowser: (sessionId: string) => Promise<BrowserInstance>,
-  canCreateNewBrowser: () => boolean,
-  queueAcquisition: (sessionId: string) => Promise<BrowserInstance>
+  params: AcquireBrowserParams
 ): Promise<BrowserInstance> {
-  return acquireBrowser(
-    sessionId,
-    isShuttingDown,
-    findIdleBrowser,
-    activateBrowser,
-    createAndAcquireBrowser,
-    canCreateNewBrowser,
-    queueAcquisition
-  );
+  return acquireBrowser(params);
 }

@@ -13,15 +13,24 @@ import { BrowserHealthMonitor } from './browser-health.js';
 import { BrowserQueue } from './browser-queue.js';
 
 /**
+ * Parameters for createAndAcquireBrowser
+ */
+export interface CreateAndAcquireBrowserParams {
+  sessionId: string;
+  options: BrowserPoolOptions;
+  browsers: Map<string, InternalBrowserInstance>;
+  healthMonitor: BrowserHealthMonitor;
+  onHealthCheckFailed: (browserId: string) => void;
+}
+
+/**
  * Create and acquire a new browser
  */
 export async function createAndAcquireBrowser(
-  sessionId: string,
-  options: BrowserPoolOptions,
-  browsers: Map<string, InternalBrowserInstance>,
-  healthMonitor: BrowserHealthMonitor,
-  onHealthCheckFailed: (browserId: string) => void
+  params: CreateAndAcquireBrowserParams
 ): Promise<BrowserInstance> {
+  const { sessionId, options, browsers, healthMonitor, onHealthCheckFailed } = params;
+  
   const { instance } = await launchNewBrowser(
     options,
     browsers,
@@ -79,13 +88,13 @@ export async function launchNewBrowser(
   browsers.set(internalInstance.id, internalInstance);
 
   // Start health monitoring
-  healthMonitor.startMonitoring(
-    internalInstance.id,
-    result.browser,
-    internalInstance,
-    () => onHealthCheckFailed(internalInstance.id),
-    options.healthCheckInterval
-  );
+  healthMonitor.startMonitoring({
+    browserId: internalInstance.id,
+    browser: result.browser,
+    instance: internalInstance,
+    onUnhealthy: () => onHealthCheckFailed(internalInstance.id),
+    intervalMs: options.healthCheckInterval
+  });
 
   return { browser: result.browser, instance: internalInstance };
 }

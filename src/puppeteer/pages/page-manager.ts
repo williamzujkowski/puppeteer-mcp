@@ -27,11 +27,18 @@ import {
   clearPageData,
   takeScreenshot,
   isPageActive,
+  type PageOperationParams,
+  type SetCookiesParams,
+  type ClearPageDataParams,
+  type TakeScreenshotParams,
 } from './page-operations.js';
 import {
   navigatePage,
   navigateToWithEvents,
   updatePageOptions,
+  type NavigateParams,
+  type NavigateWithEventsParams,
+  type UpdatePageOptionsParams,
 } from './page-navigation.js';
 import {
   performCleanup,
@@ -51,7 +58,7 @@ import {
   closePagesForSessionOperation,
 } from './page-close-operations.js';
 import { initializePageManager } from './page-manager-init.js';
-import { createPageImpl } from './page-manager-methods.js';
+import { createPageImpl, type CreatePageImplParams } from './page-manager-methods.js';
 import { cleanupIdlePagesWithLogging } from './page-cleanup-methods.js';
 
 // Type imports only for return types
@@ -96,17 +103,17 @@ export class PageManager extends EventEmitter implements IPageManager {
     browserId: string,
     options?: PageOptions
   ): Promise<PageInfo> {
-    return createPageImpl(
+    return createPageImpl({
       contextId,
       sessionId,
       browserId,
       options,
-      this.browserPool,
-      this.pages,
-      this.pageStore,
-      this,
-      this.isShuttingDown
-    );
+      browserPool: this.browserPool,
+      pages: this.pages,
+      pageStore: this.pageStore,
+      emitter: this,
+      isShuttingDown: this.isShuttingDown
+    });
   }
 
   getPage(pageId: string, sessionId: string): Promise<Page> {
@@ -114,7 +121,7 @@ export class PageManager extends EventEmitter implements IPageManager {
   }
 
   getPageInfo(pageId: string, sessionId: string): Promise<PageInfo> {
-    return getPageInfoWithAccessControl(pageId, sessionId, this.pageStore);
+    return getPageInfoWithAccessControl(pageId, sessionId, this.pageStore) as Promise<PageInfo>;
   }
 
   navigatePage(
@@ -123,7 +130,14 @@ export class PageManager extends EventEmitter implements IPageManager {
     url: string,
     options?: NavigationOptions
   ): Promise<void> {
-    return navigatePage(pageId, sessionId, url, options, this.pages, this.pageStore);
+    return navigatePage({
+      pageId,
+      sessionId,
+      url,
+      options,
+      pages: this.pages,
+      pageStore: this.pageStore
+    });
   }
 
   navigateTo(
@@ -132,7 +146,15 @@ export class PageManager extends EventEmitter implements IPageManager {
     sessionId: string,
     options?: NavigationOptions
   ): Promise<void> {
-    return navigateToWithEvents(pageId, url, sessionId, options, this.pages, this.pageStore, this);
+    return navigateToWithEvents({
+      pageId,
+      url,
+      sessionId,
+      options,
+      pages: this.pages,
+      pageStore: this.pageStore,
+      emitter: this
+    });
   }
 
   updatePageOptions(
@@ -140,7 +162,14 @@ export class PageManager extends EventEmitter implements IPageManager {
     options: Partial<PageOptions>,
     sessionId: string
   ): Promise<void> {
-    return updatePageOptions(pageId, options, sessionId, this.pages, this.pageStore, configurePageOptions);
+    return updatePageOptions({
+      pageId,
+      options,
+      sessionId,
+      pages: this.pages,
+      pageStore: this.pageStore,
+      configurePageOptions
+    });
   }
 
   takeScreenshot(
@@ -148,7 +177,13 @@ export class PageManager extends EventEmitter implements IPageManager {
     sessionId: string,
     options?: ScreenshotOptions
   ): Promise<Buffer> {
-    return takeScreenshot(pageId, sessionId, options, this.pages, this.pageStore);
+    return takeScreenshot({
+      pageId,
+      sessionId,
+      options,
+      pages: this.pages,
+      pageStore: this.pageStore
+    });
   }
 
   listPagesForSession(sessionId: string): PageInfo[] {
@@ -197,7 +232,13 @@ export class PageManager extends EventEmitter implements IPageManager {
   }
 
   setCookies(pageId: string, cookies: Cookie[], sessionId: string): Promise<void> {
-    return setCookies(pageId, cookies, sessionId, this.pages, this.pageStore);
+    return setCookies({
+      pageId,
+      cookies,
+      sessionId,
+      pages: this.pages,
+      pageStore: this.pageStore
+    });
   }
 
   getCookies(pageId: string, sessionId: string): Promise<Cookie[]> {
@@ -214,7 +255,13 @@ export class PageManager extends EventEmitter implements IPageManager {
       sessionStorage?: boolean;
     }
   ): Promise<void> {
-    return clearPageData(pageId, sessionId, options, this.pages, this.pageStore);
+    return clearPageData({
+      pageId,
+      sessionId,
+      options,
+      pages: this.pages,
+      pageStore: this.pageStore
+    });
   }
 
   isPageActive(pageId: string): boolean {

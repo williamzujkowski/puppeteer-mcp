@@ -54,8 +54,8 @@ describe('MCP Transport Layer', () => {
       transport = new StdioTransport();
     });
     
-    afterEach(async () => {
-      await transport.close();
+    afterEach(() => {
+      transport.close();
     });
 
     it('should create stdio transport instance', () => {
@@ -111,8 +111,8 @@ describe('MCP Transport Layer', () => {
       expect(closeSpy).toHaveBeenCalled();
     });
 
-    it('should close transport gracefully', async () => {
-      await transport.close();
+    it('should close transport gracefully', () => {
+      transport.close();
       
       expect(logger.info).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -191,7 +191,7 @@ describe('MCP Transport Layer', () => {
       );
     });
 
-    it('should handle WebSocket connections', async () => {
+    it('should handle WebSocket connections', () => {
       transport = new HttpTransport({ port: 0 });
       
       const wsServer = transport.getWebSocketServer();

@@ -642,6 +642,7 @@ describe('MCPAuthBridge', () => {
       const browserTools = ['navigate', 'click', 'type', 'scroll', 'waitForSelector', 'evaluate'];
       
       browserTools.forEach(tool => {
+        // eslint-disable-next-line security/detect-object-injection
         expect(MCP_TOOL_PERMISSIONS[tool]).toBe(Permission.CONTEXT_EXECUTE);
       });
     });
@@ -650,6 +651,7 @@ describe('MCPAuthBridge', () => {
       const infoTools = ['screenshot', 'getTitle', 'getUrl', 'getContent', 'getCookies'];
       
       infoTools.forEach(tool => {
+        // eslint-disable-next-line security/detect-object-injection
         expect(MCP_TOOL_PERMISSIONS[tool]).toBe(Permission.CONTEXT_READ);
       });
     });

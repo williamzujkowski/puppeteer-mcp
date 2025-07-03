@@ -23,15 +23,15 @@ export function setupPageStoreHandlers(
   emitter.on('page:navigated', ({ pageId: navPageId, url }) => {
     if (navPageId === pageId) {
       void page.title().then(title => {
-        pageStore.updateUrl(pageId, url);
-        pageStore.updateTitle(pageId, title);
-        pageStore.addNavigationHistory(pageId, url);
-        pageStore.touchActivity(pageId);
+        void pageStore.updateUrl(pageId, url);
+        void pageStore.updateTitle(pageId, title);
+        void pageStore.addNavigationHistory(pageId, url);
+        void pageStore.touchActivity(pageId);
       }).catch(() => {
         // If title fails, still update other fields
-        pageStore.updateUrl(pageId, url);
-        pageStore.addNavigationHistory(pageId, url);
-        pageStore.touchActivity(pageId);
+        void pageStore.updateUrl(pageId, url);
+        void pageStore.addNavigationHistory(pageId, url);
+        void pageStore.touchActivity(pageId);
       });
     }
   });
@@ -39,8 +39,8 @@ export function setupPageStoreHandlers(
   // Update error count
   emitter.on('page:error', ({ pageId: errorPageId }) => {
     if (errorPageId === pageId) {
-      pageStore.incrementErrorCount(pageId);
-      pageStore.touchActivity(pageId);
+      void pageStore.incrementErrorCount(pageId);
+      void pageStore.touchActivity(pageId);
     }
   });
 }

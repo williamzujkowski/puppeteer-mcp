@@ -53,7 +53,7 @@ export async function checkBrowserHealth(
     let memoryUsage: number | undefined;
     let cpuUsage: number | undefined;
 
-    if (process && process.pid) {
+    if (process?.pid) {
       try {
         // This is platform-specific and may not work on all systems
         const { execSync } = await import('child_process');
@@ -99,6 +99,17 @@ export async function checkBrowserHealth(
 }
 
 /**
+ * Parameters for browser monitoring
+ */
+export interface MonitoringParams {
+  browserId: string;
+  browser: Browser;
+  instance: BrowserInstance;
+  onUnhealthy: () => void;
+  intervalMs?: number;
+}
+
+/**
  * Monitor browser health periodically
  */
 export class BrowserHealthMonitor {
@@ -107,33 +118,31 @@ export class BrowserHealthMonitor {
   /**
    * Start monitoring a browser
    */
-  startMonitoring(
-    browserId: string,
-    browser: Browser,
-    instance: BrowserInstance,
-    onUnhealthy: () => void,
-    intervalMs: number = 30000
-  ): void {
+  startMonitoring(params: MonitoringParams): void {
+    const { browserId, browser, instance, onUnhealthy, intervalMs = 30000 } = params;
+    
     // Clear any existing interval
     this.stopMonitoring(browserId);
 
-    const interval = setInterval(async () => {
-      const health = await checkBrowserHealth(browser, instance);
-      
-      if (!health.healthy) {
-        logger.warn({
-          browserId,
-          health,
-        }, 'Browser unhealthy, triggering recovery');
+    const interval = setInterval(() => {
+      void (async () => {
+        const health = await checkBrowserHealth(browser, instance);
         
-        onUnhealthy();
-        this.stopMonitoring(browserId);
-      } else {
-        logger.debug({
-          browserId,
-          health,
-        }, 'Browser health check passed');
-      }
+        if (!health.healthy) {
+          logger.warn({
+            browserId,
+            health,
+          }, 'Browser unhealthy, triggering recovery');
+          
+          onUnhealthy();
+          this.stopMonitoring(browserId);
+        } else {
+          logger.debug({
+            browserId,
+            health,
+          }, 'Browser health check passed');
+        }
+      })();
     }, intervalMs);
 
     this.intervals.set(browserId, interval);

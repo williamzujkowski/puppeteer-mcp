@@ -55,7 +55,7 @@ export async function getPageInfoWithAccessControl(
   pageId: string,
   sessionId: string,
   pageStore: PageInfoStore
-): Promise<any> {
+): Promise<PageInfo> {
   const pageInfo = await pageStore.get(pageId);
   if (!pageInfo) {
     throw new AppError('Page not found', 404);

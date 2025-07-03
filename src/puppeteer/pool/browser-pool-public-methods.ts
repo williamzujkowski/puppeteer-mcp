@@ -26,7 +26,7 @@ const logger = createLogger('browser-pool-public-methods');
  * Create a new page in a browser
  * @nist ac-4 "Information flow enforcement"
  */
-export async function createPage(
+export function createPage(
   browserId: string, 
   sessionId: string,
   browsers: Map<string, InternalBrowserInstance>
@@ -37,7 +37,7 @@ export async function createPage(
 /**
  * Close a page in a browser
  */
-export async function closePage(
+export function closePage(
   browserId: string, 
   sessionId: string,
   browsers: Map<string, InternalBrowserInstance>
@@ -49,7 +49,7 @@ export async function closePage(
  * Perform health check on all browsers
  * @nist si-4 "Information system monitoring"
  */
-export async function healthCheck(
+export function healthCheck(
   maintenance: BrowserPoolMaintenance,
   browsers: Map<string, InternalBrowserInstance>
 ): Promise<Map<string, boolean>> {
@@ -57,15 +57,24 @@ export async function healthCheck(
 }
 
 /**
+ * Parameters for recycleBrowser
+ */
+export interface RecycleBrowserParams {
+  browserId: string;
+  browsers: Map<string, InternalBrowserInstance>;
+  options: BrowserPoolOptions;
+  maintenance: BrowserPoolMaintenance;
+  removeBrowser: (browserId: string) => Promise<void>;
+}
+
+/**
  * Recycle a browser instance
  */
 export async function recycleBrowser(
-  browserId: string,
-  browsers: Map<string, InternalBrowserInstance>,
-  options: BrowserPoolOptions,
-  maintenance: BrowserPoolMaintenance,
-  removeBrowser: (browserId: string) => Promise<void>
+  params: RecycleBrowserParams
 ): Promise<void> {
+  const { browserId, browsers, options, maintenance, removeBrowser } = params;
+  
   try {
     await maintenance.recycleBrowser(
       browserId,
@@ -90,7 +99,7 @@ export function listBrowsersPublic(
 /**
  * Clean up idle browsers
  */
-export async function cleanupIdle(
+export function cleanupIdle(
   maintenance: BrowserPoolMaintenance,
   browsers: Map<string, InternalBrowserInstance>,
   options: BrowserPoolOptions,
