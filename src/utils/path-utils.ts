@@ -27,7 +27,9 @@ export function getDirname(importMetaUrl: string): string {
   }
 
   // In production ES modules, derive from import.meta.url
+  /* istanbul ignore next - production-only code path */
   const __filename = fileURLToPath(importMetaUrl);
+  /* istanbul ignore next - production-only code path */
   return dirname(__filename);
 }
 
@@ -44,5 +46,6 @@ export function getDirnameFromSrc(relativePath: string): string {
   }
 
   // This should not be called in production, but provide a fallback
+  /* istanbul ignore next - fallback for production */
   return join(process.cwd(), 'src', relativePath);
 }
