@@ -63,36 +63,43 @@ regexes = [
 
 # Additional rules for common false positives
 [[rules]]
+id = "ignore-package-json-author"
 description = "Ignore package.json author fields"
 path = '''package\.json'''
 regex = '''(?i)(author|email)'''
 
 [[rules]]
+id = "ignore-typescript-definitions"
 description = "Ignore TypeScript type definitions"
 path = '''\.d\.ts$'''
 regex = '''.*'''
 
 [[rules]]
+id = "ignore-test-mock-secrets"
 description = "Ignore test files with mock data"
 path = '''(test|spec|__tests__|__mocks__)'''
 regex = '''(?i)(secret|password|token|key|credential)'''
 
 [[rules]]
+id = "ignore-documented-examples"
 description = "Ignore documented examples"
 path = '''(README|CONTRIBUTING|docs)'''
 regex = '''(?i)(secret|password|token|key|credential)'''
 
 [[rules]]
+id = "ignore-jwt-in-tests"
 description = "Ignore JWT tokens in test files"
 path = '''.*\.test\.(ts|js)$'''
 regex = '''eyJ[A-Za-z0-9\-_]+'''
 
 [[rules]]
+id = "ignore-example-jwt-tokens"
 description = "Ignore example JWT tokens"
 path = '''(examples?|docs?|README)'''
 regex = '''eyJ[A-Za-z0-9\-_]+'''
 
 [[rules]]
+id = "ignore-test-api-keys"
 description = "Ignore test API keys"
 path = '''.*\.(test|spec)\.(ts|js)$'''
 regex = '''sk-[a-zA-Z0-9]+'''
