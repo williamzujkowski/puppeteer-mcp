@@ -135,7 +135,7 @@ export class ExecuteInContextTool {
     ) {
       try {
         responseBody = JSON.parse(result.content[0].text);
-      } catch (parseError) {
+      } catch {
         // If parsing fails, return the raw text
         responseBody = { result: result.content[0].text };
       }

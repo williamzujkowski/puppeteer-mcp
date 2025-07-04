@@ -56,15 +56,15 @@ export class HttpTransport {
    * Get configuration value with default
    */
   private getConfigValue<T>(value: T | undefined, defaultValue: T): T {
-    return value !== undefined ? value : defaultValue;
+    return value ?? defaultValue;
   }
 
   /**
    * Build configuration with defaults
    */
   private buildConfig(transportConfig?: Partial<HttpTransportConfig>): HttpTransportConfig {
-    const tc = transportConfig || {};
-    
+    const tc = transportConfig ?? {};
+
     return {
       port: this.getConfigValue(tc.port, this.getDefaultPort()),
       host: this.getConfigValue(tc.host, this.getDefaultHost()),

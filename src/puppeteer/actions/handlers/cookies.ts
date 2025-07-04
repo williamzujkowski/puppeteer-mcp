@@ -6,10 +6,10 @@
  */
 
 import type { Page, Cookie } from 'puppeteer';
-import type { 
+import type {
   CookieAction,
-  ActionResult, 
-  ActionContext 
+  ActionResult,
+  ActionContext,
 } from '../../interfaces/action-executor.interface.js';
 import { createLogger } from '../../../utils/logger.js';
 import {
@@ -30,13 +30,61 @@ const logger = createLogger('puppeteer:cookies');
  * @nist si-10 "Information input validation"
  * @nist au-3 "Content of audit records"
  */
+/**
+ * Execute cookie operation based on action type
+ */
+async function executeCookieOperation(
+  action: CookieAction,
+  page: Page,
+  context: ActionContext,
+): Promise<unknown> {
+  switch (action.operation) {
+    case 'set':
+      return handleSetCookies(action, page, context);
+    case 'get':
+      return handleGetCookies(page, context);
+    case 'delete':
+      return handleDeleteCookies(action, page, context);
+    case 'clear':
+      return handleClearCookies(page, context);
+    default:
+      throw new Error(`Unsupported cookie operation: ${action.operation as string}`);
+  }
+}
+
+interface ActionResultParams {
+  success: boolean;
+  action: CookieAction;
+  duration: number;
+  data?: unknown;
+  error?: string;
+}
+
+/**
+ * Create action result object
+ */
+function createActionResult(params: ActionResultParams): ActionResult {
+  const { success, action, duration, data, error } = params;
+  return {
+    success,
+    actionType: 'cookie',
+    ...(success ? { data } : { error }),
+    duration,
+    timestamp: new Date(),
+    metadata: {
+      operation: action.operation,
+      cookieCount: action.cookies?.length ?? 0,
+    },
+  };
+}
+
 export async function handleCookie(
   action: CookieAction,
   page: Page,
-  context: ActionContext
+  context: ActionContext,
 ): Promise<ActionResult> {
   const startTime = Date.now();
-  
+
   try {
     logger.info('Executing cookie action', {
       sessionId: context.sessionId,
@@ -46,25 +94,7 @@ export async function handleCookie(
       cookieCount: action.cookies?.length ?? 0,
     });
 
-    let result: unknown;
-
-    switch (action.operation) {
-      case 'set':
-        result = await handleSetCookies(action, page, context);
-        break;
-      case 'get':
-        result = await handleGetCookies(page, context);
-        break;
-      case 'delete':
-        result = await handleDeleteCookies(action, page, context);
-        break;
-      case 'clear':
-        result = await handleClearCookies(page, context);
-        break;
-      default:
-        throw new Error(`Unsupported cookie operation: ${action.operation as string}`);
-    }
-
+    const result = await executeCookieOperation(action, page, context);
     const duration = Date.now() - startTime;
 
     logger.info('Cookie action completed', {
@@ -75,18 +105,7 @@ export async function handleCookie(
       duration,
     });
 
-    return {
-      success: true,
-      actionType: 'cookie',
-      data: result,
-      duration,
-      timestamp: new Date(),
-      metadata: {
-        operation: action.operation,
-        cookieCount: action.cookies?.length ?? 0,
-      },
-    };
-
+    return createActionResult({ success: true, action, duration, data: result });
   } catch (error) {
     const duration = Date.now() - startTime;
     const errorMessage = error instanceof Error ? error.message : 'Unknown cookie error';
@@ -100,20 +119,9 @@ export async function handleCookie(
       duration,
     });
 
-    return {
-      success: false,
-      actionType: 'cookie',
-      error: errorMessage,
-      duration,
-      timestamp: new Date(),
-      metadata: {
-        operation: action.operation,
-        cookieCount: action.cookies?.length ?? 0,
-      },
-    };
+    return createActionResult({ success: false, action, duration, error: errorMessage });
   }
 }
-
 
 /**
  * Handle cookie filtering by domain
@@ -125,10 +133,10 @@ export async function handleCookie(
 export async function handleGetCookiesByDomain(
   domain: string,
   page: Page,
-  context: ActionContext
+  context: ActionContext,
 ): Promise<ActionResult<Cookie[]>> {
   const startTime = Date.now();
-  
+
   try {
     logger.info('Executing get cookies by domain action', {
       sessionId: context.sessionId,
@@ -143,10 +151,10 @@ export async function handleGetCookiesByDomain(
 
     // Get all cookies
     const allCookies = await page.cookies();
-    
+
     // Filter by domain
-    const filteredCookies = allCookies.filter(cookie => 
-      cookie.domain === domain || cookie.domain === `.${domain}`
+    const filteredCookies = allCookies.filter(
+      (cookie) => cookie.domain === domain || cookie.domain === `.${domain}`,
     );
 
     const duration = Date.now() - startTime;
@@ -172,10 +180,10 @@ export async function handleGetCookiesByDomain(
         filteredCookies: filteredCookies.length,
       },
     };
-
   } catch (error) {
     const duration = Date.now() - startTime;
-    const errorMessage = error instanceof Error ? error.message : 'Unknown get cookies by domain error';
+    const errorMessage =
+      error instanceof Error ? error.message : 'Unknown get cookies by domain error';
 
     logger.error('Get cookies by domain action failed', {
       sessionId: context.sessionId,
