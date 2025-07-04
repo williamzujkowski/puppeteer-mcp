@@ -49,19 +49,26 @@ Puppeteer.
 - **Audit Logging**: Complete security event tracking
 - **Health Monitoring**: Comprehensive system metrics
 
-## Quick Start
+## Installation
 
-### Prerequisites
+### npm Package
 
-- Node.js 18+ and npm
-- Chrome/Chromium installed
-- Git
+```bash
+# Install globally
+npm install -g puppeteer-mcp
 
-### Installation
+# Or use with npx (no installation required)
+npx puppeteer-mcp
+
+# For Claude Desktop
+claude mcp add puppeteer-mcp
+```
+
+### From Source
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/puppeteer-mcp.git
+git clone https://github.com/williamzujkowski/puppeteer-mcp.git
 cd puppeteer-mcp
 
 # Install dependencies
@@ -73,6 +80,13 @@ npm run build
 # Start the server
 npm start
 ```
+
+## Quick Start
+
+### Prerequisites
+
+- Node.js 20+ and npm
+- Chrome/Chromium installed (automatically downloaded by Puppeteer if not present)
 
 ### Basic Usage
 
@@ -95,15 +109,24 @@ curl -X POST http://localhost:3000/api/v1/contexts/{contextId}/execute \
   }'
 ```
 
-#### MCP Usage
+#### MCP Usage with Claude
 
 ```bash
-# Start MCP server
-npm run mcp
+# If installed globally
+puppeteer-mcp
 
-# Connect with Claude or other MCP clients
-# Use the execute-in-context tool for browser automation
+# Or with npx
+npx puppeteer-mcp
+
+# Add to Claude Desktop
+claude mcp add puppeteer-mcp
 ```
+
+Once connected, you can use browser automation tools like:
+
+- `execute-in-context` - Execute browser actions (navigate, click, type, etc.)
+- `create-context` - Create new browser contexts
+- `list-contexts` - List active browser contexts
 
 ### Configuration
 

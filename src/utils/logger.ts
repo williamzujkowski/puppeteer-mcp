@@ -10,7 +10,7 @@ import { pino, Logger as PinoLogger } from 'pino';
 import { mkdir } from 'fs/promises';
 import { dirname, join } from 'path';
 import { AsyncLocalStorage } from 'async_hooks';
-import { config } from '@core/config.js';
+import { config } from '../core/config.js';
 import type { Request, Response, NextFunction } from 'express';
 
 // AsyncLocalStorage for request context
@@ -30,17 +30,17 @@ export enum SecurityEventType {
   AUTH_SUCCESS = 'AUTH_SUCCESS',
   AUTH_FAILURE = 'AUTH_FAILURE',
   TOKEN_REFRESHED = 'TOKEN_REFRESHED',
-  
+
   // Authorization events
   ACCESS_GRANTED = 'ACCESS_GRANTED',
   ACCESS_DENIED = 'ACCESS_DENIED',
   PERMISSION_CHANGE = 'PERMISSION_CHANGE',
-  
+
   // API Key events
   API_KEY_CREATED = 'API_KEY_CREATED',
   API_KEY_REVOKED = 'API_KEY_REVOKED',
   API_KEY_USED = 'API_KEY_USED',
-  
+
   // Data access events
   DATA_ACCESS = 'DATA_ACCESS',
   DATA_MODIFICATION = 'DATA_MODIFICATION',
@@ -49,28 +49,28 @@ export enum SecurityEventType {
   RESOURCE_CREATED = 'RESOURCE_CREATED',
   RESOURCE_UPDATED = 'RESOURCE_UPDATED',
   RESOURCE_DELETED = 'RESOURCE_DELETED',
-  
+
   // Security violations
   INVALID_TOKEN = 'INVALID_TOKEN',
   RATE_LIMIT_EXCEEDED = 'RATE_LIMIT_EXCEEDED',
   SUSPICIOUS_ACTIVITY = 'SUSPICIOUS_ACTIVITY',
   VALIDATION_FAILURE = 'VALIDATION_FAILURE',
-  
+
   // Connection events
   CONNECTION_ATTEMPT = 'CONNECTION_ATTEMPT',
   CONNECTION_ESTABLISHED = 'CONNECTION_ESTABLISHED',
   CONNECTION_TERMINATED = 'CONNECTION_TERMINATED',
   CONNECTION_CLOSED = 'CONNECTION_CLOSED',
-  
+
   // System events
   CONFIG_CHANGE = 'CONFIG_CHANGE',
   SERVICE_START = 'SERVICE_START',
   SERVICE_STOP = 'SERVICE_STOP',
   ERROR = 'ERROR',
-  
+
   // Command execution events
   COMMAND_EXECUTED = 'COMMAND_EXECUTED',
-  
+
   // Session events
   SESSION_CREATED = 'SESSION_CREATED',
   SESSION_UPDATED = 'SESSION_UPDATED',
@@ -148,7 +148,10 @@ const createAuditLogger = async (): Promise<PinoLogger> => {
   // eslint-disable-next-line security/detect-non-literal-fs-filename
   await mkdir(auditLogDir, { recursive: true });
 
-  const auditLogFile = join(config.AUDIT_LOG_PATH, `audit-${new Date().toISOString().split('T')[0]}.log`);
+  const auditLogFile = join(
+    config.AUDIT_LOG_PATH,
+    `audit-${new Date().toISOString().split('T')[0]}.log`,
+  );
 
   return pino(
     {
@@ -198,23 +201,26 @@ export const logSecurityEvent = async (
 ): Promise<void> => {
   const auditLogger = await getAuditLogger();
   const context = requestContext.getStore();
-  
-  auditLogger.info({
-    type: 'SECURITY_EVENT',
-    eventType,
-    timestamp: new Date().toISOString(),
-    requestId: context?.requestId,
-    userId: details.userId ?? context?.userId,
-    resource: details.resource,
-    action: details.action,
-    result: details.result,
-    reason: details.reason,
-    metadata: details.metadata,
-    source: {
-      ip: details.metadata?.ip as string,
-      userAgent: details.metadata?.userAgent as string,
+
+  auditLogger.info(
+    {
+      type: 'SECURITY_EVENT',
+      eventType,
+      timestamp: new Date().toISOString(),
+      requestId: context?.requestId,
+      userId: details.userId ?? context?.userId,
+      resource: details.resource,
+      action: details.action,
+      result: details.result,
+      reason: details.reason,
+      metadata: details.metadata,
+      source: {
+        ip: details.metadata?.ip as string,
+        userAgent: details.metadata?.userAgent as string,
+      },
     },
-  }, `Security event: ${eventType}`);
+    `Security event: ${eventType}`,
+  );
 };
 
 /**
@@ -227,12 +233,13 @@ export const logDataAccess = async (
   resource: string,
   details?: Record<string, unknown>,
 ): Promise<void> => {
-  const eventType = operation === 'READ' 
-    ? SecurityEventType.DATA_ACCESS
-    : operation === 'DELETE'
-    ? SecurityEventType.DATA_DELETION
-    : SecurityEventType.DATA_MODIFICATION;
-    
+  const eventType =
+    operation === 'READ'
+      ? SecurityEventType.DATA_ACCESS
+      : operation === 'DELETE'
+        ? SecurityEventType.DATA_DELETION
+        : SecurityEventType.DATA_MODIFICATION;
+
   await logSecurityEvent(eventType, {
     action: operation,
     resource,
@@ -264,11 +271,18 @@ export const runWithRequestContext = <T>(
 /**
  * Express middleware to set request context
  */
-export const requestContextMiddleware = (req: Request, _res: Response, next: NextFunction): void => {
+export const requestContextMiddleware = (
+  req: Request,
+  _res: Response,
+  next: NextFunction,
+): void => {
   const xRequestId = req.headers['x-request-id'];
-  const requestId = req.id ?? (typeof xRequestId === 'string' ? xRequestId : undefined) ?? pino.stdSerializers.req(req).id;
+  const requestId =
+    req.id ??
+    (typeof xRequestId === 'string' ? xRequestId : undefined) ??
+    pino.stdSerializers.req(req).id;
   const userId = req.user?.userId;
-  
+
   runWithRequestContext(requestId, userId, () => {
     next();
   });

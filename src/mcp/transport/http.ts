@@ -9,8 +9,8 @@ import { createServer as createHttpsServer, Server as HttpsServer } from 'https'
 import { readFileSync } from 'fs';
 import { resolve, normalize } from 'path';
 import { WebSocketServer, WebSocket } from 'ws';
-import { logger } from '@utils/logger.js';
-import { config } from '@core/config.js';
+import { logger } from '../../utils/logger.js';
+import { config } from '../../core/config.js';
 
 interface HttpTransportConfig {
   port: number;

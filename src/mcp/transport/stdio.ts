@@ -5,7 +5,7 @@
  */
 
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import { logger } from '@utils/logger.js';
+import { logger } from '../../utils/logger.js';
 
 /**
  * Create and configure stdio transport for MCP
@@ -73,12 +73,11 @@ export class StdioTransport {
         msg: 'Closing MCP stdio transport',
         timestamp: new Date().toISOString(),
       });
-      
+
       // The SDK transport handles cleanup internally
       // We just need to ensure our process handlers are cleaned up
       process.stdin.removeAllListeners();
       process.stdout.removeAllListeners();
-      
     } catch (error) {
       logger.error({
         msg: 'Error closing MCP stdio transport',
