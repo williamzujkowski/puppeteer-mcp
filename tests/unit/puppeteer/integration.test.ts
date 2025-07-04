@@ -4,7 +4,7 @@
  * @nist si-4 "Information system monitoring"
  */
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
+ 
 
 import { jest } from '@jest/globals';
 

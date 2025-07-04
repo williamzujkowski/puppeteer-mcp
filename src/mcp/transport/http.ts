@@ -32,17 +32,23 @@ export class HttpTransport {
   private connections = new Set<WebSocket>();
 
   constructor(transportConfig?: Partial<HttpTransportConfig>) {
-    this.config = {
+    this.config = this.buildConfig(transportConfig);
+    this.server = this.createServer();
+    this.wsServer = new WebSocketServer({ server: this.server });
+    this.setupWebSocketHandlers();
+  }
+
+  /**
+   * Build configuration with defaults
+   */
+  private buildConfig(transportConfig?: Partial<HttpTransportConfig>): HttpTransportConfig {
+    return {
       port: transportConfig?.port ?? parseInt(process.env.MCP_HTTP_PORT ?? '3001'),
       host: transportConfig?.host ?? process.env.MCP_HTTP_HOST ?? 'localhost',
       useTls: transportConfig?.useTls ?? config.TLS_ENABLED,
       tlsCertPath: transportConfig?.tlsCertPath ?? config.TLS_CERT_PATH,
       tlsKeyPath: transportConfig?.tlsKeyPath ?? config.TLS_KEY_PATH,
     };
-
-    this.server = this.createServer();
-    this.wsServer = new WebSocketServer({ server: this.server });
-    this.setupWebSocketHandlers();
   }
 
   /**
@@ -114,9 +120,7 @@ export class HttpTransport {
     }
 
     const tlsOptions = {
-      // eslint-disable-next-line security/detect-non-literal-fs-filename
       cert: readFileSync(normalizedCertPath),
-      // eslint-disable-next-line security/detect-non-literal-fs-filename
       key: readFileSync(normalizedKeyPath),
     };
 

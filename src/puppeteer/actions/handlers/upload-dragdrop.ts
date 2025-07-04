@@ -112,12 +112,12 @@ export async function handleDragDropUpload(
 /**
  * Prepare file data for drag and drop
  */
-// eslint-disable-next-line @typescript-eslint/require-await, require-await
+ 
 async function prepareFileData(validatedFiles: Array<{ path: string; name: string; type: string }>): Promise<Array<{ name: string; type: string; content: number[] }>> {
   return Promise.all(
     validatedFiles.map(async (file) => {
       // Security: File path is validated by validateFilePaths
-      // eslint-disable-next-line security/detect-non-literal-fs-filename
+       
       const content = await fs.readFile(file.path);
       return {
         name: file.name,
@@ -158,7 +158,7 @@ async function simulateDragDrop(
       // Create data transfer object
       const DataTransfer = (globalThis as any).DataTransfer;
       const dataTransfer = new DataTransfer();
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-return
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-return
       fileList.forEach((file: any) => dataTransfer.items.add(file));
 
       // Create and dispatch drop event

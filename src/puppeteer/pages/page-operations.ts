@@ -125,6 +125,15 @@ export async function clearPageData(params: ClearPageDataParams): Promise<void> 
     throw new AppError('Page instance not found', 404);
   }
 
+  // Clear different types of data based on options
+  await clearPageDataByType(page, options);
+  await pageStore.touchActivity(pageId);
+}
+
+/**
+ * Clear specific types of page data
+ */
+async function clearPageDataByType(page: Page, options: ClearPageDataParams['options']): Promise<void> {
   if (options?.cookies) {
     await page.deleteCookie(...(await page.cookies()));
   }
@@ -141,8 +150,6 @@ export async function clearPageData(params: ClearPageDataParams): Promise<void> 
       }
     }, options);
   }
-
-  await pageStore.touchActivity(pageId);
 }
 
 /**
@@ -157,8 +164,27 @@ export interface TakeScreenshotParams extends PageOperationParams {
  * @nist ac-3 "Access enforcement"
  */
 export async function takeScreenshot(params: TakeScreenshotParams): Promise<Buffer> {
-  const { pageId, sessionId, options, pages, pageStore } = params;
+  const { pageId, sessionId, pages, pageStore } = params;
 
+  // Validate access
+  await validatePageAccess(pageId, sessionId, pageStore);
+
+  // Get and validate page instance
+  const page = await getValidPageInstance(pageId, pages, pageStore);
+
+  // Take screenshot with options
+  const screenshot = await captureScreenshot(page, params.options);
+
+  // Update activity
+  await pageStore.touchActivity(pageId);
+
+  return screenshot;
+}
+
+/**
+ * Validate page access for security
+ */
+async function validatePageAccess(pageId: string, sessionId: string, pageStore: PageInfoStore): Promise<void> {
   const pageInfo = await pageStore.get(pageId);
   if ((pageInfo === null || pageInfo === undefined) || pageInfo.sessionId !== sessionId) {
     await logSecurityEvent(SecurityEventType.ACCESS_DENIED, {
@@ -169,14 +195,25 @@ export async function takeScreenshot(params: TakeScreenshotParams): Promise<Buff
     });
     throw new AppError('Unauthorized access to page', 403);
   }
+}
 
+/**
+ * Get and validate page instance
+ */
+async function getValidPageInstance(pageId: string, pages: Map<string, Page>, pageStore: PageInfoStore): Promise<Page> {
   const page = pages.get(pageId);
   if (!page || page.isClosed()) {
     await pageStore.delete(pageId);
     pages.delete(pageId);
     throw new AppError('Page is closed', 410);
   }
+  return page;
+}
 
+/**
+ * Capture screenshot with options
+ */
+async function captureScreenshot(page: Page, options: ScreenshotOptions | undefined): Promise<Buffer> {
   const screenshot = await page.screenshot({
     type: options?.type ?? 'png',
     fullPage: options?.fullPage ?? false,
@@ -185,16 +222,13 @@ export async function takeScreenshot(params: TakeScreenshotParams): Promise<Buff
     encoding: 'binary',
   });
 
-  // Update activity
-  await pageStore.touchActivity(pageId);
-
   return Buffer.isBuffer(screenshot) ? screenshot : Buffer.from(screenshot);
 }
 
 /**
  * Check if page is active
  */
-// eslint-disable-next-line require-await, @typescript-eslint/require-await
+ 
 export async function isPageActive(pageId: string, pageStore: PageInfoStore): Promise<boolean> {
   const pageInfo = await pageStore.get(pageId);
   return pageInfo?.state === 'active';

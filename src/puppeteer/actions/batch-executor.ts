@@ -142,7 +142,7 @@ export class BatchActionExecutor {
    * @param context - Execution context
    * @returns Array of validation results
    */
-  // eslint-disable-next-line require-await, @typescript-eslint/require-await
+  // eslint-disable-next-line @typescript-eslint/require-await
   private async validateBatch(
     actions: BrowserAction[],
     context: ActionContext

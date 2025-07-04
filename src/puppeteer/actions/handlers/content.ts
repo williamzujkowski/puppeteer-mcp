@@ -206,7 +206,7 @@ export async function handleContent(
 
       content = await page.$eval(sanitizedSelector, (el) => {
         // Check if element has a value property (input/textarea)
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-explicit-any
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         if ('value' in el && typeof (el as any).value === 'string') {
           // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-explicit-any
           return (el as any).value;

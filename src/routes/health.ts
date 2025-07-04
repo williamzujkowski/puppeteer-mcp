@@ -4,18 +4,14 @@
  */
 
 import { Router, Request, Response, NextFunction } from 'express';
-import { z } from 'zod';
-
-// Health check response schema
-const healthResponseSchema = z.object({
-  status: z.literal('ok'),
-  timestamp: z.string().datetime(),
-  uptime: z.number().positive(),
-  environment: z.string(),
-  version: z.string(),
-});
-
-export type HealthResponse = z.infer<typeof healthResponseSchema>;
+// Health check response type
+export interface HealthResponse {
+  status: 'ok';
+  timestamp: string;
+  uptime: number;
+  environment: string;
+  version: string;
+}
 
 // Create router
 export const healthRouter = Router();
@@ -30,7 +26,7 @@ const restrictToGet = (req: Request, res: Response, next: NextFunction): void =>
 };
 
 // Apply method restriction to all routes
-healthRouter.all('*', restrictToGet);
+healthRouter.all('/*splat', restrictToGet);
 
 /**
  * GET /health

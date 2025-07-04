@@ -250,7 +250,7 @@ export class BrowserPoolMaintenance {
    * Perform health check on all browsers
    * @nist si-4 "Information system monitoring"
    */
-  // eslint-disable-next-line require-await, @typescript-eslint/require-await
+  // eslint-disable-next-line @typescript-eslint/require-await
   async healthCheck(browsers: Map<string, InternalBrowserInstance>): Promise<Map<string, boolean>> {
     const results = new Map<string, boolean>();
 

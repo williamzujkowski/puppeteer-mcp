@@ -113,7 +113,7 @@ export class BrowserPool extends EventEmitter implements IBrowserPool {
    * Release a browser back to the pool
    * @nist ac-12 "Session termination"
    */
-  // eslint-disable-next-line require-await, @typescript-eslint/require-await
+  // eslint-disable-next-line @typescript-eslint/require-await
   async releaseBrowser(browserId: string, _sessionId: string): Promise<void> {
     releaseBrowser(browserId, this.browsers, this.queue, (id) =>
       this.emit('browser:released', { browserId: id }),
@@ -238,7 +238,7 @@ export class BrowserPool extends EventEmitter implements IBrowserPool {
   /**
    * Close a page in a browser
    */
-  // eslint-disable-next-line require-await, @typescript-eslint/require-await
+   
   async closePage(browserId: string, sessionId: string): Promise<void> {
     return closePage(browserId, sessionId, this.browsers);
   }
@@ -247,7 +247,7 @@ export class BrowserPool extends EventEmitter implements IBrowserPool {
    * Perform health check on all browsers
    * @nist si-4 "Information system monitoring"
    */
-  // eslint-disable-next-line require-await, @typescript-eslint/require-await
+   
   async healthCheck(): Promise<Map<string, boolean>> {
     return healthCheck(this.maintenance, this.browsers);
   }
@@ -275,7 +275,7 @@ export class BrowserPool extends EventEmitter implements IBrowserPool {
   /**
    * Clean up idle browsers
    */
-  // eslint-disable-next-line require-await, @typescript-eslint/require-await
+   
   async cleanupIdle(): Promise<number> {
     return cleanupIdle(this.maintenance, this.browsers, this.options, (browserId) =>
       this.removeBrowser(browserId),

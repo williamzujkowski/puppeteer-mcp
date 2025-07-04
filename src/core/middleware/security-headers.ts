@@ -25,7 +25,7 @@ export const securityHeaders = (): RequestHandler => {
         styleSrc: ["'self'", "'unsafe-inline'"],
         scriptSrc: ["'self'"],
         imgSrc: ["'self'", 'data:', 'https:'],
-        connectSrc: ["'self'"],
+        connectSrc: ["'self'", 'wss:', 'https:'],
         fontSrc: ["'self'"],
         objectSrc: ["'none'"],
         mediaSrc: ["'self'"],
@@ -169,8 +169,18 @@ const parseCSPDirectives = (directives: string): Record<string, string[]> => {
   directives.split(';').forEach((directive) => {
     const [key, ...values] = directive.trim().split(/\s+/);
     if (key !== undefined && key !== '' && values.length > 0) {
+      // Convert camelCase to kebab-case for CSP directives
+      const cspKey = key.replace(/([A-Z])/g, '-$1').toLowerCase();
+      
+      // Skip if it's a default directive that we're already setting
+      const defaultDirectives = ['default-src', 'style-src', 'script-src', 'img-src', 'connect-src', 
+                                 'font-src', 'object-src', 'media-src', 'frame-src'];
+      if (defaultDirectives.includes(cspKey)) {
+        return;
+      }
+      
       // Safe assignment with string key
-      Object.defineProperty(parsed, key, {
+      Object.defineProperty(parsed, cspKey, {
         value: values,
         writable: true,
         enumerable: true,

@@ -62,11 +62,11 @@ expect.extend({
             Object.prototype.hasOwnProperty.call(argObj, key) &&
             Object.prototype.hasOwnProperty.call(expectedObj, key)
           ) {
-            // eslint-disable-next-line security/detect-object-injection
+             
             const expectedValue = Object.prototype.hasOwnProperty.call(expectedObj, key)
               ? expectedObj[key] // eslint-disable-line security/detect-object-injection
               : undefined;
-            // eslint-disable-next-line security/detect-object-injection
+             
             const argValue = Object.prototype.hasOwnProperty.call(argObj, key)
               ? argObj[key] // eslint-disable-line security/detect-object-injection
               : undefined;
@@ -110,9 +110,9 @@ beforeAll(() => {
   console.log = jest.fn();
   // eslint-disable-next-line no-console
   console.info = jest.fn();
-  // eslint-disable-next-line no-console
+   
   console.warn = jest.fn();
-  // eslint-disable-next-line no-console
+   
   console.error = jest.fn();
 });
 
@@ -121,8 +121,8 @@ afterAll(() => {
   console.log = originalConsole.log;
   // eslint-disable-next-line no-console
   console.info = originalConsole.info;
-  // eslint-disable-next-line no-console
+   
   console.warn = originalConsole.warn;
-  // eslint-disable-next-line no-console
+   
   console.error = originalConsole.error;
 });

@@ -83,7 +83,7 @@ export class InMemoryPageInfoStore implements PageInfoStore {
   /**
    * Get page info by ID
    */
-  // eslint-disable-next-line require-await, @typescript-eslint/require-await
+  // eslint-disable-next-line @typescript-eslint/require-await
   async get(pageId: string): Promise<PageInfo | undefined> {
     return this.pages.get(pageId);
   }
@@ -157,7 +157,7 @@ export class InMemoryPageInfoStore implements PageInfoStore {
   /**
    * List pages by context ID
    */
-  // eslint-disable-next-line require-await, @typescript-eslint/require-await
+  // eslint-disable-next-line @typescript-eslint/require-await
   async listByContext(contextId: string): Promise<PageInfo[]> {
     const pageIds = this.contextToPages.get(contextId) ?? new Set();
     return Array.from(pageIds)
@@ -168,7 +168,7 @@ export class InMemoryPageInfoStore implements PageInfoStore {
   /**
    * List pages by session ID
    */
-  // eslint-disable-next-line require-await, @typescript-eslint/require-await
+  // eslint-disable-next-line @typescript-eslint/require-await
   async listBySession(sessionId: string): Promise<PageInfo[]> {
     const pageIds = this.sessionToPages.get(sessionId) ?? new Set();
     return Array.from(pageIds)
@@ -179,7 +179,7 @@ export class InMemoryPageInfoStore implements PageInfoStore {
   /**
    * List pages by browser ID
    */
-  // eslint-disable-next-line require-await, @typescript-eslint/require-await
+  // eslint-disable-next-line @typescript-eslint/require-await
   async listByBrowser(browserId: string): Promise<PageInfo[]> {
     const pageIds = this.browserToPages.get(browserId) ?? new Set();
     return Array.from(pageIds)
@@ -190,7 +190,7 @@ export class InMemoryPageInfoStore implements PageInfoStore {
   /**
    * Update page activity timestamp
    */
-  // eslint-disable-next-line require-await, @typescript-eslint/require-await
+  // eslint-disable-next-line @typescript-eslint/require-await
   async touchActivity(pageId: string): Promise<void> {
     const pageInfo = this.pages.get(pageId);
     if (pageInfo) {
@@ -201,7 +201,7 @@ export class InMemoryPageInfoStore implements PageInfoStore {
   /**
    * Update page state
    */
-  // eslint-disable-next-line require-await, @typescript-eslint/require-await
+  // eslint-disable-next-line @typescript-eslint/require-await
   async updateState(pageId: string, state: PageInfo['state']): Promise<void> {
     const pageInfo = this.pages.get(pageId);
     if (pageInfo) {
@@ -213,7 +213,7 @@ export class InMemoryPageInfoStore implements PageInfoStore {
   /**
    * Update page URL
    */
-  // eslint-disable-next-line require-await, @typescript-eslint/require-await
+  // eslint-disable-next-line @typescript-eslint/require-await
   async updateUrl(pageId: string, url: string): Promise<void> {
     const pageInfo = this.pages.get(pageId);
     if (pageInfo) {
@@ -225,7 +225,7 @@ export class InMemoryPageInfoStore implements PageInfoStore {
   /**
    * Update page title
    */
-  // eslint-disable-next-line require-await, @typescript-eslint/require-await
+  // eslint-disable-next-line @typescript-eslint/require-await
   async updateTitle(pageId: string, title: string): Promise<void> {
     const pageInfo = this.pages.get(pageId);
     if (pageInfo) {
@@ -237,7 +237,7 @@ export class InMemoryPageInfoStore implements PageInfoStore {
   /**
    * Add URL to navigation history
    */
-  // eslint-disable-next-line require-await, @typescript-eslint/require-await
+  // eslint-disable-next-line @typescript-eslint/require-await
   async addNavigationHistory(pageId: string, url: string): Promise<void> {
     const pageInfo = this.pages.get(pageId);
     if (pageInfo) {
@@ -254,7 +254,7 @@ export class InMemoryPageInfoStore implements PageInfoStore {
   /**
    * Increment error count
    */
-  // eslint-disable-next-line require-await, @typescript-eslint/require-await
+  // eslint-disable-next-line @typescript-eslint/require-await
   async incrementErrorCount(pageId: string): Promise<void> {
     const pageInfo = this.pages.get(pageId);
     if (pageInfo) {
@@ -266,7 +266,7 @@ export class InMemoryPageInfoStore implements PageInfoStore {
   /**
    * List all pages
    */
-  // eslint-disable-next-line require-await, @typescript-eslint/require-await
+  // eslint-disable-next-line @typescript-eslint/require-await
   async listAll(): Promise<PageInfo[]> {
     return Array.from(this.pages.values());
   }
@@ -274,7 +274,7 @@ export class InMemoryPageInfoStore implements PageInfoStore {
   /**
    * Clear all page info
    */
-  // eslint-disable-next-line require-await, @typescript-eslint/require-await
+  // eslint-disable-next-line @typescript-eslint/require-await
   async clear(): Promise<void> {
     this.pages.clear();
     this.contextToPages.clear();

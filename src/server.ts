@@ -7,7 +7,6 @@
  */
 
 import express, { Application } from 'express';
-import helmet from 'helmet';
 import cors from 'cors';
 import compression from 'compression';
 import rateLimit from 'express-rate-limit';
@@ -39,6 +38,8 @@ const logger = pino({
           target: 'pino-pretty',
           options: {
             colorize: true,
+            translateTime: 'HH:MM:ss Z',
+            ignore: 'pid,hostname',
           },
         }
       : undefined,
@@ -58,29 +59,8 @@ export function createApp(): Application {
   // Trust proxy for accurate IP addresses
   app.set('trust proxy', true);
 
-  // Security middleware
-  app.use(helmet({
-    contentSecurityPolicy: {
-      directives: {
-        defaultSrc: ["'self'"],
-        styleSrc: ["'self'", "'unsafe-inline'"],
-        scriptSrc: ["'self'"],
-        imgSrc: ["'self'", 'data:', 'https:'],
-        connectSrc: ["'self'", 'wss:', 'https:'],
-      },
-    },
-    hsts: {
-      maxAge: config.HSTS_MAX_AGE,
-      includeSubDomains: true,
-      preload: true,
-    },
-    noSniff: true,
-    xssFilter: true,
-    referrerPolicy: { policy: 'same-origin' },
-  }));
-
-  // Additional security headers
-  app.use(securityHeaders);
+  // Security middleware from security-headers module
+  app.use(securityHeaders());
 
   // CORS configuration
   app.use(cors({
@@ -129,7 +109,7 @@ export function createApp(): Application {
   app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
   // Request ID middleware
-  app.use(requestIdMiddleware);
+  app.use(requestIdMiddleware());
 
   // Request context middleware (for audit logging)
   app.use(requestContextMiddleware);
@@ -194,16 +174,16 @@ function createHttpsOptions(): https.ServerOptions {
   }
   
   return {
-    // eslint-disable-next-line security/detect-non-literal-fs-filename
+     
     cert: readFileSync(certPath),
-    // eslint-disable-next-line security/detect-non-literal-fs-filename
+     
     key: readFileSync(keyPath),
     ca: config.TLS_CA_PATH !== null && config.TLS_CA_PATH !== undefined && config.TLS_CA_PATH !== '' ? (() => {
       const caPath = config.TLS_CA_PATH;
       if (caPath.includes('..')) {
         throw new Error('Invalid CA file path');
       }
-      // eslint-disable-next-line security/detect-non-literal-fs-filename
+       
       return readFileSync(caPath);
     })() : undefined,
     minVersion: config.TLS_MIN_VERSION,
@@ -220,6 +200,7 @@ function createServer(app: Application): HttpServer | HttpsServer {
   if (shouldEnableTLS()) {
     // HTTPS server with TLS
     const httpsOptions = createHttpsOptions();
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
     return createHttpsServer(httpsOptions, app);
   }
 
@@ -229,6 +210,7 @@ function createServer(app: Application): HttpServer | HttpsServer {
   }
 
   logger.warn('Running without TLS - development only!');
+  // eslint-disable-next-line @typescript-eslint/no-misused-promises
   return createHttpServer(app);
 }
 
@@ -328,30 +310,34 @@ if (config.NODE_ENV !== 'test') {
       process.on('SIGHUP', () => void gracefulShutdown('SIGHUP', server, wss, grpcServer));
 
       // Handle uncaught errors
-      process.on('uncaughtException', (error) => void (async () => {
+      process.on('uncaughtException', (error) => {
         logger.fatal('Uncaught exception:', error);
-        await logSecurityEvent(SecurityEventType.ERROR, {
-          reason: 'Uncaught exception',
-          result: 'failure',
-          metadata: {
-            error: error.message,
-            stack: error.stack,
-          },
-        });
-        process.exit(1);
-      })());
+        void (async () => {
+          await logSecurityEvent(SecurityEventType.ERROR, {
+            reason: 'Uncaught exception',
+            result: 'failure',
+            metadata: {
+              error: error.message,
+              stack: error.stack,
+            },
+          });
+          process.exit(1);
+        })();
+      });
 
-      process.on('unhandledRejection', (reason, promise) => void (async () => {
+      process.on('unhandledRejection', (reason, promise) => {
         logger.fatal('Unhandled rejection at:', promise, 'reason:', reason);
-        await logSecurityEvent(SecurityEventType.ERROR, {
-          reason: 'Unhandled promise rejection',
-          result: 'failure',
-          metadata: {
-            reason: String(reason),
-          },
-        });
-        process.exit(1);
-      })());
+        void (async () => {
+          await logSecurityEvent(SecurityEventType.ERROR, {
+            reason: 'Unhandled promise rejection',
+            result: 'failure',
+            metadata: {
+              reason: String(reason),
+            },
+          });
+          process.exit(1);
+        })();
+      });
 
       // Start HTTP/WebSocket server
       const PORT = config.PORT || 8443;
@@ -371,12 +357,21 @@ if (config.NODE_ENV !== 'test') {
       await grpcServer.start(GRPC_PORT, GRPC_HOST);
       logger.info(`gRPC server started on ${GRPC_HOST}:${GRPC_PORT}`);
     } catch (error) {
+      console.error('Failed to start server:', error);
       logger.error('Failed to start server:', error);
-      await logSecurityEvent(SecurityEventType.SERVICE_START, {
+      
+      // Try to log security event but don't wait for it on exit
+      logSecurityEvent(SecurityEventType.SERVICE_START, {
         result: 'failure',
         reason: error instanceof Error ? error.message : 'Unknown error',
+      }).catch(() => {
+        // Ignore errors during shutdown
       });
-      process.exit(1);
+      
+      // Give logger a chance to flush before exit
+      setTimeout(() => {
+        process.exit(1);
+      }, 100);
     }
   })();
 }

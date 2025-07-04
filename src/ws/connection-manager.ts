@@ -198,7 +198,7 @@ export class WSConnectionManager {
    */
   addSubscription(connectionId: string, topic: string): boolean {
     const connection = this.connections.get(connectionId);
-    if (connection && connection.state.authenticated) {
+    if (connection?.state.authenticated) {
       connection.state.subscriptions.add(topic);
       this.logger.debug('Subscription added', { connectionId, topic });
       return true;

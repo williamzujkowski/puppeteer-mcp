@@ -162,7 +162,7 @@ export class BrowserActionExecutor implements ActionExecutor {
    * @returns Validation result
    * @nist si-10 "Information input validation"
    */
-  // eslint-disable-next-line require-await, @typescript-eslint/require-await
+  // eslint-disable-next-line @typescript-eslint/require-await
   async validate(action: BrowserAction, context: ActionContext): Promise<ValidationResult> {
     try {
       logger.debug('Validating browser action', {
@@ -221,7 +221,7 @@ export class BrowserActionExecutor implements ActionExecutor {
    * @param context - Execution context
    * @returns Array of validation results
    */
-  // eslint-disable-next-line require-await
+   
   async validateBatch(
     actions: BrowserAction[],
     context: ActionContext
@@ -276,7 +276,7 @@ export class BrowserActionExecutor implements ActionExecutor {
    * @returns Array of historical action results
    * @nist au-7 "Audit reduction and report generation"
    */
-  // eslint-disable-next-line require-await, @typescript-eslint/require-await
+  // eslint-disable-next-line @typescript-eslint/require-await
   async getHistory(
     context: ActionContext,
     options?: {
@@ -296,7 +296,7 @@ export class BrowserActionExecutor implements ActionExecutor {
    * @param before - Clear history before this date
    * @nist au-4 "Audit storage capacity"
    */
-  // eslint-disable-next-line require-await, @typescript-eslint/require-await
+  // eslint-disable-next-line @typescript-eslint/require-await
   async clearHistory(context: ActionContext, before?: Date): Promise<void> {
     this.historyManager.clearHistory(context, before);
   }
@@ -307,7 +307,7 @@ export class BrowserActionExecutor implements ActionExecutor {
    * @returns Action execution metrics
    * @nist au-6 "Audit review, analysis, and reporting"
    */
-  // eslint-disable-next-line require-await, @typescript-eslint/require-await
+  // eslint-disable-next-line @typescript-eslint/require-await
   async getMetrics(context: ActionContext): Promise<{
     totalActions: number;
     successfulActions: number;

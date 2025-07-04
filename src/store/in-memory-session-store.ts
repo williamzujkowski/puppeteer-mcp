@@ -179,7 +179,7 @@ export class InMemorySessionStore implements SessionStore {
     return session !== null;
   }
 
-  // eslint-disable-next-line require-await, @typescript-eslint/require-await
+  // eslint-disable-next-line @typescript-eslint/require-await
   async touch(id: string): Promise<boolean> {
     const session = this.sessions.get(id);
 
@@ -202,7 +202,7 @@ export class InMemorySessionStore implements SessionStore {
   /**
    * Clear all sessions (for testing)
    */
-  // eslint-disable-next-line require-await, @typescript-eslint/require-await
+  // eslint-disable-next-line @typescript-eslint/require-await
   async clear(): Promise<void> {
     this.sessions.clear();
     this.userSessions.clear();

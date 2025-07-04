@@ -150,9 +150,7 @@ export class GrpcServer {
    * Create TLS credentials for gRPC server
    */
   private createTLSCredentials(): grpc.ServerCredentials {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const fs = require('fs') as typeof import('fs');
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const path = require('path') as typeof import('path');
 
     // Helper function to validate and read TLS files safely
@@ -172,11 +170,9 @@ export class GrpcServer {
 
       // Read file directly to avoid TOCTOU race condition
       try {
-        // eslint-disable-next-line security/detect-non-literal-fs-filename
         const content = fs.readFileSync(absolutePath);
 
         // Verify it's a file after reading (not a directory)
-        // eslint-disable-next-line security/detect-non-literal-fs-filename
         const stats = fs.statSync(absolutePath);
         if (!stats.isFile()) {
           throw new Error(`${fileType} path is not a file: ${absolutePath}`);
@@ -254,7 +250,7 @@ export class GrpcServer {
           this.logger.warn('gRPC server running without TLS - development only!');
         }
       } catch (error) {
-        reject(error);
+        reject(error instanceof Error ? error : new Error(String(error)));
         return;
       }
 

@@ -8,7 +8,7 @@ const execAsync = promisify(exec);
 import type { ChildProcess } from 'child_process';
 
 declare global {
-  // eslint-disable-next-line no-var
+   
   var e2eServerProcess: ChildProcess | undefined;
 }
 

@@ -83,7 +83,7 @@ describe('Testing Best Practices Examples', () => {
       // Test that methods were called correctly
       // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(res.status).toHaveBeenCalledWith(200);
-      // eslint-disable-next-line @typescript-eslint/unbound-method
+       
       expect(res.json).toHaveBeenCalledWith({ success: true });
     });
 

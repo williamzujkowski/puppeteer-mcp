@@ -4,9 +4,9 @@ import { Application } from 'express';
 import http from 'http';
 
 declare global {
-  // eslint-disable-next-line no-var
+   
   var testApp: Application;
-  // eslint-disable-next-line no-var
+   
   var testServer: http.Server;
 }
 

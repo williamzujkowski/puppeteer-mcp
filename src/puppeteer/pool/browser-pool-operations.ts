@@ -77,7 +77,7 @@ export async function createPage(
 /**
  * Close a page in a browser
  */
-// eslint-disable-next-line require-await, @typescript-eslint/require-await
+// eslint-disable-next-line @typescript-eslint/require-await
 export async function closePage(
   browserId: string,
   sessionId: string,

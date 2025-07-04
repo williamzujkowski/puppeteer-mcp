@@ -34,7 +34,7 @@ export async function handleScrollPage(
   validateScrollParams(distance);
 
   // Get current scroll position
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   const beforePosition = await page.evaluate(() => ({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     x: (globalThis as any).pageXOffset ?? 0,
@@ -52,7 +52,7 @@ export async function handleScrollPage(
   }, scrollX, scrollY);
 
   // Get new scroll position
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   const afterPosition = await page.evaluate(() => ({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     x: (globalThis as any).pageXOffset ?? 0,

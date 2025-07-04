@@ -278,7 +278,7 @@ export function isValidPermission(permission: string): permission is Permission 
 export function parsePermission(resource: string, action: string): Permission | null {
   const permissionString = `${resource}:${action}`;
   if (isValidPermission(permissionString)) {
-    return permissionString as Permission;
+    return permissionString;
   }
   return null;
 }

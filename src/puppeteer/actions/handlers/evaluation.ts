@@ -51,7 +51,7 @@ export async function handleEvaluate(
     const result = await Promise.race([
       page.evaluate(action.function, ...(action.args ?? [])),
       new Promise((_, reject) => {
-        // eslint-disable-next-line @typescript-eslint/no-misused-promises
+         
         setTimeout(() => reject(new Error('Evaluation timeout')), action.timeout ?? 30000);
       }),
     ]);

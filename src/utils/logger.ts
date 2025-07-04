@@ -6,7 +6,7 @@
  * @nist au-4 "Audit storage capacity"
  */
 
-import { pino, Logger as PinoLogger } from 'pino';
+import { pino, Logger as PinoLogger, destination } from 'pino';
 import { mkdir } from 'fs/promises';
 import { dirname, join } from 'path';
 import { AsyncLocalStorage } from 'async_hooks';
@@ -80,8 +80,8 @@ export enum SecurityEventType {
 /**
  * Create logger options based on configuration
  */
-const createLoggerOptions = (name: string, isAudit = false): pino.LoggerOptions => {
-  const baseOptions: pino.LoggerOptions = {
+const createLoggerOptions = (name: string, isAudit = false): pino.LoggerOptions<never> => {
+  const baseOptions: pino.LoggerOptions<never> = {
     name,
     level: config.LOG_LEVEL,
     formatters: {
@@ -140,12 +140,13 @@ export const createLogger = (name: string): PinoLogger => {
 const createAuditLogger = async (): Promise<PinoLogger> => {
   if (!config.AUDIT_LOG_ENABLED) {
     // Return a no-op logger if audit logging is disabled
-    return pino(pino.destination({ sync: false, minLength: 4096 }));
+    // In Pino v9, we need to ensure sync is true for exit handling
+    return pino({ level: 'silent' });
   }
 
   // Ensure audit log directory exists
   const auditLogDir = dirname(config.AUDIT_LOG_PATH);
-  // eslint-disable-next-line security/detect-non-literal-fs-filename
+   
   await mkdir(auditLogDir, { recursive: true });
 
   const auditLogFile = join(
@@ -158,7 +159,7 @@ const createAuditLogger = async (): Promise<PinoLogger> => {
       ...createLoggerOptions('audit', true),
       level: 'info', // Audit logs should always be at info level or higher
     },
-    pino.destination({
+    destination({
       dest: auditLogFile,
       sync: false, // Async for better performance
       minLength: 4096, // Buffer size
@@ -171,13 +172,15 @@ const createAuditLogger = async (): Promise<PinoLogger> => {
  */
 export const logger = createLogger('app');
 let auditLoggerInstance: PinoLogger | null = null;
+let auditLoggerPromise: Promise<PinoLogger> | null = null;
 
 /**
  * Get audit logger instance
  */
 const getAuditLogger = async (): Promise<PinoLogger> => {
   if (!auditLoggerInstance) {
-    auditLoggerInstance = await createAuditLogger();
+    auditLoggerPromise ??= createAuditLogger();
+    auditLoggerInstance = await auditLoggerPromise;
   }
   return auditLoggerInstance;
 };
@@ -199,28 +202,33 @@ export const logSecurityEvent = async (
     metadata?: Record<string, unknown>;
   },
 ): Promise<void> => {
-  const auditLogger = await getAuditLogger();
-  const context = requestContext.getStore();
+  try {
+    const auditLogger = await getAuditLogger();
+    const context = requestContext.getStore();
 
-  auditLogger.info(
-    {
-      type: 'SECURITY_EVENT',
-      eventType,
-      timestamp: new Date().toISOString(),
-      requestId: context?.requestId,
-      userId: details.userId ?? context?.userId,
-      resource: details.resource,
-      action: details.action,
-      result: details.result,
-      reason: details.reason,
-      metadata: details.metadata,
-      source: {
-        ip: details.metadata?.ip as string,
-        userAgent: details.metadata?.userAgent as string,
+    auditLogger.info(
+      {
+        type: 'SECURITY_EVENT',
+        eventType,
+        timestamp: new Date().toISOString(),
+        requestId: context?.requestId,
+        userId: details.userId ?? context?.userId,
+        resource: details.resource,
+        action: details.action,
+        result: details.result,
+        reason: details.reason,
+        metadata: details.metadata,
+        source: {
+          ip: details.metadata?.ip as string,
+          userAgent: details.metadata?.userAgent as string,
+        },
       },
-    },
-    `Security event: ${eventType}`,
-  );
+      `Security event: ${eventType}`,
+    );
+  } catch (error) {
+    // Fallback to regular logger if audit logger fails
+    logger.error({ error, eventType, details }, 'Failed to log security event to audit log');
+  }
 };
 
 /**
@@ -280,7 +288,7 @@ export const requestContextMiddleware = (
   const requestId =
     req.id ??
     (typeof xRequestId === 'string' ? xRequestId : undefined) ??
-    pino.stdSerializers.req(req).id;
+    'unknown';
   const userId = req.user?.userId;
 
   runWithRequestContext(requestId, userId, () => {

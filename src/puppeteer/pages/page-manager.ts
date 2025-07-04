@@ -157,7 +157,7 @@ export class PageManager extends EventEmitter implements IPageManager {
     });
   }
 
-  // eslint-disable-next-line require-await, @typescript-eslint/require-await
+   
   async listPagesForSession(sessionId: string): Promise<PageInfo[]> {
     return listPagesForSession(sessionId, this.pageStore);
   }
@@ -236,7 +236,7 @@ export class PageManager extends EventEmitter implements IPageManager {
     });
   }
 
-  // eslint-disable-next-line require-await, @typescript-eslint/require-await
+   
   async isPageActive(pageId: string): Promise<boolean> {
     return isPageActive(pageId, this.pageStore);
   }

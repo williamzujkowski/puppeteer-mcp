@@ -33,7 +33,7 @@ export interface AcquireBrowserParams {
  * @nist ac-3 "Access enforcement"
  * @nist ac-4 "Information flow enforcement"
  */
-// eslint-disable-next-line require-await, @typescript-eslint/require-await
+ 
 export async function acquireBrowser(params: AcquireBrowserParams): Promise<BrowserInstance> {
   const {
     sessionId,

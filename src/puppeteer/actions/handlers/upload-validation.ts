@@ -103,7 +103,7 @@ export async function validateFilePaths(
     let stats;
     try {
       // Security: File path is validated above
-      // eslint-disable-next-line security/detect-non-literal-fs-filename
+       
       stats = await fs.stat(filePath);
     } catch (error) {
       throw new Error(`File not found or not accessible: ${filePath}`);

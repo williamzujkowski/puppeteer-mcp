@@ -1,8 +1,5 @@
-#!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"
-
 # Run lint-staged for TypeScript files
-npx lint-staged
+lint-staged
 
 # Run type checking
 echo "Running type check..."

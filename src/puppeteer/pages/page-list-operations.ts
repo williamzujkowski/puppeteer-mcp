@@ -13,7 +13,7 @@ import type { PageInfoStore } from './page-info-store.js';
  * List pages for session
  * @nist ac-3 "Access enforcement"
  */
-// eslint-disable-next-line require-await, @typescript-eslint/require-await
+ 
 export async function listPagesForSession(
   sessionId: string,
   pageStore: PageInfoStore,

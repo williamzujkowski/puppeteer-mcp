@@ -20,7 +20,7 @@ function extractJwtFromHeaders(
     ? headers.authorization[0]
     : headers.authorization;
 
-  if (authHeader && authHeader.startsWith('Bearer ')) {
+  if (authHeader?.startsWith('Bearer ')) {
     return authHeader.substring(7);
   }
 

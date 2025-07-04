@@ -23,7 +23,7 @@ export const createCombinedAuthMiddleware = (sessionStore: SessionStore) => {
     try {
       // Check for API key first
       const apiKeyHeader = req.headers['x-api-key'] as string | undefined;
-      if (apiKeyHeader && apiKeyHeader.trim().length > 0) {
+      if (apiKeyHeader !== undefined && apiKeyHeader.trim().length > 0) {
         const keyData = await apiKeyStore.verify(apiKeyHeader);
 
         if (!keyData) {
@@ -68,7 +68,7 @@ export const createCombinedAuthMiddleware = (sessionStore: SessionStore) => {
       // Check for JWT token
       const token = extractTokenFromHeader(req.headers.authorization);
 
-      if (!token || token.trim().length === 0) {
+      if (token === null || token === undefined || token.trim().length === 0) {
         throw new AppError('No authentication credentials provided', 401);
       }
 
