@@ -133,19 +133,40 @@ jobs:
           fetch-depth: 0
 
       - name: TruffleHog OSS
+        id: trufflehog
         uses: trufflesecurity/trufflehog@main
         with:
           path: ./
           base: ${{ github.event.repository.default_branch }}
           head: HEAD
-        # Continue on error for push events to default branch
-        # (where base and head are the same)
-        continue-on-error: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+        # Continue on error for manual triggers and push to main
+        # This ensures Gitleaks always runs
+        continue-on-error: ${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main') }}
 
       - name: Gitleaks
+        id: gitleaks
         uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        # Always run Gitleaks regardless of TruffleHog status
+        if: always()
+        continue-on-error: true
+
+      - name: Check for secrets found
+        if: always()
+        run: |
+          # Check if either scanner found real issues
+          if [[ "${{ steps.trufflehog.outcome }}" == "failure" && "${{ github.event_name }}" != "workflow_dispatch" && !("${{ github.event_name }}" == "push" && "${{ github.ref }}" == "refs/heads/main") ]]; then
+            echo "TruffleHog found secrets!"
+            exit 1
+          fi
+
+          if [[ "${{ steps.gitleaks.outcome }}" == "failure" ]]; then
+            echo "Gitleaks found secrets!"
+            exit 1
+          fi
+
+          echo "No secrets found by either scanner."
 
   compliance-check:
     name: NIST Compliance Check
