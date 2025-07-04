@@ -87,7 +87,6 @@
     "pino": "^9.7.0",
     "puppeteer": "^24.11.2",
     "puppeteer-core": "^24.11.2",
-    "puppeteer-mcp": "file:puppeteer-mcp-1.0.0.tgz",
     "uuid": "^11.1.0",
     "ws": "^8.16.0",
     "zod": "^3.22.4"
