@@ -18,6 +18,79 @@ import { logger } from '../../utils/logger.js';
 const sessionStore = new InMemorySessionStore(logger.child({ module: 'session-store' }));
 
 /**
+ * Handle JWT authentication
+ */
+async function handleJwtAuth(
+  req: AuthenticatedRequest,
+  credentials: string
+): Promise<void> {
+  // Add JWT to Authorization header
+  req.headers.authorization = `Bearer ${credentials}`;
+  
+  // Verify JWT
+  const payload = await verifyToken(credentials, 'access');
+  
+  // Verify session
+  const session = await sessionStore.get(payload.sessionId);
+  if (!session) {
+    throw new AppError('Invalid session', 401);
+  }
+  
+  req.user = {
+    userId: payload.sub,
+    username: payload.username,
+    roles: payload.roles,
+    sessionId: payload.sessionId,
+  };
+}
+
+/**
+ * Handle API key authentication
+ */
+async function handleApiKeyAuth(
+  req: AuthenticatedRequest,
+  credentials: string
+): Promise<void> {
+  // Add API key to header
+  req.headers['x-api-key'] = credentials;
+  
+  // Verify API key
+  const keyData = await apiKeyStore.verify(credentials);
+  if (!keyData) {
+    throw new AppError('Invalid API key', 401);
+  }
+  
+  req.user = {
+    userId: keyData.userId,
+    username: `apikey:${keyData.name}`,
+    roles: keyData.roles,
+    sessionId: `apikey:${keyData.id}`,
+  };
+}
+
+/**
+ * Handle session authentication
+ */
+async function handleSessionAuth(
+  req: AuthenticatedRequest,
+  credentials: string,
+  sessionId?: string
+): Promise<void> {
+  // Use session ID directly
+  const session = await sessionStore.get(sessionId ?? credentials);
+  if (!session) {
+    throw new AppError('Invalid session', 401);
+  }
+  
+  req.user = {
+    userId: session.data.userId,
+    username: (session.data.metadata?.username as string) ?? 'unknown',
+    roles: (session.data.metadata?.roles as string[]) ?? [],
+    sessionId: session.id,
+  };
+}
+
+/**
  * Apply authentication to request
  * @nist ia-2 "Identification and authentication"
  * @nist ia-5 "Authenticator management"
@@ -28,62 +101,17 @@ export async function applyAuthentication(
   sessionId?: string
 ): Promise<void> {
   switch (auth.type) {
-    case 'jwt': {
-      // Add JWT to Authorization header
-      req.headers.authorization = `Bearer ${auth.credentials}`;
-      
-      // Verify JWT
-      const payload = await verifyToken(auth.credentials, 'access');
-      
-      // Verify session
-      const session = await sessionStore.get(payload.sessionId);
-      if (!session) {
-        throw new AppError('Invalid session', 401);
-      }
-      
-      req.user = {
-        userId: payload.sub,
-        username: payload.username,
-        roles: payload.roles,
-        sessionId: payload.sessionId,
-      };
+    case 'jwt':
+      await handleJwtAuth(req, auth.credentials);
       break;
-    }
     
-    case 'apikey': {
-      // Add API key to header
-      req.headers['x-api-key'] = auth.credentials;
-      
-      // Verify API key
-      const keyData = await apiKeyStore.verify(auth.credentials);
-      if (!keyData) {
-        throw new AppError('Invalid API key', 401);
-      }
-      
-      req.user = {
-        userId: keyData.userId,
-        username: `apikey:${keyData.name}`,
-        roles: keyData.roles,
-        sessionId: `apikey:${keyData.id}`,
-      };
+    case 'apikey':
+      await handleApiKeyAuth(req, auth.credentials);
       break;
-    }
     
-    case 'session': {
-      // Use session ID directly
-      const session = await sessionStore.get(sessionId ?? auth.credentials);
-      if (!session) {
-        throw new AppError('Invalid session', 401);
-      }
-      
-      req.user = {
-        userId: session.data.userId,
-        username: (session.data.metadata?.username as string) ?? 'unknown',
-        roles: (session.data.metadata?.roles as string[]) ?? [],
-        sessionId: session.id,
-      };
+    case 'session':
+      await handleSessionAuth(req, auth.credentials, sessionId);
       break;
-    }
     
     default:
       throw new AppError('Unsupported authentication type', 400);

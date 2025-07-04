@@ -105,7 +105,7 @@ export async function validateFilePaths(
       // Security: File path is validated above
        
       stats = await fs.stat(filePath);
-    } catch (error) {
+    } catch {
       throw new Error(`File not found or not accessible: ${filePath}`);
     }
 

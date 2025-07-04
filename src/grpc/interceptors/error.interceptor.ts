@@ -171,6 +171,97 @@ function createWrappedCallback(
  * @nist au-3 "Content of audit records"
  * @evidence code, test
  */
+/**
+ * Handle streaming call errors
+ */
+function handleStreamingCall(
+  call: ExtendedCall,
+  logger: pino.Logger,
+  requestId: string,
+  methodName: string,
+  callback: GrpcCallback,
+  next: NextFunction
+): void {
+  const originalCall = call.call;
+  
+  if (originalCall && typeof originalCall.on === 'function') {
+    originalCall.on('error', (error: unknown) => {
+      logger.error({
+        requestId,
+        method: methodName,
+        error: error instanceof Error ? {
+          message: error.message,
+          code: (error as GrpcError).code,
+        } : 'Unknown error',
+      }, 'Stream error in gRPC call');
+    });
+  }
+
+  // For server streaming, we need to handle errors differently
+  next(call, callback);
+}
+
+/**
+ * Handle unary call errors
+ */
+function handleUnaryCall(
+  call: ExtendedCall,
+  callback: GrpcCallback,
+  logger: pino.Logger,
+  requestContext: RequestContext,
+  next: NextFunction
+): void {
+  const wrappedCallback = createWrappedCallback(callback, logger, requestContext);
+  next(call, wrappedCallback);
+}
+
+/**
+ * Handle interceptor errors
+ */
+function handleInterceptorError(
+  error: unknown,
+  logger: pino.Logger,
+  requestId: string,
+  methodName: string,
+  callback: GrpcCallback
+): void {
+  logger.error({
+    requestId,
+    method: methodName,
+    error: error instanceof Error ? error.message : 'Unknown error',
+  }, 'Error interceptor failed');
+
+  const grpcError = createGrpcError(error, logger);
+  callback(grpcError);
+}
+
+/**
+ * Process interceptor call
+ */
+function processInterceptorCall(
+  call: ExtendedCall,
+  callback: GrpcCallback,
+  next: NextFunction,
+  logger: pino.Logger,
+  requestId: string,
+  methodName: string
+): void {
+  const requestContext = {
+    requestId,
+    method: methodName,
+    userId: call.userId,
+    sessionId: call.session?.id,
+  };
+
+  const isStreamingCall = call.call && typeof call.call.on === 'function';
+  
+  if (isStreamingCall) {
+    handleStreamingCall(call, logger, requestId, methodName, callback, next);
+  } else {
+    handleUnaryCall(call, callback, logger, requestContext, next);
+  }
+}
+
 export function errorInterceptor(logger: pino.Logger): InterceptorFunction {
   return (
     call: ExtendedCall,
@@ -181,47 +272,9 @@ export function errorInterceptor(logger: pino.Logger): InterceptorFunction {
     const requestId = call.metadata?.get('x-request-id')?.[0]?.toString() ?? 'unknown';
 
     try {
-      const requestContext = {
-        requestId,
-        method: methodName,
-        userId: call.userId,
-        sessionId: call.session?.id,
-      };
-
-      // Handle different call types
-      if (call.call && typeof call.call.on === 'function') {
-        // Streaming call - wrap error events
-        const originalCall = call.call;
-        
-        originalCall.on('error', (error: unknown) => {
-          logger.error({
-            requestId,
-            method: methodName,
-            error: error instanceof Error ? {
-              message: error.message,
-              code: (error as GrpcError).code,
-            } : 'Unknown error',
-          }, 'Stream error in gRPC call');
-        });
-
-        // For server streaming, we need to handle errors differently
-        next(call, callback);
-      } else {
-        // Unary call - wrap callback
-        const wrappedCallback = createWrappedCallback(callback, logger, requestContext);
-        next(call, wrappedCallback);
-      }
+      processInterceptorCall(call, callback, next, logger, requestId, methodName);
     } catch (error) {
-      // Interceptor itself failed
-      logger.error({
-        requestId,
-        method: methodName,
-        error: error instanceof Error ? error.message : 'Unknown error',
-      }, 'Error interceptor failed');
-
-      // Convert error and pass to callback
-      const grpcError = createGrpcError(error, logger);
-      callback(grpcError);
+      handleInterceptorError(error, logger, requestId, methodName, callback);
     }
   };
 }

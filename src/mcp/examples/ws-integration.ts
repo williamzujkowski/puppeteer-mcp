@@ -74,8 +74,8 @@ async function subscribeToSessionUpdates(): Promise<void> {
         if (Math.random() > 0.9) {break;}
       }
     }
-  } catch (error) {
-    // console.error('Subscription error:', error);
+  } catch {
+    // console.error('Subscription error');
   }
 }
 
@@ -108,8 +108,8 @@ async function sendWebSocketMessage(): Promise<void> {
     });
 
     // console.log('Message sent');
-  } catch (error) {
-    // console.error('Send error:', error);
+  } catch {
+    // console.error('Send error');
   }
 }
 
@@ -138,8 +138,8 @@ async function broadcastSystemEvent(): Promise<void> {
     });
 
     // console.log('Broadcast sent:', response);
-  } catch (error) {
-    // console.error('Broadcast error:', error);
+  } catch {
+    // console.error('Broadcast error');
   }
 }
 
@@ -191,8 +191,8 @@ async function manageMultipleSubscriptions(): Promise<void> {
       
       // console.log(`Unsubscribed from ${topic}`);
     }
-  } catch (error) {
-    // console.error('Subscription management error:', error);
+  } catch {
+    // console.error('Subscription management error');
   }
 }
 
@@ -249,7 +249,7 @@ async function handleConnectionErrors(): Promise<void> {
     if (response) {
       // console.log('Successfully connected after', retryCount, 'retries');
     }
-  } catch (error) {
+  } catch {
     // console.error('Failed to establish connection after', maxRetries, 'attempts');
   }
 }
@@ -271,8 +271,8 @@ async function runExamples(): Promise<void> {
   // Try to run examples (will fail without actual WebSocket server)
   try {
     await sendWebSocketMessage();
-  } catch (error) {
-    // console.log('Expected error (no WebSocket server):', (error as Error).message);
+  } catch {
+    // console.log('Expected error (no WebSocket server)');
   }
 
   // console.log('\n---\n');

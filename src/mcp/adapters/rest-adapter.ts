@@ -206,7 +206,7 @@ export class RestAdapter implements ProtocolAdapter {
       // Create next function for error handling
       const next: NextFunction = (error?: unknown) => {
         if (error !== null && error !== undefined) {
-          reject(error);
+          reject(error instanceof Error ? error : new Error(String(error)));
         } else {
           resolve({
             status: responseStatus,
@@ -228,7 +228,7 @@ export class RestAdapter implements ProtocolAdapter {
       try {
         (layer as { handle: (req: unknown, res: unknown, next: unknown) => void }).handle(req, res, next);
       } catch (error) {
-        reject(error);
+        reject(error instanceof Error ? error : new Error(String(error)));
       }
     });
   }

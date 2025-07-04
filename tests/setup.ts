@@ -9,7 +9,7 @@ process.env.LOG_LEVEL = 'silent';
 // Ensure logs directory exists for tests
 try {
   mkdirSync('logs/audit', { recursive: true });
-} catch (error) {
+} catch {
   // Directory might already exist, ignore error
 }
 

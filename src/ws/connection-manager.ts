@@ -53,37 +53,52 @@ export class WSConnectionManager {
   }
 
   /**
+   * Clean up user connections mapping
+   */
+  private cleanupUserConnections(userId: string, connectionId: string): void {
+    const userConnections = this.userConnections.get(userId);
+    if (!userConnections) return;
+    
+    userConnections.delete(connectionId);
+    if (userConnections.size === 0) {
+      this.userConnections.delete(userId);
+    }
+  }
+
+  /**
+   * Clean up session connections mapping
+   */
+  private cleanupSessionConnections(sessionId: string, connectionId: string): void {
+    const sessionConnections = this.sessionConnections.get(sessionId);
+    if (!sessionConnections) return;
+    
+    sessionConnections.delete(connectionId);
+    if (sessionConnections.size === 0) {
+      this.sessionConnections.delete(sessionId);
+    }
+  }
+
+  /**
    * Remove a connection
    */
   removeConnection(connectionId: string): void {
     const connection = this.connections.get(connectionId);
-    if (connection) {
-      // Clean up session mapping
-      if (connection.state.userId !== null && connection.state.userId !== undefined && connection.state.userId.length > 0) {
-        const userConnections = this.userConnections.get(connection.state.userId);
-        if (userConnections) {
-          userConnections.delete(connectionId);
-          if (userConnections.size === 0) {
-            this.userConnections.delete(connection.state.userId);
-          }
-        }
-      }
+    if (!connection) return;
 
-      // Clean up user mapping
-      const sessionId = connection.state.metadata?.sessionId as string;
-      if (sessionId) {
-        const sessionConnections = this.sessionConnections.get(sessionId);
-        if (sessionConnections) {
-          sessionConnections.delete(connectionId);
-          if (sessionConnections.size === 0) {
-            this.sessionConnections.delete(sessionId);
-          }
-        }
-      }
-
-      this.connections.delete(connectionId);
-      this.logger.debug('Connection removed', { connectionId });
+    // Clean up user mapping if userId exists
+    const userId = connection.state.userId;
+    if (userId && userId.length > 0) {
+      this.cleanupUserConnections(userId, connectionId);
     }
+
+    // Clean up session mapping if sessionId exists
+    const sessionId = connection.state.metadata?.sessionId as string;
+    if (sessionId) {
+      this.cleanupSessionConnections(sessionId, connectionId);
+    }
+
+    this.connections.delete(connectionId);
+    this.logger.debug('Connection removed', { connectionId });
   }
 
   /**

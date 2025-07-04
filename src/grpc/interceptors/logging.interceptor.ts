@@ -39,16 +39,23 @@ function getRequestId(metadata: grpc.Metadata): string {
 }
 
 /**
+ * Get client IP from metadata or call
+ */
+function getClientIp(metadata: grpc.Metadata, call: ExtendedCall): string {
+  const forwardedFor = metadata.get('x-forwarded-for')?.[0]?.toString();
+  if (forwardedFor) return forwardedFor;
+  
+  const peer = call.getPeer?.();
+  return peer ?? 'unknown';
+}
+
+/**
  * Extract logging context from call
  */
 function extractLogContext(call: ExtendedCall): LogContext {
   const metadata = call.metadata;
   const requestId = getRequestId(metadata);
-  
-  // Extract client info
-  const clientIp = metadata.get('x-forwarded-for')?.[0]?.toString() ?? 
-                   call.getPeer?.() ?? 
-                   'unknown';
+  const clientIp = getClientIp(metadata, call);
   const userAgent = metadata.get('x-user-agent')?.[0]?.toString() ?? 'unknown';
   
   return {

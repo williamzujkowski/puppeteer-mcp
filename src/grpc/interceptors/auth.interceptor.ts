@@ -15,23 +15,41 @@ import { logSecurityEvent, SecurityEventType } from '../../utils/logger.js';
 import type { ExtendedCall, GrpcCallback, NextFunction, GrpcError, InterceptorFunction } from './types.js';
 
 /**
+ * Extract bearer token from authorization header
+ */
+function extractBearerToken(authHeaders: grpc.MetadataValue[]): string | null {
+  if (authHeaders.length === 0) return null;
+  
+  const authHeader = authHeaders[0]?.toString();
+  if (!authHeader || !authHeader.startsWith('Bearer ')) return null;
+  
+  return authHeader.substring(7);
+}
+
+/**
+ * Extract API key from header
+ */
+function extractApiKey(apiKeys: grpc.MetadataValue[]): string | null {
+  if (apiKeys.length === 0) return null;
+  return apiKeys[0]?.toString() ?? null;
+}
+
+/**
  * Extract token from gRPC metadata
  * @nist ia-2 "Identification and authentication"
  */
 function extractToken(metadata: grpc.Metadata): string | null {
   // Check Authorization header
   const authHeaders = metadata.get('authorization');
-  if (authHeaders !== undefined && authHeaders.length > 0) {
-    const authHeader = authHeaders[0]?.toString();
-    if (authHeader !== undefined && authHeader !== '' && authHeader.startsWith('Bearer ')) {
-      return authHeader.substring(7);
-    }
+  if (authHeaders !== undefined) {
+    const bearerToken = extractBearerToken(authHeaders);
+    if (bearerToken) return bearerToken;
   }
 
   // Check x-api-key header
   const apiKeys = metadata.get('x-api-key');
-  if (apiKeys !== undefined && apiKeys.length > 0) {
-    return apiKeys[0]?.toString() ?? null;
+  if (apiKeys !== undefined) {
+    return extractApiKey(apiKeys);
   }
 
   return null;

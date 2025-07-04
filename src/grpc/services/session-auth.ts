@@ -149,19 +149,28 @@ export class SessionAuth {
     return value === null || value === undefined || value === '';
   }
 
+  private isValidString(value: string | null | undefined): value is string {
+    return value !== null && value !== undefined && value.length > 0;
+  }
+
+  private async getSessionFromToken(accessToken: string): Promise<Session | null> {
+    const payload = await verifyAccessToken(accessToken);
+    if (this.isValidString(payload?.sessionId)) {
+      return this.sessionStore.get(payload.sessionId);
+    }
+    return null;
+  }
+
   private async getSessionFromIdOrToken(
     sessionId: string | null | undefined,
     accessToken: string | null | undefined,
   ): Promise<Session | null> {
-    if (sessionId !== null && sessionId !== undefined && sessionId.length > 0) {
+    if (this.isValidString(sessionId)) {
       return this.sessionStore.get(sessionId);
     }
 
-    if (accessToken !== null && accessToken !== undefined && accessToken.length > 0) {
-      const payload = await verifyAccessToken(accessToken);
-      if (payload?.sessionId !== null && payload?.sessionId !== undefined && payload.sessionId.length > 0) {
-        return this.sessionStore.get(payload.sessionId);
-      }
+    if (this.isValidString(accessToken)) {
+      return this.getSessionFromToken(accessToken);
     }
 
     return null;

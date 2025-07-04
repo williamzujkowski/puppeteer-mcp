@@ -39,15 +39,38 @@ export class HttpTransport {
   }
 
   /**
+   * Get default port from environment or use fallback
+   */
+  private getDefaultPort(): number {
+    return parseInt(process.env.MCP_HTTP_PORT ?? '3001');
+  }
+
+  /**
+   * Get default host from environment or use fallback
+   */
+  private getDefaultHost(): string {
+    return process.env.MCP_HTTP_HOST ?? 'localhost';
+  }
+
+  /**
+   * Get configuration value with default
+   */
+  private getConfigValue<T>(value: T | undefined, defaultValue: T): T {
+    return value !== undefined ? value : defaultValue;
+  }
+
+  /**
    * Build configuration with defaults
    */
   private buildConfig(transportConfig?: Partial<HttpTransportConfig>): HttpTransportConfig {
+    const tc = transportConfig || {};
+    
     return {
-      port: transportConfig?.port ?? parseInt(process.env.MCP_HTTP_PORT ?? '3001'),
-      host: transportConfig?.host ?? process.env.MCP_HTTP_HOST ?? 'localhost',
-      useTls: transportConfig?.useTls ?? config.TLS_ENABLED,
-      tlsCertPath: transportConfig?.tlsCertPath ?? config.TLS_CERT_PATH,
-      tlsKeyPath: transportConfig?.tlsKeyPath ?? config.TLS_KEY_PATH,
+      port: this.getConfigValue(tc.port, this.getDefaultPort()),
+      host: this.getConfigValue(tc.host, this.getDefaultHost()),
+      useTls: this.getConfigValue(tc.useTls, config.TLS_ENABLED),
+      tlsCertPath: this.getConfigValue(tc.tlsCertPath, config.TLS_CERT_PATH),
+      tlsKeyPath: this.getConfigValue(tc.tlsKeyPath, config.TLS_KEY_PATH),
     };
   }
 
