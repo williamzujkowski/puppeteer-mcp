@@ -42,7 +42,7 @@ unified session management, enterprise-grade security, and comprehensive Puppete
 
   NIST-compliant security architecture and best practices.
 
-  [:octicons-arrow-right-24: Security Documentation](architecture/security.md)
+  [:octicons-arrow-right-24: Security Documentation](security.md)
 
 </div>
 

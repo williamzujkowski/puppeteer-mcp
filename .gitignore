@@ -95,3 +95,4 @@ benchmark-results/
 # Documentation build
 docs/_build/
 docs/.docusaurus/
+site/

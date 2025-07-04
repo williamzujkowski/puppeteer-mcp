@@ -15,7 +15,16 @@ paths = [
     '''test-results''',
     '''\.next''',
     '''\.cache''',
-    '''build'''
+    '''build''',
+    '''site''',  # Generated documentation site
+    '''\.github/workflows''',  # Workflow files may have example tokens
+    '''eslint-results\.json''',  # ESLint results
+    '''tests?/.*\.test\.(ts|js)$''',  # Test files
+    '''.*\.md$''',  # Markdown documentation files
+    '''src/mcp/examples''',  # Example files with demo credentials
+    '''\.env\.example''',  # Example environment file
+    '''\.env\.sample''',  # Sample environment file
+    '''\.env\.template''',  # Template environment file
 ]
 
 # Allow test/demo credentials that are clearly marked
@@ -26,6 +35,30 @@ regexes = [
     '''fake[_-]?(?:password|token|key|secret)''',
     '''dummy[_-]?(?:password|token|key|secret)''',
     '''mcp-demo-salt''',  # Our demo salt in user-service.ts
+    # JWT examples in documentation (always truncated with ...)
+    '''eyJ[A-Za-z0-9\-_]+\.\.\.''',
+    # Test secret keys
+    '''test-secret-key-for-testing-only.*''',
+    # Example API keys in documentation
+    '''sk-(test|example|readonly|your).*''',
+    '''sk-[0-9]+abcdef''',
+    # Mock/example tokens in JSON
+    '''"token":\s*"[A-Za-z0-9\-_]+\.\.\."''',
+    '''"credentials":\s*"[A-Za-z0-9\-_]+\.\.\."''',
+    '''"accessToken":\s*"[A-Za-z0-9\-_]+\.\.\."''',
+    # Bearer tokens in examples
+    '''Bearer\s+eyJ[A-Za-z0-9\-_]+\.\.\.''',
+    '''authorization.*Bearer\s+eyJ[A-Za-z0-9\-_]+\.\.\.''',
+    # Placeholder values from .env.example
+    '''your-super-secret.*''',
+    '''postgresql://user:password@localhost''',
+    '''redis://localhost:6379''',
+    '''http://localhost:[0-9]+''',
+    '''https://example\.com''',
+    # Common placeholder patterns
+    '''<[A-Z_]+>''',  # <API_KEY>, <SECRET>, etc.
+    '''xxx+''',  # xxxxx placeholders
+    '''\$\{[A-Z_]+\}''',  # ${API_KEY} style placeholders
 ]
 
 # Additional rules for common false positives
@@ -48,6 +81,21 @@ regex = '''(?i)(secret|password|token|key|credential)'''
 description = "Ignore documented examples"
 path = '''(README|CONTRIBUTING|docs)'''
 regex = '''(?i)(secret|password|token|key|credential)'''
+
+[[rules]]
+description = "Ignore JWT tokens in test files"
+path = '''.*\.test\.(ts|js)$'''
+regex = '''eyJ[A-Za-z0-9\-_]+'''
+
+[[rules]]
+description = "Ignore example JWT tokens"
+path = '''(examples?|docs?|README)'''
+regex = '''eyJ[A-Za-z0-9\-_]+'''
+
+[[rules]]
+description = "Ignore test API keys"
+path = '''.*\.(test|spec)\.(ts|js)$'''
+regex = '''sk-[a-zA-Z0-9]+'''
 
 # Custom entropy settings
 [extend]
