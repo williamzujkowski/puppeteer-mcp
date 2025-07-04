@@ -1,0 +1,315 @@
+# Puppeteer MCP Documentation Manifest
+# Machine-readable metadata for progressive disclosure
+# Following Knowledge Management Standards v1.0.0
+
+version: 1.0.0
+last_updated: 2025-01-07
+total_tokens: 45000 # Estimated total across all documentation
+
+# Document registry with metadata
+documents:
+  # Entry points
+  - id: 'readme'
+    file: 'README.md'
+    title: 'Puppeteer MCP - AI-Enabled Browser Automation Platform'
+    category: 'entry'
+    audience: ['all']
+    tokens: 2500
+    priority: 'critical'
+    sections:
+      overview: { tokens: 300, priority: 'critical' }
+      quick_start: { tokens: 500, priority: 'critical' }
+      features: { tokens: 400, priority: 'high' }
+      installation: { tokens: 300, priority: 'high' }
+      usage: { tokens: 500, priority: 'high' }
+      architecture: { tokens: 500, priority: 'medium' }
+
+  - id: 'claude-router'
+    file: 'CLAUDE.md'
+    title: 'AI Assistant Router and Guide'
+    category: 'ai'
+    audience: ['ai-assistant', 'developer']
+    tokens: 3000
+    priority: 'critical'
+    sections:
+      routing: { tokens: 500, priority: 'critical' }
+      standards: { tokens: 800, priority: 'high' }
+      workflow: { tokens: 700, priority: 'high' }
+      lessons: { tokens: 1000, priority: 'medium' }
+
+  # Getting Started Guides
+  - id: 'getting-started'
+    file: 'docs/guides/getting-started.md'
+    title: 'Getting Started with Puppeteer MCP'
+    category: 'guide'
+    audience: ['developer', 'new-contributor']
+    tokens: 1500
+    priority: 'critical'
+    dependencies:
+      requires: ['readme']
+      recommends: ['api-quick-reference']
+
+  - id: 'browser-automation'
+    file: 'docs/guides/browser-automation.md'
+    title: 'Browser Automation Guide'
+    category: 'guide'
+    audience: ['developer']
+    tokens: 2000
+    priority: 'high'
+    dependencies:
+      requires: ['getting-started']
+      recommends: ['puppeteer-api']
+
+  - id: 'api-integration'
+    file: 'docs/guides/api-integration.md'
+    title: 'API Integration Guide'
+    category: 'guide'
+    audience: ['developer', 'integrator']
+    tokens: 1800
+    priority: 'high'
+    dependencies:
+      requires: ['getting-started']
+      recommends: ['rest-api', 'grpc-api', 'websocket-api']
+
+  # API Reference
+  - id: 'api-quick-reference'
+    file: 'docs/reference/api-quick-reference.md'
+    title: 'API Quick Reference'
+    category: 'reference'
+    audience: ['developer']
+    tokens: 800
+    priority: 'high'
+
+  - id: 'rest-api'
+    file: 'docs/reference/rest-api.md'
+    title: 'REST API Reference'
+    category: 'reference'
+    audience: ['developer']
+    tokens: 2500
+    priority: 'high'
+    sections:
+      endpoints: { tokens: 1000, priority: 'critical' }
+      authentication: { tokens: 500, priority: 'critical' }
+      examples: { tokens: 1000, priority: 'high' }
+
+  - id: 'grpc-api'
+    file: 'docs/reference/grpc-api.md'
+    title: 'gRPC API Reference'
+    category: 'reference'
+    audience: ['developer']
+    tokens: 2000
+    priority: 'medium'
+
+  - id: 'websocket-api'
+    file: 'docs/reference/websocket-api.md'
+    title: 'WebSocket API Reference'
+    category: 'reference'
+    audience: ['developer']
+    tokens: 1800
+    priority: 'medium'
+
+  - id: 'mcp-tools'
+    file: 'docs/reference/mcp-tools.md'
+    title: 'MCP Tools Reference'
+    category: 'reference'
+    audience: ['developer', 'ai-assistant']
+    tokens: 1500
+    priority: 'high'
+
+  - id: 'puppeteer-api'
+    file: 'docs/reference/puppeteer-actions.md'
+    title: 'Puppeteer Actions Reference'
+    category: 'reference'
+    audience: ['developer']
+    tokens: 2000
+    priority: 'high'
+
+  # Architecture Documentation
+  - id: 'architecture-overview'
+    file: 'docs/architecture/overview.md'
+    title: 'Architecture Overview'
+    category: 'architecture'
+    audience: ['developer', 'architect']
+    tokens: 2500
+    priority: 'medium'
+    dependencies:
+      recommends: ['security-architecture', 'system-design']
+
+  - id: 'security-architecture'
+    file: 'docs/architecture/security.md'
+    title: 'Security Architecture'
+    category: 'architecture'
+    audience: ['developer', 'security', 'architect']
+    tokens: 3000
+    priority: 'high'
+    dependencies:
+      requires: ['architecture-overview']
+
+  - id: 'system-design'
+    file: 'docs/architecture/system-design.md'
+    title: 'System Design Documentation'
+    category: 'architecture'
+    audience: ['architect', 'developer']
+    tokens: 2000
+    priority: 'medium'
+
+  # Development Documentation
+  - id: 'development-workflow'
+    file: 'docs/development/workflow.md'
+    title: 'Development Workflow'
+    category: 'development'
+    audience: ['developer', 'contributor']
+    tokens: 1500
+    priority: 'high'
+
+  - id: 'coding-standards'
+    file: 'docs/development/standards.md'
+    title: 'Coding Standards'
+    category: 'development'
+    audience: ['developer', 'contributor']
+    tokens: 2000
+    priority: 'high'
+    dependencies:
+      external: ['https://github.com/williamzujkowski/standards']
+
+  - id: 'testing-guide'
+    file: 'docs/development/testing.md'
+    title: 'Testing Guide'
+    category: 'development'
+    audience: ['developer', 'contributor']
+    tokens: 1800
+    priority: 'high'
+
+  # Project Documentation
+  - id: 'roadmap'
+    file: 'docs/project/roadmap.md'
+    title: 'Project Roadmap'
+    category: 'project'
+    audience: ['all']
+    tokens: 1000
+    priority: 'medium'
+
+  - id: 'changelog'
+    file: 'docs/project/changelog.md'
+    title: 'Changelog'
+    category: 'project'
+    audience: ['all']
+    tokens: 2000
+    priority: 'low'
+
+  - id: 'contributing'
+    file: 'CONTRIBUTING.md'
+    title: 'Contributing Guidelines'
+    category: 'project'
+    audience: ['contributor']
+    tokens: 800
+    priority: 'high'
+
+  - id: 'security-policy'
+    file: 'SECURITY.md'
+    title: 'Security Policy'
+    category: 'project'
+    audience: ['all', 'security']
+    tokens: 700
+    priority: 'high'
+
+# Loading strategies for different contexts
+loading_strategies:
+  # Minimal context (< 4K tokens)
+  minimal:
+    load:
+      - { id: 'readme', sections: ['overview', 'quick_start'] }
+      - { id: 'api-quick-reference', sections: ['all'] }
+    max_tokens: 4000
+
+  # Standard context (4K-32K tokens)
+  standard:
+    load:
+      - { id: 'readme', sections: ['all'] }
+      - { id: 'getting-started', sections: ['all'] }
+      - { id: 'api-quick-reference', sections: ['all'] }
+      - { id: 'rest-api', sections: ['endpoints', 'authentication'] }
+      - { id: 'architecture-overview', sections: ['overview'] }
+    lazy_load:
+      - { category: 'guide' }
+      - { category: 'reference' }
+    max_tokens: 32000
+
+  # Full context (> 32K tokens)
+  full:
+    load:
+      - { category: '*' }
+    exclude:
+      - { id: 'changelog' }
+      - { category: 'project', priority: 'low' }
+    optimize:
+      - 'remove_duplicate_examples'
+      - 'compress_code_blocks'
+
+# Natural language mappings for AI assistants
+ai_mappings:
+  - pattern: 'how do I get started|quick start|setup'
+    load: ['readme', 'getting-started']
+
+  - pattern: 'browser automation|puppeteer|screenshot|scraping'
+    load: ['browser-automation', 'puppeteer-api']
+
+  - pattern: 'API|REST|endpoints'
+    load: ['api-quick-reference', 'rest-api']
+
+  - pattern: 'security|authentication|NIST'
+    load: ['security-architecture', 'security-policy']
+
+  - pattern: 'contribute|contributing|development'
+    load: ['contributing', 'development-workflow', 'coding-standards']
+
+  - pattern: 'architecture|design|how it works'
+    load: ['architecture-overview', 'system-design']
+
+  - pattern: 'MCP|model context protocol'
+    load: ['mcp-tools', 'api-integration']
+
+  - pattern: 'WebSocket|real-time|streaming'
+    load: ['websocket-api']
+
+  - pattern: 'testing|tests|coverage'
+    load: ['testing-guide', 'development-workflow']
+
+# Semantic relationships graph
+relationships:
+  getting-started:
+    leads_to: ['browser-automation', 'api-integration']
+    requires: ['readme']
+
+  browser-automation:
+    requires: ['getting-started']
+    uses: ['puppeteer-api']
+    related: ['api-integration']
+
+  api-integration:
+    requires: ['getting-started']
+    includes: ['rest-api', 'grpc-api', 'websocket-api', 'mcp-tools']
+
+  development-workflow:
+    requires: ['getting-started']
+    includes: ['coding-standards', 'testing-guide']
+    related: ['contributing']
+
+# Search optimization
+search_keywords:
+  browser_automation: ['puppeteer', 'screenshot', 'scraping', 'headless', 'chrome']
+  api: ['REST', 'gRPC', 'WebSocket', 'MCP', 'endpoints', 'HTTP']
+  security: ['NIST', 'authentication', 'JWT', 'API key', 'compliance']
+  development: ['TypeScript', 'Node.js', 'testing', 'ESLint', 'contributing']
+
+# Metrics for tracking
+metrics:
+  total_documents: 24
+  total_categories: 7
+  estimated_total_tokens: 45000
+  last_structure_review: '2025-01-07'
+  compliance:
+    km_standards: true
+    progressive_disclosure: true
+    ai_optimized: true
+    version_managed: true

@@ -1,10 +1,13 @@
 # MCP Session Management
 
-This document describes the session management implementation in the MCP (Model Context Protocol) server.
+This document describes the session management implementation in the MCP (Model Context Protocol)
+server.
 
 ## Overview
 
-The MCP server provides comprehensive session management tools that integrate with the existing authentication system. Sessions are created using username/password authentication and can be used for subsequent API operations across all protocols (REST, gRPC, WebSocket).
+The MCP server provides comprehensive session management tools that integrate with the existing
+authentication system. Sessions are created using username/password authentication and can be used
+for subsequent API operations across all protocols (REST, gRPC, WebSocket).
 
 ## Features
 
@@ -31,6 +34,7 @@ The MCP server provides comprehensive session management tools that integrate wi
 Creates a new authenticated session.
 
 **Input Schema:**
+
 ```json
 {
   "username": "string (required)",
@@ -40,6 +44,7 @@ Creates a new authenticated session.
 ```
 
 **Response:**
+
 ```json
 {
   "sessionId": "uuid",
@@ -57,6 +62,7 @@ Creates a new authenticated session.
 ```
 
 **Error Response:**
+
 ```json
 {
   "error": "string",
@@ -69,6 +75,7 @@ Creates a new authenticated session.
 Lists active sessions for a specific user.
 
 **Input Schema:**
+
 ```json
 {
   "userId": "string (optional)"
@@ -76,6 +83,7 @@ Lists active sessions for a specific user.
 ```
 
 **Response:**
+
 ```json
 {
   "sessions": [
@@ -99,6 +107,7 @@ Lists active sessions for a specific user.
 Deletes an active session.
 
 **Input Schema:**
+
 ```json
 {
   "sessionId": "string (required)"
@@ -106,6 +115,7 @@ Deletes an active session.
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -115,6 +125,7 @@ Deletes an active session.
 ```
 
 **Error Response:**
+
 ```json
 {
   "error": "string",
@@ -127,6 +138,7 @@ Deletes an active session.
 Creates a Puppeteer browser context using an authenticated session.
 
 **Input Schema:**
+
 ```json
 {
   "sessionId": "string (required)",
@@ -142,6 +154,7 @@ Creates a Puppeteer browser context using an authenticated session.
 ```
 
 **Response:**
+
 ```json
 {
   "contextId": "uuid",
@@ -157,18 +170,21 @@ Creates a Puppeteer browser context using an authenticated session.
 The system includes three demo users for testing:
 
 ### Admin User
+
 - **Username**: admin
 - **Password**: admin123!
 - **Roles**: ['admin', 'user']
 - **Description**: Full administrative permissions
 
 ### Demo User
+
 - **Username**: demo
 - **Password**: demo123!
 - **Roles**: ['user']
 - **Description**: Standard user permissions
 
 ### Viewer User
+
 - **Username**: viewer
 - **Password**: viewer123!
 - **Roles**: ['viewer']
@@ -223,6 +239,7 @@ The system includes three demo users for testing:
 ### Session Store
 
 Sessions are stored in an in-memory store (`InMemorySessionStore`) with the following features:
+
 - Automatic cleanup of expired sessions (runs every minute)
 - User-based session tracking
 - Audit logging for all operations
@@ -231,6 +248,7 @@ Sessions are stored in an in-memory store (`InMemorySessionStore`) with the foll
 ### Authentication Bridge
 
 The `MCPAuthBridge` provides unified authentication across different methods:
+
 - JWT token verification
 - API key verification
 - Session-based authentication
@@ -239,6 +257,7 @@ The `MCPAuthBridge` provides unified authentication across different methods:
 ### Security Logging
 
 All authentication events are logged with appropriate NIST tags:
+
 - `@nist ia-2`: Identification and authentication
 - `@nist ac-3`: Access enforcement
 - `@nist au-3`: Content of audit records
@@ -247,6 +266,7 @@ All authentication events are logged with appropriate NIST tags:
 ### Error Handling
 
 The implementation includes comprehensive error handling:
+
 - Input validation using Zod schemas
 - Detailed error messages with error codes
 - Security event logging for failures
@@ -265,6 +285,7 @@ The implementation includes comprehensive error handling:
 ## Testing
 
 The implementation includes comprehensive unit tests covering:
+
 - Valid and invalid authentication
 - Session lifecycle management
 - Permission enforcement
@@ -272,6 +293,7 @@ The implementation includes comprehensive unit tests covering:
 - Full authentication workflow
 
 Run tests with:
+
 ```bash
 npm test src/mcp/server.test.ts
 ```

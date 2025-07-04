@@ -2,7 +2,9 @@
 
 ## Overview
 
-This document outlines the implementation plan for integrating the Model Context Protocol (MCP) into our existing multi-protocol API platform. This integration will enable LLMs to interact with our REST, gRPC, and WebSocket APIs through a standardized interface.
+This document outlines the implementation plan for integrating the Model Context Protocol (MCP) into
+our existing multi-protocol API platform. This integration will enable LLMs to interact with our
+REST, gRPC, and WebSocket APIs through a standardized interface.
 
 ## Architecture Overview
 
@@ -38,6 +40,7 @@ This document outlines the implementation plan for integrating the Model Context
 ### 1.1 Project Setup
 
 **File Structure:**
+
 ```
 src/mcp/
 ├── server.ts              # MCP server initialization
@@ -62,11 +65,12 @@ src/mcp/
 ```
 
 **Dependencies:**
+
 ```json
 {
   "dependencies": {
     "@modelcontextprotocol/sdk": "^0.5.0",
-    "zod": "^3.22.4"  // Already in project
+    "zod": "^3.22.4" // Already in project
   }
 }
 ```
@@ -85,7 +89,7 @@ import {
 
 export class MCPServer {
   private server: Server;
-  
+
   constructor() {
     this.server = new Server(
       {
@@ -98,23 +102,23 @@ export class MCPServer {
           tools: {},
           prompts: {},
         },
-      }
+      },
     );
-    
+
     this.setupHandlers();
   }
-  
+
   private setupHandlers(): void {
     // Tool execution handler
     this.server.setRequestHandler(CallToolRequestSchema, async (request) => {
       // Route to appropriate tool handler
     });
-    
+
     // Resource listing handler
     this.server.setRequestHandler(ListResourcesRequestSchema, async () => {
       // Return available resources
     });
-    
+
     // Resource reading handler
     this.server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
       // Return resource content
@@ -147,20 +151,22 @@ export class RestAdapter {
         throw new Error('Invalid session');
       }
     }
-    
+
     // Execute REST request
     const response = await this.forwardToExpress(params);
-    
+
     // Transform to MCP response
     return {
-      content: [{
-        type: 'text',
-        text: JSON.stringify(response.body)
-      }],
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(response.body),
+        },
+      ],
       metadata: {
         status: response.status,
-        headers: response.headers
-      }
+        headers: response.headers,
+      },
     };
   }
 }
@@ -181,19 +187,21 @@ export class GrpcAdapter {
   }): Promise<MCPResponse> {
     const server = getGrpcServer();
     const service = server.getService(params.service);
-    
+
     if (!service) {
       throw new Error(`Service ${params.service} not found`);
     }
-    
+
     // Execute gRPC call
     const response = await service[params.method](params.request, params.metadata);
-    
+
     return {
-      content: [{
-        type: 'text',
-        text: JSON.stringify(response)
-      }]
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(response),
+        },
+      ],
     };
   }
 }
@@ -207,35 +215,37 @@ import { WebSocketManager } from '@ws/connection-manager.js';
 
 export class WebSocketAdapter {
   private subscriptions = new Map<string, (data: any) => void>();
-  
+
   async subscribe(params: {
     topic: string;
     filter?: Record<string, unknown>;
     duration?: number;
   }): Promise<MCPStreamResponse> {
     const subscriptionId = crypto.randomUUID();
-    
+
     // Create subscription
     const unsubscribe = WebSocketManager.subscribe(
       params.topic,
       (data) => this.handleMessage(subscriptionId, data),
-      params.filter
+      params.filter,
     );
-    
+
     // Store cleanup function
     this.subscriptions.set(subscriptionId, unsubscribe);
-    
+
     // Auto-cleanup if duration specified
     if (params.duration) {
       setTimeout(() => this.unsubscribe(subscriptionId), params.duration);
     }
-    
+
     return {
       subscriptionId,
-      content: [{
-        type: 'text',
-        text: `Subscribed to ${params.topic}`
-      }]
+      content: [
+        {
+          type: 'text',
+          text: `Subscribed to ${params.topic}`,
+        },
+      ],
     };
   }
 }
@@ -256,45 +266,45 @@ export const apiExecutorTool = {
       protocol: {
         type: 'string',
         enum: ['rest', 'grpc', 'websocket'],
-        description: 'Protocol to use'
+        description: 'Protocol to use',
       },
       operation: {
         type: 'object',
-        description: 'Protocol-specific operation details'
+        description: 'Protocol-specific operation details',
       },
       auth: {
         type: 'object',
         properties: {
           type: { type: 'string', enum: ['jwt', 'apikey', 'session'] },
-          credentials: { type: 'string' }
-        }
-      }
+          credentials: { type: 'string' },
+        },
+      },
     },
-    required: ['protocol', 'operation']
+    required: ['protocol', 'operation'],
   },
   handler: async (params: any) => {
     // Authenticate if credentials provided
     const context = await authenticateMCPRequest(params.auth);
-    
+
     // Route to appropriate adapter
     switch (params.protocol) {
       case 'rest':
         return await restAdapter.executeRequest({
           ...params.operation,
-          context
+          context,
         });
       case 'grpc':
         return await grpcAdapter.executeCall({
           ...params.operation,
-          context
+          context,
         });
       case 'websocket':
         return await wsAdapter.handleOperation({
           ...params.operation,
-          context
+          context,
         });
     }
-  }
+  },
 };
 ```
 
@@ -311,22 +321,24 @@ export const sessionTools = [
       properties: {
         username: { type: 'string' },
         password: { type: 'string' },
-        duration: { type: 'number', description: 'Session duration in seconds' }
+        duration: { type: 'number', description: 'Session duration in seconds' },
       },
-      required: ['username', 'password']
+      required: ['username', 'password'],
     },
     handler: async (params: any) => {
       const session = await authService.authenticate(params);
       return {
-        content: [{
-          type: 'text',
-          text: JSON.stringify({
-            sessionId: session.id,
-            expiresAt: session.expiresAt
-          })
-        }]
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({
+              sessionId: session.id,
+              expiresAt: session.expiresAt,
+            }),
+          },
+        ],
       };
-    }
+    },
   },
   {
     name: 'list-sessions',
@@ -334,19 +346,21 @@ export const sessionTools = [
     inputSchema: {
       type: 'object',
       properties: {
-        userId: { type: 'string' }
-      }
+        userId: { type: 'string' },
+      },
     },
     handler: async (params: any) => {
       const sessions = await sessionStore.list({ userId: params.userId });
       return {
-        content: [{
-          type: 'text',
-          text: JSON.stringify(sessions)
-        }]
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify(sessions),
+          },
+        ],
       };
-    }
-  }
+    },
+  },
 ];
 ```
 
@@ -370,29 +384,31 @@ export const contextTools = [
               type: 'object',
               properties: {
                 width: { type: 'number' },
-                height: { type: 'number' }
-              }
-            }
-          }
-        }
+                height: { type: 'number' },
+              },
+            },
+          },
+        },
       },
-      required: ['sessionId']
+      required: ['sessionId'],
     },
     handler: async (params: any) => {
       const context = await contextStore.create({
         sessionId: params.sessionId,
         type: 'puppeteer',
         config: params.options || {},
-        status: 'active'
+        status: 'active',
       });
-      
+
       return {
-        content: [{
-          type: 'text',
-          text: JSON.stringify({ contextId: context.id })
-        }]
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({ contextId: context.id }),
+          },
+        ],
       };
-    }
+    },
   },
   {
     name: 'execute-in-context',
@@ -402,25 +418,27 @@ export const contextTools = [
       properties: {
         contextId: { type: 'string' },
         command: { type: 'string' },
-        parameters: { type: 'object' }
+        parameters: { type: 'object' },
       },
-      required: ['contextId', 'command']
+      required: ['contextId', 'command'],
     },
     handler: async (params: any) => {
       const result = await puppeteerExecutor.execute(
         params.contextId,
         params.command,
-        params.parameters
+        params.parameters,
       );
-      
+
       return {
-        content: [{
-          type: 'text',
-          text: JSON.stringify(result)
-        }]
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify(result),
+          },
+        ],
       };
-    }
-  }
+    },
+  },
 ];
 ```
 
@@ -443,48 +461,50 @@ export const apiCatalogResource = {
           {
             path: '/sessions',
             methods: ['GET', 'POST', 'DELETE'],
-            description: 'Session management'
+            description: 'Session management',
           },
           {
             path: '/contexts',
             methods: ['GET', 'POST', 'PUT', 'DELETE'],
-            description: 'Context management'
-          }
-        ]
+            description: 'Context management',
+          },
+        ],
       },
       grpc: {
         services: [
           {
             name: 'SessionService',
-            methods: ['CreateSession', 'GetSession', 'DeleteSession']
+            methods: ['CreateSession', 'GetSession', 'DeleteSession'],
           },
           {
             name: 'ContextService',
-            methods: ['CreateContext', 'ExecuteCommand']
-          }
-        ]
+            methods: ['CreateContext', 'ExecuteCommand'],
+          },
+        ],
       },
       websocket: {
         topics: [
           {
             name: 'session-updates',
-            description: 'Real-time session events'
+            description: 'Real-time session events',
           },
           {
             name: 'context-updates',
-            description: 'Real-time context events'
-          }
-        ]
-      }
+            description: 'Real-time context events',
+          },
+        ],
+      },
     };
-    
+
     return {
-      content: [{
-        type: 'text',
-        text: JSON.stringify(catalog, null, 2)
-      }]
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(catalog, null, 2),
+        },
+      ],
     };
-  }
+  },
 };
 ```
 
@@ -499,17 +519,19 @@ export const schemaProviderResource = {
   mimeType: 'application/json',
   handler: async (uri: string) => {
     const [, , , service, method] = uri.split('/');
-    
+
     // Get schema based on service and method
     const schema = await schemaRegistry.getSchema(service, method);
-    
+
     return {
-      content: [{
-        type: 'text',
-        text: JSON.stringify(schema, null, 2)
-      }]
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(schema, null, 2),
+        },
+      ],
     };
-  }
+  },
 };
 ```
 
@@ -530,7 +552,7 @@ export class MCPAuthBridge {
     if (!auth) {
       throw new Error('Authentication required');
     }
-    
+
     switch (auth.type) {
       case 'jwt':
         return await this.authenticateJWT(auth.credentials);
@@ -542,22 +564,22 @@ export class MCPAuthBridge {
         throw new Error('Invalid authentication type');
     }
   }
-  
+
   private async authenticateJWT(token: string): Promise<AuthContext> {
     const decoded = await verifyToken(token);
     return {
       userId: decoded.userId,
       roles: decoded.roles,
-      permissions: await this.getPermissions(decoded.roles)
+      permissions: await this.getPermissions(decoded.roles),
     };
   }
-  
+
   private async authenticateApiKey(key: string): Promise<AuthContext> {
     const apiKey = await validateApiKey(key);
     return {
       userId: apiKey.userId,
       roles: ['api-user'],
-      permissions: apiKey.scopes
+      permissions: apiKey.scopes,
     };
   }
 }
@@ -573,12 +595,12 @@ export class MCPPermissionMapper {
     'create-session': ['session:create'],
     'list-sessions': ['session:read'],
     'create-browser-context': ['context:create'],
-    'execute-in-context': ['context:execute']
+    'execute-in-context': ['context:execute'],
   };
-  
+
   static canExecuteTool(tool: string, permissions: string[]): boolean {
     const required = this.toolPermissions[tool] || [];
-    return required.every(p => permissions.includes(p));
+    return required.every((p) => permissions.includes(p));
   }
 }
 ```
@@ -596,23 +618,23 @@ describe('MCP Server', () => {
         protocol: 'rest',
         operation: {
           method: 'GET',
-          endpoint: '/api/v1/sessions'
+          endpoint: '/api/v1/sessions',
         },
         auth: {
           type: 'jwt',
-          credentials: testToken
-        }
+          credentials: testToken,
+        },
       });
-      
+
       expect(response.content[0].text).toContain('sessions');
     });
   });
-  
+
   describe('Resource Access', () => {
     it('should provide API catalog', async () => {
       const catalog = await mcpClient.readResource('api://catalog');
       const data = JSON.parse(catalog.content[0].text);
-      
+
       expect(data).toHaveProperty('rest');
       expect(data).toHaveProperty('grpc');
       expect(data).toHaveProperty('websocket');
@@ -630,26 +652,26 @@ describe('MCP Full Integration', () => {
     // 1. Create session via MCP
     const sessionResponse = await mcpClient.callTool('create-session', {
       username: 'testuser',
-      password: 'testpass'
+      password: 'testpass',
     });
-    
+
     const { sessionId } = JSON.parse(sessionResponse.content[0].text);
-    
+
     // 2. Create browser context
     const contextResponse = await mcpClient.callTool('create-browser-context', {
       sessionId,
-      options: { headless: true }
+      options: { headless: true },
     });
-    
+
     const { contextId } = JSON.parse(contextResponse.content[0].text);
-    
+
     // 3. Execute browser command
     const executeResponse = await mcpClient.callTool('execute-in-context', {
       contextId,
       command: 'navigate',
-      parameters: { url: 'https://example.com' }
+      parameters: { url: 'https://example.com' },
     });
-    
+
     expect(executeResponse).toBeDefined();
   });
 });
@@ -666,19 +688,19 @@ export const mcpConfig = {
     type: process.env.MCP_TRANSPORT || 'stdio',
     http: {
       port: parseInt(process.env.MCP_HTTP_PORT || '3001'),
-      host: process.env.MCP_HTTP_HOST || 'localhost'
-    }
+      host: process.env.MCP_HTTP_HOST || 'localhost',
+    },
   },
   security: {
     requireAuth: process.env.MCP_REQUIRE_AUTH !== 'false',
-    allowedClients: process.env.MCP_ALLOWED_CLIENTS?.split(',') || []
+    allowedClients: process.env.MCP_ALLOWED_CLIENTS?.split(',') || [],
   },
   features: {
     enableTools: true,
     enableResources: true,
     enablePrompts: true,
-    enableSampling: false
-  }
+    enableSampling: false,
+  },
 };
 ```
 
@@ -696,16 +718,16 @@ export class MCPMonitoring {
       params: this.sanitizeParams(params),
       success: !!result,
       duration,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   }
-  
+
   static logResourceAccess(resource: string, duration: number) {
     logger.info({
       type: 'mcp_resource_access',
       resource,
       duration,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   }
 }
@@ -713,15 +735,15 @@ export class MCPMonitoring {
 
 ## Implementation Timeline
 
-| Week | Phase | Deliverables |
-|------|-------|--------------|
-| 1-2  | Foundation | Basic MCP server, file structure, core setup |
-| 2-3  | Protocol Adapters | REST, gRPC, WebSocket adapters |
-| 3-4  | Tools | API executor, session, and context tools |
-| 4-5  | Resources | API catalog, schema provider |
-| 5-6  | Security | Authentication bridge, permission mapping |
-| 6-7  | Testing | Unit and integration tests |
-| 7-8  | Deployment | Configuration, monitoring, documentation |
+| Week | Phase             | Deliverables                                 |
+| ---- | ----------------- | -------------------------------------------- |
+| 1-2  | Foundation        | Basic MCP server, file structure, core setup |
+| 2-3  | Protocol Adapters | REST, gRPC, WebSocket adapters               |
+| 3-4  | Tools             | API executor, session, and context tools     |
+| 4-5  | Resources         | API catalog, schema provider                 |
+| 5-6  | Security          | Authentication bridge, permission mapping    |
+| 6-7  | Testing           | Unit and integration tests                   |
+| 7-8  | Deployment        | Configuration, monitoring, documentation     |
 
 ## Success Metrics
 
@@ -761,4 +783,5 @@ export class MCPMonitoring {
 3. Begin Phase 1 implementation
 4. Schedule weekly progress reviews
 
-This plan ensures a systematic, secure, and maintainable integration of MCP into your platform while preserving all existing functionality.
+This plan ensures a systematic, secure, and maintainable integration of MCP into your platform while
+preserving all existing functionality.

@@ -1,0 +1,203 @@
+# MkDocs Configuration for Puppeteer MCP
+# Following Knowledge Management Standards v1.0.0
+
+site_name: Puppeteer MCP Documentation
+site_description: AI-Enabled Browser Automation Platform with Multi-Protocol Support
+site_author: William Zujkowski
+site_url: https://williamzujkowski.github.io/puppeteer-mcp/
+repo_url: https://github.com/williamzujkowski/puppeteer-mcp
+repo_name: puppeteer-mcp
+edit_uri: edit/main/docs/
+
+# Theme Configuration
+theme:
+  name: material
+  language: en
+
+  # Color scheme
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+  # Features
+  features:
+    - navigation.instant # Instant loading
+    - navigation.tracking # Anchor tracking
+    - navigation.tabs # Top-level navigation tabs
+    - navigation.tabs.sticky # Sticky navigation tabs
+    - navigation.sections # Render sections as groups
+    - navigation.expand # Expand all sections by default
+    - navigation.indexes # Section index pages
+    - navigation.top # Back to top button
+    - search.suggest # Search suggestions
+    - search.highlight # Search term highlighting
+    - search.share # Share search results
+    - content.code.copy # Code copy button
+    - content.code.annotate # Code annotations
+    - content.tabs.link # Link content tabs
+
+  # Icons
+  icon:
+    repo: fontawesome/brands/github
+    logo: material/robot
+
+  # Fonts
+  font:
+    text: Roboto
+    code: Roboto Mono
+
+# Navigation Structure
+nav:
+  - Home:
+      - Overview: index.md
+      - Quick Start: guides/getting-started.md
+      - Features: architecture/overview.md
+
+  - Guides:
+      - Getting Started: guides/getting-started.md
+      - Browser Automation: guides/browser-automation.md
+      - API Integration: guides/api-integration.md
+      - MCP Usage Examples: guides/mcp-usage-examples.md
+
+  - API Reference:
+      - Quick Reference: reference/api-quick-reference.md
+      - REST API: reference/rest-api.md
+      - gRPC API: reference/grpc-api.md
+      - WebSocket API: reference/websocket-api.md
+      - MCP Tools: reference/mcp-tools.md
+      - Puppeteer Actions: reference/puppeteer-actions.md
+
+  - Architecture:
+      - Overview: architecture/overview.md
+      - Security: architecture/security.md
+      - System Design: architecture/system-design.md
+      - Session Management: architecture/session-management.md
+      - MCP Integration Plan: architecture/mcp-integration-plan.md
+
+  - Development:
+      - Workflow: development/workflow.md
+      - Standards: development/standards.md
+      - Testing: development/testing.md
+      - AI Routing: ai/routing-patterns.md
+
+  - Project:
+      - Changelog: project/changelog.md
+      - Roadmap: project/roadmap.md
+      - Contributing: contributing.md
+      - Security Policy: security.md
+
+  - Lessons Learned:
+      - Implementation: lessons/implementation.md
+      - Project Planning: lessons/project-planning.md
+
+# Plugins
+plugins:
+  - search:
+      separator: '[\s\-\.]'
+      lang:
+        - en
+  - minify:
+      minify_html: true
+      minify_js: true
+      minify_css: true
+      htmlmin_opts:
+        remove_comments: true
+  - git-revision-date-localized:
+      enable_creation_date: true
+      type: iso_datetime
+  - tags:
+      tags_file: tags.md
+
+# Markdown Extensions
+markdown_extensions:
+  # Python Markdown
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - meta
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+      toc_depth: 3
+
+  # Python Markdown Extensions
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+
+# Extra CSS
+extra_css:
+  - stylesheets/extra.css
+
+# Extra JavaScript
+extra_javascript:
+  - javascripts/mathjax.js
+  - https://polyfill.io/v3/polyfill.min.js?features=es6
+  - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
+
+# Analytics (if needed)
+# extra:
+#   analytics:
+#     provider: google
+#     property: G-XXXXXXXXXX
+
+# Social links
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/williamzujkowski/puppeteer-mcp
+    - icon: fontawesome/brands/linkedin
+      link: https://linkedin.com/in/williamzujkowski
+
+  # Version selector
+  version:
+    provider: mike
+
+  # Status badges
+  status:
+    - name: Production Ready
+      color: green
+    - name: NIST Compliant
+      color: blue
+    - name: Zero TypeScript Errors
+      color: green
+
+# Copyright
+copyright: Copyright &copy; 2025 William Zujkowski - Apache License 2.0

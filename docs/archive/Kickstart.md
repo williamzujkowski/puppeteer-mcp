@@ -1,22 +1,28 @@
 # Universal Project Kickstart Prompt
 
-Copy this prompt into any web-based LLM chat (ChatGPT, Claude, Gemini, etc.) along with your project_plan.md content.
+Copy this prompt into any web-based LLM chat (ChatGPT, Claude, Gemini, etc.) along with your
+project_plan.md content.
 
 ---
 
 ## 🚀 Project Kickstart Assistant
 
-I need help implementing a project based on my project plan. I'll provide the plan content below, and I'd like you to:
+I need help implementing a project based on my project plan. I'll provide the plan content below,
+and I'd like you to:
 
 ### 1. **Analyze & Identify** (Auto-Detection)
+
 - Detect the project type, tech stack, and languages
 - Identify frameworks, databases, and infrastructure needs
 - Recognize architectural patterns and deployment targets
 - Note any compliance or security requirements
 
 ### 2. **Standards Mapping** (From: https://github.com/williamzujkowski/standards)
-> 💡 **Note**: For creating new standards, see [CREATING_STANDARDS_GUIDE.md](https://github.com/williamzujkowski/standards/blob/master/CREATING_STANDARDS_GUIDE.md)
-Based on the detected technologies, recommend relevant standards:
+
+> 💡 **Note**: For creating new standards, see
+> [CREATING_STANDARDS_GUIDE.md](https://github.com/williamzujkowski/standards/blob/master/CREATING_STANDARDS_GUIDE.md)
+> Based on the detected technologies, recommend relevant standards:
+
 - **Code Standards (CS):** Language-specific best practices
 - **Testing Standards (TS):** Testing frameworks and coverage requirements
 - **Security Standards (SEC):** Security patterns and authentication
@@ -24,10 +30,13 @@ Based on the detected technologies, recommend relevant standards:
 - **Infrastructure (CN/DOP):** Container and deployment standards
 - **Data Engineering (DE):** Database and data pipeline standards
 - **Legal/Compliance (LEG):** Privacy and regulatory requirements
-- **NIST Compliance (NIST-IG):** NIST 800-53r5 control tagging ([NIST_IMPLEMENTATION_GUIDE.md](https://github.com/williamzujkowski/standards/blob/master/NIST_IMPLEMENTATION_GUIDE.md))
+- **NIST Compliance (NIST-IG):** NIST 800-53r5 control tagging
+  ([NIST_IMPLEMENTATION_GUIDE.md](https://github.com/williamzujkowski/standards/blob/master/NIST_IMPLEMENTATION_GUIDE.md))
 
 ### 3. **Implementation Blueprint**
+
 Create a structured implementation plan with:
+
 - Project scaffold/boilerplate structure
 - Core dependencies and toolchain setup
 - Development workflow (git flow, CI/CD)
@@ -37,7 +46,9 @@ Create a structured implementation plan with:
 - Deployment pipeline and monitoring
 
 ### 4. **Code Generation**
+
 Provide starter code for:
+
 - Project configuration files (package.json, pyproject.toml, etc.)
 - CI/CD pipeline configuration
 - Docker/container setup if applicable
@@ -46,7 +57,9 @@ Provide starter code for:
 - Security configurations and middleware
 
 ### 5. **Quality Gates**
+
 Define automated checks for:
+
 - Code style and linting rules
 - Test coverage thresholds
 - Security scanning requirements
@@ -54,7 +67,9 @@ Define automated checks for:
 - Documentation standards
 
 ### 6. **Tool Recommendations**
+
 Suggest modern tools for:
+
 - **Required:** Essential tools for the detected stack
 - **Recommended:** Tools that enhance developer experience
 - **Optional:** Nice-to-have tools for advanced workflows
@@ -63,50 +78,47 @@ Suggest modern tools for:
 
 ## My Project Plan:
 
-Below is a three-phase blueprint for building your “MCP” API platform in Node.js, followed by successive refinement into iterative chunks, and finally a set of self-contained prompts you can feed to a code-generation LLM. Each prompt builds on the last, drives towards a solid, test-driven MVP, and ends by wiring new pieces into the growing system.
+Below is a three-phase blueprint for building your “MCP” API platform in Node.js, followed by
+successive refinement into iterative chunks, and finally a set of self-contained prompts you can
+feed to a code-generation LLM. Each prompt builds on the last, drives towards a solid, test-driven
+MVP, and ends by wiring new pieces into the growing system.
 
 ---
 
 ## Phase 1: High-Level Blueprint
 
 1. **Project Initialization**
-
-   * Scaffold a TypeScript/ESM Node.js project
-   * Set up eslint/prettier, Husky pre-commit hooks
-   * Configure Jest or Mocha for TDD
+   - Scaffold a TypeScript/ESM Node.js project
+   - Set up eslint/prettier, Husky pre-commit hooks
+   - Configure Jest or Mocha for TDD
 
 2. **REST API Layer**
-
-   * Choose framework (Express or Fastify with HTTP/2)
-   * Define core CRUD resources (`/sessions`, `/contexts`)
-   * Implement versioning and validation
-   * Add logging, error handling, and health checks
+   - Choose framework (Express or Fastify with HTTP/2)
+   - Define core CRUD resources (`/sessions`, `/contexts`)
+   - Implement versioning and validation
+   - Add logging, error handling, and health checks
 
 3. **gRPC Layer**
-
-   * Define `.proto` files for service (e.g. `ControlService`, `StreamService`)
-   * Generate TypeScript stubs (`@grpc/proto-loader` + `@grpc/grpc-js`)
-   * Implement unary and streaming RPCs
-   * Add interceptors for auth and logging
+   - Define `.proto` files for service (e.g. `ControlService`, `StreamService`)
+   - Generate TypeScript stubs (`@grpc/proto-loader` + `@grpc/grpc-js`)
+   - Implement unary and streaming RPCs
+   - Add interceptors for auth and logging
 
 4. **WebSocket Layer**
-
-   * Pick a library (`ws` or Socket.IO)
-   * Define message envelope (JSON or Protobuf framing)
-   * Implement server and client examples
-   * Secure via WSS and origin checks
+   - Pick a library (`ws` or Socket.IO)
+   - Define message envelope (JSON or Protobuf framing)
+   - Implement server and client examples
+   - Secure via WSS and origin checks
 
 5. **Shared Core**
-
-   * Session/context models
-   * Common utilities (logging, config, error types)
-   * Authentication/authorization middleware (API keys, JWT, OAuth2)
+   - Session/context models
+   - Common utilities (logging, config, error types)
+   - Authentication/authorization middleware (API keys, JWT, OAuth2)
 
 6. **Testing & CI**
-
-   * Unit tests for each module
-   * Integration tests covering end-to-end flows
-   * GitHub Actions for lint/test/build on push
+   - Unit tests for each module
+   - Integration tests covering end-to-end flows
+   - GitHub Actions for lint/test/build on push
 
 ---
 
@@ -150,7 +162,8 @@ Below is a three-phase blueprint for building your “MCP” API platform in Nod
 
 ## Phase 3: Right-Sized Steps
 
-We’ll break each chunk into 2–4 small steps that include test scaffolding, implementation, and integration:
+We’ll break each chunk into 2–4 small steps that include test scaffolding, implementation, and
+integration:
 
 ### Example: Chunk B3 → Sessions Router
 
@@ -163,9 +176,11 @@ We’ll break each chunk into 2–4 small steps that include test scaffolding, i
      expect(await store.get(id)).toMatchObject({ user: 'alice' });
    });
    ```
+
 2. **B3.2** Implement `InMemorySessionStore` to satisfy the test.
 3. **B3.3** Write an integration test for `GET /sessions/:id`.
-4. **B3.4** Implement Express router for `/sessions` that uses the store, passing the integration test.
+4. **B3.4** Implement Express router for `/sessions` that uses the store, passing the integration
+   test.
 
 You would do this for every chunk until the system is fully wired.
 
@@ -173,7 +188,9 @@ You would do this for every chunk until the system is fully wired.
 
 ## Phase 4: Code-Generation Prompts
 
-Below each section is a single prompt (wrapped in triple-backticks) you can hand off to a code-generation LLM. **Each prompt** includes context, the exact task, testing requirements, and wiring instructions.
+Below each section is a single prompt (wrapped in triple-backticks) you can hand off to a
+code-generation LLM. **Each prompt** includes context, the exact task, testing requirements, and
+wiring instructions.
 
 ---
 
@@ -217,9 +234,8 @@ interface SessionStore {
 }
 ````
 
-Create `InMemorySessionStore` in `src/store/InMemorySessionStore.ts` using a Map.
-Write Jest unit tests to cover `create` and `get` as described.
-Ensure tests pass.
+Create `InMemorySessionStore` in `src/store/InMemorySessionStore.ts` using a Map. Write Jest unit
+tests to cover `create` and `get` as described. Ensure tests pass.
 
 ````
 
@@ -254,9 +270,8 @@ message GetRequest { string id = 1; }
 message GetResponse { map<string, string> data = 1; }
 ````
 
-Use `@grpc/proto-loader` and `@grpc/grpc-js` to generate TypeScript stubs.
-Implement the server handlers to call your `InMemorySessionStore`.
-Write Mocha or Jest tests for the unary RPCs.
+Use `@grpc/proto-loader` and `@grpc/grpc-js` to generate TypeScript stubs. Implement the server
+handlers to call your `InMemorySessionStore`. Write Mocha or Jest tests for the unary RPCs.
 
 ````
 
@@ -275,16 +290,19 @@ Write unit tests mocking WebSocket connections for both auth success and failure
 
 ---
 
-*(Continue in this pattern for the remaining chunks – C3, C4, D3, D4, E1–E4 – each time stating exactly what file(s) to edit, what tests to write first, what implementation to follow, and how to wire into existing modules.)*
+_(Continue in this pattern for the remaining chunks – C3, C4, D3, D4, E1–E4 – each time stating
+exactly what file(s) to edit, what tests to write first, what implementation to follow, and how to
+wire into existing modules.)_
 
 ---
 
-With these prompts, you can steadily drive a code-generation LLM through every milestone of your Node.js MCP server, with tests first, clear increments, and no orphaned code.
-
+With these prompts, you can steadily drive a code-generation LLM through every milestone of your
+Node.js MCP server, with tests first, clear increments, and no orphaned code.
 
 ---
 
 ## Additional Context (Optional):
+
 - Team size: [small/medium/large]
 - Experience level: [beginner/intermediate/expert]
 - Timeline: [MVP/short-term/long-term]
@@ -295,6 +313,7 @@ With these prompts, you can steadily drive a code-generation LLM through every m
 ## Expected Output Format:
 
 1. **Tech Stack Analysis**
+
    ```yaml
    detected:
      languages: [...]
@@ -304,6 +323,7 @@ With these prompts, you can steadily drive a code-generation LLM through every m
    ```
 
 2. **Standards Recommendations**
+
    ```
    Essential Standards:
    - CS:[language] - Core language patterns
@@ -317,6 +337,7 @@ With these prompts, you can steadily drive a code-generation LLM through every m
    ```
 
 3. **Project Structure**
+
    ```
    project-root/
    ├── src/
@@ -326,6 +347,7 @@ With these prompts, you can steadily drive a code-generation LLM through every m
    ```
 
 4. **Quick Start Commands**
+
    ```bash
    # Initialize project
    # Install dependencies
@@ -344,7 +366,8 @@ With these prompts, you can steadily drive a code-generation LLM through every m
 
 ---
 
-Please analyze my project plan and provide comprehensive implementation guidance following the standards repository approach.
+Please analyze my project plan and provide comprehensive implementation guidance following the
+standards repository approach.
 
 ## Related Standards
 

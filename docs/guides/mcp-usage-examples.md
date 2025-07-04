@@ -1,13 +1,16 @@
 # MCP Integration Usage Examples
 
-This document demonstrates how LLMs will interact with your multi-protocol API platform through the MCP integration.
+This document demonstrates how LLMs will interact with your multi-protocol API platform through the
+MCP integration.
 
 ## Example 1: Simple API Query
 
 ### LLM Prompt
+
 "Get all active sessions for user 'john.doe@example.com'"
 
 ### MCP Tool Call
+
 ```json
 {
   "tool": "execute-api",
@@ -29,21 +32,27 @@ This document demonstrates how LLMs will interact with your multi-protocol API p
 ```
 
 ### Response
+
 ```json
 {
-  "content": [{
-    "type": "text",
-    "text": "[{\"id\":\"session-123\",\"userId\":\"john.doe@example.com\",\"createdAt\":\"2024-01-01T10:00:00Z\",\"status\":\"active\"}]"
-  }]
+  "content": [
+    {
+      "type": "text",
+      "text": "[{\"id\":\"session-123\",\"userId\":\"john.doe@example.com\",\"createdAt\":\"2024-01-01T10:00:00Z\",\"status\":\"active\"}]"
+    }
+  ]
 }
 ```
 
 ## Example 2: Complex Workflow - Web Scraping
 
 ### LLM Prompt
-"I need to scrape product prices from https://example-shop.com/products. Create a browser session, navigate to the page, and extract all prices."
+
+"I need to scrape product prices from https://example-shop.com/products. Create a browser session,
+navigate to the page, and extract all prices."
 
 ### Step 1: Create Session
+
 ```json
 {
   "tool": "create-session",
@@ -55,6 +64,7 @@ This document demonstrates how LLMs will interact with your multi-protocol API p
 ```
 
 ### Step 2: Create Browser Context
+
 ```json
 {
   "tool": "create-browser-context",
@@ -72,6 +82,7 @@ This document demonstrates how LLMs will interact with your multi-protocol API p
 ```
 
 ### Step 3: Navigate to Page
+
 ```json
 {
   "tool": "execute-in-context",
@@ -87,6 +98,7 @@ This document demonstrates how LLMs will interact with your multi-protocol API p
 ```
 
 ### Step 4: Extract Prices
+
 ```json
 {
   "tool": "execute-in-context",
@@ -103,11 +115,13 @@ This document demonstrates how LLMs will interact with your multi-protocol API p
 ## Example 3: Real-time Monitoring
 
 ### LLM Prompt
+
 "Monitor all context updates for the next 5 minutes and alert me if any context fails"
 
 ### MCP Tool Calls
 
 #### Subscribe to Updates
+
 ```json
 {
   "tool": "execute-api",
@@ -130,6 +144,7 @@ This document demonstrates how LLMs will interact with your multi-protocol API p
 ```
 
 #### Process Updates (LLM handles streaming responses)
+
 ```javascript
 // LLM receives real-time updates:
 {
@@ -144,9 +159,12 @@ This document demonstrates how LLMs will interact with your multi-protocol API p
 ## Example 4: Multi-Protocol Orchestration
 
 ### LLM Prompt
-"Create a workflow that: 1) Creates a user session via REST, 2) Starts a browser context via gRPC, 3) Monitors the context via WebSocket"
+
+"Create a workflow that: 1) Creates a user session via REST, 2) Starts a browser context via
+gRPC, 3) Monitors the context via WebSocket"
 
 ### LLM Orchestration
+
 ```python
 # LLM generates this workflow:
 
@@ -191,9 +209,11 @@ subscription = await mcp.call_tool("execute-api", {
 ## Example 5: API Discovery and Learning
 
 ### LLM Prompt
+
 "What APIs are available for session management?"
 
 ### MCP Resource Query
+
 ```json
 {
   "resource": "api://catalog"
@@ -201,6 +221,7 @@ subscription = await mcp.call_tool("execute-api", {
 ```
 
 ### LLM Processes Catalog
+
 ```json
 {
   "rest": {
@@ -224,6 +245,7 @@ subscription = await mcp.call_tool("execute-api", {
 ```
 
 ### LLM Follow-up
+
 "Show me the schema for creating a session via gRPC"
 
 ```json
@@ -242,12 +264,13 @@ subscription = await mcp.call_tool("execute-api", {
   "arguments": {
     "contextId": "expired-context",
     "command": "navigate",
-    "parameters": {"url": "https://example.com"}
+    "parameters": { "url": "https://example.com" }
   }
 }
 ```
 
 ### Error Response
+
 ```json
 {
   "error": {
@@ -258,6 +281,7 @@ subscription = await mcp.call_tool("execute-api", {
 ```
 
 ### LLM Recovery Strategy
+
 1. Check if session is still valid
 2. Create new context if needed
 3. Retry the operation
@@ -267,7 +291,7 @@ subscription = await mcp.call_tool("execute-api", {
   "tool": "create-browser-context",
   "arguments": {
     "sessionId": "session-456",
-    "options": {"headless": true}
+    "options": { "headless": true }
   }
 }
 ```
@@ -275,42 +299,44 @@ subscription = await mcp.call_tool("execute-api", {
 ## Example 7: Batch Operations
 
 ### LLM Prompt
+
 "Check the status of 10 different URLs and return which ones are accessible"
 
 ### LLM Generates Parallel Execution
+
 ```javascript
 const urls = [
-  "https://site1.com",
-  "https://site2.com",
+  'https://site1.com',
+  'https://site2.com',
   // ... 8 more URLs
 ];
 
 const contexts = await Promise.all(
   urls.map(async (url, index) => {
-    const ctx = await mcp.call_tool("create-browser-context", {
+    const ctx = await mcp.call_tool('create-browser-context', {
       sessionId: sessionId,
-      options: {name: `checker-${index}`}
+      options: { name: `checker-${index}` },
     });
     return ctx.contextId;
-  })
+  }),
 );
 
 const results = await Promise.all(
   contexts.map(async (contextId, index) => {
     try {
-      const response = await mcp.call_tool("execute-in-context", {
+      const response = await mcp.call_tool('execute-in-context', {
         contextId: contextId,
-        command: "navigate",
+        command: 'navigate',
         parameters: {
           url: urls[index],
-          timeout: 5000
-        }
+          timeout: 5000,
+        },
       });
-      return {url: urls[index], status: "accessible"};
+      return { url: urls[index], status: 'accessible' };
     } catch (error) {
-      return {url: urls[index], status: "failed", error: error.message};
+      return { url: urls[index], status: 'failed', error: error.message };
     }
-  })
+  }),
 );
 ```
 
@@ -319,6 +345,7 @@ const results = await Promise.all(
 ### Example 8: Permission-based Access
 
 #### Scenario 1: Limited Permissions
+
 ```json
 {
   "tool": "execute-api",
@@ -337,6 +364,7 @@ const results = await Promise.all(
 ```
 
 **Response:**
+
 ```json
 {
   "error": {
@@ -347,6 +375,7 @@ const results = await Promise.all(
 ```
 
 #### Scenario 2: Scoped Access
+
 ```json
 {
   "tool": "list-sessions",
@@ -361,6 +390,7 @@ const results = await Promise.all(
 ```
 
 **Response:**
+
 ```json
 {
   "error": {
@@ -373,33 +403,34 @@ const results = await Promise.all(
 ## Advanced Use Cases
 
 ### Example 9: AI-Powered Testing
+
 The LLM generates comprehensive API tests:
 
 ```javascript
 // LLM generates test scenarios
 const testScenarios = [
   {
-    name: "Valid session creation",
-    tool: "create-session",
-    input: {username: "test-user", password: "valid-pass"},
-    expectedStatus: "success"
+    name: 'Valid session creation',
+    tool: 'create-session',
+    input: { username: 'test-user', password: 'valid-pass' },
+    expectedStatus: 'success',
   },
   {
-    name: "Invalid credentials",
-    tool: "create-session", 
-    input: {username: "test-user", password: "wrong-pass"},
-    expectedError: "INVALID_CREDENTIALS"
+    name: 'Invalid credentials',
+    tool: 'create-session',
+    input: { username: 'test-user', password: 'wrong-pass' },
+    expectedError: 'INVALID_CREDENTIALS',
   },
   {
-    name: "Session expiration",
-    tool: "execute-api",
+    name: 'Session expiration',
+    tool: 'execute-api',
     input: {
-      protocol: "rest",
-      operation: {method: "GET", endpoint: "/api/v1/protected"},
-      auth: {type: "session", credentials: "expired-session-id"}
+      protocol: 'rest',
+      operation: { method: 'GET', endpoint: '/api/v1/protected' },
+      auth: { type: 'session', credentials: 'expired-session-id' },
     },
-    expectedError: "SESSION_EXPIRED"
-  }
+    expectedError: 'SESSION_EXPIRED',
+  },
 ];
 
 // Execute all tests
@@ -414,6 +445,7 @@ for (const scenario of testScenarios) {
 **User**: "I want to see all failed browser contexts from the last hour"
 
 **LLM Translation**:
+
 ```json
 {
   "tool": "execute-api",
@@ -431,8 +463,8 @@ for (const scenario of testScenarios) {
 }
 ```
 
-**LLM Response to User**:
-"I found 3 failed browser contexts in the last hour:
+**LLM Response to User**: "I found 3 failed browser contexts in the last hour:
+
 1. Context 'price-scraper' failed at 09:15 - Navigation timeout
 2. Context 'form-filler' failed at 09:32 - Page crash
 3. Context 'screenshot-bot' failed at 09:45 - Memory limit exceeded"
@@ -447,4 +479,5 @@ for (const scenario of testScenarios) {
 6. **Security Maintained**: All existing security measures remain in effect
 7. **Monitoring & Debugging**: Full audit trail of LLM interactions
 
-This MCP integration transforms your platform into an AI-native API gateway that can be seamlessly integrated into any LLM-powered application.
+This MCP integration transforms your platform into an AI-native API gateway that can be seamlessly
+integrated into any LLM-powered application.
