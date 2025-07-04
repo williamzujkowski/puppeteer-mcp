@@ -156,7 +156,7 @@ describe('MCP Transport Layer', () => {
       if (transport) {
         try {
           await transport.stop();
-        } catch (error) {
+        } catch {
           // Transport might not be started
         }
       }

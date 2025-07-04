@@ -21,6 +21,17 @@ jest.mock('../../../src/utils/logger.js', () => ({
   },
 }));
 
+jest.mock('../../../src/utils/path-utils.js', () => ({
+  getDirnameFromSrc: jest.fn((relativePath: string) => {
+    // Return the correct path based on the relative path
+    return process.cwd() + '/src/' + relativePath;
+  }),
+}));
+
+jest.mock('@grpc/proto-loader', () => ({
+  loadSync: jest.fn().mockReturnValue({}),
+}));
+
 describe('GrpcAdapter', () => {
   let adapter: GrpcAdapter;
   let mockServer: jest.Mocked<GrpcServer>;

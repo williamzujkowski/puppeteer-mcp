@@ -13,20 +13,20 @@ import { contextStore } from '../../../src/store/context-store.js';
 describe('MCP Full Integration Flow', () => {
   let mcpServer: MCPServer;
   // let mcpClient: Client;
-  
+
   beforeAll(() => {
     // Set up MCP server
     process.env.MCP_TRANSPORT = 'stdio';
     mcpServer = new MCPServer();
-    
+
     // Note: In real integration tests, we would start the server and connect a client
     // For now, we'll test the components directly
   });
-  
+
   afterAll(async () => {
     try {
       await mcpServer.stop();
-    } catch (error) {
+    } catch {
       // Server might not be started
     }
   });
@@ -39,14 +39,14 @@ describe('MCP Full Integration Flow', () => {
         password: 'testpass',
         duration: 3600,
       });
-      
+
       expect(sessionResult).toHaveProperty('content');
       const sessionData = JSON.parse(sessionResult.content[0].text);
       expect(sessionData).toHaveProperty('id');
       expect(sessionData).toHaveProperty('userId', 'testuser');
-      
+
       const sessionId = sessionData.id;
-      
+
       // 2. Create browser context using the session
       const contextResult = await (mcpServer as any).createBrowserContextTool({
         sessionId,
@@ -55,11 +55,11 @@ describe('MCP Full Integration Flow', () => {
           viewport: { width: 1920, height: 1080 },
         },
       });
-      
+
       expect(contextResult).toHaveProperty('content');
       const contextData = JSON.parse(contextResult.content[0].text);
       expect(contextData).toHaveProperty('contextId');
-      
+
       // 3. Verify context was created in store
       const context = await contextStore.get(contextData.contextId);
       expect(context).toBeDefined();
@@ -75,12 +75,12 @@ describe('MCP Full Integration Flow', () => {
         roles: ['user'],
         metadata: {},
       });
-      
+
       // List sessions via MCP
       const listResult = await (mcpServer as any).listSessionsTool({
         userId: 'testuser2',
       });
-      
+
       expect(listResult).toHaveProperty('content');
       const sessions = JSON.parse(listResult.content[0].text);
       expect(Array.isArray(sessions)).toBe(true);
@@ -91,43 +91,43 @@ describe('MCP Full Integration Flow', () => {
   describe('API Discovery', () => {
     it('should provide complete API catalog', async () => {
       const catalogResult = await (mcpServer as any).getApiCatalog();
-      
+
       expect(catalogResult).toHaveProperty('contents');
       const catalog = JSON.parse(catalogResult.contents[0].text);
-      
+
       // Verify REST endpoints
       expect(catalog.rest).toBeDefined();
       expect(catalog.rest.endpoints).toContainEqual(
         expect.objectContaining({
           path: '/sessions',
           methods: expect.arrayContaining(['GET', 'POST', 'DELETE']),
-        })
+        }),
       );
-      
+
       // Verify gRPC services
       expect(catalog.grpc).toBeDefined();
       expect(catalog.grpc.services).toContainEqual(
         expect.objectContaining({
           name: 'SessionService',
           methods: expect.arrayContaining(['CreateSession', 'GetSession']),
-        })
+        }),
       );
-      
+
       // Verify WebSocket topics
       expect(catalog.websocket).toBeDefined();
       expect(catalog.websocket.topics).toContainEqual(
         expect.objectContaining({
           name: 'session-updates',
-        })
+        }),
       );
     });
 
     it('should provide system health status', async () => {
       const healthResult = await (mcpServer as any).getSystemHealth();
-      
+
       expect(healthResult).toHaveProperty('contents');
       const health = JSON.parse(healthResult.contents[0].text);
-      
+
       expect(health).toHaveProperty('status', 'healthy');
       expect(health).toHaveProperty('uptime');
       expect(health.services).toEqual({
@@ -145,7 +145,7 @@ describe('MCP Full Integration Flow', () => {
         sessionId: 'invalid-session-id',
         options: { headless: true },
       });
-      
+
       // The current implementation doesn't validate the session
       // This test documents the current behavior
       expect(result).toHaveProperty('content');
@@ -158,7 +158,7 @@ describe('MCP Full Integration Flow', () => {
       await expect(
         (mcpServer as any).createBrowserContextTool({
           options: { headless: true },
-        })
+        }),
       ).rejects.toThrow();
     });
   });
@@ -173,7 +173,7 @@ describe('MCP Full Integration Flow', () => {
           endpoint: '/api/v1/health',
         },
       });
-      
+
       expect(result).toHaveProperty('content');
       const data = JSON.parse(result.content[0].text);
       expect(data).toHaveProperty('status', 'pending');

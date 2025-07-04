@@ -1,8 +1,10 @@
 # Puppeteer MCP
 
+[![npm version](https://img.shields.io/npm/v/puppeteer-mcp.svg)](https://www.npmjs.com/package/puppeteer-mcp)
+[![npm downloads](https://img.shields.io/npm/dm/puppeteer-mcp.svg)](https://www.npmjs.com/package/puppeteer-mcp)
+[![License](https://img.shields.io/npm/l/puppeteer-mcp.svg)](LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue.svg)](https://www.typescriptlang.org/)
 [![Node.js](https://img.shields.io/badge/Node.js-18+-green.svg)](https://nodejs.org/)
-[![License](https://img.shields.io/badge/License-Apache%202.0-yellow.svg)](LICENSE)
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)]()
 [![Security](https://img.shields.io/badge/security-NIST%20compliant-blue.svg)]()
 [![Coverage](https://img.shields.io/badge/coverage-85%25-green.svg)]()
@@ -53,15 +55,14 @@ Puppeteer.
 
 ### npm Package
 
+The easiest way to get started is through npm:
+
 ```bash
 # Install globally
 npm install -g puppeteer-mcp
 
 # Or use with npx (no installation required)
 npx puppeteer-mcp
-
-# For Claude Desktop
-claude mcp add puppeteer-mcp
 ```
 
 ### From Source
@@ -80,6 +81,38 @@ npm run build
 # Start the server
 npm start
 ```
+
+## Quick Start with npm
+
+After installing the package globally with npm, you can start using Puppeteer MCP immediately:
+
+```bash
+# Start the MCP server (after global installation)
+puppeteer-mcp
+
+# The server will start with default configuration
+# Output: MCP server running on stdio
+```
+
+### Using with Claude Desktop
+
+```bash
+# Add to Claude Desktop configuration
+claude mcp add puppeteer-mcp
+```
+
+### Using with npx (no installation required)
+
+```bash
+# Run directly without installation
+npx puppeteer-mcp
+
+# With specific version
+npx puppeteer-mcp@1.0.0
+```
+
+The server will start in MCP mode by default, ready to accept connections from AI agents like Claude
+Desktop.
 
 ## Quick Start
 
@@ -111,15 +144,24 @@ curl -X POST http://localhost:3000/api/v1/contexts/{contextId}/execute \
 
 #### MCP Usage with Claude
 
+If you've installed puppeteer-mcp from npm:
+
 ```bash
-# If installed globally
+# Start the MCP server (if installed globally)
 puppeteer-mcp
 
-# Or with npx
+# Or use npx without installation
 npx puppeteer-mcp
+```
 
-# Add to Claude Desktop
-claude mcp add puppeteer-mcp
+For Claude Desktop integration:
+
+```bash
+# Add puppeteer-mcp to Claude Desktop (using npx)
+claude mcp add "npx puppeteer-mcp"
+
+# Or if globally installed
+claude mcp add "puppeteer-mcp"
 ```
 
 Once connected, you can use browser automation tools like:
@@ -297,6 +339,7 @@ This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENS
 
 ## Support
 
+- **npm Package**: [npmjs.com/package/puppeteer-mcp](https://www.npmjs.com/package/puppeteer-mcp)
 - **Issues**: [GitHub Issues](https://github.com/yourusername/puppeteer-mcp/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/yourusername/puppeteer-mcp/discussions)
 - **Security**: See [SECURITY.md](./SECURITY.md) for reporting vulnerabilities

@@ -29,7 +29,7 @@ const loadGrpcClient = (): any => {
     defaults: true,
     oneofs: true,
   });
-  
+
   const proto = grpc.loadPackageDefinition(packageDefinition) as any;
   return proto.mcp.control.v1;
 };
@@ -61,7 +61,7 @@ describe('Cross-Protocol Integration', () => {
 
     // Create Express app
     app = createApp();
-    
+
     // Create HTTP server
     httpServer = createServer(app);
     await new Promise<void>((resolve) => {
@@ -76,30 +76,32 @@ describe('Cross-Protocol Integration', () => {
     grpcServer = createGrpcServer(logger, sessionStore);
     await new Promise<void>((resolve) => {
       const server = grpcServer.getServer();
-      server.bindAsync(
-        '127.0.0.1:0',
-        grpc.ServerCredentials.createInsecure(),
-        (err, port) => {
-          if (err !== null && err !== undefined) {throw err;}
-          grpcPort = port;
-          server.start();
-          resolve();
+      server.bindAsync('127.0.0.1:0', grpc.ServerCredentials.createInsecure(), (err, port) => {
+        if (err !== null && err !== undefined) {
+          throw err;
         }
-      );
+        grpcPort = port;
+        server.start();
+        resolve();
+      });
     });
 
     // Create gRPC client
     const proto = loadGrpcClient();
     grpcClient = new proto.SessionService(
       `127.0.0.1:${grpcPort}`,
-      grpc.credentials.createInsecure()
+      grpc.credentials.createInsecure(),
     );
   });
 
   afterAll(async () => {
     // Cleanup
-    if (wsServer !== undefined) {await wsServer.shutdown();}
-    if (grpcServer !== undefined) {await grpcServer.shutdown();}
+    if (wsServer !== undefined) {
+      await wsServer.shutdown();
+    }
+    if (grpcServer !== undefined) {
+      await grpcServer.shutdown();
+    }
     if (httpServer !== undefined) {
       await new Promise<void>((resolve) => {
         httpServer.close(resolve);
@@ -118,7 +120,7 @@ describe('Cross-Protocol Integration', () => {
           userId: 'test-user-123',
           username: 'testuser',
           roles: ['user', 'admin'],
-          data: { 
+          data: {
             email: 'test@example.com',
             preference: 'dark-mode',
           },
@@ -148,14 +150,13 @@ describe('Cross-Protocol Integration', () => {
       metadata.set('authorization', `Bearer ${accessToken}`);
 
       const response = await new Promise((resolve, reject) => {
-        grpcClient.getSession(
-          { session_id: sessionId },
-          metadata,
-          (err: any, response: any) => {
-            if (err !== undefined) {reject(err);}
-            else {resolve(response);}
+        grpcClient.getSession({ session_id: sessionId }, metadata, (err: any, response: any) => {
+          if (err !== undefined) {
+            reject(new Error(err.message ?? 'gRPC error'));
+          } else {
+            resolve(response);
           }
-        );
+        });
       });
 
       expect(response).toMatchObject({
@@ -174,16 +175,20 @@ describe('Cross-Protocol Integration', () => {
 
     it('should access session via WebSocket with same token', async () => {
       const ws = new WebSocket(`ws://127.0.0.1:${httpPort}/ws`);
-      
-      await new Promise<void>((resolve) => { ws.on('open', () => resolve()); });
+
+      await new Promise<void>((resolve) => {
+        ws.on('open', () => resolve());
+      });
       await waitForWsMessage(ws); // Connect message
 
       // Authenticate with same token
-      ws.send(JSON.stringify({
-        type: WSMessageType.AUTH,
-        id: 'auth-1',
-        data: { token: accessToken },
-      }));
+      ws.send(
+        JSON.stringify({
+          type: WSMessageType.AUTH,
+          id: 'auth-1',
+          data: { token: accessToken },
+        }),
+      );
 
       const authResponse = await waitForWsMessage(ws);
       expect(authResponse).toMatchObject({
@@ -197,12 +202,14 @@ describe('Cross-Protocol Integration', () => {
       });
 
       // Request session data
-      ws.send(JSON.stringify({
-        type: WSMessageType.REQUEST,
-        id: 'req-1',
-        method: 'GET',
-        path: '/sessions',
-      }));
+      ws.send(
+        JSON.stringify({
+          type: WSMessageType.REQUEST,
+          id: 'req-1',
+          method: 'GET',
+          path: '/sessions',
+        }),
+      );
 
       const sessionResponse = await waitForWsMessage(ws);
       expect(sessionResponse).toMatchObject({
@@ -254,14 +261,13 @@ describe('Cross-Protocol Integration', () => {
       metadata.set('authorization', `Bearer ${accessToken}`);
 
       const response = await new Promise((resolve, reject) => {
-        grpcClient.getSession(
-          { session_id: sessionId },
-          metadata,
-          (err: any, response: any) => {
-            if (err !== undefined) {reject(err);}
-            else {resolve(response);}
+        grpcClient.getSession({ session_id: sessionId }, metadata, (err: any, response: any) => {
+          if (err !== undefined) {
+            reject(new Error(err.message ?? 'gRPC error'));
+          } else {
+            resolve(response);
           }
-        );
+        });
       });
 
       expect(response).toMatchObject({
@@ -287,32 +293,41 @@ describe('Cross-Protocol Integration', () => {
           },
           metadata,
           (err: any, response: any) => {
-            if (err !== undefined) {reject(err);}
-            else {resolve(response);}
-          }
+            if (err !== undefined) {
+              reject(new Error(err.message ?? 'gRPC error'));
+            } else {
+              resolve(response);
+            }
+          },
         );
       });
 
       // Read via WebSocket
       const ws = new WebSocket(`ws://127.0.0.1:${httpPort}/ws`);
-      await new Promise<void>((resolve) => { ws.on('open', () => resolve()); });
+      await new Promise<void>((resolve) => {
+        ws.on('open', () => resolve());
+      });
       await waitForWsMessage(ws); // Connect message
 
       // Authenticate
-      ws.send(JSON.stringify({
-        type: WSMessageType.AUTH,
-        id: 'auth-2',
-        data: { token: accessToken },
-      }));
+      ws.send(
+        JSON.stringify({
+          type: WSMessageType.AUTH,
+          id: 'auth-2',
+          data: { token: accessToken },
+        }),
+      );
       await waitForWsMessage(ws); // Auth success
 
       // Get session
-      ws.send(JSON.stringify({
-        type: WSMessageType.REQUEST,
-        id: 'req-2',
-        method: 'GET',
-        path: '/sessions',
-      }));
+      ws.send(
+        JSON.stringify({
+          type: WSMessageType.REQUEST,
+          id: 'req-2',
+          method: 'GET',
+          path: '/sessions',
+        }),
+      );
 
       const response = await waitForWsMessage(ws);
       expect(response.data.data).toMatchObject({
@@ -348,14 +363,13 @@ describe('Cross-Protocol Integration', () => {
       metadata.set('authorization', `Bearer ${accessToken}`);
 
       await new Promise((resolve, reject) => {
-        grpcClient.deleteSession(
-          { session_id: sessionId },
-          metadata,
-          (err: any, response: any) => {
-            if (err !== undefined) {reject(err);}
-            else {resolve(response);}
+        grpcClient.deleteSession({ session_id: sessionId }, metadata, (err: any, response: any) => {
+          if (err !== undefined) {
+            reject(new Error(err.message ?? 'gRPC error'));
+          } else {
+            resolve(response);
           }
-        );
+        });
       });
 
       // Try to access via REST - should fail
@@ -366,14 +380,18 @@ describe('Cross-Protocol Integration', () => {
 
       // Try to access via WebSocket - should fail authentication
       const ws = new WebSocket(`ws://127.0.0.1:${httpPort}/ws`);
-      await new Promise<void>((resolve) => { ws.on('open', () => resolve()); });
+      await new Promise<void>((resolve) => {
+        ws.on('open', () => resolve());
+      });
       await waitForWsMessage(ws); // Connect message
 
-      ws.send(JSON.stringify({
-        type: WSMessageType.AUTH,
-        id: 'auth-3',
-        data: { token: accessToken },
-      }));
+      ws.send(
+        JSON.stringify({
+          type: WSMessageType.AUTH,
+          id: 'auth-3',
+          data: { token: accessToken },
+        }),
+      );
 
       const authResponse = await waitForWsMessage(ws);
       expect(authResponse).toMatchObject({
@@ -399,9 +417,12 @@ describe('Cross-Protocol Integration', () => {
 
       metadata.set('authorization', `Bearer ${adminResponse.body.data.accessToken}`);
 
-      const eventStream = grpcClient.streamSessionEvents({
-        event_types: ['SESSION_EVENT_TYPE_CREATED'],
-      }, metadata);
+      const eventStream = grpcClient.streamSessionEvents(
+        {
+          event_types: ['SESSION_EVENT_TYPE_CREATED'],
+        },
+        metadata,
+      );
 
       // Listen for event
       eventStream.on('data', (_data) => {
@@ -419,7 +440,7 @@ describe('Cross-Protocol Integration', () => {
 
       // Note: Event streaming implementation is placeholder
       // In a real implementation, this would receive the event
-      
+
       eventStream.cancel();
     });
   });
@@ -446,13 +467,13 @@ describe('Cross-Protocol Integration', () => {
     it('should refresh tokens via gRPC and use new token in REST', async () => {
       // Refresh via gRPC
       const response = await new Promise((resolve, reject) => {
-        grpcClient.refreshSession(
-          { refresh_token: refreshToken },
-          (err: any, response: any) => {
-            if (err !== undefined) {reject(err);}
-            else {resolve(response);}
+        grpcClient.refreshSession({ refresh_token: refreshToken }, (err: any, response: any) => {
+          if (err !== undefined) {
+            reject(new Error(err.message ?? 'gRPC error'));
+          } else {
+            resolve(response);
           }
-        );
+        });
       });
 
       const newAccessToken = (response as any).access_token;

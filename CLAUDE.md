@@ -1,9 +1,10 @@
 # CLAUDE.md
 
-**Version**: 2.0.0  
-**Last Updated**: 2025-01-03  
+**Version**: 2.1.0  
+**Last Updated**: 2025-01-04  
 **Status**: Active  
-**Type**: AI Assistant Router
+**Type**: AI Assistant Router  
+**NPM Package**: [puppeteer-mcp](https://www.npmjs.com/package/puppeteer-mcp) v1.0.0
 
 ## Purpose
 
@@ -52,15 +53,34 @@ When understanding past decisions:
 
 ## 🚀 Quick Start
 
+### Installation
+
+```bash
+# Install as npm package (recommended)
+npm install -g puppeteer-mcp
+
+# Or use directly with npx
+npx puppeteer-mcp
+
+# For development
+git clone https://github.com/williamzujkowski/puppeteer-mcp.git
+cd puppeteer-mcp
+npm install
+```
+
 ### Essential Commands
 
 ```bash
-npm install       # Install dependencies
-npm run typecheck # Check TypeScript compilation
-npm run lint      # Run ESLint
-npm run build     # Build the project
-npm test          # Run tests
-npm run dev       # Start development server
+# Production usage (after npm install -g)
+puppeteer-mcp              # Start MCP server
+
+# Development commands
+npm install                # Install dependencies
+npm run typecheck          # Check TypeScript compilation
+npm run lint               # Run ESLint
+npm run build              # Build the project
+npm test                   # Run tests
+npm run dev                # Start development server
 ```
 
 ### Current Status
@@ -172,6 +192,7 @@ For full priority list and maintenance tasks, see `docs/development/workflow.md#
 
 ### External Resources
 
+- NPM Package: https://www.npmjs.com/package/puppeteer-mcp
 - Project Standards: https://github.com/williamzujkowski/standards
 - NIST Controls: https://csrc.nist.gov/projects/risk-management/sp800-53-controls
 - TypeScript Best Practices:
@@ -196,6 +217,7 @@ When making significant changes:
 
 ## 🏆 Project Achievements
 
+- ✅ Published to npm as `puppeteer-mcp` v1.0.0
 - ✅ Zero TypeScript compilation errors
 - ✅ 90% reduction in ESLint warnings (768 → 78)
 - ✅ 100% test suite passing rate (20/20)

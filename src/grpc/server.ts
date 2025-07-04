@@ -10,6 +10,7 @@ import * as grpc from '@grpc/grpc-js';
 import * as protoLoader from '@grpc/proto-loader';
 import { join } from 'path';
 import { pino } from 'pino';
+import { getDirnameFromSrc } from '../utils/path-utils.js';
 import { config } from '../core/config.js';
 import { authInterceptor } from './interceptors/auth.interceptor.js';
 import { loggingInterceptor } from './interceptors/logging.interceptor.js';
@@ -20,8 +21,10 @@ import { HealthServiceImpl } from './services/health.service.js';
 import type { SessionStore } from '../store/session-store.interface.js';
 import type { ExtendedCall, GrpcCallback, NextFunction } from './interceptors/types.js';
 
-// Load proto files
-const PROTO_PATH = join(process.cwd(), 'proto', 'control.proto');
+// Load proto files - use package directory, not current working directory
+// Use getDirnameFromSrc to work in both production and test environments
+const dirPath = getDirnameFromSrc('grpc');
+const PROTO_PATH = join(dirPath, '..', '..', 'proto', 'control.proto');
 
 /**
  * gRPC server instance

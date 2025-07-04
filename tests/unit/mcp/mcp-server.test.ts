@@ -97,7 +97,7 @@ describe('MCP Server', () => {
     // Clean up any resources
     try {
       await mcpServer.stop();
-    } catch (error) {
+    } catch {
       // Server might not be started
     }
   });

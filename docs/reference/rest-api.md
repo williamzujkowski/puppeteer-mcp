@@ -7,13 +7,175 @@ management, and context control. All endpoints follow RESTful conventions and re
 
 ## Base URL
 
+### Development
+
 ```
 https://api.example.com/api/v1
 ```
 
-- **Protocol**: HTTPS required in production
+### NPM Package (Default)
+
+```
+http://localhost:3000/api/v1
+```
+
+- **Protocol**: HTTPS required in production, HTTP allowed for localhost
 - **Version**: `v1` (current stable version)
 - **Content-Type**: `application/json`
+
+## Using with NPM Package
+
+When using the Puppeteer MCP platform via npm, you can start the server and interact with the REST
+API immediately.
+
+### Starting the Server
+
+#### Global Install
+
+```bash
+# Install globally
+npm install -g puppeteer-mcp
+
+# Start the server
+puppeteer-mcp start
+
+# Or with custom port
+puppeteer-mcp start --port 8080
+```
+
+#### Using npx (No install required)
+
+```bash
+# Start server directly
+npx puppeteer-mcp start
+
+# With custom configuration
+npx puppeteer-mcp start --port 8080 --auth-required false
+```
+
+### Default Configuration
+
+When using the npm package, the server starts with these defaults:
+
+- **Port**: 3000 (REST API)
+- **Host**: localhost
+- **Authentication**: Required (generate tokens via CLI)
+- **CORS**: Enabled for localhost origins
+- **Session Duration**: 1 hour for access tokens
+
+### Quick Start Examples
+
+#### 1. Generate Authentication Token
+
+```bash
+# Generate a JWT token for API access
+puppeteer-mcp auth generate --username myuser
+
+# Output:
+# Access Token: eyJhbGciOiJIUzI1NiIs...
+# Refresh Token: refresh_token_here
+# Expires In: 3600 seconds
+```
+
+#### 2. Health Check (No Auth Required)
+
+```bash
+# Check if server is running
+curl http://localhost:3000/api/health
+
+# Response:
+# {
+#   "status": "ok",
+#   "timestamp": "2025-01-03T12:00:00.000Z",
+#   "uptime": 1234.567,
+#   "environment": "production",
+#   "version": "1.0.0"
+# }
+```
+
+#### 3. Create Browser Context
+
+```bash
+# Set your token
+export TOKEN="your_access_token"
+
+# Create a new browser context
+curl -X POST http://localhost:3000/api/v1/contexts \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "My Test Browser",
+    "viewport": {"width": 1920, "height": 1080},
+    "createPage": true
+  }'
+```
+
+#### 4. Navigate to a URL
+
+```bash
+# Navigate the created page
+curl -X POST http://localhost:3000/api/v1/contexts/context_id/execute \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "type": "navigate",
+    "pageId": "page_id",
+    "url": "https://example.com"
+  }'
+```
+
+#### 5. Take a Screenshot
+
+```bash
+# Capture the current page
+curl -X POST http://localhost:3000/api/v1/contexts/context_id/execute \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "type": "screenshot",
+    "pageId": "page_id",
+    "fullPage": true,
+    "format": "png"
+  }'
+```
+
+### NPM-Specific Configuration
+
+When running via npm, you can configure the server using:
+
+#### Environment Variables
+
+```bash
+# Start with custom settings
+PORT=8080 AUTH_REQUIRED=true puppeteer-mcp start
+```
+
+#### Configuration File
+
+Create a `.puppeteer-mcp.json` in your project:
+
+```json
+{
+  "port": 8080,
+  "auth": {
+    "required": true,
+    "jwtSecret": "your-secret-key"
+  },
+  "cors": {
+    "origins": ["http://localhost:3000", "http://localhost:8080"]
+  }
+}
+```
+
+### Development vs NPM Usage
+
+| Feature        | Development       | NPM Package             |
+| -------------- | ----------------- | ----------------------- |
+| Default Port   | Custom            | 3000                    |
+| Authentication | Configurable      | Required by default     |
+| Configuration  | Environment files | CLI args or config file |
+| Browser Pool   | Manual setup      | Auto-configured         |
+| Logging        | Debug mode        | Production mode         |
 
 ## Authentication
 
@@ -794,6 +956,58 @@ GET /api/v1/docs
 
 ### Browser Automation Workflow
 
+#### Using NPM Package (Recommended for Quick Start)
+
+```bash
+# 0. Start the server (if not already running)
+npx puppeteer-mcp start &
+
+# Wait for server to be ready
+sleep 3
+
+# 1. Generate auth token
+TOKEN=$(npx puppeteer-mcp auth generate --username testuser --json | jq -r .accessToken)
+
+# 2. Create a context
+CONTEXT_RESPONSE=$(curl -s -X POST http://localhost:3000/api/v1/contexts \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "E2E Test Browser",
+    "viewport": {"width": 1920, "height": 1080},
+    "createPage": true
+  }')
+
+CONTEXT_ID=$(echo $CONTEXT_RESPONSE | jq -r .data.id)
+PAGE_ID=$(echo $CONTEXT_RESPONSE | jq -r .data.page.id)
+
+# 3. Navigate to a URL
+curl -X POST http://localhost:3000/api/v1/contexts/$CONTEXT_ID/execute \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d "{
+    \"type\": \"navigate\",
+    \"pageId\": \"$PAGE_ID\",
+    \"url\": \"https://example.com\"
+  }"
+
+# 4. Take a screenshot
+SCREENSHOT_RESPONSE=$(curl -s -X POST http://localhost:3000/api/v1/contexts/$CONTEXT_ID/execute \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d "{
+    \"type\": \"screenshot\",
+    \"pageId\": \"$PAGE_ID\",
+    \"fullPage\": true
+  }")
+
+# 5. Clean up
+curl -X DELETE http://localhost:3000/api/v1/contexts/$CONTEXT_ID \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+#### Development/Production Environment
+
 ```bash
 # 1. Create a context
 curl -X POST https://api.example.com/api/v1/contexts \
@@ -831,6 +1045,32 @@ curl -X DELETE https://api.example.com/api/v1/contexts/context_789 \
 
 ### API Key Authentication Flow
 
+#### Using NPM Package
+
+```bash
+# 1. Generate initial JWT token
+TOKEN=$(npx puppeteer-mcp auth generate --username admin --json | jq -r .accessToken)
+
+# 2. Create an API key (using JWT auth)
+API_KEY_RESPONSE=$(curl -s -X POST http://localhost:3000/api/v1/api-keys \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "CI/CD Pipeline",
+    "roles": ["automation"],
+    "expiresIn": 7776000000
+  }')
+
+API_KEY=$(echo $API_KEY_RESPONSE | jq -r .plainTextKey)
+echo "Save this API key: $API_KEY"
+
+# 3. Use the API key for subsequent requests
+curl -X GET http://localhost:3000/api/v1/contexts \
+  -H "X-API-Key: $API_KEY"
+```
+
+#### Development/Production Environment
+
 ```bash
 # 1. Create an API key (using JWT auth)
 curl -X POST https://api.example.com/api/v1/api-keys \
@@ -865,3 +1105,105 @@ Official SDKs are available for:
 - Java
 
 See individual SDK documentation for language-specific examples and best practices.
+
+## NPM Package Quick Reference
+
+### Installation and Setup
+
+```bash
+# Global install
+npm install -g puppeteer-mcp
+
+# Or use without installing
+npx puppeteer-mcp start
+```
+
+### Common Commands
+
+```bash
+# Start server with defaults
+puppeteer-mcp start
+
+# Start with custom options
+puppeteer-mcp start --port 8080 --auth-required false
+
+# Generate auth token
+puppeteer-mcp auth generate --username myuser
+
+# Check server status
+curl http://localhost:3000/api/health
+
+# View help
+puppeteer-mcp --help
+```
+
+### Environment Variables
+
+```bash
+# Configure via environment
+PORT=8080 \
+AUTH_REQUIRED=true \
+JWT_SECRET=my-secret \
+puppeteer-mcp start
+```
+
+### Docker Usage
+
+```bash
+# Run with Docker
+docker run -p 3000:3000 puppeteer-mcp/server
+
+# With custom config
+docker run -p 8080:3000 \
+  -e AUTH_REQUIRED=false \
+  puppeteer-mcp/server
+```
+
+### Common Patterns
+
+#### Quick Test Script
+
+```bash
+#!/bin/bash
+# Start server in background
+npx puppeteer-mcp start &
+SERVER_PID=$!
+
+# Wait for server
+sleep 3
+
+# Run your automation
+TOKEN=$(npx puppeteer-mcp auth generate --json | jq -r .accessToken)
+# ... your API calls here ...
+
+# Cleanup
+kill $SERVER_PID
+```
+
+#### Production Configuration
+
+```json
+{
+  "port": 3000,
+  "auth": {
+    "required": true,
+    "jwtSecret": "${JWT_SECRET}",
+    "sessionDuration": 3600000
+  },
+  "puppeteer": {
+    "headless": true,
+    "args": ["--no-sandbox", "--disable-setuid-sandbox"]
+  },
+  "rateLimit": {
+    "windowMs": 900000,
+    "max": 100
+  }
+}
+```
+
+### Troubleshooting
+
+- **Port already in use**: Change port with `--port` flag
+- **Authentication errors**: Generate new token with `puppeteer-mcp auth generate`
+- **Browser launch fails**: Install system dependencies or use Docker
+- **CORS issues**: Configure allowed origins in config file

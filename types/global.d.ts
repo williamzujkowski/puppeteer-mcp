@@ -6,3 +6,6 @@ declare namespace Express {
     startTime: number;
   }
 }
+
+// Declare __dirname for ES modules compatibility with Jest
+declare const __dirname: string;

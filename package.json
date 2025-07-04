@@ -1,7 +1,7 @@
 {
   "name": "puppeteer-mcp",
   "version": "1.0.0",
-  "description": "AI-enabled browser automation platform with REST, gRPC, WebSocket, and MCP interfaces, featuring enterprise Puppeteer integration",
+  "description": "Production-ready AI-enabled browser automation platform",
   "type": "module",
   "main": "dist/server.js",
   "types": "dist/server.d.ts",
@@ -10,6 +10,7 @@
   },
   "files": [
     "dist/**/*",
+    "proto/",
     "README.md",
     "LICENSE",
     "package.json"
@@ -86,6 +87,7 @@
     "pino": "^9.7.0",
     "puppeteer": "^24.11.2",
     "puppeteer-core": "^24.11.2",
+    "puppeteer-mcp": "file:puppeteer-mcp-1.0.0.tgz",
     "uuid": "^11.1.0",
     "ws": "^8.16.0",
     "zod": "^3.22.4"

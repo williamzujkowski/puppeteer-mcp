@@ -52,7 +52,10 @@ describe('Testing Best Practices Examples', () => {
 
     it('should handle errors with custom properties', async () => {
       const operationWithCustomError = (): Promise<void> => {
-        const error = new Error('Validation failed') as any;
+        const error = new Error('Validation failed') as Error & {
+          code: string;
+          statusCode: number;
+        };
         error.code = 'VALIDATION_ERROR';
         error.statusCode = 400;
         return Promise.reject(error);
@@ -83,7 +86,7 @@ describe('Testing Best Practices Examples', () => {
       // Test that methods were called correctly
       // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(res.status).toHaveBeenCalledWith(200);
-       
+
       expect(res.json).toHaveBeenCalledWith({ success: true });
     });
 

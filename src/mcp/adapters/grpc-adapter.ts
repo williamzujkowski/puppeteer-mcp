@@ -11,8 +11,9 @@
 
 import * as grpc from '@grpc/grpc-js';
 import * as protoLoader from '@grpc/proto-loader';
-import { join } from 'path';
+import { join, dirname } from 'path';
 import { z } from 'zod';
+import { getDirnameFromSrc } from '../../utils/path-utils.js';
 import { AppError } from '../../core/errors/app-error.js';
 import { logSecurityEvent, SecurityEventType } from '../../utils/logger.js';
 import type { ProtocolAdapter, MCPResponse, AuthParams } from './adapter.interface.js';
@@ -72,7 +73,15 @@ const AuthParamsSchema = z.object({
 export class GrpcAdapter implements ProtocolAdapter {
   constructor(
     private readonly server: GrpcServer,
-    private readonly protoPath: string = join(process.cwd(), 'proto', 'control.proto'),
+    // Use getDirnameFromSrc to work in both production and test environments
+    private readonly protoPath: string = join(
+      getDirnameFromSrc('mcp/adapters'),
+      '..',
+      '..',
+      '..',
+      'proto',
+      'control.proto',
+    ),
   ) {
     this.initializeProto();
   }
@@ -89,7 +98,7 @@ export class GrpcAdapter implements ProtocolAdapter {
       enums: String,
       defaults: true,
       oneofs: true,
-      includeDirs: [join(process.cwd(), 'proto')],
+      includeDirs: [dirname(this.protoPath)],
     });
 
     // Proto is loaded but not stored as it's not directly used
@@ -403,7 +412,12 @@ export class GrpcAdapter implements ProtocolAdapter {
         if (key.includes(serviceName)) {
           // Extract method name from the key (e.g., "/mcp.control.v1.SessionService/CreateSession" -> "CreateSession")
           const methodName = key.split('/').pop();
-          if (methodName !== null && methodName !== undefined && methodName !== '' && typeof handler === 'function') {
+          if (
+            methodName !== null &&
+            methodName !== undefined &&
+            methodName !== '' &&
+            typeof handler === 'function'
+          ) {
             // Use Object.defineProperty to avoid object injection vulnerability
             Object.defineProperty(serviceObj, methodName, {
               value: handler as GrpcServiceHandler[string],

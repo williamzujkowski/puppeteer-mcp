@@ -6,6 +6,11 @@ import { mkdirSync } from 'fs';
 process.env.NODE_ENV = 'test';
 process.env.LOG_LEVEL = 'silent';
 
+// Define __dirname for ES modules compatibility in Jest
+// Since this is the setup file, we can use process.cwd() as a base
+// The actual __dirname will be defined within each module using the conditional check
+(global as any).__dirname = process.cwd();
+
 // Ensure logs directory exists for tests
 try {
   mkdirSync('logs/audit', { recursive: true });
@@ -62,11 +67,10 @@ expect.extend({
             Object.prototype.hasOwnProperty.call(argObj, key) &&
             Object.prototype.hasOwnProperty.call(expectedObj, key)
           ) {
-             
             const expectedValue = Object.prototype.hasOwnProperty.call(expectedObj, key)
               ? expectedObj[key] // eslint-disable-line security/detect-object-injection
               : undefined;
-             
+
             const argValue = Object.prototype.hasOwnProperty.call(argObj, key)
               ? argObj[key] // eslint-disable-line security/detect-object-injection
               : undefined;
@@ -110,9 +114,9 @@ beforeAll(() => {
   console.log = jest.fn();
   // eslint-disable-next-line no-console
   console.info = jest.fn();
-   
+
   console.warn = jest.fn();
-   
+
   console.error = jest.fn();
 });
 
@@ -121,8 +125,8 @@ afterAll(() => {
   console.log = originalConsole.log;
   // eslint-disable-next-line no-console
   console.info = originalConsole.info;
-   
+
   console.warn = originalConsole.warn;
-   
+
   console.error = originalConsole.error;
 });
