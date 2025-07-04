@@ -29,6 +29,7 @@ export interface CustomRequestProperties {
 
 // Extend the Express Request type
 declare module 'express' {
+  // eslint-disable-next-line @typescript-eslint/no-empty-object-type
   interface Request extends CustomRequestProperties {}
 }
 

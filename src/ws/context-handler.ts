@@ -220,8 +220,22 @@ export class WSContextHandler {
       statuses: input.filter?.statuses,
     });
 
-    const pageSize = Math.min(input.pagination?.pageSize ?? 20, 100);
-    const token = input.pagination?.pageToken;
+    return this.paginateContexts(contexts, input.pagination);
+  }
+
+  /**
+   * Helper to paginate context results
+   */
+  private paginateContexts(
+    contexts: Context[],
+    pagination?: { pageSize?: number; pageToken?: string }
+  ): {
+    contexts: Record<string, unknown>[];
+    nextPageToken?: string;
+    totalCount: number;
+  } {
+    const pageSize = Math.min(pagination?.pageSize ?? 20, 100);
+    const token = pagination?.pageToken;
     const startIdx = (token !== null && token !== undefined && token !== '') ? parseInt(token, 10) || 0 : 0;
     
     const page = contexts.slice(startIdx, startIdx + pageSize);

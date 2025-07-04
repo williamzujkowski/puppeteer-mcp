@@ -47,8 +47,8 @@ export async function handleScrollToElement(
 
     const rect = element.getBoundingClientRect();
     return {
-      x: rect.left + ((globalThis as any).pageXOffset || 0),
-      y: rect.top + ((globalThis as any).pageYOffset || 0),
+      x: rect.left + ((globalThis as any).pageXOffset ?? 0),
+      y: rect.top + ((globalThis as any).pageYOffset ?? 0),
     };
   }, sanitizedSelector);
 

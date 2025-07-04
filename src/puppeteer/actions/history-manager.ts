@@ -63,6 +63,24 @@ export class ActionHistoryManager {
     const contextKey = `${context.sessionId}:${context.contextId}`;
     const history = this.actionHistory.get(contextKey) ?? [];
 
+    // Apply filters
+    const filteredHistory = this.applyHistoryFilters(history, options);
+
+    // Apply pagination
+    return this.paginateHistory(filteredHistory, options);
+  }
+
+  /**
+   * Apply filters to history results
+   */
+  private applyHistoryFilters(
+    history: ActionResult[],
+    options?: {
+      actionTypes?: string[];
+      startDate?: Date;
+      endDate?: Date;
+    }
+  ): ActionResult[] {
     let filteredHistory = [...history];
 
     // Filter by action types
@@ -87,11 +105,23 @@ export class ActionHistoryManager {
       );
     }
 
-    // Apply pagination
+    return filteredHistory;
+  }
+
+  /**
+   * Apply pagination to history results
+   */
+  private paginateHistory(
+    history: ActionResult[],
+    options?: {
+      limit?: number;
+      offset?: number;
+    }
+  ): ActionResult[] {
     const offset = options?.offset ?? 0;
     const limit = options?.limit ?? 100;
     
-    return filteredHistory
+    return history
       .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
       .slice(offset, offset + limit);
   }

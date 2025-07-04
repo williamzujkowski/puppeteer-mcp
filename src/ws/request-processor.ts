@@ -77,78 +77,124 @@ export class WSRequestProcessor {
     const connectionState = this.connectionManager.getConnectionState(connectionId);
     
     try {
+      // Validate authentication
+      this.validateAuthentication(ws, connectionState, message);
       if (connectionState?.authenticated !== true) {
-        sendError({ ws, requestId: message.id, code: 'UNAUTHORIZED', message: 'Authentication required' }, this.logger);
         return;
       }
 
-      // Log API access
-      await logSecurityEvent(SecurityEventType.API_ACCESS, {
-        resource: message.path,
-        action: message.method,
-        result: 'success',
-        metadata: {
-          connectionId,
-          userId: connectionState.userId ?? 'unknown',
-          requestId: message.id,
-        },
-      });
-
-      // Route request based on path and method
-      const response = await this.routeRequest({
-        connectionState,
-        method: message.method,
-        path: message.path,
-        data: message.data,
-        headers: message.headers
-      });
-
-      // Send response
-      sendResponse({ ws, requestId: message.id, status: 200, data: response }, this.logger);
-
-      // Log successful access
-      await logSecurityEvent(SecurityEventType.API_ACCESS, {
-        resource: message.path,
-        action: message.method,
-        result: 'success',
-        metadata: {
-          connectionId,
-          userId: connectionState.userId ?? 'unknown',
-          requestId: message.id,
-        },
-      });
+      // Process request
+      await this.processAuthenticatedRequest(ws, connectionId, connectionState, message);
     } catch (error) {
-      this.logger.error('Request handling error:', error);
-      
-      const statusCode = (error as { statusCode?: number }).statusCode ?? 500;
-      const errorCode = (error as { code?: string }).code ?? 'REQUEST_ERROR';
-      const errorMessage = error instanceof Error ? error.message : 'Request failed';
-
-      this.sendResponse({
-        ws,
-        requestId: message.id,
-        statusCode,
-        data: null,
-        error: {
-          code: errorCode,
-          message: errorMessage,
-        }
-      });
-
-      // Log failed access
-      await logSecurityEvent(SecurityEventType.API_ACCESS, {
-        resource: message.path,
-        action: message.method,
-        result: 'failure',
-        reason: errorMessage,
-        metadata: {
-          connectionId,
-          userId: connectionState?.userId ?? 'unknown',
-          requestId: message.id,
-          statusCode,
-        },
-      });
+      await this.handleRequestError({ ws, connectionId, connectionState, message, error });
     }
+  }
+
+  /**
+   * Validate authentication state
+   */
+  private validateAuthentication(
+    ws: WebSocket,
+    connectionState: WSConnectionState | undefined,
+    message: WSRequestMessage
+  ): void {
+    if (connectionState?.authenticated !== true) {
+      sendError({ ws, requestId: message.id, code: 'UNAUTHORIZED', message: 'Authentication required' }, this.logger);
+    }
+  }
+
+  /**
+   * Process authenticated request
+   */
+  private async processAuthenticatedRequest(
+    ws: WebSocket,
+    connectionId: string,
+    connectionState: WSConnectionState,
+    message: WSRequestMessage
+  ): Promise<void> {
+    // Log API access
+    await this.logApiAccess({ connectionId, connectionState, message, result: 'success' });
+
+    // Route request based on path and method
+    const response = await this.routeRequest({
+      connectionState,
+      method: message.method,
+      path: message.path,
+      data: message.data,
+      headers: message.headers
+    });
+
+    // Send response
+    sendResponse({ ws, requestId: message.id, status: 200, data: response }, this.logger);
+  }
+
+  /**
+   * Handle request error
+   */
+  private async handleRequestError(
+    params: {
+      ws: WebSocket;
+      connectionId: string;
+      connectionState: WSConnectionState | undefined;
+      message: WSRequestMessage;
+      error: unknown;
+    }
+  ): Promise<void> {
+    const { ws, connectionId, connectionState, message, error } = params;
+    this.logger.error('Request handling error:', error);
+    
+    const statusCode = (error as { statusCode?: number }).statusCode ?? 500;
+    const errorCode = (error as { code?: string }).code ?? 'REQUEST_ERROR';
+    const errorMessage = error instanceof Error ? error.message : 'Request failed';
+
+    this.sendResponse({
+      ws,
+      requestId: message.id,
+      statusCode,
+      data: null,
+      error: {
+        code: errorCode,
+        message: errorMessage,
+      }
+    });
+
+    // Log failed access
+    await this.logApiAccess({
+      connectionId,
+      connectionState,
+      message,
+      result: 'failure',
+      reason: errorMessage,
+      statusCode
+    });
+  }
+
+  /**
+   * Log API access
+   */
+  private async logApiAccess(
+    params: {
+      connectionId: string;
+      connectionState: WSConnectionState | undefined;
+      message: WSRequestMessage;
+      result: 'success' | 'failure';
+      reason?: string;
+      statusCode?: number;
+    }
+  ): Promise<void> {
+    const { connectionId, connectionState, message, result, reason, statusCode } = params;
+    await logSecurityEvent(SecurityEventType.API_ACCESS, {
+      resource: message.path,
+      action: message.method,
+      result,
+      ...(reason && { reason }),
+      metadata: {
+        connectionId,
+        userId: connectionState?.userId ?? 'unknown',
+        requestId: message.id,
+        ...(statusCode && { statusCode }),
+      },
+    });
   }
 
   /**

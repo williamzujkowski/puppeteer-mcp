@@ -35,7 +35,7 @@ export function checkContextAccess(
   requestUserRoles?: string[],
 ): void {
   // Admin users can access any context
-  if (requestUserRoles !== undefined && requestUserRoles.includes('admin')) {
+  if (requestUserRoles?.includes('admin')) {
     return;
   }
 

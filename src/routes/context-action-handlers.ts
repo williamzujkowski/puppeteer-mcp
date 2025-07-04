@@ -14,7 +14,8 @@ import { BrowserActionExecutor, validateAction } from '../puppeteer/actions/inde
 import type { BrowserPool } from '../puppeteer/interfaces/browser-pool.interface.js';
 import type { 
   BrowserAction, 
-  ActionContext 
+  ActionContext,
+  ActionResult
 } from '../puppeteer/interfaces/action-executor.interface.js';
 
 const logger = createLogger('routes:context-action-handlers');
@@ -45,78 +46,20 @@ export class ContextActionHandlers {
    */
   executeAction = (req: Request, res: Response, next: NextFunction): void => void (async () => {
     try {
-      if (!req.user) {
-        throw new AppError('Not authenticated', 401);
-      }
-
-      if (!this.browserPool) {
-        throw new AppError('Browser pool not available', 503);
-      }
-
-      const { contextId } = req.params;
-      if (contextId === null || contextId === '') {
-        throw new AppError('Context ID is required', 400);
-      }
-
-      // Verify context exists and user has access
-      await this.storage.getContext(contextId as string, req.user.userId, req.user.roles);
-
-      // Parse and validate browser action
-      const browserAction = req.body as BrowserAction;
-      
-      // Validate action structure
-      const validationResult = validateAction(browserAction);
-      if (!validationResult.valid) {
-        throw new AppError(
-          `Invalid action: ${validationResult.errors.map(e => e.message).join(', ')}`,
-          400
-        );
-      }
+      // Validate request
+      const { contextId, browserAction } = await this.validateExecuteRequest(req);
 
       // Create action context
-      const actionContext: ActionContext = {
-        sessionId: req.user.sessionId || req.user.userId,
-        contextId: contextId as string,
-        userId: req.user.userId,
-        metadata: {
-          userAgent: req.get('user-agent'),
-          ip: req.ip,
-          timestamp: new Date().toISOString(),
-        },
-      };
+      const actionContext = this.createActionContext(req, contextId);
 
-      // Update context last used timestamp
-      this.storage.touchContext(contextId as string, req.user.userId, req.user.roles);
+      // Update context and log action
+      await this.updateContextAndLog(contextId, req, browserAction);
 
-      // Log action execution
-      await logDataAccess('WRITE', `context/${contextId}`, {
-        userId: req.user.userId,
-        action: 'execute_browser_action',
-        actionType: browserAction.type,
-        pageId: browserAction.pageId,
-      });
-
-      logger.info('Executing browser action', {
-        sessionId: actionContext.sessionId,
-        contextId: actionContext.contextId,
-        userId: req.user.userId,
-        actionType: browserAction.type,
-        pageId: browserAction.pageId,
-      });
-
-      // Execute action using action executor
+      // Execute action
       const result = await this.actionExecutor.execute(browserAction, actionContext);
 
-      // Return result
-      res.json({
-        success: result.success,
-        data: {
-          ...result,
-          contextId,
-          executedAt: result.timestamp.toISOString(),
-        },
-        ...(result.error && { error: result.error }),
-      });
+      // Send response
+      res.json(this.formatActionResult(result, contextId));
 
     } catch (error) {
       logger.error('Action execution failed', {
@@ -127,4 +70,108 @@ export class ContextActionHandlers {
       next(error);
     }
   })();
+
+  /**
+   * Validate execute action request
+   */
+  private async validateExecuteRequest(req: Request): Promise<{
+    contextId: string;
+    browserAction: BrowserAction;
+  }> {
+    if (!req.user) {
+      throw new AppError('Not authenticated', 401);
+    }
+
+    if (!this.browserPool) {
+      throw new AppError('Browser pool not available', 503);
+    }
+
+    const { contextId } = req.params;
+    if (contextId === null || contextId === '') {
+      throw new AppError('Context ID is required', 400);
+    }
+
+    // Verify context exists and user has access
+    await this.storage.getContext(contextId as string, req.user.userId, req.user.roles);
+
+    // Parse and validate browser action
+    const browserAction = req.body as BrowserAction;
+    const validationResult = validateAction(browserAction);
+    if (!validationResult.valid) {
+      throw new AppError(
+        `Invalid action: ${validationResult.errors.map(e => e.message).join(', ')}`,
+        400
+      );
+    }
+
+    return { contextId: contextId as string, browserAction };
+  }
+
+  /**
+   * Create action context from request
+   */
+  private createActionContext(req: Request, contextId: string): ActionContext {
+    if (!req.user) {
+      throw new AppError('Not authenticated', 401);
+    }
+    return {
+      sessionId: req.user.sessionId || req.user.userId,
+      contextId,
+      userId: req.user.userId,
+      metadata: {
+        userAgent: req.get('user-agent'),
+        ip: req.ip,
+        timestamp: new Date().toISOString(),
+      },
+    };
+  }
+
+  /**
+   * Update context and log action execution
+   */
+  private async updateContextAndLog(
+    contextId: string,
+    req: Request,
+    browserAction: BrowserAction
+  ): Promise<void> {
+    if (!req.user) {
+      throw new AppError('Not authenticated', 401);
+    }
+    // Update context last used timestamp
+    this.storage.touchContext(contextId, req.user.userId, req.user.roles);
+
+    // Log action execution
+    await logDataAccess('WRITE', `context/${contextId}`, {
+      userId: req.user.userId,
+      action: 'execute_browser_action',
+      actionType: browserAction.type,
+      pageId: browserAction.pageId,
+    });
+
+    logger.info('Executing browser action', {
+      sessionId: req.user.sessionId || req.user.userId,
+      contextId,
+      userId: req.user.userId,
+      actionType: browserAction.type,
+      pageId: browserAction.pageId,
+    });
+  }
+
+  /**
+   * Format action result for response
+   */
+  private formatActionResult(
+    result: ActionResult,
+    contextId: string
+  ): Record<string, unknown> {
+    return {
+      success: result.success,
+      data: {
+        ...result,
+        contextId,
+        executedAt: result.timestamp.toISOString(),
+      },
+      ...(result.error && { error: result.error }),
+    };
+  }
 }

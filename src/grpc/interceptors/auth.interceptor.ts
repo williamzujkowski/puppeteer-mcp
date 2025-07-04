@@ -21,7 +21,7 @@ function extractBearerToken(authHeaders: grpc.MetadataValue[]): string | null {
   if (authHeaders.length === 0) return null;
   
   const authHeader = authHeaders[0]?.toString();
-  if (!authHeader || !authHeader.startsWith('Bearer ')) return null;
+  if (!authHeader?.startsWith('Bearer ')) return null;
   
   return authHeader.substring(7);
 }
@@ -30,7 +30,6 @@ function extractBearerToken(authHeaders: grpc.MetadataValue[]): string | null {
  * Extract API key from header
  */
 function extractApiKey(apiKeys: grpc.MetadataValue[]): string | null {
-  if (apiKeys.length === 0) return null;
   return apiKeys[0]?.toString() ?? null;
 }
 

@@ -69,7 +69,7 @@ export class WSAuthHandler {
       // Validate input
       const validation = this.validateCredentials(token, apiKey);
       if (!validation.valid) {
-        return this.handleAuthFailure({ ws, connectionId, messageId: message.id, code: 'MISSING_CREDENTIALS', reason: validation.error ?? 'Missing credentials' });
+        return await this.handleAuthFailure({ ws, connectionId, messageId: message.id, code: 'MISSING_CREDENTIALS', reason: validation.error ?? 'Missing credentials' });
       }
 
       // Try token authentication first
@@ -89,7 +89,7 @@ export class WSAuthHandler {
       }
 
       // All authentication methods failed
-      return this.handleAuthFailure({ ws, connectionId, messageId: message.id, code: 'INVALID_CREDENTIALS', reason: 'Invalid token or API key' });
+      return await this.handleAuthFailure({ ws, connectionId, messageId: message.id, code: 'INVALID_CREDENTIALS', reason: 'Invalid token or API key' });
     } catch (error) {
       return this.handleAuthError(ws, connectionId, message.id, error);
     }
@@ -98,7 +98,7 @@ export class WSAuthHandler {
   /**
    * Handle authentication failure
    */
-  private handleAuthFailure(options: AuthFailureOptions): Promise<{ success: boolean; error: string }> {
+  private async handleAuthFailure(options: AuthFailureOptions): Promise<{ success: boolean; error: string }> {
     return this.sendAuthFailureResponse(options);
   }
 
