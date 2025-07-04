@@ -6,6 +6,8 @@ title = "Puppeteer MCP Gitleaks Configuration"
 
 [allowlist]
 description = "Allowlist for Puppeteer MCP"
+
+# Paths to completely ignore
 paths = [
     '''node_modules''',
     '''dist''',
@@ -17,20 +19,25 @@ paths = [
     '''\.cache''',
     '''build''',
     '''site''',  # Generated documentation site
-    '''\.github/workflows''',  # Workflow files may have example tokens
     '''eslint-results\.json''',  # ESLint results
-    '''tests?/.*\.test\.(ts|js)$''',  # Test files
-    '''.*\.md$''',  # Markdown documentation files
-    '''src/mcp/examples''',  # Example files with demo credentials
     '''\.env\.example''',  # Example environment file
     '''\.env\.sample''',  # Sample environment file
     '''\.env\.template''',  # Template environment file
+    '''work/''',  # Temporary work directory
+    '''\.sarif$''',  # SARIF result files
+]
+
+# Specific file commits to allow
+commits = [
+    "869a91bbcff8ed698163b57818e1b69080aacd4b",  # mkdocs.yml documentation update
+    "494064dd60bd59131ee339262f6f734cd1bddbc7",  # Test files with mock data
+    "48c14afef50daefb57d25b510146871e9fca22e7",  # TypeScript definitions
 ]
 
 # Allow test/demo credentials that are clearly marked
 regexes = [
     '''demo[_-]?(?:password|token|key|secret)''',
-    '''test[_-]?(?:password|token|key|secret)''',
+    '''test[_-]?(?:password|token|key|secret|token)''',
     '''example[_-]?(?:password|token|key|secret)''',
     '''fake[_-]?(?:password|token|key|secret)''',
     '''dummy[_-]?(?:password|token|key|secret)''',
@@ -59,50 +66,15 @@ regexes = [
     '''<[A-Z_]+>''',  # <API_KEY>, <SECRET>, etc.
     '''xxx+''',  # xxxxx placeholders
     '''\$\{[A-Z_]+\}''',  # ${API_KEY} style placeholders
+    # Specific patterns from our codebase
+    '''credentials:\s*['"]test-token['"]''',
+    '''apikey['"]?:\s*['"]test-api-key['"]''',
+    '''token['"]?:\s*['"]test-jwt-token['"]''',
+    '''pymdownx\.\w+''',  # MkDocs extensions in mkdocs.yml
+    # TypeScript type definitions
+    '''interface\s+\w+\s*\{[^}]*(?:token|key|secret)[^}]*\}''',
+    '''type\s+\w+\s*=\s*\{[^}]*(?:token|key|secret)[^}]*\}''',
 ]
-
-# Additional rules for common false positives
-[[rules]]
-id = "ignore-package-json-author"
-description = "Ignore package.json author fields"
-path = '''package\.json'''
-regex = '''(?i)(author|email)'''
-
-[[rules]]
-id = "ignore-typescript-definitions"
-description = "Ignore TypeScript type definitions"
-path = '''\.d\.ts$'''
-regex = '''.*'''
-
-[[rules]]
-id = "ignore-test-mock-secrets"
-description = "Ignore test files with mock data"
-path = '''(test|spec|__tests__|__mocks__)'''
-regex = '''(?i)(secret|password|token|key|credential)'''
-
-[[rules]]
-id = "ignore-documented-examples"
-description = "Ignore documented examples"
-path = '''(README|CONTRIBUTING|docs)'''
-regex = '''(?i)(secret|password|token|key|credential)'''
-
-[[rules]]
-id = "ignore-jwt-in-tests"
-description = "Ignore JWT tokens in test files"
-path = '''.*\.test\.(ts|js)$'''
-regex = '''eyJ[A-Za-z0-9\-_]+'''
-
-[[rules]]
-id = "ignore-example-jwt-tokens"
-description = "Ignore example JWT tokens"
-path = '''(examples?|docs?|README)'''
-regex = '''eyJ[A-Za-z0-9\-_]+'''
-
-[[rules]]
-id = "ignore-test-api-keys"
-description = "Ignore test API keys"
-path = '''.*\.(test|spec)\.(ts|js)$'''
-regex = '''sk-[a-zA-Z0-9]+'''
 
 # Custom entropy settings
 [extend]
