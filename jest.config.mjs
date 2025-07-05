@@ -78,6 +78,12 @@ export default {
       lines: 80,
       statements: 80,
     },
+    'src/utils/logger.ts': {
+      branches: 40,
+      functions: 50,
+      lines: 60,
+      statements: 60,
+    },
   },
   coverageDirectory: '<rootDir>/coverage',
   coverageReporters: ['text', 'lcov', 'html'],
