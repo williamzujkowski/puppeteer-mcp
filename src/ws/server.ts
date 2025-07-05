@@ -6,6 +6,8 @@
  * @nist au-3 "Content of audit records"
  */
 
+/* eslint-disable max-lines */
+
 import { WebSocketServer, WebSocket } from 'ws';
 import { Server as HttpServer } from 'http';
 import { pino } from 'pino';
