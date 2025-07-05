@@ -95,7 +95,10 @@ export class RestAdapter implements ProtocolAdapter {
     } catch (error) {
       // Log failed execution
       await logSecurityEvent(SecurityEventType.ACCESS_DENIED, {
-        resource: params.operation !== null && params.operation !== undefined ? String(params.operation) : 'unknown',
+        resource:
+          params.operation !== null && params.operation !== undefined
+            ? JSON.stringify(params.operation)
+            : 'unknown',
         action: 'execute',
         result: 'failure',
         reason: error instanceof Error ? error.message : 'Unknown error',
@@ -226,7 +229,11 @@ export class RestAdapter implements ProtocolAdapter {
 
       // Execute route handler
       try {
-        (layer as { handle: (req: unknown, res: unknown, next: unknown) => void }).handle(req, res, next);
+        (layer as { handle: (req: unknown, res: unknown, next: unknown) => void }).handle(
+          req,
+          res,
+          next,
+        );
       } catch (error) {
         reject(error instanceof Error ? error : new Error(String(error)));
       }
@@ -246,8 +253,17 @@ export class RestAdapter implements ProtocolAdapter {
     }
 
     // Find matching layer
-    for (const layer of (router as { stack: Array<{ route?: { methods?: Record<string, boolean>; path?: string | RegExp } }> }).stack) {
-      if (layer.route?.methods?.[method.toLowerCase()] === true && layer.route.path !== undefined && this.pathMatches(layer.route.path, path)) {
+    for (const layer of (
+      router as {
+        stack: Array<{ route?: { methods?: Record<string, boolean>; path?: string | RegExp } }>;
+      }
+    ).stack) {
+      if (
+        layer.route?.methods?.[method.toLowerCase()] === true &&
+        layer.route.path !== undefined &&
+        layer.route.path !== null &&
+        this.pathMatches(layer.route.path, path)
+      ) {
         return layer as { handle: (req: unknown, res: unknown, next: unknown) => void };
       }
     }

@@ -12,17 +12,23 @@ import { verifyToken } from '../../auth/jwt.js';
 import type { SessionStore } from '../../store/session-store.interface.js';
 import type { Session } from '../../types/session.js';
 import { logSecurityEvent, SecurityEventType } from '../../utils/logger.js';
-import type { ExtendedCall, GrpcCallback, NextFunction, GrpcError, InterceptorFunction } from './types.js';
+import type {
+  ExtendedCall,
+  GrpcCallback,
+  NextFunction,
+  GrpcError,
+  InterceptorFunction,
+} from './types.js';
 
 /**
  * Extract bearer token from authorization header
  */
 function extractBearerToken(authHeaders: grpc.MetadataValue[]): string | null {
   if (authHeaders.length === 0) return null;
-  
+
   const authHeader = authHeaders[0]?.toString();
   if (!authHeader?.startsWith('Bearer ')) return null;
-  
+
   return authHeader.substring(7);
 }
 
@@ -30,7 +36,8 @@ function extractBearerToken(authHeaders: grpc.MetadataValue[]): string | null {
  * Extract API key from header
  */
 function extractApiKey(apiKeys: grpc.MetadataValue[]): string | null {
-  return apiKeys[0]?.toString() ?? null;
+  const apiKeyValue = apiKeys[0]?.toString();
+  return apiKeyValue ?? null;
 }
 
 /**
@@ -47,7 +54,7 @@ function extractToken(metadata: grpc.Metadata): string | null {
 
   // Check x-api-key header
   const apiKeys = metadata.get('x-api-key');
-  if (apiKeys !== undefined) {
+  if (apiKeys !== undefined && apiKeys !== null) {
     return extractApiKey(apiKeys);
   }
 
@@ -86,7 +93,7 @@ function extractRequestContext(call: ExtendedCall): RequestContext {
 async function logAuthFailure(
   context: RequestContext,
   reason: string,
-  additionalMetadata?: Record<string, unknown>
+  additionalMetadata?: Record<string, unknown>,
 ): Promise<void> {
   await logSecurityEvent(SecurityEventType.AUTH_FAILURE, {
     resource: context.methodName,
@@ -103,10 +110,7 @@ async function logAuthFailure(
 /**
  * Log authentication success
  */
-async function logAuthSuccess(
-  context: RequestContext,
-  session: Session
-): Promise<void> {
+async function logAuthSuccess(context: RequestContext, session: Session): Promise<void> {
   await logSecurityEvent(SecurityEventType.AUTH_SUCCESS, {
     resource: context.methodName,
     action: 'authenticate',
@@ -126,11 +130,11 @@ async function logAuthSuccess(
 async function validateTokenAndSession(
   token: string,
   sessionStore: SessionStore,
-  context: RequestContext
+  context: RequestContext,
 ): Promise<Session | null> {
   // Verify token
   const payload = await verifyToken(token, 'access');
-  
+
   if (!payload?.sessionId) {
     await logAuthFailure(context, 'Invalid token');
     return null;
@@ -138,7 +142,7 @@ async function validateTokenAndSession(
 
   // Validate session
   const session = await sessionStore.get(payload.sessionId);
-  
+
   if (!session) {
     await logAuthFailure(context, 'Session not found', {
       sessionId: payload.sessionId,
@@ -185,19 +189,15 @@ function attachSessionToCall(call: ExtendedCall, session: Session): void {
  */
 export function authInterceptor(
   logger: pino.Logger,
-  sessionStore: SessionStore
+  sessionStore: SessionStore,
 ): InterceptorFunction {
-  return async (
-    call: ExtendedCall,
-    callback: GrpcCallback,
-    next: NextFunction
-  ): Promise<void> => {
+  return async (call: ExtendedCall, callback: GrpcCallback, next: NextFunction): Promise<void> => {
     const context = extractRequestContext(call);
-    
+
     try {
       // Extract authentication token
       const token = extractToken(call.metadata);
-      
+
       if (token === null || token === undefined || token === '') {
         await logAuthFailure(context, 'Missing authentication token');
         return callback(createAuthError('Missing authentication token'));
@@ -205,7 +205,7 @@ export function authInterceptor(
 
       // Validate token and get session
       const session = await validateTokenAndSession(token, sessionStore, context);
-      
+
       if (!session) {
         return callback(createAuthError('Invalid authentication token'));
       }
@@ -223,11 +223,8 @@ export function authInterceptor(
       next(call, callback);
     } catch (error) {
       logger.error('Authentication error:', error);
-      
-      await logAuthFailure(
-        context,
-        error instanceof Error ? error.message : 'Unknown error'
-      );
+
+      await logAuthFailure(context, error instanceof Error ? error.message : 'Unknown error');
 
       callback(createAuthError('Authentication failed'));
     }
@@ -240,23 +237,23 @@ export function authInterceptor(
 async function tryOptionalAuth(
   call: ExtendedCall,
   sessionStore: SessionStore,
-  logger: pino.Logger
+  logger: pino.Logger,
 ): Promise<void> {
   const token = extractToken(call.metadata);
-  
+
   if (token === null || token === undefined || token === '') {
     return;
   }
 
   try {
     const payload = await verifyToken(token, 'access');
-    
+
     if (!payload?.sessionId) {
       return;
     }
 
     const session = await sessionStore.get(payload.sessionId);
-    
+
     if (!session) {
       return;
     }
@@ -268,7 +265,7 @@ async function tryOptionalAuth(
 
     // Update session last accessed time
     await sessionStore.touch(session.id);
-    
+
     // Attach session to call
     attachSessionToCall(call, session);
   } catch (error) {
@@ -283,13 +280,9 @@ async function tryOptionalAuth(
  */
 export function optionalAuthInterceptor(
   logger: pino.Logger,
-  sessionStore: SessionStore
+  sessionStore: SessionStore,
 ): InterceptorFunction {
-  return async (
-    call: ExtendedCall,
-    callback: GrpcCallback,
-    next: NextFunction
-  ): Promise<void> => {
+  return async (call: ExtendedCall, callback: GrpcCallback, next: NextFunction): Promise<void> => {
     try {
       await tryOptionalAuth(call, sessionStore, logger);
       next(call, callback);

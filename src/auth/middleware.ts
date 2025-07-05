@@ -68,7 +68,7 @@ export const createAuthMiddleware = (sessionStore: SessionStore) => {
         // Extract token from Authorization header
         const token = extractTokenFromHeader(req.headers.authorization);
 
-        if (!token || token.trim().length === 0) {
+        if (token === null || token === undefined || token.trim().length === 0) {
           throw new AppError('No authentication token provided', 401);
         }
 
@@ -132,7 +132,7 @@ export const createApiKeyMiddleware = (validateApiKey: (key: string) => Promise<
       try {
         const apiKey = req.headers['x-api-key'] as string | undefined;
 
-        if (!apiKey || apiKey.trim().length === 0) {
+        if (apiKey === null || apiKey === undefined || apiKey.trim().length === 0) {
           throw new AppError('No API key provided', 401);
         }
 
@@ -240,7 +240,7 @@ export const optionalAuth = (
   return (req: Request, _res: Response, next: NextFunction) => {
     const token = extractTokenFromHeader(req.headers.authorization);
 
-    if (!token || token.trim().length === 0) {
+    if (token === null || token === undefined || token.trim().length === 0) {
       // No token provided, continue without authentication
       return next();
     }
