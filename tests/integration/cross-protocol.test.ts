@@ -38,7 +38,14 @@ const loadGrpcClient = (): any => {
 const waitForWsMessage = (ws: WebSocket): Promise<any> => {
   return new Promise((resolve) => {
     ws.once('message', (data: Buffer | ArrayBuffer | Buffer[]) => {
-      const strData = data instanceof Buffer ? data.toString() : String(data);
+      const strData =
+        data instanceof Buffer
+          ? data.toString()
+          : data instanceof ArrayBuffer
+            ? new TextDecoder().decode(data)
+            : Array.isArray(data)
+              ? Buffer.concat(data).toString()
+              : String(data);
       resolve(JSON.parse(strData) as unknown);
     });
   });

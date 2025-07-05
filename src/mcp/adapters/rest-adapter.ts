@@ -209,7 +209,17 @@ export class RestAdapter implements ProtocolAdapter {
       // Create next function for error handling
       const next: NextFunction = (error?: unknown) => {
         if (error !== null && error !== undefined) {
-          reject(error instanceof Error ? error : new Error(String(error)));
+          let errorMessage: string;
+          if (error instanceof Error) {
+            errorMessage = error.message;
+          } else if (typeof error === 'string') {
+            errorMessage = error;
+          } else if (typeof error === 'object' && error !== null) {
+            errorMessage = 'Error object';
+          } else {
+            errorMessage = 'Unknown error';
+          }
+          reject(error instanceof Error ? error : new Error(errorMessage));
         } else {
           resolve({
             status: responseStatus,

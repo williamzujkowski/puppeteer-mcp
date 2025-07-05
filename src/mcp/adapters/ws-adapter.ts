@@ -19,14 +19,14 @@ import { logSecurityEvent, SecurityEventType } from '../../utils/logger.js';
 import type { ProtocolAdapter, MCPResponse, AuthParams } from './adapter.interface.js';
 import { WSConnectionManager } from '../../ws/connection-manager.js';
 import { WSSubscriptionManager } from '../../ws/subscription-manager.js';
-import { 
+import {
   WSMessageType,
   type WSMessage,
   type WSRequestMessage,
   type WSResponseMessage,
   type WSEventMessage,
   type WSSubscriptionMessage,
-  type WSAuthMessage
+  type WSAuthMessage,
 } from '../../types/websocket.js';
 
 /**
@@ -51,16 +51,22 @@ interface MCPWebSocketConnection {
   ws: WebSocket;
   connectionId: string;
   authenticated: boolean;
-  pendingRequests: Map<string, {
-    resolve: (response: MCPResponse) => void;
-    reject: (error: Error) => void;
-    timeout: NodeJS.Timeout;
-  }>;
-  subscriptions: Map<string, {
-    topic: string;
-    filters?: Record<string, unknown>;
-    handler: (data: unknown) => void;
-  }>;
+  pendingRequests: Map<
+    string,
+    {
+      resolve: (response: MCPResponse) => void;
+      reject: (error: Error) => void;
+      timeout: NodeJS.Timeout;
+    }
+  >;
+  subscriptions: Map<
+    string,
+    {
+      topic: string;
+      filters?: Record<string, unknown>;
+      handler: (data: unknown) => void;
+    }
+  >;
 }
 
 /**
@@ -79,12 +85,12 @@ export class WebSocketAdapter implements ProtocolAdapter {
   constructor(
     logger: pino.Logger,
     connectionManager: WSConnectionManager,
-    subscriptionManager: WSSubscriptionManager
+    subscriptionManager: WSSubscriptionManager,
   ) {
     this.logger = logger.child({ module: 'mcp-ws-adapter' });
     this.connectionManager = connectionManager;
     this.subscriptionManager = subscriptionManager;
-    
+
     // Set up event listeners for subscription updates
     this.setupEventListeners();
   }
@@ -103,10 +109,10 @@ export class WebSocketAdapter implements ProtocolAdapter {
     try {
       // Validate operation parameters
       const operation = WebSocketOperationSchema.parse(params.operation);
-      
+
       // Ensure connection is established and authenticated
       const connection = await this.ensureConnection(params.auth, params.sessionId);
-      
+
       // Log security event
       await logSecurityEvent(SecurityEventType.API_ACCESS, {
         userId: params.sessionId,
@@ -149,14 +155,14 @@ export class WebSocketAdapter implements ProtocolAdapter {
    */
   private async handleSubscribe(
     connection: MCPWebSocketConnection,
-    operation: WebSocketOperation
+    operation: WebSocketOperation,
   ): Promise<MCPResponse> {
     if (operation.topic === null || operation.topic === undefined || operation.topic === '') {
       throw new AppError('Topic is required for subscription', 400);
     }
 
     const subscriptionId = uuidv4();
-    
+
     // Create subscription message
     const subscriptionMessage: WSSubscriptionMessage = {
       type: WSMessageType.SUBSCRIBE,
@@ -192,10 +198,12 @@ export class WebSocketAdapter implements ProtocolAdapter {
     }
 
     return {
-      content: [{
-        type: 'text',
-        text: `Subscribed to ${operation.topic}`,
-      }],
+      content: [
+        {
+          type: 'text',
+          text: `Subscribed to ${operation.topic}`,
+        },
+      ],
       metadata: {
         subscriptionId,
         topic: operation.topic,
@@ -211,7 +219,7 @@ export class WebSocketAdapter implements ProtocolAdapter {
    */
   private async handleUnsubscribe(
     connection: MCPWebSocketConnection,
-    operation: WebSocketOperation
+    operation: WebSocketOperation,
   ): Promise<MCPResponse> {
     if (operation.topic === null || operation.topic === undefined || operation.topic === '') {
       throw new AppError('Topic is required for unsubscription', 400);
@@ -234,10 +242,12 @@ export class WebSocketAdapter implements ProtocolAdapter {
     await this.cleanupSubscription(connection, subscriptionId);
 
     return {
-      content: [{
-        type: 'text',
-        text: `Unsubscribed from ${operation.topic}`,
-      }],
+      content: [
+        {
+          type: 'text',
+          text: `Unsubscribed from ${operation.topic}`,
+        },
+      ],
       metadata: {
         topic: operation.topic,
       },
@@ -251,10 +261,10 @@ export class WebSocketAdapter implements ProtocolAdapter {
    */
   private async handleSend(
     connection: MCPWebSocketConnection,
-    operation: WebSocketOperation
+    operation: WebSocketOperation,
   ): Promise<MCPResponse> {
     const requestId = uuidv4();
-    
+
     // Create request message
     const requestMessage: WSRequestMessage = {
       type: WSMessageType.REQUEST,
@@ -269,7 +279,7 @@ export class WebSocketAdapter implements ProtocolAdapter {
     const response = await this.sendRequestAndWaitForResponse(
       connection,
       requestMessage,
-      operation.timeout
+      operation.timeout,
     );
 
     return response;
@@ -281,24 +291,29 @@ export class WebSocketAdapter implements ProtocolAdapter {
    */
   private handleBroadcast(
     _connection: MCPWebSocketConnection,
-    operation: WebSocketOperation
+    operation: WebSocketOperation,
   ): Promise<MCPResponse> {
-    if ((operation.topic === null || operation.topic === undefined || operation.topic === '') || (operation.event === null || operation.event === undefined || operation.event === '')) {
+    if (
+      operation.topic === null ||
+      operation.topic === undefined ||
+      operation.topic === '' ||
+      operation.event === null ||
+      operation.event === undefined ||
+      operation.event === ''
+    ) {
       throw new AppError('Topic and event are required for broadcast', 400);
     }
 
     // Broadcast event through subscription manager
-    this.subscriptionManager.broadcastEvent(
-      operation.topic,
-      operation.event,
-      operation.data
-    );
+    this.subscriptionManager.broadcastEvent(operation.topic, operation.event, operation.data);
 
     return Promise.resolve({
-      content: [{
-        type: 'text',
-        text: `Broadcast sent to topic ${operation.topic}`,
-      }],
+      content: [
+        {
+          type: 'text',
+          text: `Broadcast sent to topic ${operation.topic}`,
+        },
+      ],
       metadata: {
         topic: operation.topic,
         event: operation.event,
@@ -314,10 +329,10 @@ export class WebSocketAdapter implements ProtocolAdapter {
    */
   private async ensureConnection(
     auth?: AuthParams,
-    sessionId?: string
+    sessionId?: string,
   ): Promise<MCPWebSocketConnection> {
     const connectionId = sessionId ?? uuidv4();
-    
+
     // Check if connection already exists
     let connection = this.activeConnections.get(connectionId);
     if (connection && connection.ws.readyState === WebSocket.OPEN) {
@@ -326,7 +341,7 @@ export class WebSocketAdapter implements ProtocolAdapter {
 
     // Create new connection
     const ws = await this.createWebSocketConnection();
-    
+
     connection = {
       ws,
       connectionId,
@@ -346,9 +361,12 @@ export class WebSocketAdapter implements ProtocolAdapter {
         message = data;
       } else if (data instanceof Buffer) {
         message = data.toString('utf8');
+      } else if (data instanceof ArrayBuffer) {
+        // For ArrayBuffer, convert to string using TextDecoder
+        message = new TextDecoder().decode(data);
       } else {
-        // For ArrayBuffer or other types, convert to string
-        message = String(data);
+        // For other types, use JSON.stringify for objects or String for primitives
+        message = typeof data === 'object' ? JSON.stringify(data) : String(data);
       }
       this.handleIncomingMessage(connection, message);
     });
@@ -375,12 +393,14 @@ export class WebSocketAdapter implements ProtocolAdapter {
       // In a real implementation, this would connect to the WebSocket server
       // For this adapter, we're assuming we have access to the server-side WebSocket
       // This is a placeholder that would need to be adapted based on your architecture
-      
+
       // For now, we'll throw an error indicating this needs implementation
-      reject(new AppError(
-        'WebSocket connection creation not implemented. This adapter needs to be integrated with your WebSocket server.',
-        501
-      ));
+      reject(
+        new AppError(
+          'WebSocket connection creation not implemented. This adapter needs to be integrated with your WebSocket server.',
+          501,
+        ),
+      );
     });
   }
 
@@ -391,7 +411,7 @@ export class WebSocketAdapter implements ProtocolAdapter {
    */
   private async authenticateConnection(
     connection: MCPWebSocketConnection,
-    auth: AuthParams
+    auth: AuthParams,
   ): Promise<void> {
     const authMessage: WSAuthMessage = {
       type: WSMessageType.AUTH,
@@ -407,7 +427,7 @@ export class WebSocketAdapter implements ProtocolAdapter {
     const response = await this.sendRequestAndWaitForResponse(
       connection,
       authMessage,
-      10000 // 10 second timeout for auth
+      10000, // 10 second timeout for auth
     );
 
     if (response.metadata?.status !== 200) {
@@ -415,7 +435,7 @@ export class WebSocketAdapter implements ProtocolAdapter {
     }
 
     connection.authenticated = true;
-    
+
     // Log security event
     await logSecurityEvent(SecurityEventType.AUTH_SUCCESS, {
       userId: connection.connectionId,
@@ -430,10 +450,7 @@ export class WebSocketAdapter implements ProtocolAdapter {
    * Send message through WebSocket
    * @nist sc-8 "Transmission confidentiality and integrity"
    */
-  private sendMessage(
-    connection: MCPWebSocketConnection,
-    message: WSMessage
-  ): Promise<void> {
+  private sendMessage(connection: MCPWebSocketConnection, message: WSMessage): Promise<void> {
     if (connection.ws.readyState !== WebSocket.OPEN) {
       throw new AppError('WebSocket connection not open', 503);
     }
@@ -449,11 +466,11 @@ export class WebSocketAdapter implements ProtocolAdapter {
   private sendRequestAndWaitForResponse(
     connection: MCPWebSocketConnection,
     message: WSMessage,
-    timeout: number
+    timeout: number,
   ): Promise<MCPResponse> {
     return new Promise((resolve, reject) => {
       const requestId = message.id ?? uuidv4();
-      
+
       // Set up timeout
       const timeoutHandle = setTimeout(() => {
         connection.pendingRequests.delete(requestId);
@@ -476,10 +493,7 @@ export class WebSocketAdapter implements ProtocolAdapter {
    * Handle incoming WebSocket message
    * @nist sc-8 "Transmission confidentiality and integrity"
    */
-  private handleIncomingMessage(
-    connection: MCPWebSocketConnection,
-    data: string
-  ): void {
+  private handleIncomingMessage(connection: MCPWebSocketConnection, data: string): void {
     try {
       const message = JSON.parse(data) as WSMessage;
 
@@ -509,7 +523,7 @@ export class WebSocketAdapter implements ProtocolAdapter {
    */
   private handleResponseMessage(
     connection: MCPWebSocketConnection,
-    message: WSResponseMessage
+    message: WSResponseMessage,
   ): void {
     const pending = connection.pendingRequests.get(message.id);
     if (pending) {
@@ -517,10 +531,12 @@ export class WebSocketAdapter implements ProtocolAdapter {
       connection.pendingRequests.delete(message.id);
 
       const mcpResponse: MCPResponse = {
-        content: [{
-          type: 'text',
-          text: JSON.stringify(message.data),
-        }],
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify(message.data),
+          },
+        ],
         metadata: {
           status: message.status,
           timestamp: message.timestamp,
@@ -535,10 +551,7 @@ export class WebSocketAdapter implements ProtocolAdapter {
   /**
    * Handle event message
    */
-  private handleEventMessage(
-    connection: MCPWebSocketConnection,
-    message: WSEventMessage
-  ): void {
+  private handleEventMessage(connection: MCPWebSocketConnection, message: WSEventMessage): void {
     // Emit event for subscriptions
     const eventData = message.data as { topic?: string; data?: unknown };
     if (eventData.topic !== null && eventData.topic !== undefined && eventData.topic !== '') {
@@ -554,33 +567,23 @@ export class WebSocketAdapter implements ProtocolAdapter {
   /**
    * Handle error message
    */
-  private handleErrorMessage(
-    connection: MCPWebSocketConnection,
-    message: WSMessage
-  ): void {
+  private handleErrorMessage(connection: MCPWebSocketConnection, message: WSMessage): void {
     const errorMessage = message as { error: { code: string; message: string } };
     const pending = connection.pendingRequests.get(message.id ?? '');
-    
+
     if (pending) {
       clearTimeout(pending.timeout);
       connection.pendingRequests.delete(message.id ?? '');
-      pending.reject(new AppError(
-        errorMessage.error.message,
-        400
-      ));
+      pending.reject(new AppError(errorMessage.error.message, 400));
     }
   }
-
 
   /**
    * Handle subscription update
    */
-  private handleSubscriptionUpdate(
-    connection: MCPWebSocketConnection,
-    message: WSMessage
-  ): void {
+  private handleSubscriptionUpdate(connection: MCPWebSocketConnection, message: WSMessage): void {
     const updateMessage = message as { topic: string; data: unknown };
-    
+
     // Find matching subscriptions and emit events
     for (const [id, sub] of connection.subscriptions) {
       if (sub.topic === updateMessage.topic) {
@@ -595,7 +598,7 @@ export class WebSocketAdapter implements ProtocolAdapter {
    */
   private async cleanupSubscription(
     connection: MCPWebSocketConnection,
-    subscriptionId: string
+    subscriptionId: string,
   ): Promise<void> {
     const subscription = connection.subscriptions.get(subscriptionId);
     if (!subscription) {
@@ -636,7 +639,7 @@ export class WebSocketAdapter implements ProtocolAdapter {
 
     // Clear all subscriptions
     for (const [id] of connection.subscriptions) {
-      this.cleanupSubscription(connection, id).catch(error => {
+      this.cleanupSubscription(connection, id).catch((error) => {
         this.logger.error('Failed to cleanup subscription', error);
       });
     }
@@ -664,48 +667,54 @@ export class WebSocketAdapter implements ProtocolAdapter {
    */
   listEndpoints(): Promise<MCPResponse> {
     return Promise.resolve({
-      content: [{
-        type: 'text',
-        text: JSON.stringify({
-          endpoints: [
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(
             {
-              operation: 'subscribe',
-              description: 'Subscribe to real-time updates on a topic',
-              parameters: {
-                topic: 'string (required)',
-                filters: 'object (optional)',
-                duration: 'number in ms (optional)',
-              },
+              endpoints: [
+                {
+                  operation: 'subscribe',
+                  description: 'Subscribe to real-time updates on a topic',
+                  parameters: {
+                    topic: 'string (required)',
+                    filters: 'object (optional)',
+                    duration: 'number in ms (optional)',
+                  },
+                },
+                {
+                  operation: 'unsubscribe',
+                  description: 'Unsubscribe from a topic',
+                  parameters: {
+                    topic: 'string (required)',
+                  },
+                },
+                {
+                  operation: 'send',
+                  description: 'Send a message through WebSocket',
+                  parameters: {
+                    topic: 'string (optional)',
+                    event: 'string (optional)',
+                    data: 'any (optional)',
+                    timeout: 'number in ms (default: 30000)',
+                  },
+                },
+                {
+                  operation: 'broadcast',
+                  description: 'Broadcast a message to all subscribers of a topic',
+                  parameters: {
+                    topic: 'string (required)',
+                    event: 'string (required)',
+                    data: 'any (optional)',
+                  },
+                },
+              ],
             },
-            {
-              operation: 'unsubscribe',
-              description: 'Unsubscribe from a topic',
-              parameters: {
-                topic: 'string (required)',
-              },
-            },
-            {
-              operation: 'send',
-              description: 'Send a message through WebSocket',
-              parameters: {
-                topic: 'string (optional)',
-                event: 'string (optional)',
-                data: 'any (optional)',
-                timeout: 'number in ms (default: 30000)',
-              },
-            },
-            {
-              operation: 'broadcast',
-              description: 'Broadcast a message to all subscribers of a topic',
-              parameters: {
-                topic: 'string (required)',
-                event: 'string (required)',
-                data: 'any (optional)',
-              },
-            },
-          ],
-        }, null, 2),
-      }],
+            null,
+            2,
+          ),
+        },
+      ],
     });
   }
 
@@ -731,11 +740,7 @@ export class WebSocketAdapter implements ProtocolAdapter {
         'broadcast',
       ],
       authentication: ['jwt', 'apikey'],
-      subscriptionTopics: [
-        'sessions.*',
-        'contexts.*',
-        'system.*',
-      ],
+      subscriptionTopics: ['sessions.*', 'contexts.*', 'system.*'],
       messageTypes: Object.values(WSMessageType),
     });
   }
@@ -747,7 +752,7 @@ export class WebSocketAdapter implements ProtocolAdapter {
   createStreamingResponse(subscriptionId: string): AsyncGenerator<MCPResponse> {
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const self = this;
-    
+
     return (async function* () {
       const events: unknown[] = [];
       let resolveNext: ((value: unknown) => void) | null = null;
@@ -767,16 +772,20 @@ export class WebSocketAdapter implements ProtocolAdapter {
       try {
         while (true) {
           // Get next event
-          const data = events.shift() ?? await new Promise(resolve => {
-            resolveNext = resolve;
-          });
+          const data =
+            events.shift() ??
+            (await new Promise((resolve) => {
+              resolveNext = resolve;
+            }));
 
           // Yield MCP response
           yield {
-            content: [{
-              type: 'text',
-              text: JSON.stringify(data),
-            }],
+            content: [
+              {
+                type: 'text',
+                text: JSON.stringify(data),
+              },
+            ],
             metadata: {
               subscriptionId,
               timestamp: new Date().toISOString(),

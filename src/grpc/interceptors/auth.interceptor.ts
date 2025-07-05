@@ -49,7 +49,7 @@ function extractToken(metadata: grpc.Metadata): string | null {
   const authHeaders = metadata.get('authorization');
   if (authHeaders !== undefined) {
     const bearerToken = extractBearerToken(authHeaders);
-    if (bearerToken) return bearerToken;
+    if (bearerToken !== null && bearerToken !== undefined && bearerToken !== '') return bearerToken;
   }
 
   // Check x-api-key header

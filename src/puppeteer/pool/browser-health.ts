@@ -24,12 +24,53 @@ export interface HealthCheckResult {
 }
 
 /**
+ * Get process metrics for browser
+ */
+async function getProcessMetrics(
+  browser: Browser,
+): Promise<{ memoryUsage?: number; cpuUsage?: number }> {
+  const process = browser.process();
+
+  if (!process?.pid || process.pid === 0) {
+    return {};
+  }
+
+  try {
+    // This is platform-specific and may not work on all systems
+    const { execSync } = await import('child_process');
+    const stats = execSync(`ps -p ${process.pid} -o %mem,%cpu | tail -1`).toString();
+    const [mem, cpu] = stats.trim().split(/\s+/).map(parseFloat);
+    return { memoryUsage: mem, cpuUsage: cpu };
+  } catch {
+    // Ignore errors in getting process stats
+    return {};
+  }
+}
+
+/**
+ * Check if browser has too many pages
+ */
+function checkPageCount(openPages: number, instance: BrowserInstance): void {
+  const maxPagesPerBrowser = 20;
+  if (openPages > maxPagesPerBrowser) {
+    logger.warn(
+      {
+        browserId: instance.id,
+        openPages,
+        maxPages: maxPagesPerBrowser,
+      },
+      'Browser has too many open pages',
+    );
+  }
+}
+
+/**
  * Check browser health
  * @nist au-3 "Content of audit records"
  */
 export async function checkBrowserHealth(
   browser: Browser,
-  instance: BrowserInstance
+  instance: BrowserInstance,
 ): Promise<HealthCheckResult> {
   try {
     // Check if browser is connected
@@ -49,32 +90,10 @@ export async function checkBrowserHealth(
     const openPages = pages.length;
 
     // Get process metrics if available
-    const process = browser.process();
-    let memoryUsage: number | undefined;
-    let cpuUsage: number | undefined;
-
-    if (process?.pid) {
-      try {
-        // This is platform-specific and may not work on all systems
-        const { execSync } = await import('child_process');
-        const stats = execSync(`ps -p ${process.pid} -o %mem,%cpu | tail -1`).toString();
-        const [mem, cpu] = stats.trim().split(/\s+/).map(parseFloat);
-        memoryUsage = mem;
-        cpuUsage = cpu;
-      } catch {
-        // Ignore errors in getting process stats
-      }
-    }
+    const { memoryUsage, cpuUsage } = await getProcessMetrics(browser);
 
     // Check page count
-    const maxPagesPerBrowser = 20;
-    if (openPages > maxPagesPerBrowser) {
-      logger.warn({
-        browserId: instance.id,
-        openPages,
-        maxPages: maxPagesPerBrowser,
-      }, 'Browser has too many open pages');
-    }
+    checkPageCount(openPages, instance);
 
     return {
       healthy: true,
@@ -83,12 +102,14 @@ export async function checkBrowserHealth(
       memoryUsage,
       cpuUsage,
     };
-
   } catch (error) {
-    logger.error({
-      browserId: instance.id,
-      error: error instanceof Error ? error.message : 'Unknown error',
-    }, 'Browser health check failed');
+    logger.error(
+      {
+        browserId: instance.id,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      },
+      'Browser health check failed',
+    );
 
     return {
       healthy: false,
@@ -120,27 +141,33 @@ export class BrowserHealthMonitor {
    */
   startMonitoring(params: MonitoringParams): void {
     const { browserId, browser, instance, onUnhealthy, intervalMs = 30000 } = params;
-    
+
     // Clear any existing interval
     this.stopMonitoring(browserId);
 
     const interval = setInterval(() => {
       void (async () => {
         const health = await checkBrowserHealth(browser, instance);
-        
+
         if (!health.healthy) {
-          logger.warn({
-            browserId,
-            health,
-          }, 'Browser unhealthy, triggering recovery');
-          
+          logger.warn(
+            {
+              browserId,
+              health,
+            },
+            'Browser unhealthy, triggering recovery',
+          );
+
           onUnhealthy();
           this.stopMonitoring(browserId);
         } else {
-          logger.debug({
-            browserId,
-            health,
-          }, 'Browser health check passed');
+          logger.debug(
+            {
+              browserId,
+              health,
+            },
+            'Browser health check passed',
+          );
         }
       })();
     }, intervalMs);

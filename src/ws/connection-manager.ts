@@ -58,7 +58,7 @@ export class WSConnectionManager {
   private cleanupUserConnections(userId: string, connectionId: string): void {
     const userConnections = this.userConnections.get(userId);
     if (!userConnections) return;
-    
+
     userConnections.delete(connectionId);
     if (userConnections.size === 0) {
       this.userConnections.delete(userId);
@@ -71,7 +71,7 @@ export class WSConnectionManager {
   private cleanupSessionConnections(sessionId: string, connectionId: string): void {
     const sessionConnections = this.sessionConnections.get(sessionId);
     if (!sessionConnections) return;
-    
+
     sessionConnections.delete(connectionId);
     if (sessionConnections.size === 0) {
       this.sessionConnections.delete(sessionId);
@@ -87,7 +87,7 @@ export class WSConnectionManager {
 
     // Clean up user mapping if userId exists
     const userId = connection.state.userId;
-    if (userId && userId.length > 0) {
+    if (userId !== null && userId !== undefined && userId !== '' && userId.length > 0) {
       this.cleanupUserConnections(userId, connectionId);
     }
 
@@ -133,7 +133,7 @@ export class WSConnectionManager {
     sessionId,
     roles,
     permissions,
-    scopes
+    scopes,
   }: AuthenticationParams): void {
     const connection = this.connections.get(connectionId);
     if (connection) {
@@ -188,10 +188,12 @@ export class WSConnectionManager {
    */
   getConnectionsByUser(userId: string): ConnectionEntry[] {
     const connectionIds = this.userConnections.get(userId);
-    if (!connectionIds) {return [];}
+    if (!connectionIds) {
+      return [];
+    }
 
     return Array.from(connectionIds)
-      .map(id => this.connections.get(id))
+      .map((id) => this.connections.get(id))
       .filter((conn): conn is ConnectionEntry => conn !== undefined);
   }
 
@@ -201,10 +203,12 @@ export class WSConnectionManager {
    */
   getConnectionsBySession(sessionId: string): ConnectionEntry[] {
     const connectionIds = this.sessionConnections.get(sessionId);
-    if (!connectionIds) {return [];}
+    if (!connectionIds) {
+      return [];
+    }
 
     return Array.from(connectionIds)
-      .map(id => this.connections.get(id))
+      .map((id) => this.connections.get(id))
       .filter((conn): conn is ConnectionEntry => conn !== undefined);
   }
 
@@ -213,7 +217,11 @@ export class WSConnectionManager {
    */
   addSubscription(connectionId: string, topic: string): boolean {
     const connection = this.connections.get(connectionId);
-    if (connection?.state.authenticated) {
+    if (
+      connection !== null &&
+      connection !== undefined &&
+      connection.state.authenticated === true
+    ) {
       connection.state.subscriptions.add(topic);
       this.logger.debug('Subscription added', { connectionId, topic });
       return true;
@@ -238,9 +246,7 @@ export class WSConnectionManager {
    * Get connections subscribed to a topic
    */
   getConnectionsByTopic(topic: string): ConnectionEntry[] {
-    return this.getAllConnections().filter(
-      conn => conn.state.subscriptions.has(topic)
-    );
+    return this.getAllConnections().filter((conn) => conn.state.subscriptions.has(topic));
   }
 
   /**
@@ -255,17 +261,18 @@ export class WSConnectionManager {
     connectionsByUser: Array<{ userId: string; count: number }>;
   } {
     const connections = this.getAllConnections();
-    const authenticated = connections.filter(c => c.state.authenticated);
-    
+    const authenticated = connections.filter((c) => c.state.authenticated);
+
     return {
       total: connections.length,
       authenticated: authenticated.length,
       unauthenticated: connections.length - authenticated.length,
       uniqueUsers: this.userConnections.size,
       uniqueSessions: this.sessionConnections.size,
-      connectionsByUser: Array.from(this.userConnections.entries()).map(
-        ([userId, conns]) => ({ userId, count: conns.size })
-      ),
+      connectionsByUser: Array.from(this.userConnections.entries()).map(([userId, conns]) => ({
+        userId,
+        count: conns.size,
+      })),
     };
   }
 

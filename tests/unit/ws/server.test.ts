@@ -27,7 +27,15 @@ const waitForEvent = (ws: WebSocket, event: string): Promise<any> => {
 const waitForMessage = (ws: WebSocket): Promise<any> => {
   return new Promise((resolve) => {
     ws.once('message', (data) => {
-      resolve(JSON.parse(String(data)));
+      const strData =
+        data instanceof Buffer
+          ? data.toString()
+          : typeof data === 'string'
+            ? data
+            : typeof data === 'object'
+              ? JSON.stringify(data)
+              : String(data);
+      resolve(JSON.parse(strData));
     });
   });
 };
@@ -43,7 +51,7 @@ describe('WebSocket Server', () => {
   beforeEach(async () => {
     logger = pino({ level: 'silent' });
     sessionStore = new InMemorySessionStore(logger);
-    
+
     // Create HTTP server
     httpServer = createServer();
     await new Promise<void>((resolve) => {
@@ -247,11 +255,13 @@ describe('WebSocket Server', () => {
       await waitForMessage(wsClient); // Connect message
 
       // Authenticate
-      wsClient.send(JSON.stringify({
-        type: WSMessageType.AUTH,
-        id: 'auth',
-        data: { token: 'valid-token' },
-      }));
+      wsClient.send(
+        JSON.stringify({
+          type: WSMessageType.AUTH,
+          id: 'auth',
+          data: { token: 'valid-token' },
+        }),
+      );
       await waitForMessage(wsClient); // Auth success
     });
 
@@ -344,7 +354,7 @@ describe('WebSocket Server', () => {
     beforeEach(async () => {
       // Setup multiple authenticated clients
       const port = httpServer.address().port;
-      
+
       for (let i = 0; i < 3; i++) {
         await sessionStore.create({
           id: `session-${i}`,
@@ -365,11 +375,13 @@ describe('WebSocket Server', () => {
           userId: `user-${i}`,
         });
 
-        client.send(JSON.stringify({
-          type: WSMessageType.AUTH,
-          id: `auth-${i}`,
-          data: { token: `token-${i}` },
-        }));
+        client.send(
+          JSON.stringify({
+            type: WSMessageType.AUTH,
+            id: `auth-${i}`,
+            data: { token: `token-${i}` },
+          }),
+        );
         await waitForMessage(client); // Auth success
 
         clients.push(client);
@@ -377,12 +389,12 @@ describe('WebSocket Server', () => {
     });
 
     afterEach(() => {
-      clients.forEach(client => client.close());
+      clients.forEach((client) => client.close());
       clients = [];
     });
 
     it('should broadcast to all authenticated clients', async () => {
-      const messagePromises = clients.map(client => waitForMessage(client));
+      const messagePromises = clients.map((client) => waitForMessage(client));
 
       wsServer.broadcast({
         type: WSMessageType.EVENT,
@@ -393,8 +405,8 @@ describe('WebSocket Server', () => {
       });
 
       const messages = await Promise.all(messagePromises);
-      
-      messages.forEach(msg => {
+
+      messages.forEach((msg) => {
         expect(msg).toMatchObject({
           type: WSMessageType.EVENT,
           event: 'test_broadcast',
@@ -424,7 +436,9 @@ describe('WebSocket Server', () => {
 
       // Other clients should not receive the message
       // Give some time to ensure no messages are sent
-      await new Promise<void>(resolve => { setTimeout(resolve, 100); });
+      await new Promise<void>((resolve) => {
+        setTimeout(resolve, 100);
+      });
     });
   });
 
@@ -432,7 +446,7 @@ describe('WebSocket Server', () => {
     it('should send ping frames periodically', async () => {
       const port = httpServer.address().port;
       wsClient = new WebSocket(`ws://127.0.0.1:${port}/ws`);
-      
+
       await waitForEvent(wsClient, 'open');
       await waitForMessage(wsClient); // Connect message
 
@@ -444,7 +458,7 @@ describe('WebSocket Server', () => {
     it('should close connections that do not respond to pings', async () => {
       const port = httpServer.address().port;
       wsClient = new WebSocket(`ws://127.0.0.1:${port}/ws`);
-      
+
       await waitForEvent(wsClient, 'open');
       await waitForMessage(wsClient); // Connect message
 
@@ -453,10 +467,12 @@ describe('WebSocket Server', () => {
 
       // Wait for connection to be closed due to timeout
       const closePromise = waitForEvent(wsClient, 'close');
-      
+
       // Speed up the test by waiting for multiple heartbeat intervals
-      await new Promise<void>(resolve => { setTimeout(resolve, 3000); });
-      
+      await new Promise<void>((resolve) => {
+        setTimeout(resolve, 3000);
+      });
+
       await expect(closePromise).resolves.toBeDefined();
     });
   });
