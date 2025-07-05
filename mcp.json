@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "puppeteer-mcp": {
+      "command": "npx",
+      "args": ["puppeteer-mcp"],
+      "env": {
+        "MCP_TRANSPORT": "stdio"
+      }
+    }
+  }
+}

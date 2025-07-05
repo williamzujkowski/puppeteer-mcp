@@ -10,7 +10,10 @@ import { randomBytes } from 'crypto';
 
 // Generate secure default secret if not provided
 const generateSecureSecret = (): string => {
-  if (process.env.NODE_ENV === 'production' && (process.env.JWT_SECRET === undefined || process.env.JWT_SECRET === '')) {
+  if (
+    process.env.NODE_ENV === 'production' &&
+    (process.env.JWT_SECRET === undefined || process.env.JWT_SECRET === '')
+  ) {
     throw new Error('JWT_SECRET must be set in production environment');
   }
   return process.env.JWT_SECRET ?? randomBytes(32).toString('hex');
@@ -22,7 +25,7 @@ const configSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   PORT: z.number().int().positive().default(8443),
   HOST: z.string().default('0.0.0.0'),
-  
+
   // TLS Configuration
   /**
    * @nist sc-8 "Transmission confidentiality and integrity"
@@ -59,9 +62,21 @@ const configSchema = z.object({
   /**
    * @nist ac-12 "Session termination"
    */
-  SESSION_TIMEOUT: z.number().int().positive().default(30 * 60 * 1000), // 30 minutes
-  SESSION_ABSOLUTE_TIMEOUT: z.number().int().positive().default(12 * 60 * 60 * 1000), // 12 hours
-  SESSION_RENEWAL_THRESHOLD: z.number().int().positive().default(5 * 60 * 1000), // 5 minutes
+  SESSION_TIMEOUT: z
+    .number()
+    .int()
+    .positive()
+    .default(30 * 60 * 1000), // 30 minutes
+  SESSION_ABSOLUTE_TIMEOUT: z
+    .number()
+    .int()
+    .positive()
+    .default(12 * 60 * 60 * 1000), // 12 hours
+  SESSION_RENEWAL_THRESHOLD: z
+    .number()
+    .int()
+    .positive()
+    .default(5 * 60 * 1000), // 5 minutes
 
   // Rate limiting
   /**
@@ -81,7 +96,7 @@ const configSchema = z.object({
   DATABASE_SSL: z.boolean().default(true),
   DATABASE_POOL_MIN: z.number().int().positive().default(2),
   DATABASE_POOL_MAX: z.number().int().positive().default(10),
-  
+
   REDIS_URL: z.string().optional(),
   REDIS_TLS: z.boolean().default(true),
   REDIS_KEY_PREFIX: z.string().default('mcp:'),
@@ -94,29 +109,53 @@ const configSchema = z.object({
   CORS_CREDENTIALS: z.boolean().default(true),
   CORS_MAX_AGE: z.number().int().positive().default(86400), // 24 hours
 
+  // Express Configuration
+  /**
+   * @nist sc-5 "Denial of service protection"
+   * Trust proxy setting for Express. Set to false, number, or specific proxy
+   * to prevent IP spoofing. See: https://expressjs.com/en/guide/behind-proxies.html
+   */
+  TRUST_PROXY: z.union([z.boolean(), z.number(), z.string()]).optional(),
+
   // API Configuration
   API_VERSION: z.string().default('v1'),
   API_PREFIX: z.string().default('/api'),
-  
+
   // gRPC Configuration
   GRPC_PORT: z.number().int().positive().default(50051),
   GRPC_HOST: z.string().default('0.0.0.0'),
-  GRPC_MAX_RECEIVE_MESSAGE_SIZE: z.number().int().positive().default(4 * 1024 * 1024), // 4MB
-  GRPC_MAX_SEND_MESSAGE_SIZE: z.number().int().positive().default(4 * 1024 * 1024), // 4MB
-  GRPC_MAX_MESSAGE_SIZE: z.number().int().positive().default(4 * 1024 * 1024), // 4MB
+  GRPC_MAX_RECEIVE_MESSAGE_SIZE: z
+    .number()
+    .int()
+    .positive()
+    .default(4 * 1024 * 1024), // 4MB
+  GRPC_MAX_SEND_MESSAGE_SIZE: z
+    .number()
+    .int()
+    .positive()
+    .default(4 * 1024 * 1024), // 4MB
+  GRPC_MAX_MESSAGE_SIZE: z
+    .number()
+    .int()
+    .positive()
+    .default(4 * 1024 * 1024), // 4MB
   GRPC_KEEPALIVE_TIME: z.number().int().positive().default(120000), // 2 minutes
   GRPC_KEEPALIVE_TIMEOUT: z.number().int().positive().default(20000), // 20 seconds
   GRPC_TLS_CERT_PATH: z.string().optional(),
   GRPC_TLS_KEY_PATH: z.string().optional(),
   GRPC_TLS_CA_PATH: z.string().optional(),
   GRPC_TLS_CLIENT_AUTH: z.boolean().default(false),
-  
+
   // WebSocket Configuration
   WS_PATH: z.string().default('/ws'),
   WS_HEARTBEAT_INTERVAL: z.number().int().positive().default(30000), // 30 seconds
-  WS_MAX_PAYLOAD: z.number().int().positive().default(1024 * 1024), // 1MB
+  WS_MAX_PAYLOAD: z
+    .number()
+    .int()
+    .positive()
+    .default(1024 * 1024), // 1MB
   WS_ALLOWED_ORIGINS: z.string().optional(),
-  
+
   // Security Headers
   /**
    * @nist sc-8 "Transmission confidentiality and integrity"
@@ -152,8 +191,8 @@ const parseBoolEnv = (value: string | undefined, defaultValue: boolean = false):
 
 // Parse server configuration
 const parseServerConfig = (): Partial<z.infer<typeof configSchema>> => ({
-  NODE_ENV: ['development', 'test', 'production'].includes(process.env.NODE_ENV ?? '') 
-    ? process.env.NODE_ENV as 'development' | 'test' | 'production' 
+  NODE_ENV: ['development', 'test', 'production'].includes(process.env.NODE_ENV ?? '')
+    ? (process.env.NODE_ENV as 'development' | 'test' | 'production')
     : undefined,
   PORT: parseIntEnv(process.env.PORT),
   HOST: process.env.HOST,
@@ -166,17 +205,19 @@ const parseTLSConfig = (): Partial<z.infer<typeof configSchema>> => ({
   TLS_KEY_PATH: process.env.TLS_KEY_PATH,
   TLS_CA_PATH: process.env.TLS_CA_PATH,
   TLS_MIN_VERSION: ['TLSv1.2', 'TLSv1.3'].includes(process.env.TLS_MIN_VERSION ?? '')
-    ? process.env.TLS_MIN_VERSION as 'TLSv1.2' | 'TLSv1.3'
+    ? (process.env.TLS_MIN_VERSION as 'TLSv1.2' | 'TLSv1.3')
     : undefined,
 });
 
 // Parse logging configuration
 const parseLoggingConfig = (): Partial<z.infer<typeof configSchema>> => ({
-  LOG_LEVEL: ['trace', 'debug', 'info', 'warn', 'error', 'fatal'].includes(process.env.LOG_LEVEL ?? '')
-    ? process.env.LOG_LEVEL as 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal'
+  LOG_LEVEL: ['trace', 'debug', 'info', 'warn', 'error', 'fatal'].includes(
+    process.env.LOG_LEVEL ?? '',
+  )
+    ? (process.env.LOG_LEVEL as 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal')
     : undefined,
   LOG_FORMAT: ['json', 'pretty'].includes(process.env.LOG_FORMAT ?? '')
-    ? process.env.LOG_FORMAT as 'json' | 'pretty'
+    ? (process.env.LOG_FORMAT as 'json' | 'pretty')
     : undefined,
   AUDIT_LOG_ENABLED: process.env.AUDIT_LOG_ENABLED !== 'false',
   AUDIT_LOG_PATH: process.env.AUDIT_LOG_PATH,
@@ -187,8 +228,10 @@ const parseSecurityConfig = (): Partial<z.infer<typeof configSchema>> => ({
   JWT_SECRET: generateSecureSecret(),
   JWT_EXPIRY: process.env.JWT_EXPIRY,
   JWT_REFRESH_EXPIRY: process.env.JWT_REFRESH_EXPIRY,
-  JWT_ALGORITHM: ['HS256', 'HS384', 'HS512', 'RS256', 'RS384', 'RS512'].includes(process.env.JWT_ALGORITHM ?? '')
-    ? process.env.JWT_ALGORITHM as 'HS256' | 'HS384' | 'HS512' | 'RS256' | 'RS384' | 'RS512'
+  JWT_ALGORITHM: ['HS256', 'HS384', 'HS512', 'RS256', 'RS384', 'RS512'].includes(
+    process.env.JWT_ALGORITHM ?? '',
+  )
+    ? (process.env.JWT_ALGORITHM as 'HS256' | 'HS384' | 'HS512' | 'RS256' | 'RS384' | 'RS512')
     : undefined,
   BCRYPT_ROUNDS: parseIntEnv(process.env.BCRYPT_ROUNDS),
 });
@@ -204,7 +247,9 @@ const parseSessionConfig = (): Partial<z.infer<typeof configSchema>> => ({
 const parseRateLimitConfig = (): Partial<z.infer<typeof configSchema>> => ({
   RATE_LIMIT_WINDOW: parseIntEnv(process.env.RATE_LIMIT_WINDOW),
   RATE_LIMIT_MAX_REQUESTS: parseIntEnv(process.env.RATE_LIMIT_MAX_REQUESTS),
-  RATE_LIMIT_SKIP_SUCCESSFUL_REQUESTS: parseBoolEnv(process.env.RATE_LIMIT_SKIP_SUCCESSFUL_REQUESTS),
+  RATE_LIMIT_SKIP_SUCCESSFUL_REQUESTS: parseBoolEnv(
+    process.env.RATE_LIMIT_SKIP_SUCCESSFUL_REQUESTS,
+  ),
   RATE_LIMIT_SKIP_FAILED_REQUESTS: parseBoolEnv(process.env.RATE_LIMIT_SKIP_FAILED_REQUESTS),
 });
 
@@ -224,6 +269,14 @@ const parseCORSConfig = (): Partial<z.infer<typeof configSchema>> => ({
   CORS_ORIGIN: process.env.CORS_ORIGIN,
   CORS_CREDENTIALS: process.env.CORS_CREDENTIALS !== 'false',
   CORS_MAX_AGE: parseIntEnv(process.env.CORS_MAX_AGE),
+  TRUST_PROXY:
+    process.env.TRUST_PROXY !== undefined
+      ? process.env.TRUST_PROXY === 'true'
+        ? true
+        : process.env.TRUST_PROXY === 'false'
+          ? false
+          : (parseIntEnv(process.env.TRUST_PROXY) ?? process.env.TRUST_PROXY)
+      : undefined,
 });
 
 // Parse API configuration
@@ -292,7 +345,9 @@ const parseConfig = (): z.infer<typeof configSchema> => {
     });
   } catch (error) {
     // Use process.stderr.write for critical configuration errors before logger is initialized
-    process.stderr.write(`Configuration validation failed: ${error instanceof Error ? error.message : String(error)}\n`);
+    process.stderr.write(
+      `Configuration validation failed: ${error instanceof Error ? error.message : String(error)}\n`,
+    );
     throw new Error('Invalid configuration');
   }
 };
@@ -314,21 +369,23 @@ export const validateProductionConfig = (): void => {
     if (!config.TLS_ENABLED) {
       throw new Error('TLS must be enabled in production');
     }
-    
+
     // Ensure proper JWT configuration
     if (config.JWT_SECRET === generateSecureSecret()) {
       throw new Error('JWT_SECRET must be explicitly set in production');
     }
-    
+
     // Ensure audit logging is enabled
     if (!config.AUDIT_LOG_ENABLED) {
       throw new Error('Audit logging must be enabled in production');
     }
-    
+
     // Ensure CORS is properly configured
     if (config.CORS_ORIGIN === '*') {
       // Use process.stderr.write for critical warnings before logger is initialized
-      process.stderr.write('Warning: CORS origin is set to * in production. Consider restricting to specific origins.\n');
+      process.stderr.write(
+        'Warning: CORS origin is set to * in production. Consider restricting to specific origins.\n',
+      );
     }
   }
 };

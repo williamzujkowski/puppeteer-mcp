@@ -45,7 +45,23 @@ export function getDirnameFromSrc(relativePath: string): string {
     return join(process.cwd(), 'src', relativePath);
   }
 
-  // This should not be called in production, but provide a fallback
-  /* istanbul ignore next - fallback for production */
-  return join(process.cwd(), 'src', relativePath);
+  // In production, resolve from the dist directory
+  /* istanbul ignore next - production-only code path */
+  try {
+    // Use process.argv[1] to get the current script path as a safer alternative
+    // This avoids using Function constructor and the no-implied-eval issue
+    const currentScriptPath = process.argv[1];
+    if (currentScriptPath) {
+      const scriptDir = dirname(currentScriptPath);
+      // If we're in the dist directory, use it; otherwise fall back to process.cwd()
+      if (scriptDir.includes('dist')) {
+        return join(scriptDir, relativePath);
+      }
+    }
+    // Fallback to dist directory from current working directory
+    return join(process.cwd(), 'dist', relativePath);
+  } catch {
+    // Fallback if path resolution fails
+    return join(process.cwd(), 'dist', relativePath);
+  }
 }

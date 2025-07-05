@@ -10,7 +10,6 @@ import * as grpc from '@grpc/grpc-js';
 import * as protoLoader from '@grpc/proto-loader';
 import { join } from 'path';
 import { pino } from 'pino';
-import { getDirnameFromSrc } from '../utils/path-utils.js';
 import { config } from '../core/config.js';
 import { authInterceptor } from './interceptors/auth.interceptor.js';
 import { loggingInterceptor } from './interceptors/logging.interceptor.js';
@@ -20,11 +19,45 @@ import { ContextServiceImpl } from './services/context.service.js';
 import { HealthServiceImpl } from './services/health.service.js';
 import type { SessionStore } from '../store/session-store.interface.js';
 import type { ExtendedCall, GrpcCallback, NextFunction } from './interceptors/types.js';
+import { existsSync } from 'fs';
+import { resolve, dirname } from 'path';
+import { fileURLToPath } from 'url';
 
-// Load proto files - use package directory, not current working directory
-// Use getDirnameFromSrc to work in both production and test environments
-const dirPath = getDirnameFromSrc('grpc');
-const PROTO_PATH = join(dirPath, '..', '..', 'proto', 'control.proto');
+// Load proto files - try multiple locations to support both local and global installs
+function findProtoPath(): string {
+  const possiblePaths = [
+    // Local development or local npm install
+    join(process.cwd(), 'proto', 'control.proto'),
+  ];
+
+  // In production (non-test), also check relative to the module location
+  /* istanbul ignore next - production-only code path */
+  if (process.env.NODE_ENV !== 'test' && process.env.JEST_WORKER_ID === undefined) {
+    try {
+      const __filename = fileURLToPath(import.meta.url);
+      const __dirname = dirname(__filename);
+
+      // Global npm install - look relative to this file's location
+      possiblePaths.push(
+        resolve(__dirname, '..', '..', 'proto', 'control.proto'),
+        resolve(__dirname, '..', 'proto', 'control.proto'),
+      );
+    } catch {
+      // Ignore errors if import.meta.url is not available
+    }
+  }
+
+  for (const path of possiblePaths) {
+    if (existsSync(path)) {
+      return path;
+    }
+  }
+
+  // Fallback to the first option if none exist
+  return possiblePaths[0] ?? join(process.cwd(), 'proto', 'control.proto');
+}
+
+const PROTO_PATH = findProtoPath();
 
 /**
  * gRPC server instance
@@ -264,7 +297,8 @@ export class GrpcServer {
           return;
         }
 
-        this.server.start();
+        // server.start() is deprecated and no longer needed in newer versions
+        // The server starts automatically when bindAsync succeeds
         this.logger.info(`gRPC server started on ${host}:${port}`);
         resolve();
       });

@@ -8,7 +8,8 @@
 
 import { pino, Logger as PinoLogger, destination } from 'pino';
 import { mkdir } from 'fs/promises';
-import { dirname, join } from 'path';
+import { join, isAbsolute } from 'path';
+import { homedir } from 'os';
 import { AsyncLocalStorage } from 'async_hooks';
 import { config } from '../core/config.js';
 import type { Request, Response, NextFunction } from 'express';
@@ -129,7 +130,52 @@ const createLoggerOptions = (name: string, isAudit = false): pino.LoggerOptions<
  * @returns Configured Pino logger
  */
 export const createLogger = (name: string): PinoLogger => {
+  // In MCP stdio mode, write logs to stderr to avoid corrupting protocol
+  if (process.env.MCP_TRANSPORT === 'stdio' || !process.stdout.isTTY) {
+    return pino(createLoggerOptions(name), pino.destination(2)); // 2 = stderr
+  }
   return pino(createLoggerOptions(name));
+};
+
+/**
+ * Get the appropriate data directory for logs
+ * When running from global npm install, use user's home directory
+ */
+const getDataDirectory = (): string => {
+  // In test environment, always use current directory
+  if (process.env.NODE_ENV === 'test' || process.env.JEST_WORKER_ID !== undefined) {
+    return process.cwd();
+  }
+
+  // If running from a global npm install (not in development)
+  if (config.NODE_ENV !== 'development') {
+    // Check if we're in a global install by looking for node_modules in path
+    const scriptPath = process.argv[1] ?? '';
+
+    // If the script is running from a global node_modules, use home directory
+    if (scriptPath.includes('node_modules') && !scriptPath.includes(process.cwd())) {
+      return join(homedir(), '.puppeteer-mcp');
+    }
+  }
+
+  // In development or local install, use current directory
+  return process.cwd();
+};
+
+/**
+ * Get the audit log path
+ * Resolves relative paths against the appropriate data directory
+ */
+const getAuditLogPath = (): string => {
+  const auditPath = config.AUDIT_LOG_PATH;
+
+  // If already absolute, use as-is
+  if (isAbsolute(auditPath)) {
+    return auditPath;
+  }
+
+  // Otherwise, resolve against data directory
+  return join(getDataDirectory(), auditPath);
 };
 
 /**
@@ -144,27 +190,39 @@ const createAuditLogger = async (): Promise<PinoLogger> => {
     return pino({ level: 'silent' });
   }
 
-  // Ensure audit log directory exists
-  const auditLogDir = dirname(config.AUDIT_LOG_PATH);
-   
-  await mkdir(auditLogDir, { recursive: true });
+  try {
+    // Get the resolved audit log directory
+    const auditLogDir = getAuditLogPath();
 
-  const auditLogFile = join(
-    config.AUDIT_LOG_PATH,
-    `audit-${new Date().toISOString().split('T')[0]}.log`,
-  );
+    // Create the directory if it doesn't exist
+    await mkdir(auditLogDir, { recursive: true });
 
-  return pino(
-    {
-      ...createLoggerOptions('audit', true),
-      level: 'info', // Audit logs should always be at info level or higher
-    },
-    destination({
+    // Create the full path to the audit log file
+    const auditLogFile = join(auditLogDir, `audit-${new Date().toISOString().split('T')[0]}.log`);
+
+    const stream = destination({
       dest: auditLogFile,
       sync: false, // Async for better performance
       minLength: 4096, // Buffer size
-    }),
-  );
+    });
+
+    // Handle stream errors to prevent crashes
+    stream.on('error', (error) => {
+      logger.error({ error, file: auditLogFile }, 'Audit log stream error');
+    });
+
+    return pino(
+      {
+        ...createLoggerOptions('audit', true),
+        level: 'info', // Audit logs should always be at info level or higher
+      },
+      stream,
+    );
+  } catch (error) {
+    // If audit logging setup fails, log error and return no-op logger
+    logger.error({ error }, 'Failed to initialize audit logger');
+    return pino({ level: 'silent' });
+  }
 };
 
 /**
@@ -286,9 +344,7 @@ export const requestContextMiddleware = (
 ): void => {
   const xRequestId = req.headers['x-request-id'];
   const requestId =
-    req.id ??
-    (typeof xRequestId === 'string' ? xRequestId : undefined) ??
-    'unknown';
+    req.id ?? (typeof xRequestId === 'string' ? xRequestId : undefined) ?? 'unknown';
   const userId = req.user?.userId;
 
   runWithRequestContext(requestId, userId, () => {

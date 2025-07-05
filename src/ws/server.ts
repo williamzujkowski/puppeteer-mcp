@@ -43,23 +43,26 @@ export class WSServer extends EventEmitter {
   private authHandler: WSAuthHandler;
   private heartbeatInterval: NodeJS.Timeout | null = null;
 
-  constructor(
-    logger: pino.Logger,
-    sessionStore: SessionStore,
-    options: WSServerOptions
-  ) {
+  constructor(logger: pino.Logger, sessionStore: SessionStore, options: WSServerOptions) {
     super();
     this.logger = logger.child({ module: 'ws-server' });
 
     // Initialize WebSocket server
-    this.wss = new WebSocketServer({
-      server: options.server,
-      path: options.path ?? config.WS_PATH ?? '/ws',
-      maxPayload: options.maxPayload ?? config.WS_MAX_PAYLOAD ?? 1024 * 1024, // 1MB
-      perMessageDeflate: true,
-      clientTracking: true,
-      verifyClient: this.verifyClient.bind(this),
-    });
+    try {
+      this.wss = new WebSocketServer({
+        server: options.server,
+        path: options.path ?? config.WS_PATH ?? '/ws',
+        maxPayload: options.maxPayload ?? config.WS_MAX_PAYLOAD ?? 1024 * 1024, // 1MB
+        perMessageDeflate: true,
+        clientTracking: true,
+        verifyClient: this.verifyClient.bind(this),
+      });
+    } catch (error) {
+      this.logger.error({ error }, 'Failed to create WebSocket server');
+      throw new Error(
+        `WebSocket server initialization failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+    }
 
     // Initialize handlers
     this.connectionManager = new WSConnectionManager(logger);
@@ -68,7 +71,7 @@ export class WSServer extends EventEmitter {
       logger,
       sessionStore,
       this.connectionManager,
-      this.authHandler
+      this.authHandler,
     );
 
     // Set up server event handlers
@@ -84,12 +87,19 @@ export class WSServer extends EventEmitter {
    * @nist au-3 "Content of audit records"
    */
   private verifyClient(
-    info: { origin: string; secure: boolean; req: { headers: Record<string, string | string[] | undefined>; socket: { remoteAddress?: string } } },
-    cb: (result: boolean, code?: number, message?: string) => void
+    info: {
+      origin: string;
+      secure: boolean;
+      req: {
+        headers: Record<string, string | string[] | undefined>;
+        socket: { remoteAddress?: string };
+      };
+    },
+    cb: (result: boolean, code?: number, message?: string) => void,
   ): void {
     try {
       const clientIp = info.req.headers['x-forwarded-for'] ?? info.req.socket.remoteAddress;
-      
+
       // Log connection attempt
       void logSecurityEvent(SecurityEventType.CONNECTION_ATTEMPT, {
         resource: 'websocket',
@@ -104,9 +114,14 @@ export class WSServer extends EventEmitter {
       });
 
       // Check origin if configured
-      if (config.WS_ALLOWED_ORIGINS !== null && config.WS_ALLOWED_ORIGINS !== undefined && config.WS_ALLOWED_ORIGINS.length > 0) {
-        const allowedOrigins = config.WS_ALLOWED_ORIGINS.split(',');
-        if (!allowedOrigins.includes(info.origin) && !allowedOrigins.includes('*')) {
+      const wsAllowedOrigins = config.WS_ALLOWED_ORIGINS;
+      if (
+        wsAllowedOrigins !== undefined &&
+        typeof wsAllowedOrigins === 'string' &&
+        wsAllowedOrigins.trim().length > 0
+      ) {
+        const allowedOrigins = wsAllowedOrigins.split(',').map((origin) => origin.trim());
+        if (!allowedOrigins.includes('*') && !allowedOrigins.includes(info.origin)) {
           this.logger.warn('WebSocket connection rejected - invalid origin', {
             origin: info.origin,
             allowedOrigins,
@@ -128,10 +143,10 @@ export class WSServer extends EventEmitter {
    * Set up WebSocket server event handlers
    */
   private setupServerHandlers(): void {
-    this.wss.on('connection', (ws, req) => { 
-      void this.handleConnection(ws, req); 
+    this.wss.on('connection', (ws, req) => {
+      void this.handleConnection(ws, req);
     });
-    
+
     this.wss.on('error', (error) => {
       this.logger.error('WebSocket server error:', error);
       this.emit('error', error);
@@ -148,7 +163,13 @@ export class WSServer extends EventEmitter {
    * @nist ac-3 "Access enforcement"
    * @nist au-3 "Content of audit records"
    */
-  private async handleConnection(ws: WebSocket, req: { headers: Record<string, string | string[] | undefined>; socket: { remoteAddress?: string } }): Promise<void> {
+  private async handleConnection(
+    ws: WebSocket,
+    req: {
+      headers: Record<string, string | string[] | undefined>;
+      socket: { remoteAddress?: string };
+    },
+  ): Promise<void> {
     const connectionId = uuidv4();
     const clientIp = req.headers['x-forwarded-for'] ?? req.socket.remoteAddress;
 
@@ -210,30 +231,30 @@ export class WSServer extends EventEmitter {
     // Handle incoming messages
     ws.on('message', (data: Buffer) => {
       void (() => {
-      try {
-        // Update last activity
-        const state = this.connectionManager.getConnectionState(connectionId);
-        if (state) {
-          state.lastActivity = new Date();
-        }
+        try {
+          // Update last activity
+          const state = this.connectionManager.getConnectionState(connectionId);
+          if (state) {
+            state.lastActivity = new Date();
+          }
 
-        // Parse and handle message
-        const message = JSON.parse(data.toString()) as WSMessage;
-        this.messageHandler.handleMessage(ws, connectionId, message);
-      } catch (error) {
-        this.logger.error('Error handling WebSocket message:', error);
-        
-        // Send error response
-        this.sendMessage(ws, {
-          type: WSMessageType.ERROR,
-          id: uuidv4(),
-          timestamp: new Date().toISOString(),
-          error: {
-            code: 'MESSAGE_ERROR',
-            message: error instanceof Error ? error.message : 'Failed to process message',
-          },
-        });
-      }
+          // Parse and handle message
+          const message = JSON.parse(data.toString()) as WSMessage;
+          this.messageHandler.handleMessage(ws, connectionId, message);
+        } catch (error) {
+          this.logger.error('Error handling WebSocket message:', error);
+
+          // Send error response
+          this.sendMessage(ws, {
+            type: WSMessageType.ERROR,
+            id: uuidv4(),
+            timestamp: new Date().toISOString(),
+            error: {
+              code: 'MESSAGE_ERROR',
+              message: error instanceof Error ? error.message : 'Failed to process message',
+            },
+          });
+        }
       })();
     });
 
@@ -248,29 +269,29 @@ export class WSServer extends EventEmitter {
     // Handle connection close
     ws.on('close', (code, reason) => {
       void (async () => {
-      this.logger.info('WebSocket connection closed', {
-        connectionId,
-        code,
-        reason: reason.toString(),
-      });
-
-      // Log disconnection
-      await logSecurityEvent(SecurityEventType.CONNECTION_CLOSED, {
-        resource: 'websocket',
-        action: 'disconnect',
-        result: 'success',
-        metadata: {
+        this.logger.info('WebSocket connection closed', {
           connectionId,
           code,
           reason: reason.toString(),
-        },
-      });
+        });
 
-      // Clean up connection
-      this.connectionManager.removeConnection(connectionId);
+        // Log disconnection
+        await logSecurityEvent(SecurityEventType.CONNECTION_CLOSED, {
+          resource: 'websocket',
+          action: 'disconnect',
+          result: 'success',
+          metadata: {
+            connectionId,
+            code,
+            reason: reason.toString(),
+          },
+        });
 
-      // Emit disconnection event
-      this.emit('disconnect', connectionId);
+        // Clean up connection
+        this.connectionManager.removeConnection(connectionId);
+
+        // Emit disconnection event
+        this.emit('disconnect', connectionId);
       })();
     });
 
@@ -297,7 +318,7 @@ export class WSServer extends EventEmitter {
 
       this.connectionManager.getAllConnections().forEach(({ connectionId, ws, state }) => {
         const lastActivity = state.lastActivity.getTime();
-        
+
         if (now - lastActivity > timeout) {
           // Connection timed out
           this.logger.warn('WebSocket connection timed out', { connectionId });
@@ -365,7 +386,7 @@ export class WSServer extends EventEmitter {
   } {
     const connections = this.connectionManager.getAllConnections();
     const authenticated = connections.filter(({ state }) => state.authenticated).length;
-    
+
     return {
       totalConnections: connections.length,
       authenticatedConnections: authenticated,
@@ -414,7 +435,7 @@ export class WSServer extends EventEmitter {
 export function createWebSocketServer(
   logger: pino.Logger,
   sessionStore: SessionStore,
-  server: HttpServer
+  server: HttpServer,
 ): WSServer {
   return new WSServer(logger, sessionStore, { server });
 }

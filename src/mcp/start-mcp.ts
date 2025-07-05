@@ -2,65 +2,63 @@
 /**
  * MCP Server Startup Script
  * @module mcp/start-mcp
- * @description Standalone script to start the MCP server with all protocol adapters
+ * @description Standalone script to start the MCP server with stdio transport
  */
 
 import { createMCPServer } from './server.js';
-import { createApp } from '../server.js';
-import { logger } from '../utils/logger.js';
-
-const log = logger.child({ module: 'mcp-startup' });
 
 /**
- * Start the MCP server with all protocol integrations
+ * Start the MCP server for stdio communication
  */
 async function startMCPServer(): Promise<void> {
   try {
-    log.info('Starting MCP server with all protocol adapters...');
-    
-    // Create the Express app with all REST routes
-    const app = createApp();
-    
-    // Create MCP server with REST adapter
-    // Note: gRPC and WebSocket adapters require additional integration work
-    // with the actual server instances, not just the factory functions
-    const mcpServer = createMCPServer({
-      app,
-      // grpcServer and wsServer can be added later when properly integrated
-    });
-    
-    // Start the MCP server
+    // Check if we're being invoked as an MCP server (stdio)
+    const isMCPMode = process.stdout.isTTY === false || process.env.MCP_TRANSPORT === 'stdio';
+
+    if (!isMCPMode) {
+      // If running from terminal, start the full HTTP/WebSocket/gRPC server
+      const { startHTTPServer } = await import('../server.js');
+      await startHTTPServer();
+      return;
+    }
+
+    // Create MCP server for stdio transport only
+    const mcpServer = createMCPServer();
+
+    // Start the MCP server with stdio transport
     await mcpServer.start();
-    
-    log.info('MCP server started successfully');
-    log.info('Transport type:', process.env.MCP_TRANSPORT ?? 'stdio');
-    
+
+    // Keep the process alive
+    process.stdin.resume();
+
     // Handle graceful shutdown
-    process.on('SIGINT', () => {
-      void (async () => {
-        log.info('Shutting down MCP server...');
-        await mcpServer.stop();
-        process.exit(0);
-      })();
-    });
-    
-    process.on('SIGTERM', () => {
-      void (async () => {
-        log.info('Shutting down MCP server...');
-        await mcpServer.stop();
-        process.exit(0);
-      })();
-    });
-    
+    const shutdown = async (): Promise<void> => {
+      await mcpServer.stop();
+      process.exit(0);
+    };
+
+    process.on('SIGINT', () => void shutdown());
+    process.on('SIGTERM', () => void shutdown());
+    process.on('SIGHUP', () => void shutdown());
+
+    // Handle stdin close
+    process.stdin.on('end', () => void shutdown());
   } catch (error) {
-    log.error('Failed to start MCP server:', error);
+    // Write error to stderr to avoid corrupting stdio protocol
+    console.error('Failed to start MCP server:', error);
     process.exit(1);
   }
 }
 
 // Run if called directly
-if (import.meta.url === `file://${process.argv[1]}`) {
-  void startMCPServer();
+// Debug: log the comparison
+if (process.env.MCP_DEBUG) {
+  console.error('import.meta.url:', import.meta.url);
+  console.error('process.argv[1]:', process.argv[1]);
+  console.error('file URL:', `file://${process.argv[1]}`);
 }
+
+// Always start if this is the main module
+void startMCPServer();
 
 export { startMCPServer };

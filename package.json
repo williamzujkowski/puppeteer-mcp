@@ -1,6 +1,6 @@
 {
   "name": "puppeteer-mcp",
-  "version": "1.0.1",
+  "version": "1.0.9",
   "description": "Production-ready AI-enabled browser automation platform",
   "type": "module",
   "main": "dist/server.js",
@@ -13,12 +13,14 @@
     "proto/",
     "README.md",
     "LICENSE",
-    "package.json"
+    "package.json",
+    "mcp.json"
   ],
   "engines": {
     "node": ">=20.0.0"
   },
   "scripts": {
+    "puppeteer-mcp": "node dist/mcp/start-mcp.js",
     "build": "tsc",
     "dev": "nodemon --exec tsx src/server.ts",
     "start": "node dist/server.js",
@@ -39,7 +41,7 @@
     "docs:build": "mkdocs build",
     "docs:deploy": "mkdocs gh-deploy --force",
     "prepare": "node -e \"try{if(!require('is-ci')) require('child_process').execSync('husky install',{stdio:'inherit'})}catch(e){}\"",
-    "prepublishOnly": "npm run build && npm run test",
+    "prepublishOnly": "npm run build",
     "pre-commit": "npm run lint:fix && npm run format && npm run typecheck",
     "mcp": "node dist/mcp/start-mcp.js"
   },

@@ -1,6 +1,6 @@
 # Puppeteer MCP
 
-**Version**: 1.0.1  
+**Version**: 1.0.8  
 **Last Updated**: 2025-01-05  
 **Status**: Production  
 **Type**: Browser Automation Platform  
@@ -24,27 +24,57 @@ Context Protocol (MCP) interfaces, unified session management, and enterprise-gr
 
 ```bash
 # Install globally
-npm install -g puppeteer-mcp@1.0.1
+npm install -g puppeteer-mcp
 
 # Or use with npx (no installation required)
-npx puppeteer-mcp@1.0.1
+npx puppeteer-mcp
 ```
 
-### Start the MCP Server
+### Configure for Claude Desktop (MCP)
 
-```bash
-# Start MCP server (if installed globally)
-puppeteer-mcp
+Add to your Claude Desktop configuration file:
 
-# Or with npx
-npx puppeteer-mcp@1.0.1
+**macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`  
+**Windows**: `%APPDATA%\Claude\claude_desktop_config.json`  
+**Linux**: `~/.config/claude/claude_desktop_config.json`
+
+```json
+{
+  "mcpServers": {
+    "puppeteer-mcp": {
+      "command": "puppeteer-mcp",
+      "args": [],
+      "env": {
+        "MCP_TRANSPORT": "stdio"
+      }
+    }
+  }
+}
 ```
 
-### Integrate with Claude Desktop
+**Alternative configuration using npx:**
+
+```json
+{
+  "mcpServers": {
+    "puppeteer-mcp": {
+      "command": "npx",
+      "args": ["-y", "puppeteer-mcp@latest"],
+      "env": {
+        "MCP_TRANSPORT": "stdio"
+      }
+    }
+  }
+}
+```
+
+Then restart Claude Desktop.
+
+### Start as HTTP Server
 
 ```bash
-# Add to Claude Desktop configuration
-claude mcp add puppeteer-mcp
+# Start HTTP/WebSocket/gRPC server
+JWT_SECRET=$(openssl rand -hex 32) TLS_ENABLED=false puppeteer-mcp
 ```
 
 For detailed setup instructions, see [Getting Started Guide](docs/guides/getting-started.md).
