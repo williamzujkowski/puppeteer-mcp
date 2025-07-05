@@ -72,17 +72,17 @@ export default {
       lines: 80,
       statements: 85,
     },
-    'src/utils/**/*.ts': {
-      branches: 50,
-      functions: 70,
-      lines: 80,
-      statements: 80,
-    },
     'src/utils/logger.ts': {
       branches: 40,
       functions: 50,
       lines: 60,
       statements: 60,
+    },
+    'src/utils/**/*.ts': {
+      branches: 50,
+      functions: 70,
+      lines: 80,
+      statements: 80,
     },
   },
   coverageDirectory: '<rootDir>/coverage',
