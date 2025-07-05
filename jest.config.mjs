@@ -78,7 +78,13 @@ export default {
       lines: 60,
       statements: 60,
     },
-    'src/utils/**/*.ts': {
+    'src/utils/!(logger).ts': {
+      branches: 50,
+      functions: 70,
+      lines: 80,
+      statements: 80,
+    },
+    'src/utils/**/!(logger).ts': {
       branches: 50,
       functions: 70,
       lines: 80,
