@@ -7,10 +7,6 @@ on:
     paths:
       - 'docs/**'
       - 'mkdocs.yml'
-      - 'README.md'
-      - 'CONTRIBUTING.md'
-      - 'SECURITY.md'
-      - 'CLAUDE.md'
       - '.github/workflows/docs.yml'
   workflow_dispatch:
 
@@ -19,14 +15,18 @@ permissions:
   pages: write
   id-token: write
 
+concurrency:
+  group: 'pages'
+  cancel-in-progress: false
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Full history for git-revision-date-localized-plugin
+          fetch-depth: 0 # Needed for git-revision-date-localized plugin
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -37,14 +37,18 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements-docs.txt') }}
           restore-keys: |
             ${{ runner.os }}-pip-
 
-      - name: Install MkDocs and dependencies
+      - name: Install dependencies
         run: |
-          pip install --upgrade pip
-          pip install -r requirements.txt
+          pip install mkdocs \
+            mkdocs-material \
+            mkdocs-minify-plugin \
+            mkdocs-git-revision-date-localized-plugin \
+            mkdocs-print-site-plugin \
+            mkdocs-redirects
 
       - name: Build documentation
         run: mkdocs build

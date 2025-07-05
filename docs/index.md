@@ -1,8 +1,10 @@
 # Puppeteer MCP Documentation
 
-**Version:** 1.0.0  
-**Last Updated:** 2025-01-07  
-**Status:** Production Ready
+**Version:** 1.0.1  
+**Last Updated:** 2025-01-05  
+**Status:** Production Ready  
+**Type:** Documentation Hub  
+**Audience:** Developers, Users, Contributors
 
 Welcome to the comprehensive documentation for **Puppeteer MCP** - an AI-enabled browser automation
 platform that provides REST, gRPC, WebSocket, and Model Context Protocol (MCP) interfaces with
@@ -18,7 +20,7 @@ unified session management, enterprise-grade security, and comprehensive Puppete
 
   New to Puppeteer MCP? Start here for a quick setup guide.
 
-  [:octicons-arrow-right-24: Quick Start Guide](guides/getting-started.md)
+  [:octicons-arrow-right-24: Quick Start Guide](quickstart/index.md)
 
 - :material-api:{ .lg .middle } **API Reference**
 
@@ -26,7 +28,7 @@ unified session management, enterprise-grade security, and comprehensive Puppete
 
   Complete API documentation for all supported protocols.
 
-  [:octicons-arrow-right-24: API Documentation](reference/api-quick-reference.md)
+  [:octicons-arrow-right-24: API Documentation](quick-reference/api-cheatsheet.md)
 
 - :material-robot:{ .lg .middle } **Browser Automation**
 
@@ -42,7 +44,7 @@ unified session management, enterprise-grade security, and comprehensive Puppete
 
   NIST-compliant security architecture and best practices.
 
-  [:octicons-arrow-right-24: Security Documentation](security.md)
+  [:octicons-arrow-right-24: Security Documentation](project/security.md)
 
 </div>
 
@@ -110,8 +112,8 @@ with progressive disclosure:
 
 ### For New Users
 
-1. [Getting Started Guide](guides/getting-started.md) - Set up and run your first automation
-2. [API Quick Reference](reference/api-quick-reference.md) - Common API patterns
+1. [Getting Started Guide](quickstart/index.md) - Set up and run your first automation
+2. [API Quick Reference](quick-reference/api-cheatsheet.md) - Common API patterns
 3. [MCP Usage Examples](guides/mcp-usage-examples.md) - AI agent integration examples
 
 ### For Developers
@@ -181,7 +183,7 @@ npm run dev
 
 - [GitHub Repository](https://github.com/williamzujkowski/puppeteer-mcp)
 - [Issue Tracker](https://github.com/williamzujkowski/puppeteer-mcp/issues)
-- [Security Policy](security.md)
+- [Security Policy](project/security.md)
 - [Changelog](project/changelog.md)
 
 ## 📊 Project Status

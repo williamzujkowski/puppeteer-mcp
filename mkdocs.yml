@@ -8,6 +8,7 @@ site_url: https://williamzujkowski.github.io/puppeteer-mcp/
 repo_url: https://github.com/williamzujkowski/puppeteer-mcp
 repo_name: puppeteer-mcp
 edit_uri: edit/main/docs/
+strict: false # Temporarily disabled for initial setup
 
 # Theme Configuration
 theme:
@@ -31,20 +32,32 @@ theme:
 
   # Features
   features:
+    - announce.dismiss # Dismissable announcements
+    - content.action.edit # Edit page button
+    - content.action.view # View source button
+    - content.code.annotate # Code annotations
+    - content.code.copy # Code copy button
+    - content.code.select # Code selection button
+    - content.tabs.link # Link content tabs
+    - content.tooltips # Improved tooltips
+    - navigation.expand # Expand all sections by default
+    - navigation.footer # Previous/next footer
+    - navigation.indexes # Section index pages
     - navigation.instant # Instant loading
-    - navigation.tracking # Anchor tracking
+    - navigation.instant.prefetch # Prefetch resources
+    - navigation.instant.progress # Loading progress bar
+    - navigation.path # Breadcrumbs
+    - navigation.prune # Prune navigation tree
+    - navigation.sections # Render sections as groups
     - navigation.tabs # Top-level navigation tabs
     - navigation.tabs.sticky # Sticky navigation tabs
-    - navigation.sections # Render sections as groups
-    - navigation.expand # Expand all sections by default
-    - navigation.indexes # Section index pages
     - navigation.top # Back to top button
-    - search.suggest # Search suggestions
+    - navigation.tracking # Anchor tracking
     - search.highlight # Search term highlighting
     - search.share # Share search results
-    - content.code.copy # Code copy button
-    - content.code.annotate # Code annotations
-    - content.tabs.link # Link content tabs
+    - search.suggest # Search suggestions
+    - toc.follow # Table of contents follows scroll
+    - toc.integrate # Integrate ToC into navigation
 
   # Icons
   icon:
@@ -59,44 +72,71 @@ theme:
 # Navigation Structure
 nav:
   - Home:
-      - Overview: index.md
-      - Quick Start: guides/getting-started.md
-      - Features: architecture/overview.md
+      - Welcome: index.md
+      - Quick Start: quickstart/index.md
+      - Architecture Overview: architecture/overview.md
 
-  - Guides:
-      - Getting Started: guides/getting-started.md
+  - Getting Started:
+      - Installation: quickstart/installation.md
+      - First Steps: quickstart/first-steps.md
+      - Claude Desktop Setup: quickstart/claude-desktop.md
+      - Configuration: quickstart/configuration.md
+      - Troubleshooting: troubleshooting.md
+
+  - Quick Reference:
+      - API Cheat Sheet: quick-reference/api-cheatsheet.md
+      - Common Patterns: quick-reference/common-patterns.md
+      - Environment Variables: quick-reference/env-vars.md
+      - Error Codes: quick-reference/error-codes.md
+      - MCP Tools Summary: quick-reference/mcp-tools-summary.md
+
+  - User Guides:
+      - guides/index.md
       - Browser Automation: guides/browser-automation.md
       - API Integration: guides/api-integration.md
       - MCP Usage Examples: guides/mcp-usage-examples.md
+      - Advanced Scenarios: guides/advanced-scenarios.md
 
   - API Reference:
-      - Quick Reference: reference/api-quick-reference.md
+      - reference/index.md
       - REST API: reference/rest-api.md
       - gRPC API: reference/grpc-api.md
       - WebSocket API: reference/websocket-api.md
       - MCP Tools: reference/mcp-tools.md
       - Puppeteer Actions: reference/puppeteer-actions.md
 
+  - Deployment:
+      - deployment/index.md
+      - NPM Package: deployment/npm-package.md
+      - Docker: deployment/docker.md
+      - Production Setup: deployment/production.md
+      - Scaling Guide: deployment/scaling.md
+
   - Architecture:
-      - Overview: architecture/overview.md
+      - architecture/index.md
+      - System Design: architecture/overview.md
       - Session Management: architecture/session-management.md
-      - MCP Integration Plan: architecture/mcp-integration-plan.md
+      - Security Model: architecture/security.md
+      - MCP Integration: architecture/mcp-integration-plan.md
 
   - Development:
-      - Workflow: development/workflow.md
-      - Standards: development/standards.md
-      - Testing: development/testing.md
-      - AI Routing: ai/routing-patterns.md
+      - development/index.md
+      - Development Workflow: development/workflow.md
+      - Coding Standards: development/standards.md
+      - Testing Guide: development/testing.md
+      - AI Patterns: ai/routing-patterns.md
 
-  - Project:
-      - Changelog: project/changelog.md
-      - Roadmap: project/roadmap.md
-      - Contributing: contributing.md
+  - Contributing:
+      - contributing/index.md
+      - Code of Conduct: contributing/code-of-conduct.md
+      - How to Contribute: contributing.md
       - Security Policy: security.md
 
-  - Lessons Learned:
-      - Implementation: lessons/implementation.md
-      - Project Planning: lessons/project-planning.md
+  - Resources:
+      - Project Changelog: project/changelog.md
+      - Roadmap: project/roadmap.md
+      - Lessons Learned: lessons/implementation.md
+      - Planning Insights: lessons/project-planning.md
 
 # Plugins
 plugins:
@@ -113,7 +153,25 @@ plugins:
   - git-revision-date-localized:
       enable_creation_date: true
       type: iso_datetime
+      fallback_to_build_date: true
+      timezone: UTC
   - tags
+  - redirects:
+      redirect_maps:
+        'getting-started.md': 'quickstart/index.md'
+        'quickstart-npm.md': 'quickstart/installation.md'
+        'npm-package.md': 'deployment/npm-package.md'
+        'deployment/npm-global.md': 'deployment/npm-package.md'
+        'guides/getting-started.md': 'quickstart/index.md'
+        'guides/deployment.md': 'deployment/index.md'
+  - print-site:
+      add_to_navigation: true
+      print_page_title: 'Print Version'
+      add_print_site_banner: true
+      print_site_banner_template: 'docs/assets/pdf/banner.tpl'
+      path_to_pdf: 'assets/pdf/puppeteer-mcp-docs.pdf'
+      include_css: true
+      enabled: true
 
 # Markdown Extensions
 markdown_extensions:
@@ -162,11 +220,14 @@ markdown_extensions:
 # Extra CSS
 extra_css:
   - stylesheets/extra.css
+  - stylesheets/quickref.css
 
 # Extra JavaScript
-extra_javascript:
-  - https://polyfill.io/v3/polyfill.min.js?features=es6
-  - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
+extra_javascript: []
+  # - javascripts/mathjax.js
+  # - https://polyfill.io/v3/polyfill.min.js?features=es6
+  # - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
+  # - javascripts/tablesort.js
 
 # Analytics (if needed)
 # extra:
@@ -174,26 +235,71 @@ extra_javascript:
 #     provider: google
 #     property: G-XXXXXXXXXX
 
-# Social links
+# Extra Configuration
 extra:
+  # Announcement bar
+  homepage: https://github.com/williamzujkowski/puppeteer-mcp
+
+  # Social links
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/williamzujkowski/puppeteer-mcp
+      name: GitHub Repository
+    - icon: fontawesome/brands/npm
+      link: https://www.npmjs.com/package/puppeteer-mcp
+      name: NPM Package
     - icon: fontawesome/brands/linkedin
       link: https://linkedin.com/in/williamzujkowski
+      name: LinkedIn Profile
+    - icon: fontawesome/brands/docker
+      link: https://hub.docker.com/r/williamzujkowski/puppeteer-mcp
+      name: Docker Hub
 
   # Version selector
   version:
     provider: mike
+    default: latest
 
-  # Status badges
-  status:
-    - name: Production Ready
-      color: green
-    - name: NIST Compliant
-      color: blue
-    - name: Zero TypeScript Errors
-      color: green
+  # Tags
+  tags:
+    Browser Automation: browser
+    API: api
+    MCP: mcp
+    Security: security
+    Docker: docker
+    TypeScript: typescript
+    Testing: testing
+
+  # Analytics
+  analytics:
+    feedback:
+      title: Was this page helpful?
+      ratings:
+        - icon: material/emoticon-happy-outline
+          name: This page was helpful
+          data: 1
+          note: Thanks for your feedback!
+        - icon: material/emoticon-sad-outline
+          name: This page could be improved
+          data: 0
+          note: Thanks for your feedback!
+
+  # Cookie consent
+  consent:
+    title: Cookie consent
+    description: >-
+      We use cookies to recognize your repeated visits and preferences, as well
+      as to measure the effectiveness of our documentation and whether users
+      find what they're searching for. With your consent, you're helping us to
+      make our documentation better.
+    actions:
+      - accept
+      - reject
+      - manage
 
 # Copyright
-copyright: Copyright &copy; 2025 William Zujkowski - Apache License 2.0
+copyright: |
+  Copyright &copy; 2025 William Zujkowski - Apache License 2.0<br>
+  <a href="#__consent">Cookie Settings</a> |
+  <a href="/privacy/">Privacy Policy</a> |
+  <a href="/terms/">Terms of Service</a>

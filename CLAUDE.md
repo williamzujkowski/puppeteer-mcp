@@ -1,234 +1,173 @@
 # CLAUDE.md
 
-**Version**: 2.1.0  
-**Last Updated**: 2025-01-04  
+**Version**: 2.2.0  
+**Last Updated**: 2025-01-05  
 **Status**: Active  
 **Type**: AI Assistant Router  
-**NPM Package**: [puppeteer-mcp](https://www.npmjs.com/package/puppeteer-mcp) v1.0.0
+**NPM Package**: [puppeteer-mcp](https://www.npmjs.com/package/puppeteer-mcp) v1.0.1
 
-## Purpose
+## 🎯 Quick Reference (<100 tokens)
 
-This file provides routing guidance to Claude Code (claude.ai/code) when working with code in this
-repository. It serves as a lightweight router that directs AI assistants to appropriate
-documentation based on the task at hand.
+**What**: AI-enabled browser automation platform with MCP/REST/gRPC/WebSocket interfaces  
+**Purpose**: Router document for AI assistants working on this codebase  
+**Key**: For any task → Check decision tree below → Route to specific docs  
+**NPM**: `npm install -g puppeteer-mcp`
 
-## Project Overview
+## 📋 Summary (100-500 tokens)
 
-This is a **production-ready AI-enabled browser automation platform** built with Node.js and
-TypeScript that provides REST, gRPC, WebSocket, and Model Context Protocol (MCP) interfaces with
-unified session management, enterprise-grade security, and comprehensive Puppeteer integration.
+### Project Identity
 
-### Key Features
+Production-ready browser automation platform combining Puppeteer with modern AI protocols (MCP) and
+traditional APIs (REST/gRPC/WebSocket). Enterprise-grade security with NIST compliance.
 
-- Multi-protocol support (REST/gRPC/WebSocket/MCP)
-- Enterprise-grade security with NIST compliance
-- Comprehensive browser automation via Puppeteer
-- AI agent support through Model Context Protocol
-- Zero TypeScript compilation errors
-- Production-ready architecture
+### Navigation Aid for AI
 
-## 🗺️ Documentation Map
+This document routes you to detailed documentation. Don't implement from this file - use it to find
+the right resource.
 
-### For Development Tasks
+### Quick Decision Tree
 
-When implementing features or fixing issues:
-
-- **Coding Standards**: See `docs/development/standards.md`
-- **Development Workflow**: See `docs/development/workflow.md`
-- **Architecture Decisions**: See `docs/architecture/` directory
-
-### For AI-Specific Guidance
-
-When using AI delegation patterns:
-
-- **Routing Patterns**: See `docs/ai/routing-patterns.md`
-- **Task Delegation**: See `docs/ai/routing-patterns.md#task-delegation`
-
-### For Learning & Reference
-
-When understanding past decisions:
-
-- **Implementation Lessons**: See `docs/lessons/implementation.md`
-- **Architecture Evolution**: See `docs/architecture/evolution.md`
-
-## 🚀 Quick Start
-
-### Installation
-
-```bash
-# Install as npm package (recommended)
-npm install -g puppeteer-mcp
-
-# Or use directly with npx
-npx puppeteer-mcp
-
-# For development
-git clone https://github.com/williamzujkowski/puppeteer-mcp.git
-cd puppeteer-mcp
-npm install
+```
+Task Type?
+├─ Coding → docs/development/standards.md → docs/development/workflow.md
+├─ AI Patterns → docs/ai/routing-patterns.md
+├─ Architecture → docs/architecture/
+├─ Past Decisions → docs/lessons/implementation.md
+└─ API Usage → docs/api/
 ```
 
 ### Essential Commands
 
 ```bash
-# Production usage (after npm install -g)
-puppeteer-mcp              # Start MCP server
-
-# Development commands
-npm install                # Install dependencies
-npm run typecheck          # Check TypeScript compilation
-npm run lint               # Run ESLint
-npm run build              # Build the project
-npm test                   # Run tests
-npm run dev                # Start development server
+puppeteer-mcp     # Start MCP server (after global install)
+npm test          # Run tests
+npm run build     # Build project
+npm run typecheck # Check TypeScript
 ```
 
-### Current Status
+## 📚 Detailed Reference (500-2000 tokens)
 
+### 🗺️ Complete Documentation Map
+
+#### Development & Implementation
+
+- **Standards Compliance**: `docs/development/standards.md` - TypeScript, testing, security
+  standards
+- **Development Workflow**: `docs/development/workflow.md` - Process, priorities, best practices
+- **Architecture Details**: `docs/architecture/` - System design, components, patterns
+
+#### AI-Specific Resources
+
+- **AI Routing Patterns**: `docs/ai/routing-patterns.md` - Delegation, subagent patterns
+- **Task Decomposition**: `docs/ai/routing-patterns.md#task-delegation`
+
+#### Knowledge Base
+
+- **Implementation Lessons**: `docs/lessons/implementation.md` - Past decisions, insights
+- **Architecture Evolution**: `docs/architecture/evolution.md` - How system evolved
+
+#### API Documentation
+
+- **REST API**: `docs/api/rest.md`
+- **gRPC Services**: `docs/api/grpc.md`
+- **WebSocket Events**: `docs/api/websocket.md`
+- **MCP Protocol**: `docs/api/mcp.md`
+
+### 🚀 Getting Started
+
+```bash
+# Production Use
+npm install -g puppeteer-mcp    # Install globally
+puppeteer-mcp                   # Start MCP server
+
+# Development Setup
+git clone https://github.com/williamzujkowski/puppeteer-mcp.git
+cd puppeteer-mcp
+npm install
+npm run dev
+```
+
+### 📊 Project Status
+
+- **NPM Package**: v1.0.1 (published)
 - **TypeScript**: Zero compilation errors ✅
 - **ESLint**: 78 warnings, 0 errors ✅
-- **Tests**: 20/20 test suites passing ✅
-- **Architecture**: 188 TypeScript files, modular design ✅
+- **Tests**: 20/20 suites passing ✅
+- **Architecture**: 188 TypeScript files ✅
 
-## 🏗️ Architecture Overview
+### 🏗️ Architecture Components
 
-### Core Components
+| Component          | Location         | Details                                       |
+| ------------------ | ---------------- | --------------------------------------------- |
+| Session Store      | `src/store/`     | See `docs/architecture/session-management.md` |
+| Authentication     | `src/auth/`      | See `docs/architecture/authentication.md`     |
+| REST API           | `src/routes/`    | See `docs/api/rest.md`                        |
+| gRPC Services      | `src/grpc/`      | See `docs/api/grpc.md`                        |
+| WebSocket          | `src/ws/`        | See `docs/api/websocket.md`                   |
+| MCP Server         | `src/mcp/`       | See `docs/api/mcp.md`                         |
+| Browser Automation | `src/puppeteer/` | See `docs/architecture/browser-automation.md` |
 
-1. **Session Store** (`src/store/`): Unified session management
-2. **Authentication** (`src/auth/`): JWT + API key support
-3. **Protocol Layers**:
-   - REST API (`src/routes/`)
-   - gRPC Services (`src/grpc/`)
-   - WebSocket (`src/ws/`)
-   - MCP Server (`src/mcp/`)
-4. **Browser Automation** (`src/puppeteer/`): Comprehensive Puppeteer integration
+### 🤖 AI Assistant Routing Logic
 
-### Key Architectural Patterns
-
-- **Unified Session Management**: Single source of truth for all protocols
-- **Multi-Modal Authentication**: Flexible auth supporting multiple methods
-- **Event-Driven Architecture**: Real-time capabilities across protocols
-- **Resource Pooling**: Efficient browser instance management
-- **Security-First Design**: NIST compliance throughout
-
-## 🤖 AI Assistant Guidelines
-
-### Working Philosophy
-
-When working on this project, prefer delegating complex tasks to specialized subagents. This
-ensures:
-
-- Parallel execution of independent tasks
-- Specialized analysis for different aspects
-- Comprehensive coverage of standards
-- Reduced context switching
-
-### When to Route to Detailed Docs
-
-1. **Complex Implementation Tasks**: Route to `docs/development/workflow.md`
-2. **Standards Compliance**: Route to `docs/development/standards.md`
-3. **AI Delegation Patterns**: Route to `docs/ai/routing-patterns.md`
-4. **Historical Context**: Route to `docs/lessons/implementation.md`
-
-### Quick Decision Tree
+#### Primary Decision Tree
 
 ```
-Is this a coding task?
-├─ YES → Check docs/development/standards.md first
-│   └─ Then docs/development/workflow.md for process
-├─ NO → Is this about AI patterns?
-│   ├─ YES → See docs/ai/routing-patterns.md
-│   └─ NO → Is this about past decisions?
-│       ├─ YES → See docs/lessons/implementation.md
-│       └─ NO → Check relevant architecture docs
+What type of task?
+├─ Implementation/Coding
+│   ├─ First: docs/development/standards.md (standards check)
+│   └─ Then: docs/development/workflow.md (process guide)
+├─ AI Patterns/Delegation
+│   └─ Route: docs/ai/routing-patterns.md
+├─ Architecture Question
+│   └─ Route: docs/architecture/[component].md
+├─ Historical/Past Decision
+│   └─ Route: docs/lessons/implementation.md
+└─ API Usage
+    └─ Route: docs/api/[protocol].md
 ```
 
-## 📋 Standards Overview
+#### When to Delegate
 
-This project follows William Zujkowski's standards (https://github.com/williamzujkowski/standards):
+- Multiple independent tasks → Use subagent pattern
+- Complex analysis needed → Delegate to specialized agent
+- Standards verification → Delegate compliance check
 
-- **Code Standards (CS:TS)**: TypeScript with strict mode, max 300 lines/file
-- **Testing Standards (TS:JEST)**: 85%+ coverage, test-first development
-- **Security Standards (SEC:API)**: Zero trust, comprehensive validation
-- **NIST Compliance (NIST-IG)**: Tagged security controls
-- **Container Standards (CN:DOCKER)**: Multi-stage builds, security scanning
+See `docs/ai/routing-patterns.md` for delegation patterns.
 
-For detailed standards implementation, see `docs/development/standards.md`.
+### 📋 Standards & Security
 
-## 🔒 Security Requirements
+**Applied Standards**:
+[github.com/williamzujkowski/standards](https://github.com/williamzujkowski/standards)
 
-All code must follow security-first principles:
+- CS:TS (TypeScript), TS:JEST (Testing), SEC:API (Security), NIST-IG (Compliance)
 
-1. **Authentication Required**: All endpoints except /health
-2. **Input Validation**: Zod schemas for all inputs
-3. **NIST Control Tags**: Security functions must be tagged
-4. **Zero Trust**: Never trust, always verify
+**Security Principles**:
 
-For detailed security implementation, see `docs/development/standards.md#security-standards`.
+- Zero trust architecture
+- All endpoints authenticated (except /health)
+- Input validation with Zod schemas
+- NIST control tagging
 
-## 🎯 Current Priorities
+For implementation details → `docs/development/standards.md`
 
-### High Priority ⚠️
+### 🎯 Current Priorities
 
-1. Test Stability: Fix failing tests in browser automation
-2. ESLint Cleanup: Reduce warnings to <50
-3. Browser Test Reliability: Improve resource cleanup
+For active priorities and maintenance tasks → `docs/development/workflow.md#priorities`
 
-### Medium Priority 🔄
+### 📚 Quick Links
 
-1. Type Safety: Eliminate remaining `any` types
-2. Performance Monitoring: Add browser operation metrics
-3. Documentation: Generate OpenAPI specs
+**Internal Docs**:
 
-For full priority list and maintenance tasks, see `docs/development/workflow.md#priorities`.
+- Standards: `docs/development/standards.md`
+- Workflow: `docs/development/workflow.md`
+- Architecture: `docs/architecture/`
+- APIs: `docs/api/`
 
-## 📚 Additional Resources
+**External Resources**:
 
-### Internal Documentation
-
-- Architecture Documentation: `docs/architecture/`
-- API Documentation: `docs/api/`
-- Testing Guide: `docs/testing/`
-
-### External Resources
-
-- NPM Package: https://www.npmjs.com/package/puppeteer-mcp
-- Project Standards: https://github.com/williamzujkowski/standards
-- NIST Controls: https://csrc.nist.gov/projects/risk-management/sp800-53-controls
-- TypeScript Best Practices:
-  https://www.typescriptlang.org/docs/handbook/declaration-files/do-s-and-don-ts.html
-
-## 🔄 Keeping Documentation Updated
-
-When making significant changes:
-
-1. Update relevant documentation in `docs/`
-2. Keep this router file lean (focus on routing, not details)
-3. Follow the Knowledge Management Standards for all docs
-4. Ensure version numbers and dates are current
-
-## 💡 Quick Tips for AI Assistants
-
-1. **Always Check Standards First**: Before implementing, review applicable standards
-2. **Delegate Complex Tasks**: Use subagent pattern for multi-step operations
-3. **Security is Non-Negotiable**: Every feature must consider security
-4. **Test-Driven Development**: Write tests before implementation
-5. **Keep Files Small**: Max 300 lines, extract when needed
-
-## 🏆 Project Achievements
-
-- ✅ Published to npm as `puppeteer-mcp` v1.0.0
-- ✅ Zero TypeScript compilation errors
-- ✅ 90% reduction in ESLint warnings (768 → 78)
-- ✅ 100% test suite passing rate (20/20)
-- ✅ Enterprise security (NIST compliant)
-- ✅ Comprehensive browser automation
-- ✅ Multi-protocol support
-- ✅ AI-ready architecture
-
-For detailed implementation lessons and insights, see `docs/lessons/implementation.md`.
+- NPM: [npmjs.com/package/puppeteer-mcp](https://www.npmjs.com/package/puppeteer-mcp)
+- Standards: [github.com/williamzujkowski/standards](https://github.com/williamzujkowski/standards)
 
 ---
 
-**Remember**: This file is a router. For detailed information on any topic, follow the documentation
-map above to find the appropriate detailed documentation.
+**Remember**: This is a router document. Always navigate to detailed docs for implementation.
