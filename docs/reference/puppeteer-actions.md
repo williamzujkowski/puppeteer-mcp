@@ -4,7 +4,7 @@
 
 The Puppeteer Actions system provides a comprehensive set of browser automation capabilities through
 a unified, type-safe interface. All actions are executed within authenticated browser contexts with
-enterprise-grade security controls.
+enterprise-focused security controls.
 
 ### Architecture
 

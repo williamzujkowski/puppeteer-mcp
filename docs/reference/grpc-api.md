@@ -4,7 +4,7 @@
 
 The Puppeteer MCP platform provides a comprehensive gRPC API for browser automation, session
 management, and context execution. The API follows Protocol Buffers v3 specification and implements
-enterprise-grade security with NIST compliance.
+enterprise-focused security with NIST compliance.
 
 ## Connection Details
 

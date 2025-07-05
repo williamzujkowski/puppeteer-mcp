@@ -36,7 +36,7 @@ _5 minute guide_
 
 ## What is Puppeteer MCP?
 
-Puppeteer MCP is a **production-ready browser automation platform** that provides:
+Puppeteer MCP is a **beta browser automation platform** that provides:
 
 - **Multi-Protocol Support**: REST, gRPC, WebSocket, and Model Context Protocol (MCP)
 - **AI Integration**: Works seamlessly with Claude Desktop and other AI assistants
@@ -145,6 +145,18 @@ await fetch(`http://localhost:3000/api/sessions/${sessionId}/screenshot`, {
 - **📸 Screenshots**: Capture website screenshots
 - **🤖 AI Automation**: Let AI agents browse the web
 - **📊 Monitoring**: Track website changes and performance
+
+## 📣 Beta Feedback Welcome!
+
+As this is a beta release, we're actively seeking your feedback:
+
+- **🐛 [Report Issues](https://github.com/williamzujkowski/puppeteer-mcp/issues)**: Help us identify
+  bugs
+- **💡 Share Ideas**: What features would make this production-ready for you?
+- **📊 Performance**: Let us know about any performance concerns
+- **📝 Documentation**: Tell us what needs better explanation
+
+Your feedback is crucial for making this project truly production-ready!
 
 ## Need Help?
 

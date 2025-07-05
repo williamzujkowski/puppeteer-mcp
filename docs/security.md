@@ -11,7 +11,7 @@ reporting process, and compliance standards.
 
 ## 🛡️ Security Standards
 
-We follow NIST 800-53r5 security controls and maintain enterprise-grade security throughout the
+We follow NIST 800-53r5 security controls and maintain enterprise-focused security throughout the
 platform:
 
 - **Authentication**: Multi-modal (JWT + API Keys)

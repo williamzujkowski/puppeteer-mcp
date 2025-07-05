@@ -6,7 +6,7 @@ powerful automation workflows.
 
 ## Introduction to Puppeteer Integration
 
-The platform provides enterprise-grade browser automation through Puppeteer, offering:
+The platform provides enterprise-focused browser automation through Puppeteer, offering:
 
 - **Resource-efficient browser pooling** with automatic cleanup
 - **13 comprehensive browser actions** covering all automation needs

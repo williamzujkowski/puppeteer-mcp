@@ -2,10 +2,9 @@
 
 ## System Architecture
 
-The Puppeteer MCP platform is a production-ready, AI-enabled browser automation system that provides
-unified access through multiple protocol interfaces. The architecture follows a layered approach
-with strong separation of concerns, enterprise-grade security, and comprehensive resource
-management.
+The Puppeteer MCP platform is a beta, AI-enabled browser automation system that provides unified
+access through multiple protocol interfaces. The architecture follows a layered approach with strong
+separation of concerns, enterprise-focused security, and comprehensive resource management.
 
 ```mermaid
 graph TB
@@ -507,7 +506,7 @@ The Puppeteer MCP architecture delivers:
 - **Scalable browser automation** with resource pooling
 - **Real-time capabilities** through event-driven design
 - **AI integration** via Model Context Protocol
-- **Production readiness** with monitoring and health checks
+- **Beta release** with monitoring and health checks
 
 This architecture serves as a reference implementation for building secure, scalable, and AI-ready
 browser automation platforms.

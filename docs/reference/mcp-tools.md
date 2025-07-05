@@ -423,5 +423,5 @@ All browser actions undergo security validation:
 5. **Monitoring**: Track performance metrics and health status
 
 This reference provides comprehensive guidance for AI agents integrating with the browser automation
-platform through MCP, enabling sophisticated browser control with enterprise-grade security and
+platform through MCP, enabling sophisticated browser control with enterprise-focused security and
 performance.

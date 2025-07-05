@@ -29,7 +29,7 @@ Future development plans:
 ### Current Version
 
 **Version**: 2.0.0  
-**Status**: Production Ready  
+**Status**: Beta - Seeking Production Feedback  
 **License**: MIT
 
 ### Key Metrics
@@ -51,6 +51,18 @@ Future development plans:
 - Security enhancements
 
 For detailed changes, see the [Changelog](changelog.md).
+
+## 📣 Beta Feedback Needed
+
+As we work towards production readiness, your feedback is invaluable:
+
+- **🐛 Bug Reports**: [GitHub Issues](https://github.com/williamzujkowski/puppeteer-mcp/issues)
+- **💡 Feature Requests**: Share what functionality you need for production use
+- **📊 Performance Feedback**: Report any performance or stability concerns
+- **🔒 Security Reviews**: Help us identify potential security improvements
+- **📝 Documentation**: Let us know what needs better explanation
+
+Your real-world usage and feedback will help us ensure this platform meets production requirements!
 
 ## Future Direction
 

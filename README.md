@@ -2,7 +2,7 @@
 
 **Version**: 1.0.8  
 **Last Updated**: 2025-01-05  
-**Status**: Production  
+**Status**: Beta - Seeking Production Feedback  
 **Type**: Browser Automation Platform  
 **Audience**: Developers, AI Engineers, DevOps
 
@@ -15,8 +15,13 @@
 [![Security](https://img.shields.io/badge/security-NIST%20compliant-blue.svg)]()
 [![Coverage](https://img.shields.io/badge/coverage-85%25-green.svg)]()
 
-**Production-ready AI-enabled browser automation platform** with REST, gRPC, WebSocket, and Model
-Context Protocol (MCP) interfaces, unified session management, and enterprise-grade security.
+**Beta release of AI-enabled browser automation platform** with REST, gRPC, WebSocket, and Model
+Context Protocol (MCP) interfaces, unified session management, and enterprise-focused security.
+
+> **🔔 We Need Your Feedback!** This project is in beta and we're actively seeking user feedback to
+> ensure it meets production requirements. Please
+> [report issues](https://github.com/williamzujkowski/puppeteer-mcp/issues) or share your
+> experience.
 
 ## 🚀 Quick Start
 
@@ -200,6 +205,19 @@ npm run check       # Run all checks
 ```
 
 For detailed development workflow, see [Development Guide](docs/development/workflow.md).
+
+## 📣 Feedback Requested
+
+As this project is in **beta**, we actively seek your feedback to ensure it meets production
+requirements:
+
+- **🐛 Report Issues**: [GitHub Issues](https://github.com/williamzujkowski/puppeteer-mcp/issues)
+- **💡 Feature Requests**: Share what functionality you need
+- **📊 Performance**: Report any performance or stability concerns
+- **🔒 Security**: See [Security Guide](docs/security.md) for reporting vulnerabilities
+- **📝 Documentation**: Let us know what needs clarification
+
+Your feedback is crucial for making this project truly production-ready!
 
 ## 🤝 Contributing
 

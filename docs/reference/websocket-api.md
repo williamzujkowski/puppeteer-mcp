@@ -3,7 +3,7 @@
 > **Purpose**: Real-time bidirectional communication protocol for browser automation and session
 > management  
 > **Version**: 1.0.0  
-> **Status**: Production Ready  
+> **Status**: Beta - Seeking Production Feedback  
 > **Created**: 2025-07-04  
 > **Reviewed**: 2025-07-04
 

@@ -2,13 +2,19 @@
 
 **Version:** 1.0.1  
 **Last Updated:** 2025-01-05  
-**Status:** Production Ready  
+**Status:** Beta - Seeking Production Feedback  
 **Type:** Documentation Hub  
 **Audience:** Developers, Users, Contributors
 
-Welcome to the comprehensive documentation for **Puppeteer MCP** - an AI-enabled browser automation
-platform that provides REST, gRPC, WebSocket, and Model Context Protocol (MCP) interfaces with
-unified session management, enterprise-grade security, and comprehensive Puppeteer integration.
+Welcome to the comprehensive documentation for **Puppeteer MCP** - a beta AI-enabled browser
+automation platform that provides REST, gRPC, WebSocket, and Model Context Protocol (MCP) interfaces
+with unified session management, enterprise-focused security, and comprehensive Puppeteer
+integration.
+
+> **🔔 Beta Release - Feedback Needed!**  
+> This project is in beta and we're actively seeking user feedback to ensure it meets production
+> requirements. Please [report issues](https://github.com/williamzujkowski/puppeteer-mcp/issues) or
+> share your experience to help us improve.
 
 ## 🚀 Quick Navigation
 
@@ -50,8 +56,8 @@ unified session management, enterprise-grade security, and comprehensive Puppete
 
 ## 📋 What is Puppeteer MCP?
 
-Puppeteer MCP is a **production-ready platform** that bridges AI agents and browser automation
-through multiple protocol interfaces. It enables:
+Puppeteer MCP is a **beta platform** that bridges AI agents and browser automation through multiple
+protocol interfaces. We're seeking feedback to ensure production readiness. It enables:
 
 - **AI-Driven Browser Control**: LLMs can control browsers through the Model Context Protocol
 - **Multi-Protocol Support**: Choose between REST, gRPC, WebSocket, or MCP interfaces

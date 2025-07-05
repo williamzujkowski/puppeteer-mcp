@@ -1,7 +1,6 @@
 # Architecture Documentation
 
-Understand the design and architecture of Puppeteer MCP, a production-ready browser automation
-platform.
+Understand the design and architecture of Puppeteer MCP, a beta browser automation platform.
 
 ## Architecture Overview
 
@@ -27,7 +26,7 @@ Unified session management system:
 
 ### [Security Model](security.md)
 
-Enterprise-grade security architecture:
+Enterprise-focused security architecture:
 
 - Authentication mechanisms
 - Authorization patterns
