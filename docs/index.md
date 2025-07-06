@@ -18,6 +18,7 @@ integration.
 
 ## 🚀 Quick Navigation
 
+<!-- prettier-ignore-start -->
 <div class="grid" markdown>
 
 <div class="card">
@@ -64,6 +65,7 @@ NIST-compliant security architecture and best practices.
 </div>
 
 </div>
+<!-- prettier-ignore-end -->
 
 ## 📋 What is Puppeteer MCP?
 
