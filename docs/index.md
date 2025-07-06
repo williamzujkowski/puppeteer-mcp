@@ -18,39 +18,50 @@ integration.
 
 ## 🚀 Quick Navigation
 
-<div class="grid cards" markdown>
+<div class="grid" markdown>
 
-- :material-rocket-launch:{ .lg .middle } **Getting Started**
+<div class="card">
 
-  ***
+### :material-rocket-launch: Getting Started
 
-  New to Puppeteer MCP? Start here for a quick setup guide.
+New to Puppeteer MCP? Start here for a quick setup guide.
 
-  [:octicons-arrow-right-24: Quick Start Guide](quickstart/index.md)
+[Quick Start Guide :octicons-arrow-right-24:](quickstart/index.md){ .md-button .md-button--primary }
 
-- :material-api:{ .lg .middle } **API Reference**
+</div>
 
-  ***
+<div class="card">
 
-  Complete API documentation for all supported protocols.
+### :material-api: API Reference
 
-  [:octicons-arrow-right-24: API Documentation](quick-reference/api-cheatsheet.md)
+Complete API documentation for all supported protocols.
 
-- :material-robot:{ .lg .middle } **Browser Automation**
+[API Documentation :octicons-arrow-right-24:](quick-reference/api-cheatsheet.md){ .md-button
+.md-button--primary }
 
-  ***
+</div>
 
-  Learn how to automate browsers with our Puppeteer integration.
+<div class="card">
 
-  [:octicons-arrow-right-24: Automation Guide](guides/browser-automation.md)
+### :material-robot: Browser Automation
 
-- :material-shield-check:{ .lg .middle } **Security**
+Learn how to automate browsers with our Puppeteer integration.
 
-  ***
+[Automation Guide :octicons-arrow-right-24:](guides/browser-automation.md){ .md-button
+.md-button--primary }
 
-  NIST-compliant security architecture and best practices.
+</div>
 
-  [:octicons-arrow-right-24: Security Documentation](architecture/security.md)
+<div class="card">
+
+### :material-shield-check: Security
+
+NIST-compliant security architecture and best practices.
+
+[Security Documentation :octicons-arrow-right-24:](architecture/security.md){ .md-button
+.md-button--primary }
+
+</div>
 
 </div>
 
