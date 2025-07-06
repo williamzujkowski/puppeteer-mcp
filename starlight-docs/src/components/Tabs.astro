@@ -1,0 +1,61 @@
+---
+export interface Props {
+  labels: string[];
+}
+
+const { labels } = Astro.props;
+const tabsId = `tabs-${Math.random().toString(36).substr(2, 9)}`;
+---
+
+<div class="tabs-component" data-tabs-id={tabsId}>
+  <div class="tabs-list" role="tablist">
+    {labels.map((label, index) => (
+      <button
+        class={`tab-button ${index === 0 ? 'active' : ''}`}
+        role="tab"
+        aria-selected={index === 0}
+        aria-controls={`${tabsId}-panel-${index}`}
+        data-tab-index={index}
+      >
+        {label}
+      </button>
+    ))}
+  </div>
+  <div class="tabs-panels">
+    <slot />
+  </div>
+</div>
+
+<script>
+  document.addEventListener('astro:page-load', () => {
+    const tabsComponents = document.querySelectorAll('.tabs-component');
+    
+    tabsComponents.forEach((component) => {
+      const buttons = component.querySelectorAll('.tab-button');
+      const panels = component.querySelectorAll('.tab-panel');
+      
+      buttons.forEach((button, index) => {
+        button.addEventListener('click', () => {
+          // Reset all tabs
+          buttons.forEach(b => {
+            b.classList.remove('active');
+            b.setAttribute('aria-selected', 'false');
+          });
+          panels.forEach(p => {
+            p.hidden = true;
+          });
+          
+          // Activate clicked tab
+          button.classList.add('active');
+          button.setAttribute('aria-selected', 'true');
+          panels[index].hidden = false;
+        });
+      });
+      
+      // Initially hide all panels except the first
+      panels.forEach((panel, index) => {
+        if (index !== 0) panel.hidden = true;
+      });
+    });
+  });
+</script>

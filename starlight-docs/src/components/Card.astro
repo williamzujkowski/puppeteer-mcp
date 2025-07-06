@@ -1,0 +1,39 @@
+---
+export interface Props {
+  title: string;
+  icon?: string;
+  href?: string;
+  linkText?: string;
+}
+
+const { title, icon, href, linkText = 'Learn more' } = Astro.props;
+---
+
+<div class="doc-card">
+  <h3>
+    {icon && <span class="icon">{icon}</span>}
+    {title}
+  </h3>
+  <div class="card-content">
+    <slot />
+  </div>
+  {href && (
+    <a href={href} class="action-button">
+      {linkText}
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="5" y1="12" x2="19" y2="12"></line>
+        <polyline points="12 5 19 12 12 19"></polyline>
+      </svg>
+    </a>
+  )}
+</div>
+
+<style>
+  .icon {
+    @apply inline-block mr-2;
+  }
+  
+  .card-content {
+    @apply text-gray-600 dark:text-gray-300;
+  }
+</style>

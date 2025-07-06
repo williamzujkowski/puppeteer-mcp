@@ -1,0 +1,130 @@
+/* Custom styles for Puppeteer MCP Documentation */
+
+/* Grid layout for cards - Starlight compatible */
+.card-grid {
+  @apply grid gap-6 mt-8 mb-8;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+}
+
+/* Card styling */
+.doc-card {
+  @apply border border-gray-200 dark:border-gray-700 rounded-lg p-6 transition-all duration-300 bg-gray-50 dark:bg-gray-800/50 hover:shadow-lg hover:-translate-y-0.5;
+}
+
+.doc-card h3 {
+  @apply mt-0 mb-3 text-accent-600 dark:text-accent-400 font-semibold;
+}
+
+.doc-card p {
+  @apply my-4 text-gray-600 dark:text-gray-300;
+}
+
+/* Button styling within cards */
+.doc-card .action-button {
+  @apply inline-flex items-center gap-2 w-full mt-4 px-4 py-2 bg-accent-600 hover:bg-accent-700 text-white rounded-md transition-colors text-center justify-center font-medium;
+}
+
+/* Text center utility */
+.text-center {
+  @apply text-center;
+}
+
+/* Code block improvements */
+.expressive-code {
+  @apply rounded-lg my-6;
+}
+
+/* Status badges */
+.status-badge {
+  @apply inline-block px-3 py-1 text-xs font-bold leading-none text-center whitespace-nowrap align-baseline rounded-full;
+}
+
+.status-badge.success {
+  @apply bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100;
+}
+
+.status-badge.beta {
+  @apply bg-yellow-100 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-100;
+}
+
+/* API endpoint styling */
+.api-endpoint {
+  @apply font-mono bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded text-sm;
+}
+
+/* Version badge */
+.version-badge {
+  @apply inline-block px-3 py-1 text-xs font-bold leading-none text-center whitespace-nowrap align-baseline rounded bg-accent-600 text-white;
+}
+
+/* Feature grid */
+.feature-grid {
+  @apply grid gap-4 my-6;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+.feature-grid dt {
+  @apply font-bold text-accent-600 dark:text-accent-400;
+}
+
+/* Quick links section */
+.quick-links {
+  @apply flex flex-wrap gap-4 my-6;
+}
+
+.quick-links a {
+  @apply inline-flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors;
+}
+
+/* Alert/Admonition styles for Starlight */
+.starlight-aside--note {
+  @apply border-l-4 border-blue-500 bg-blue-50 dark:bg-blue-900/20;
+}
+
+.starlight-aside--tip {
+  @apply border-l-4 border-green-500 bg-green-50 dark:bg-green-900/20;
+}
+
+.starlight-aside--caution {
+  @apply border-l-4 border-yellow-500 bg-yellow-50 dark:bg-yellow-900/20;
+}
+
+.starlight-aside--danger {
+  @apply border-l-4 border-red-500 bg-red-50 dark:bg-red-900/20;
+}
+
+/* Tab component styling */
+.tabs-component {
+  @apply my-6;
+}
+
+.tabs-list {
+  @apply flex border-b border-gray-200 dark:border-gray-700;
+}
+
+.tab-button {
+  @apply px-4 py-2 -mb-px text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-accent-600 dark:hover:text-accent-400 border-b-2 border-transparent hover:border-accent-600 dark:hover:border-accent-400 transition-colors;
+}
+
+.tab-button.active {
+  @apply text-accent-600 dark:text-accent-400 border-accent-600 dark:border-accent-400;
+}
+
+.tab-panel {
+  @apply py-4;
+}
+
+/* Mobile responsive improvements */
+@media (max-width: 768px) {
+  .card-grid {
+    @apply grid-cols-1;
+  }
+  
+  .feature-grid {
+    @apply grid-cols-1;
+  }
+  
+  .doc-card {
+    @apply p-4;
+  }
+}

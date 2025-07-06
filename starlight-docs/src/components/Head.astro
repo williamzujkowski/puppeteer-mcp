@@ -1,0 +1,21 @@
+---
+import type { Props } from '@astrojs/starlight/props';
+import Default from '@astrojs/starlight/components/Head.astro';
+---
+
+<Default {...Astro.props}>
+  <!-- Additional metadata for Puppeteer MCP -->
+  <meta name="author" content="William Zujkowski" />
+  <meta property="og:site_name" content="Puppeteer MCP Documentation" />
+  <meta name="twitter:creator" content="@williamzujkowski" />
+  
+  <!-- Favicon set -->
+  <link rel="icon" type="image/x-icon" href="/puppeteer-mcp/favicon.ico" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/puppeteer-mcp/favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/puppeteer-mcp/favicon-16x16.png" />
+  
+  <!-- Cookie consent placeholder -->
+  <!-- Add your cookie consent script here if needed -->
+  
+  <slot />
+</Default>

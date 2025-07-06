@@ -1,0 +1,103 @@
+/* Starlight theme overrides to match MkDocs Material indigo theme */
+
+:root {
+  /* Override Starlight's default accent colors with indigo */
+  --sl-hue-accent: 231;
+  --sl-color-accent-low: hsl(231, 100%, 95%);
+  --sl-color-accent: hsl(231, 92%, 60%);
+  --sl-color-accent-high: hsl(231, 100%, 20%);
+  
+  /* Customize other theme colors */
+  --sl-color-bg: #ffffff;
+  --sl-color-bg-nav: #f8fafc;
+  --sl-color-bg-sidebar: #f8fafc;
+  
+  /* Font customization to match MkDocs Material */
+  --sl-font: 'Roboto', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --sl-font-mono: 'Roboto Mono', 'Courier New', monospace;
+}
+
+:root[data-theme="dark"] {
+  --sl-color-bg: #0f172a;
+  --sl-color-bg-nav: #1e293b;
+  --sl-color-bg-sidebar: #1e293b;
+}
+
+/* Import Google Fonts to match MkDocs Material */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Roboto+Mono:wght@400;500&display=swap');
+
+/* Override Starlight's navigation styling */
+.sl-nav-link {
+  @apply rounded-md px-3 py-2 transition-colors;
+}
+
+.sl-nav-link:hover {
+  @apply bg-gray-100 dark:bg-gray-800;
+}
+
+/* Sidebar improvements */
+nav[aria-label="Main"] {
+  @apply px-2;
+}
+
+/* Search input styling */
+.sl-search-input {
+  @apply rounded-md;
+}
+
+/* Footer styling */
+.sl-footer {
+  @apply mt-12 border-t border-gray-200 dark:border-gray-700;
+}
+
+/* Page title styling */
+.sl-markdown-content h1 {
+  @apply text-4xl font-bold mb-6;
+}
+
+/* Improve content spacing */
+.sl-markdown-content > * + * {
+  @apply mt-6;
+}
+
+/* Code block styling to match MkDocs Material */
+.expressive-code pre {
+  @apply rounded-lg border border-gray-200 dark:border-gray-700;
+}
+
+/* Table styling */
+.sl-markdown-content table {
+  @apply w-full rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700;
+}
+
+.sl-markdown-content th {
+  @apply bg-gray-50 dark:bg-gray-800 font-semibold;
+}
+
+.sl-markdown-content tr:nth-child(even) {
+  @apply bg-gray-50 dark:bg-gray-900/50;
+}
+
+/* Link styling */
+.sl-markdown-content a:not(.sl-nav-link) {
+  @apply text-accent-600 dark:text-accent-400 hover:underline;
+}
+
+/* Badge and pill styling */
+.sl-badge {
+  @apply rounded-full px-2 py-0.5 text-xs font-medium;
+}
+
+/* Breadcrumb styling */
+.sl-breadcrumbs {
+  @apply text-sm text-gray-600 dark:text-gray-400;
+}
+
+/* TOC styling */
+.sl-toc a {
+  @apply text-gray-600 dark:text-gray-400 hover:text-accent-600 dark:hover:text-accent-400 transition-colors;
+}
+
+.sl-toc a[aria-current="true"] {
+  @apply text-accent-600 dark:text-accent-400 font-medium;
+}

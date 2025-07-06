@@ -1,0 +1,30 @@
+# Redirects for Puppeteer MCP documentation
+# Based on MkDocs redirects configuration
+
+# Old MkDocs URLs to new Starlight URLs
+/getting-started                   /quickstart/                        301
+/quickstart-npm                    /quickstart/installation            301
+/npm-package                       /deployment/npm-package             301
+/deployment/npm-global             /deployment/npm-package             301
+/guides/getting-started            /quickstart/                        301
+/guides/deployment                 /deployment/                        301
+
+# Handle .md extensions
+/getting-started.md                /quickstart/                        301
+/quickstart-npm.md                 /quickstart/installation            301
+/npm-package.md                    /deployment/npm-package             301
+/deployment/npm-global.md          /deployment/npm-package             301
+/guides/getting-started.md         /quickstart/                        301
+/guides/deployment.md              /deployment/                        301
+
+# Index redirects
+/quickstart/index.md               /quickstart/                        301
+/guides/index.md                   /guides/                            301
+/reference/index.md                /reference/                         301
+/deployment/index.md               /deployment/                        301
+/architecture/index.md             /architecture/                      301
+/development/index.md              /development/                       301
+/contributing/index.md             /contributing/                      301
+
+# Remove .md from all URLs
+/*.md                              /:splat                             301
