@@ -1,7 +1,7 @@
 {
   "name": "puppeteer-mcp-docs",
   "type": "module",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "description": "Documentation for Puppeteer MCP - AI-Enabled Browser Automation Platform",
   "scripts": {
     "dev": "astro dev",

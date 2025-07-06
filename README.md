@@ -1,6 +1,6 @@
 # Puppeteer MCP
 
-**Version**: 1.0.10  
+**Version**: 1.0.11  
 **Last Updated**: 2025-01-06  
 **Status**: Beta - Seeking Production Feedback  
 **Type**: Browser Automation Platform  

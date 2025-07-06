@@ -62,7 +62,7 @@ export class MCPServer {
     this.server = new Server(
       {
         name: 'puppeteer-mcp',
-        version: '1.0.10',
+        version: '1.0.11',
       },
       {
         capabilities: {

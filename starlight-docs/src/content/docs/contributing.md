@@ -1,11 +1,11 @@
 ---
 title: Contributing to Puppeteer MCP
-description: 'Version 1.0.10 - Contributing guidelines'
+description: 'Version 1.0.11 - Contributing guidelines'
 ---
 
 # Contributing to Puppeteer MCP
 
-**Version:** 1.0.10  
+**Version:** 1.0.11  
 **Last Updated:** 2025-01-07  
 **Status:** Active
 

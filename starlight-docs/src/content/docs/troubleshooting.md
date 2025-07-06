@@ -1,11 +1,11 @@
 ---
 title: Troubleshooting Guide
-description: 'Version 1.0.10 - Troubleshooting common issues'
+description: 'Version 1.0.11 - Troubleshooting common issues'
 ---
 
 # Troubleshooting Guide
 
-**Version**: 1.0.10  
+**Version**: 1.0.11  
 **Last Updated**: 2025-01-04  
 **Status**: Active
 

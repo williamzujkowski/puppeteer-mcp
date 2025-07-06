@@ -589,7 +589,7 @@ npm install -g puppeteer-mcp@2.0.0
 
 # Switch between versions
 nvm use 20
-puppeteer-mcp --version  # 1.0.10
+puppeteer-mcp --version  # 1.0.11
 
 nvm use 22
 puppeteer-mcp --version  # 2.0.0

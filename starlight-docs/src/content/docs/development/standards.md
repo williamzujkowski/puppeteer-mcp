@@ -1,11 +1,11 @@
 ---
 title: Development Standards
-description: 'Version 1.0.10 - Development standards and best practices'
+description: 'Version 1.0.11 - Development standards and best practices'
 ---
 
 # Development Standards
 
-**Version**: 1.0.10  
+**Version**: 1.0.11  
 **Last Updated**: 2025-01-03  
 **Status**: Active  
 **Category**: Development Standards

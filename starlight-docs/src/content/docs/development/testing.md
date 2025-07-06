@@ -1,11 +1,11 @@
 ---
 title: Testing Guide
-description: 'Version 1.0.10 - Comprehensive testing guide'
+description: 'Version 1.0.11 - Comprehensive testing guide'
 ---
 
 # Testing Guide
 
-**Version:** 1.0.10  
+**Version:** 1.0.11  
 **Last Updated:** 2025-01-07  
 **Status:** Active
 

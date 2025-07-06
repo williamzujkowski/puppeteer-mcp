@@ -1,11 +1,11 @@
 ---
 title: Installation Guide
-description: 'Version 1.0.10 - Installation guide for Puppeteer MCP'
+description: 'Version 1.0.11 - Installation guide for Puppeteer MCP'
 ---
 
 # Installation Guide
 
-**Version**: 1.0.10  
+**Version**: 1.0.11  
 **Last Updated**: 2025-01-06  
 **Reading Time**: 5 minutes
 
@@ -221,7 +221,7 @@ Expected response:
 ```json
 {
   "status": "healthy",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "uptime": 12.345,
   "timestamp": "2025-01-05T12:00:00.000Z"
 }

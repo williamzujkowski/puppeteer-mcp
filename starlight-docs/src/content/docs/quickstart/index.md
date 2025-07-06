@@ -1,11 +1,11 @@
 ---
 title: Puppeteer MCP Quick Start
-description: 'Version 1.0.10 - Quick start guide for Puppeteer MCP'
+description: 'Version 1.0.11 - Quick start guide for Puppeteer MCP'
 ---
 
 # Puppeteer MCP Quick Start
 
-**Version**: 1.0.10  
+**Version**: 1.0.11  
 **Last Updated**: 2025-01-05  
 **Reading Time**: 2 minutes
 
