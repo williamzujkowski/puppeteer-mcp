@@ -30,11 +30,11 @@ the right resource.
 
 ```
 Task Type?
-├─ Coding → docs/development/standards.md → docs/development/workflow.md
-├─ AI Patterns → docs/ai/routing-patterns.md
-├─ Architecture → docs/architecture/
-├─ Past Decisions → docs/lessons/implementation.md
-└─ API Usage → docs/api/
+├─ Coding → starlight-docs/src/content/docs/development/standards.md → starlight-docs/src/content/docs/development/workflow.md
+├─ AI Patterns → starlight-docs/src/content/docs/ai/routing-patterns.md
+├─ Architecture → starlight-docs/src/content/docs/architecture/
+├─ Past Decisions → starlight-docs/src/content/docs/lessons/implementation.md
+└─ API Usage → starlight-docs/src/content/docs/api/
 ```
 
 ### Essential Commands
@@ -52,27 +52,32 @@ npm run typecheck # Check TypeScript
 
 #### Development & Implementation
 
-- **Standards Compliance**: `docs/development/standards.md` - TypeScript, testing, security
-  standards
-- **Development Workflow**: `docs/development/workflow.md` - Process, priorities, best practices
-- **Architecture Details**: `docs/architecture/` - System design, components, patterns
+- **Standards Compliance**: `starlight-docs/src/content/docs/development/standards.md` - TypeScript,
+  testing, security standards
+- **Development Workflow**: `starlight-docs/src/content/docs/development/workflow.md` - Process,
+  priorities, best practices
+- **Architecture Details**: `starlight-docs/src/content/docs/architecture/` - System design,
+  components, patterns
 
 #### AI-Specific Resources
 
-- **AI Routing Patterns**: `docs/ai/routing-patterns.md` - Delegation, subagent patterns
-- **Task Decomposition**: `docs/ai/routing-patterns.md#task-delegation`
+- **AI Routing Patterns**: `starlight-docs/src/content/docs/ai/routing-patterns.md` - Delegation,
+  subagent patterns
+- **Task Decomposition**: `starlight-docs/src/content/docs/ai/routing-patterns.md#task-delegation`
 
 #### Knowledge Base
 
-- **Implementation Lessons**: `docs/lessons/implementation.md` - Past decisions, insights
-- **Architecture Evolution**: `docs/architecture/evolution.md` - How system evolved
+- **Implementation Lessons**: `starlight-docs/src/content/docs/lessons/implementation.md` - Past
+  decisions, insights
+- **Architecture Evolution**: `starlight-docs/src/content/docs/architecture/evolution.md` - How
+  system evolved
 
 #### API Documentation
 
-- **REST API**: `docs/api/rest.md`
-- **gRPC Services**: `docs/api/grpc.md`
-- **WebSocket Events**: `docs/api/websocket.md`
-- **MCP Protocol**: `docs/api/mcp.md`
+- **REST API**: `starlight-docs/src/content/docs/api/rest.md`
+- **gRPC Services**: `starlight-docs/src/content/docs/api/grpc.md`
+- **WebSocket Events**: `starlight-docs/src/content/docs/api/websocket.md`
+- **MCP Protocol**: `starlight-docs/src/content/docs/api/mcp.md`
 
 ### 🚀 Getting Started
 
@@ -100,15 +105,15 @@ npm run dev
 
 ### 🏗️ Architecture Components
 
-| Component          | Location         | Details                                       |
-| ------------------ | ---------------- | --------------------------------------------- |
-| Session Store      | `src/store/`     | See `docs/architecture/session-management.md` |
-| Authentication     | `src/auth/`      | See `docs/architecture/authentication.md`     |
-| REST API           | `src/routes/`    | See `docs/api/rest.md`                        |
-| gRPC Services      | `src/grpc/`      | See `docs/api/grpc.md`                        |
-| WebSocket          | `src/ws/`        | See `docs/api/websocket.md`                   |
-| MCP Server         | `src/mcp/`       | See `docs/api/mcp.md`                         |
-| Browser Automation | `src/puppeteer/` | See `docs/architecture/browser-automation.md` |
+| Component          | Location         | Details                                                                  |
+| ------------------ | ---------------- | ------------------------------------------------------------------------ |
+| Session Store      | `src/store/`     | See `starlight-docs/src/content/docs/architecture/session-management.md` |
+| Authentication     | `src/auth/`      | See `starlight-docs/src/content/docs/architecture/authentication.md`     |
+| REST API           | `src/routes/`    | See `starlight-docs/src/content/docs/api/rest.md`                        |
+| gRPC Services      | `src/grpc/`      | See `starlight-docs/src/content/docs/api/grpc.md`                        |
+| WebSocket          | `src/ws/`        | See `starlight-docs/src/content/docs/api/websocket.md`                   |
+| MCP Server         | `src/mcp/`       | See `starlight-docs/src/content/docs/api/mcp.md`                         |
+| Browser Automation | `src/puppeteer/` | See `starlight-docs/src/content/docs/architecture/browser-automation.md` |
 
 ### 🤖 AI Assistant Routing Logic
 
@@ -117,16 +122,16 @@ npm run dev
 ```
 What type of task?
 ├─ Implementation/Coding
-│   ├─ First: docs/development/standards.md (standards check)
-│   └─ Then: docs/development/workflow.md (process guide)
+│   ├─ First: starlight-docs/src/content/docs/development/standards.md (standards check)
+│   └─ Then: starlight-docs/src/content/docs/development/workflow.md (process guide)
 ├─ AI Patterns/Delegation
-│   └─ Route: docs/ai/routing-patterns.md
+│   └─ Route: starlight-docs/src/content/docs/ai/routing-patterns.md
 ├─ Architecture Question
-│   └─ Route: docs/architecture/[component].md
+│   └─ Route: starlight-docs/src/content/docs/architecture/[component].md
 ├─ Historical/Past Decision
-│   └─ Route: docs/lessons/implementation.md
+│   └─ Route: starlight-docs/src/content/docs/lessons/implementation.md
 └─ API Usage
-    └─ Route: docs/api/[protocol].md
+    └─ Route: starlight-docs/src/content/docs/api/[protocol].md
 ```
 
 #### When to Delegate
@@ -135,7 +140,7 @@ What type of task?
 - Complex analysis needed → Delegate to specialized agent
 - Standards verification → Delegate compliance check
 
-See `docs/ai/routing-patterns.md` for delegation patterns.
+See `starlight-docs/src/content/docs/ai/routing-patterns.md` for delegation patterns.
 
 ### 📋 Standards & Security
 
@@ -151,20 +156,21 @@ See `docs/ai/routing-patterns.md` for delegation patterns.
 - Input validation with Zod schemas
 - NIST control tagging
 
-For implementation details → `docs/development/standards.md`
+For implementation details → `starlight-docs/src/content/docs/development/standards.md`
 
 ### 🎯 Current Priorities
 
-For active priorities and maintenance tasks → `docs/development/workflow.md#priorities`
+For active priorities and maintenance tasks →
+`starlight-docs/src/content/docs/development/workflow.md#priorities`
 
 ### 📚 Quick Links
 
 **Internal Docs**:
 
-- Standards: `docs/development/standards.md`
-- Workflow: `docs/development/workflow.md`
-- Architecture: `docs/architecture/`
-- APIs: `docs/api/`
+- Standards: `starlight-docs/src/content/docs/development/standards.md`
+- Workflow: `starlight-docs/src/content/docs/development/workflow.md`
+- Architecture: `starlight-docs/src/content/docs/architecture/`
+- APIs: `starlight-docs/src/content/docs/api/`
 
 **External Resources**:
 
