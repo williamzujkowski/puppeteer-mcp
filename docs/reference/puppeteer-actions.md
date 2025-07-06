@@ -503,6 +503,6 @@ Authorization: Bearer {token}
 
 For more information, see:
 
-- [Browser Contexts Guide](./browser-contexts.md)
-- [Security Documentation](../security/browser-automation.md)
-- [API Reference](./api/v1/contexts.md)
+- [Session Management](../architecture/session-management.md)
+- [Security Architecture](../architecture/security.md)
+- [REST API Reference](./rest-api.md)

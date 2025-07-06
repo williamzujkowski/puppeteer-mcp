@@ -196,7 +196,8 @@ describe('YourFeature', () => {
 - **Never commit secrets**: Use environment variables
 - **Validate inputs**: All user inputs must be validated
 - **Follow NIST guidelines**: Tag security functions appropriately
-- **Report vulnerabilities**: Use our [Security Policy](security.md)
+- **Report vulnerabilities**: Use our
+  [Security Policy](https://github.com/williamzujkowski/puppeteer-mcp/blob/main/SECURITY.md)
 
 Example NIST tagging:
 

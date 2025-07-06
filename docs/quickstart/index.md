@@ -163,7 +163,7 @@ Your feedback is crucial for making this project truly production-ready!
 - **📚 [Full Documentation](/docs)**: Comprehensive guides and API reference
 - **💬 [GitHub Issues](https://github.com/williamzujkowski/puppeteer-mcp/issues)**: Report bugs or
   request features
-- **🔧 [Troubleshooting](./installation.md#troubleshooting)**: Common issues and solutions
+- **🔧 [Troubleshooting](../troubleshooting.md)**: Common issues and solutions
 
 ## Ready to Start?
 

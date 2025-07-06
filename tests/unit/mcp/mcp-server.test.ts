@@ -38,6 +38,20 @@ jest.mock('../../../src/utils/logger.js', () => ({
     debug: jest.fn(),
     child: jest.fn().mockReturnThis(),
   },
+  createLogger: jest.fn(() => ({
+    info: jest.fn(),
+    error: jest.fn(),
+    warn: jest.fn(),
+    debug: jest.fn(),
+    fatal: jest.fn(),
+    child: jest.fn(() => ({
+      info: jest.fn(),
+      error: jest.fn(),
+      warn: jest.fn(),
+      debug: jest.fn(),
+      fatal: jest.fn(),
+    })),
+  })),
   SecurityEventType: {
     LOGIN_SUCCESS: 'LOGIN_SUCCESS',
     LOGIN_FAILURE: 'LOGIN_FAILURE',

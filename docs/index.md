@@ -50,7 +50,7 @@ integration.
 
   NIST-compliant security architecture and best practices.
 
-  [:octicons-arrow-right-24: Security Documentation](project/security.md)
+  [:octicons-arrow-right-24: Security Documentation](architecture/security.md)
 
 </div>
 
@@ -189,8 +189,8 @@ npm run dev
 
 - [GitHub Repository](https://github.com/williamzujkowski/puppeteer-mcp)
 - [Issue Tracker](https://github.com/williamzujkowski/puppeteer-mcp/issues)
-- [Security Policy](project/security.md)
-- [Changelog](project/changelog.md)
+- [Security Policy](https://github.com/williamzujkowski/puppeteer-mcp/blob/main/SECURITY.md)
+- [Changelog](https://github.com/williamzujkowski/puppeteer-mcp/blob/main/CHANGELOG.md)
 
 ## 📊 Project Status
 

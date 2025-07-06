@@ -130,10 +130,10 @@ nav:
       - contributing/index.md
       - Code of Conduct: contributing/code-of-conduct.md
       - How to Contribute: contributing.md
-      - Security Policy: security.md
+      # Security Policy is in root SECURITY.md
 
   - Resources:
-      - Project Changelog: project/changelog.md
+      # Changelog is in root CHANGELOG.md
       - Roadmap: project/roadmap.md
       - Lessons Learned: lessons/implementation.md
       - Planning Insights: lessons/project-planning.md

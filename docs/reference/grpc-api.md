@@ -436,5 +436,5 @@ All gRPC services implement NIST security controls:
 
 - [REST API Reference](./rest-api.md)
 - [WebSocket API Reference](./websocket-api.md)
-- [Authentication Guide](../guides/authentication.md)
+- [Security Architecture](../architecture/security.md)
 - [Browser Automation Guide](../guides/browser-automation.md)

@@ -18,6 +18,20 @@ jest.mock('../../../src/utils/logger.js', () => ({
       warn: jest.fn(),
     })),
   },
+  createLogger: jest.fn(() => ({
+    info: jest.fn(),
+    error: jest.fn(),
+    warn: jest.fn(),
+    debug: jest.fn(),
+    fatal: jest.fn(),
+    child: jest.fn(() => ({
+      info: jest.fn(),
+      error: jest.fn(),
+      warn: jest.fn(),
+      debug: jest.fn(),
+      fatal: jest.fn(),
+    })),
+  })),
   logSecurityEvent: jest.fn().mockResolvedValue(undefined),
   logDataAccess: jest.fn().mockResolvedValue(undefined),
   SecurityEventType: {

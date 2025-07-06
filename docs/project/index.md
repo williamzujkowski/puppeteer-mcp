@@ -4,7 +4,7 @@ Stay informed about the Puppeteer MCP project's evolution, current status, and f
 
 ## Project Documentation
 
-### [Changelog](../../CHANGELOG.md)
+### [Changelog](https://github.com/williamzujkowski/puppeteer-mcp/blob/main/CHANGELOG.md)
 
 Track all changes and releases:
 
@@ -50,7 +50,8 @@ Future development plans:
 - Performance optimizations
 - Security enhancements
 
-For detailed changes, see the [Changelog](changelog.md).
+For detailed changes, see the
+[Changelog](https://github.com/williamzujkowski/puppeteer-mcp/blob/main/CHANGELOG.md).
 
 ## 📣 Beta Feedback Needed
 
@@ -158,10 +159,10 @@ We follow Semantic Versioning (SemVer):
 
 ### Related Documentation
 
-- [Architecture Overview](../architecture/)
-- [Development Guide](../development/)
-- [API Reference](../reference/)
-- [Deployment Guide](../deployment/)
+- [Architecture Overview](../architecture/index.md)
+- [Development Guide](../development/index.md)
+- [API Reference](../reference/index.md)
+- [Deployment Guide](../deployment/index.md)
 
 ## Stay Updated
 

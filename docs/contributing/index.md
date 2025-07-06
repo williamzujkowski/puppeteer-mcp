@@ -24,7 +24,7 @@ Our community standards:
 - Enforcement
 - Attribution
 
-### [Security Policy](../security.md)
+### [Security Policy](../../SECURITY.md)
 
 Reporting security issues:
 
@@ -234,9 +234,9 @@ npm run verify
 
 ### Resources
 
-- [Development Guide](../development/)
-- [Architecture Docs](../architecture/)
-- [API Reference](../reference/)
+- [Development Guide](../development/index.md)
+- [Architecture Docs](../architecture/index.md)
+- [API Reference](../reference/index.md)
 
 ### Communication
 

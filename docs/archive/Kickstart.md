@@ -371,5 +371,5 @@ standards repository approach.
 
 ## Related Standards
 
-- [CLAUDE.md](./docs/core/CLAUDE.md) - The main LLM router that references this prompt
-- [KICKSTART_ADVANCED.md](KICKSTART_ADVANCED.md) - Advanced kickstart features
+- [CLAUDE.md](../../CLAUDE.md) - The main LLM router that references this prompt
+- Advanced kickstart features (coming soon)
