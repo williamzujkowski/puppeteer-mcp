@@ -9,7 +9,7 @@ Fast access to essential information for Puppeteer MCP developers and users.
 
 ## Reference Sheets
 
-### [API Cheatsheet](/puppeteer-mcp/api-cheatsheet.md)
+### [API Cheatsheet](/puppeteer-mcp/quick-reference/api-cheatsheet.md)
 
 Quick API reference for all protocols:
 
@@ -19,7 +19,7 @@ Quick API reference for all protocols:
 - Common parameters
 - Response formats
 
-### [Common Patterns](/puppeteer-mcp/common-patterns.md)
+### [Common Patterns](/puppeteer-mcp/quick-reference/common-patterns.md)
 
 Frequently used code patterns:
 
@@ -29,7 +29,7 @@ Frequently used code patterns:
 - Browser automation
 - Resource cleanup
 
-### [Environment Variables](/puppeteer-mcp/env-vars.md)
+### [Environment Variables](/puppeteer-mcp/quick-reference/env-vars.md)
 
 Complete environment configuration:
 
@@ -39,7 +39,7 @@ Complete environment configuration:
 - Security considerations
 - Performance tuning
 
-### [Error Codes](/puppeteer-mcp/error-codes.md)
+### [Error Codes](/puppeteer-mcp/quick-reference/error-codes.md)
 
 Comprehensive error reference:
 
@@ -49,7 +49,7 @@ Comprehensive error reference:
 - Prevention tips
 - Troubleshooting guide
 
-### [MCP Tools Summary](/puppeteer-mcp/mcp-tools-summary.md)
+### [MCP Tools Summary](/puppeteer-mcp/quick-reference/mcp-tools-summary.md)
 
 Model Context Protocol tools:
 
@@ -63,21 +63,21 @@ Model Context Protocol tools:
 
 ### Most Used References
 
-- 🚀 [REST API Endpoints](/puppeteer-mcp/api-cheatsheet.md#rest-api)
-- 🔧 [Environment Setup](/puppeteer-mcp/env-vars.md#required-variables)
-- ❌ [Common Errors](/puppeteer-mcp/error-codes.md#common-errors)
-- 🤖 [MCP Tools](/puppeteer-mcp/mcp-tools-summary.md#tool-list)
+- 🚀 [REST API Endpoints](/puppeteer-mcp/quick-reference/api-cheatsheet.md#rest-api)
+- 🔧 [Environment Setup](/puppeteer-mcp/quick-reference/env-vars.md#required-variables)
+- ❌ [Common Errors](/puppeteer-mcp/quick-reference/error-codes.md#common-errors)
+- 🤖 [MCP Tools](/puppeteer-mcp/quick-reference/mcp-tools-summary.md#tool-list)
 
 ### By Protocol
 
-- **REST**: [Endpoints](/puppeteer-mcp/api-cheatsheet.md#rest-api) |
-  [Authentication](/puppeteer-mcp/common-patterns.md#rest-auth)
-- **WebSocket**: [Events](/puppeteer-mcp/api-cheatsheet.md#websocket-events) |
-  [Connection](/puppeteer-mcp/common-patterns.md#ws-connection)
-- **gRPC**: [Services](/puppeteer-mcp/api-cheatsheet.md#grpc-services) |
-  [Client Setup](/puppeteer-mcp/common-patterns.md#grpc-setup)
-- **MCP**: [Tools](/puppeteer-mcp/mcp-tools-summary.md) |
-  [Integration](/puppeteer-mcp/common-patterns.md#mcp-integration)
+- **REST**: [Endpoints](/puppeteer-mcp/quick-reference/api-cheatsheet.md#rest-api) |
+  [Authentication](/puppeteer-mcp/quick-reference/common-patterns.md#rest-auth)
+- **WebSocket**: [Events](/puppeteer-mcp/quick-reference/api-cheatsheet.md#websocket-events) |
+  [Connection](/puppeteer-mcp/quick-reference/common-patterns.md#ws-connection)
+- **gRPC**: [Services](/puppeteer-mcp/quick-reference/api-cheatsheet.md#grpc-services) |
+  [Client Setup](/puppeteer-mcp/quick-reference/common-patterns.md#grpc-setup)
+- **MCP**: [Tools](/puppeteer-mcp/quick-reference/mcp-tools-summary.md) |
+  [Integration](/puppeteer-mcp/quick-reference/common-patterns.md#mcp-integration)
 
 ## Common Tasks Quick Reference
 
@@ -225,10 +225,10 @@ npm run build      # Build project
 
 ## Need More Detail?
 
-- 📚 [Full API Reference](/puppeteer-mcp/../reference/)
-- 🎯 [User Guides](/puppeteer-mcp/../guides/)
-- 🏗️ [Architecture Docs](/puppeteer-mcp/../architecture/)
-- 🔧 [Development Guide](/puppeteer-mcp/../development/)
+- 📚 [Full API Reference](/puppeteer-mcp/reference/)
+- 🎯 [User Guides](/puppeteer-mcp/guides/)
+- 🏗️ [Architecture Docs](/puppeteer-mcp/architecture/)
+- 🔧 [Development Guide](/puppeteer-mcp/development/)
 
 ---
 

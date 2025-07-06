@@ -18,7 +18,7 @@ able to browse websites, take screenshots, fill forms, and extract data on your 
 
 - Claude Desktop installed on your computer
 - Node.js 18.0.0+ and npm 9.0.0+
-- Puppeteer MCP installed (see [Installation Guide](/puppeteer-mcp/./installation.md))
+- Puppeteer MCP installed (see [Installation Guide](/puppeteer-mcp/quickstart/installation.md))
 
 ## Quick Setup (3 Steps)
 
@@ -509,9 +509,10 @@ Run different configurations:
 
 ✅ Setup complete! Now you can:
 
-1. **[Explore usage examples](/puppeteer-mcp/./first-steps.md)** - See what's possible
-2. **[Configure advanced settings](/puppeteer-mcp/./configuration.md)** - Customize behavior
-3. **[Read the full API docs](/docs/api)** - Learn all capabilities
+1. **[Explore usage examples](/puppeteer-mcp/quickstart/first-steps.md)** - See what's possible
+2. **[Configure advanced settings](/puppeteer-mcp/quickstart/configuration.md)** - Customize
+   behavior
+3. **[Read the full API docs](/puppeteer-mcp/reference/)** - Learn all capabilities
 
 ## Getting Help
 

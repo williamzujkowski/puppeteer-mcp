@@ -580,9 +580,11 @@ puppeteer-mcp --test
 
 Configuration complete! Continue with:
 
-1. **[First automation examples](/puppeteer-mcp/./first-steps.md)** - Put configuration to use
-2. **[Security best practices](/docs/security)** - Harden your deployment
-3. **[Performance tuning](/docs/performance)** - Optimize for scale
+1. **[First automation examples](/puppeteer-mcp/quickstart/first-steps.md)** - Put configuration to
+   use
+2. **[Security best practices](/puppeteer-mcp/architecture/security.md)** - Harden your deployment
+3. **[Performance tuning](/puppeteer-mcp/architecture/overview.md#performance-optimization)** -
+   Optimize for scale
 
 ---
 

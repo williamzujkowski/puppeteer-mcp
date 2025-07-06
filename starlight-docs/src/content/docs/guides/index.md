@@ -12,7 +12,7 @@ cases and advanced scenarios.
 
 ## Available Guides
 
-### [Browser Automation](/puppeteer-mcp/browser-automation.md)
+### [Browser Automation](/puppeteer-mcp/guides/browser-automation)
 
 Learn how to automate web browsers effectively with Puppeteer MCP. This guide covers:
 
@@ -22,7 +22,7 @@ Learn how to automate web browsers effectively with Puppeteer MCP. This guide co
 - Screenshot and PDF generation
 - Handling dynamic content
 
-### [API Integration](/puppeteer-mcp/api-integration.md)
+### [API Integration](/puppeteer-mcp/guides/api-integration)
 
 Integrate Puppeteer MCP into your applications using various protocols:
 
@@ -32,7 +32,7 @@ Integrate Puppeteer MCP into your applications using various protocols:
 - Authentication and security
 - Error handling strategies
 
-### [MCP Usage Examples](/puppeteer-mcp/mcp-usage-examples.md)
+### [MCP Usage Examples](/puppeteer-mcp/guides/mcp-usage-examples)
 
 Practical examples of using Puppeteer MCP with Claude Desktop:
 
@@ -42,7 +42,7 @@ Practical examples of using Puppeteer MCP with Claude Desktop:
 - Advanced MCP patterns
 - Troubleshooting tips
 
-### [Advanced Scenarios](/puppeteer-mcp/advanced-scenarios.md)
+### [Advanced Scenarios](/puppeteer-mcp/guides/advanced-scenarios)
 
 _(Coming soon)_ Advanced techniques and patterns:
 
@@ -56,10 +56,10 @@ _(Coming soon)_ Advanced techniques and patterns:
 
 Looking for something specific?
 
-- **First time user?** Start with [Browser Automation](/puppeteer-mcp/browser-automation.md)
-- **Integrating with your app?** See [API Integration](/puppeteer-mcp/api-integration.md)
-- **Using with Claude?** Check [MCP Usage Examples](/puppeteer-mcp/mcp-usage-examples.md)
-- **Need API reference?** Visit the [API Reference](/reference/)
+- **First time user?** Start with [Browser Automation](/puppeteer-mcp/guides/browser-automation)
+- **Integrating with your app?** See [API Integration](/puppeteer-mcp/guides/api-integration)
+- **Using with Claude?** Check [MCP Usage Examples](/puppeteer-mcp/guides/mcp-usage-examples)
+- **Need API reference?** Visit the [API Reference](/puppeteer-mcp/reference/)
 
 ## Common Tasks
 
@@ -105,7 +105,7 @@ const screenshot = await session.screenshot({
 
 ## Need Help?
 
-- Check the [Troubleshooting Guide](/troubleshooting/)
-- Review [Quick Reference](/quick-reference/) for rapid answers
-- Explore [API Documentation](/reference/) for detailed specs
+- Check the [Troubleshooting Guide](/puppeteer-mcp/troubleshooting)
+- Review [Quick Reference](/puppeteer-mcp/quick-reference/) for rapid answers
+- Explore [API Documentation](/puppeteer-mcp/reference/) for detailed specs
 - Visit [GitHub Issues](https://github.com/williamzujkowski/puppeteer-mcp/issues) for support

@@ -382,10 +382,11 @@ npm install -g puppeteer-mcp
 
 ✅ Installation complete! Now:
 
-1. **[Configure your environment](/puppeteer-mcp/./configuration.md)** - Set up authentication and
-   customize settings
-2. **[Try your first automation](/puppeteer-mcp/./first-steps.md)** - Run basic examples
-3. **[Set up Claude Desktop](/puppeteer-mcp/./claude-desktop.md)** - Enable AI-powered automation
+1. **[Configure your environment](/puppeteer-mcp/quickstart/configuration.md)** - Set up
+   authentication and customize settings
+2. **[Try your first automation](/puppeteer-mcp/quickstart/first-steps.md)** - Run basic examples
+3. **[Set up Claude Desktop](/puppeteer-mcp/quickstart/claude-desktop.md)** - Enable AI-powered
+   automation
 
 ## Getting Help
 

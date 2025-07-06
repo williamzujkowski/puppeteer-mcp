@@ -625,7 +625,7 @@ fi
 
 ## Next Steps
 
-- Implement [Scaling Strategies](/puppeteer-mcp/scaling.md)
-- Set up [Disaster Recovery](/puppeteer-mcp/scaling.md#disaster-recovery)
-- Configure [Advanced Monitoring](/puppeteer-mcp/scaling.md#monitoring)
-- Review [Security Best Practices](/puppeteer-mcp/../architecture/security.md)
+- Implement [Scaling Strategies](/puppeteer-mcp/deployment/scaling.md)
+- Set up [Disaster Recovery](/puppeteer-mcp/deployment/scaling.md#disaster-recovery)
+- Configure [Advanced Monitoring](/puppeteer-mcp/deployment/scaling.md#monitoring)
+- Review [Security Best Practices](/puppeteer-mcp/architecture/security.md)

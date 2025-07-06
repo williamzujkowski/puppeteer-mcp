@@ -309,7 +309,9 @@ if (needsScroll(response)) {
 
 ## Next Steps
 
-- Review the [API Quick Reference](/reference/api-quick-reference) for endpoint details
-- Explore [Browser Automation Guide](/guides/browser-automation) for Puppeteer features
-- Check [MCP Usage Examples](/guides/mcp-usage-examples) for AI integration patterns
-- See [Security Documentation](/security) for compliance requirements
+- Review the [API Quick Reference](/puppeteer-mcp/reference/api-quick-reference) for endpoint
+  details
+- Explore [Browser Automation Guide](/puppeteer-mcp/guides/browser-automation) for Puppeteer
+  features
+- Check [MCP Usage Examples](/puppeteer-mcp/guides/mcp-usage-examples) for AI integration patterns
+- See [Security Documentation](/puppeteer-mcp/architecture/security) for compliance requirements

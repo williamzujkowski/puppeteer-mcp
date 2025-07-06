@@ -9,7 +9,7 @@ Complete API reference documentation for Puppeteer MCP's multi-protocol interfac
 
 ## Available APIs
 
-### [REST API](/puppeteer-mcp/rest-api.md)
+### [REST API](/puppeteer-mcp/reference/rest-api.md)
 
 RESTful HTTP API for browser automation:
 
@@ -19,7 +19,7 @@ RESTful HTTP API for browser automation:
 - Response formats
 - Error codes
 
-### [gRPC API](/puppeteer-mcp/grpc-api.md)
+### [gRPC API](/puppeteer-mcp/reference/grpc-api.md)
 
 High-performance gRPC service:
 
@@ -29,7 +29,7 @@ High-performance gRPC service:
 - Client examples
 - Performance considerations
 
-### [WebSocket API](/puppeteer-mcp/websocket-api.md)
+### [WebSocket API](/puppeteer-mcp/reference/websocket-api.md)
 
 Real-time WebSocket interface:
 
@@ -39,7 +39,7 @@ Real-time WebSocket interface:
 - Bidirectional communication
 - Connection lifecycle
 
-### [MCP Tools](/puppeteer-mcp/mcp-tools.md)
+### [MCP Tools](/puppeteer-mcp/reference/mcp-tools.md)
 
 Model Context Protocol tools for AI assistants:
 
@@ -49,7 +49,7 @@ Model Context Protocol tools for AI assistants:
 - Integration patterns
 - Claude Desktop usage
 
-### [Puppeteer Actions](/puppeteer-mcp/puppeteer-actions.md)
+### [Puppeteer Actions](/puppeteer-mcp/reference/puppeteer-actions.md)
 
 Comprehensive Puppeteer action reference:
 
@@ -63,10 +63,10 @@ Comprehensive Puppeteer action reference:
 
 ### By Protocol
 
-- **HTTP/REST**: Standard web API - [REST API](/puppeteer-mcp/rest-api.md)
-- **gRPC**: High-performance RPC - [gRPC API](/puppeteer-mcp/grpc-api.md)
-- **WebSocket**: Real-time events - [WebSocket API](/puppeteer-mcp/websocket-api.md)
-- **MCP**: AI integration - [MCP Tools](/puppeteer-mcp/mcp-tools.md)
+- **HTTP/REST**: Standard web API - [REST API](/puppeteer-mcp/reference/rest-api.md)
+- **gRPC**: High-performance RPC - [gRPC API](/puppeteer-mcp/reference/grpc-api.md)
+- **WebSocket**: Real-time events - [WebSocket API](/puppeteer-mcp/reference/websocket-api.md)
+- **MCP**: AI integration - [MCP Tools](/puppeteer-mcp/reference/mcp-tools.md)
 
 ### By Function
 

@@ -508,6 +508,6 @@ Authorization: Bearer {token}
 
 For more information, see:
 
-- [Session Management](/puppeteer-mcp/../architecture/session-management.md)
-- [Security Architecture](/puppeteer-mcp/../architecture/security.md)
-- [REST API Reference](/puppeteer-mcp/./rest-api.md)
+- [Session Management](/puppeteer-mcp/architecture/session-management.md)
+- [Security Architecture](/puppeteer-mcp/architecture/security.md)
+- [REST API Reference](/puppeteer-mcp/reference/rest-api.md)

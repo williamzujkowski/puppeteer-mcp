@@ -11,7 +11,7 @@ Thank you for your interest in contributing to Puppeteer MCP! This guide will he
 
 ## Ways to Contribute
 
-### [How to Contribute](/puppeteer-mcp/../contributing.md)
+### [How to Contribute](/puppeteer-mcp/contributing.md)
 
 Complete contribution guide:
 
@@ -21,7 +21,7 @@ Complete contribution guide:
 - Review guidelines
 - Recognition
 
-### [Code of Conduct](/puppeteer-mcp/code-of-conduct.md)
+### [Code of Conduct](/puppeteer-mcp/contributing/code-of-conduct.md)
 
 Our community standards:
 
@@ -31,7 +31,7 @@ Our community standards:
 - Enforcement
 - Attribution
 
-### [Security Policy](/puppeteer-mcp/../../SECURITY.md)
+### [Security Policy](https://github.com/williamzujkowski/puppeteer-mcp/blob/main/SECURITY.md)
 
 Reporting security issues:
 
@@ -46,7 +46,7 @@ Reporting security issues:
 
 - Check [open issues](https://github.com/williamzujkowski/puppeteer-mcp/issues)
 - Look for `good first issue` labels
-- Review the [roadmap](/puppeteer-mcp/../project/roadmap.md)
+- Review the [roadmap](/puppeteer-mcp/project/roadmap.md)
 - Propose new features
 
 ### 2. Set Up Development Environment
@@ -137,7 +137,7 @@ Submit code improvements:
 
 ### Code Style
 
-Follow our [coding standards](/puppeteer-mcp/../development/standards.md):
+Follow our [coding standards](/puppeteer-mcp/development/standards.md):
 
 - TypeScript strict mode
 - ESLint rules
@@ -241,9 +241,9 @@ npm run verify
 
 ### Resources
 
-- [Development Guide](/puppeteer-mcp/../development/index.md)
-- [Architecture Docs](/puppeteer-mcp/../architecture/index.md)
-- [API Reference](/puppeteer-mcp/../reference/index.md)
+- [Development Guide](/puppeteer-mcp/development/index.md)
+- [Architecture Docs](/puppeteer-mcp/architecture/index.md)
+- [API Reference](/puppeteer-mcp/reference/index.md)
 
 ### Communication
 

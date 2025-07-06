@@ -552,5 +552,5 @@ Key takeaways:
 - Follow security best practices for input validation
 
 For more details on specific protocols, see the
-[REST API Reference](/puppeteer-mcp/../reference/rest-api.md) or
-[MCP Usage Examples](/puppeteer-mcp/./mcp-usage-examples.md).
+[REST API Reference](/puppeteer-mcp/reference/rest-api) or
+[MCP Usage Examples](/puppeteer-mcp/guides/mcp-usage-examples).

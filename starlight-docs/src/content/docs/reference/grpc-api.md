@@ -439,7 +439,7 @@ All gRPC services implement NIST security controls:
 
 ## Related Documentation
 
-- [REST API Reference](/puppeteer-mcp/./rest-api.md)
-- [WebSocket API Reference](/puppeteer-mcp/./websocket-api.md)
-- [Security Architecture](/puppeteer-mcp/../architecture/security.md)
-- [Browser Automation Guide](/puppeteer-mcp/../guides/browser-automation.md)
+- [REST API Reference](/puppeteer-mcp/reference/rest-api.md)
+- [WebSocket API Reference](/puppeteer-mcp/reference/websocket-api.md)
+- [Security Architecture](/puppeteer-mcp/architecture/security.md)
+- [Browser Automation Guide](/puppeteer-mcp/guides/browser-automation.md)

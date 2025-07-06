@@ -723,7 +723,7 @@ aws_launch_template.puppeteer_spot.id } } } }
 
 ## Next Steps
 
-- Review [Production Deployment](/puppeteer-mcp/production.md)
-- Implement [Security Best Practices](/puppeteer-mcp/../architecture/security.md)
-- Set up [Monitoring Dashboard](/puppeteer-mcp/production.md#monitoring)
-- Plan [Disaster Recovery](/puppeteer-mcp/production.md#backup-strategy)
+- Review [Production Deployment](/puppeteer-mcp/deployment/production.md)
+- Implement [Security Best Practices](/puppeteer-mcp/architecture/security.md)
+- Set up [Monitoring Dashboard](/puppeteer-mcp/deployment/production.md#monitoring)
+- Plan [Disaster Recovery](/puppeteer-mcp/deployment/production.md#backup-strategy)

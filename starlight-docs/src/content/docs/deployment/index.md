@@ -12,7 +12,7 @@ scale.
 
 ## Deployment Options
 
-### [NPM Package](/puppeteer-mcp/npm-package.md)
+### [NPM Package](/puppeteer-mcp/deployment/npm-package.md)
 
 Deploy using npm for Node.js applications:
 
@@ -22,7 +22,7 @@ Deploy using npm for Node.js applications:
 - Version management
 - Package maintenance
 
-### [Docker](/puppeteer-mcp/docker.md)
+### [Docker](/puppeteer-mcp/deployment/docker.md)
 
 Container-based deployment:
 
@@ -32,7 +32,7 @@ Container-based deployment:
 - Container orchestration
 - Security considerations
 
-### [Production Setup](/puppeteer-mcp/production.md)
+### [Production Setup](/puppeteer-mcp/deployment/production.md)
 
 Enterprise production deployment:
 
@@ -42,7 +42,7 @@ Enterprise production deployment:
 - Monitoring setup
 - Backup strategies
 
-### [Scaling Guide](/puppeteer-mcp/scaling.md)
+### [Scaling Guide](/puppeteer-mcp/deployment/scaling.md)
 
 Scale Puppeteer MCP for high load:
 
@@ -251,7 +251,7 @@ docker stats puppeteer-mcp
 
 Choose your deployment method:
 
-- Simple setup? Try [NPM Package](/puppeteer-mcp/npm-package.md)
-- Need containers? See [Docker](/puppeteer-mcp/docker.md)
-- Going to production? Read [Production Setup](/puppeteer-mcp/production.md)
-- Planning for growth? Check [Scaling Guide](/puppeteer-mcp/scaling.md)
+- Simple setup? Try [NPM Package](/puppeteer-mcp/deployment/npm-package.md)
+- Need containers? See [Docker](/puppeteer-mcp/deployment/docker.md)
+- Going to production? Read [Production Setup](/puppeteer-mcp/deployment/production.md)
+- Planning for growth? Check [Scaling Guide](/puppeteer-mcp/deployment/scaling.md)

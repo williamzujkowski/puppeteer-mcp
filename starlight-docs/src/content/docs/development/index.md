@@ -9,7 +9,7 @@ Everything you need to know to develop and contribute to Puppeteer MCP.
 
 ## Development Guides
 
-### [Development Workflow](/puppeteer-mcp/workflow.md)
+### [Development Workflow](/puppeteer-mcp/development/workflow.md)
 
 Standard development practices:
 
@@ -19,7 +19,7 @@ Standard development practices:
 - Release procedures
 - Maintenance tasks
 
-### [Coding Standards](/puppeteer-mcp/standards.md)
+### [Coding Standards](/puppeteer-mcp/development/standards.md)
 
 William Zujkowski's coding standards:
 
@@ -29,7 +29,7 @@ William Zujkowski's coding standards:
 - Documentation standards
 - Code quality metrics
 
-### [Testing Guide](/puppeteer-mcp/testing.md)
+### [Testing Guide](/puppeteer-mcp/development/testing.md)
 
 Comprehensive testing practices:
 
@@ -39,7 +39,7 @@ Comprehensive testing practices:
 - Performance testing
 - Test coverage requirements
 
-### [AI Patterns](/puppeteer-mcp/../ai/routing-patterns.md)
+### [AI Patterns](/puppeteer-mcp/ai/routing-patterns.md)
 
 AI-assisted development patterns:
 
@@ -283,8 +283,8 @@ const browser = await puppeteer.launch({
 
 ### Before Contributing
 
-1. Read [Contributing Guide](/puppeteer-mcp/../contributing.md)
-2. Review [Coding Standards](/puppeteer-mcp/standards.md)
+1. Read [Contributing Guide](/puppeteer-mcp/contributing.md)
+2. Review [Coding Standards](/puppeteer-mcp/development/standards.md)
 3. Check existing issues
 4. Discuss major changes
 
@@ -300,10 +300,10 @@ const browser = await puppeteer.launch({
 
 ### Internal Documentation
 
-- [Development Workflow](/puppeteer-mcp/workflow.md) - Detailed workflow
-- [Coding Standards](/puppeteer-mcp/standards.md) - Code quality standards
-- [Testing Guide](/puppeteer-mcp/testing.md) - Testing best practices
-- [AI Patterns](/puppeteer-mcp/../ai/routing-patterns.md) - AI development
+- [Development Workflow](/puppeteer-mcp/development/workflow.md) - Detailed workflow
+- [Coding Standards](/puppeteer-mcp/development/standards.md) - Code quality standards
+- [Testing Guide](/puppeteer-mcp/development/testing.md) - Testing best practices
+- [AI Patterns](/puppeteer-mcp/ai/routing-patterns.md) - AI development
 
 ### External Resources
 

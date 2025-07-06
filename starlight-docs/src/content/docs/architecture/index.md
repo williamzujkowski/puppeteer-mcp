@@ -10,7 +10,7 @@ Understand the design and architecture of Puppeteer MCP, a beta browser automati
 
 ## Architecture Overview
 
-### [System Design](/puppeteer-mcp/overview.md)
+### [System Design](/puppeteer-mcp/architecture/overview.md)
 
 Complete system architecture:
 
@@ -20,7 +20,7 @@ Complete system architecture:
 - Integration patterns
 - Architectural decisions
 
-### [Session Management](/puppeteer-mcp/session-management.md)
+### [Session Management](/puppeteer-mcp/architecture/session-management.md)
 
 Unified session management system:
 
@@ -30,7 +30,7 @@ Unified session management system:
 - Cleanup strategies
 - Performance optimization
 
-### [Security Model](/puppeteer-mcp/security.md)
+### [Security Model](/puppeteer-mcp/architecture/security.md)
 
 Enterprise-focused security architecture:
 
@@ -40,7 +40,7 @@ Enterprise-focused security architecture:
 - Threat modeling
 - Security controls
 
-### [MCP Integration](/puppeteer-mcp/mcp-integration-plan.md)
+### [MCP Integration](/puppeteer-mcp/architecture/mcp-integration-plan.md)
 
 Model Context Protocol integration:
 
@@ -259,7 +259,7 @@ tools: {
 
 ## Learn More
 
-- Deep dive into [System Design](/puppeteer-mcp/overview.md)
-- Understand [Session Management](/puppeteer-mcp/session-management.md)
-- Review [Security Model](/puppeteer-mcp/security.md)
-- Explore [MCP Integration](/puppeteer-mcp/mcp-integration-plan.md)
+- Deep dive into [System Design](/puppeteer-mcp/architecture/overview.md)
+- Understand [Session Management](/puppeteer-mcp/architecture/session-management.md)
+- Review [Security Model](/puppeteer-mcp/architecture/security.md)
+- Explore [MCP Integration](/puppeteer-mcp/architecture/mcp-integration-plan.md)

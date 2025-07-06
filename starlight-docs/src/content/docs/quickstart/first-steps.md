@@ -432,7 +432,7 @@ client.createSession({ baseUrl: 'https://example.com' }, (err, response) => {
 
 ### MCP (AI Integration)
 
-See [Claude Desktop Setup](/puppeteer-mcp/./claude-desktop.md) for MCP integration.
+See [Claude Desktop Setup](/puppeteer-mcp/quickstart/claude-desktop.md) for MCP integration.
 
 ## Best Practices
 
@@ -544,15 +544,16 @@ PUPPETEER_HEADLESS=false npx puppeteer-mcp
 
 Now that you've completed your first automations:
 
-1. **[Set up authentication](/puppeteer-mcp/./configuration.md)** - Secure your API
-2. **[Integrate with Claude Desktop](/puppeteer-mcp/./claude-desktop.md)** - Enable AI automation
-3. **[Explore advanced features](/docs/api)** - Full API reference
+1. **[Set up authentication](/puppeteer-mcp/quickstart/configuration.md)** - Secure your API
+2. **[Integrate with Claude Desktop](/puppeteer-mcp/quickstart/claude-desktop.md)** - Enable AI
+   automation
+3. **[Explore advanced features](/puppeteer-mcp/reference/)** - Full API reference
 
 ## Need Help?
 
 - 💡 Check our
   [Examples Repository](https://github.com/williamzujkowski/puppeteer-mcp/tree/main/examples)
-- 📚 Read the [API Documentation](/docs/api)
+- 📚 Read the [API Documentation](/puppeteer-mcp/reference/)
 - 💬 Ask questions on [GitHub Issues](https://github.com/williamzujkowski/puppeteer-mcp/issues)
 
 ---

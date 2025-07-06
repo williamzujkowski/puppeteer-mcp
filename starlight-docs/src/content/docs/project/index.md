@@ -20,7 +20,7 @@ Track all changes and releases:
 - Bug fixes
 - Migration guides
 
-### [Roadmap](/puppeteer-mcp/roadmap.md)
+### [Roadmap](/puppeteer-mcp/project/roadmap.md)
 
 Future development plans:
 
@@ -87,7 +87,7 @@ Your real-world usage and feedback will help us ensure this platform meets produ
 - Kubernetes operators
 - Edge deployment capabilities
 
-For the complete roadmap, see [Roadmap](/puppeteer-mcp/roadmap.md).
+For the complete roadmap, see [Roadmap](/puppeteer-mcp/project/roadmap.md).
 
 ## Project Health
 
@@ -142,8 +142,8 @@ We follow Semantic Versioning (SemVer):
 
 ### How to Contribute
 
-1. Check the [Roadmap](/puppeteer-mcp/roadmap.md) for planned features
-2. Review [Contributing Guidelines](/puppeteer-mcp/../contributing.md)
+1. Check the [Roadmap](/puppeteer-mcp/project/roadmap.md) for planned features
+2. Review [Contributing Guidelines](/puppeteer-mcp/contributing.md)
 3. Submit issues or pull requests
 4. Join community discussions
 
@@ -165,10 +165,10 @@ We follow Semantic Versioning (SemVer):
 
 ### Related Documentation
 
-- [Architecture Overview](/puppeteer-mcp/../architecture/index.md)
-- [Development Guide](/puppeteer-mcp/../development/index.md)
-- [API Reference](/puppeteer-mcp/../reference/index.md)
-- [Deployment Guide](/puppeteer-mcp/../deployment/index.md)
+- [Architecture Overview](/puppeteer-mcp/architecture/index.md)
+- [Development Guide](/puppeteer-mcp/development/index.md)
+- [API Reference](/puppeteer-mcp/reference/index.md)
+- [Deployment Guide](/puppeteer-mcp/deployment/index.md)
 
 ## Stay Updated
 
@@ -181,7 +181,7 @@ We follow Semantic Versioning (SemVer):
 
 ### Getting Help
 
-- Check [Troubleshooting Guide](/puppeteer-mcp/../troubleshooting.md)
+- Check [Troubleshooting Guide](/puppeteer-mcp/troubleshooting.md)
 - Search existing issues
 - Ask in discussions
 - Contact maintainers

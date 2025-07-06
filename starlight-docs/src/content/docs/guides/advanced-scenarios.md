@@ -74,9 +74,9 @@ Advanced error handling strategies for production scenarios.
 
 ## Next Steps
 
-- Review the [API Reference](/reference/) for detailed endpoint documentation
-- Check [Common Patterns](/quick-reference/common-patterns/) for more examples
-- See [Troubleshooting](/troubleshooting/) for common issues
+- Review the [API Reference](/puppeteer-mcp/reference/) for detailed endpoint documentation
+- Check [Common Patterns](/puppeteer-mcp/quick-reference/common-patterns) for more examples
+- See [Troubleshooting](/puppeteer-mcp/troubleshooting) for common issues
 
 ---
 

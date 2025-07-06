@@ -489,7 +489,7 @@ fluentd:
 
 ## Next Steps
 
-- Set up [Production Deployment](/puppeteer-mcp/production.md)
-- Configure [Monitoring](/puppeteer-mcp/production.md#monitoring)
-- Implement [Scaling Strategies](/puppeteer-mcp/scaling.md)
-- Review [Security Best Practices](/puppeteer-mcp/../architecture/security.md)
+- Set up [Production Deployment](/puppeteer-mcp/deployment/production.md)
+- Configure [Monitoring](/puppeteer-mcp/deployment/production.md#monitoring)
+- Implement [Scaling Strategies](/puppeteer-mcp/deployment/scaling.md)
+- Review [Security Best Practices](/puppeteer-mcp/architecture/security.md)
