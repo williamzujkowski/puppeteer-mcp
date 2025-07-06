@@ -1,6 +1,6 @@
 ---
 title: Development Workflow
-description: Version: 1.0.10  
+description: 'Version 1.0.10 - Development workflow guide'
 ---
 
 # Development Workflow

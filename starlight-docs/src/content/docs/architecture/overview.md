@@ -1,6 +1,6 @@
 ---
 title: Architecture Overview
-description: ## System Architecture
+description: 'System Architecture overview for Puppeteer MCP'
 ---
 
 # Architecture Overview

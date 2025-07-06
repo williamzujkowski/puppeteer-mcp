@@ -1,6 +1,6 @@
 ---
 title: Scaling Guide
-description: Learn how to scale Puppeteer MCP for high-traffic production environments.
+description: 'Learn how to scale Puppeteer MCP for high-traffic production environments.'
 ---
 
 # Scaling Guide

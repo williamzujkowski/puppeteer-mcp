@@ -1,6 +1,6 @@
 ---
 title: NPM Package Deployment
-description: Complete guide for deploying Puppeteer MCP as an npm package.
+description: 'Complete guide for deploying Puppeteer MCP as an npm package.'
 ---
 
 # NPM Package Deployment

@@ -1,6 +1,6 @@
 ---
 title: Docker Deployment
-description: Deploy Puppeteer MCP using Docker for consistent, isolated environments.
+description: 'Deploy Puppeteer MCP using Docker for consistent, isolated environments.'
 ---
 
 # Docker Deployment

@@ -1,6 +1,7 @@
 ---
 title: WebSocket API Reference
-description: > Purpose: Real-time bidirectional communication protocol for browser automation and session
+description:
+  'Real-time bidirectional communication protocol for browser automation and session management'
 ---
 
 # WebSocket API Reference

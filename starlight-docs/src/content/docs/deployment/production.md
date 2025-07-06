@@ -1,6 +1,6 @@
 ---
 title: Production Deployment
-description: Comprehensive guide for deploying Puppeteer MCP in production environments.
+description: 'Comprehensive guide for deploying Puppeteer MCP in production environments.'
 ---
 
 # Production Deployment

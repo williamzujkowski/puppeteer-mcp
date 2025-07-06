@@ -1,7 +1,7 @@
 ---
 title: Project Information
 description:
-  Stay informed about the Puppeteer MCP project's evolution, current status, and future direction.
+  "Stay informed about the Puppeteer MCP project's evolution, current status, and future direction"
 ---
 
 # Project Information

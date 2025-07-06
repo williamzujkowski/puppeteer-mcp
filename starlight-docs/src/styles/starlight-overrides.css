@@ -1,3 +1,6 @@
+/* Import Google Fonts to match MkDocs Material */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Roboto+Mono:wght@400;500&display=swap');
+
 /* Starlight theme overrides to match MkDocs Material indigo theme */
 
 :root {
@@ -22,9 +25,6 @@
   --sl-color-bg-nav: #1e293b;
   --sl-color-bg-sidebar: #1e293b;
 }
-
-/* Import Google Fonts to match MkDocs Material */
-@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Roboto+Mono:wght@400;500&display=swap');
 
 /* Override Starlight's navigation styling */
 .sl-nav-link {

@@ -1,6 +1,6 @@
 ---
 title: Advanced Scenarios
-description: This guide covers advanced use cases and scenarios for Puppeteer MCP.
+description: 'This guide covers advanced use cases and scenarios for Puppeteer MCP.'
 ---
 
 # Advanced Scenarios

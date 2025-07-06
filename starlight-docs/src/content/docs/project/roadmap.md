@@ -1,6 +1,6 @@
 ---
 title: Project Roadmap
-description: Version: 1.0.10  
+description: 'Version 1.0.10 - Project roadmap and future plans'
 ---
 
 # Project Roadmap

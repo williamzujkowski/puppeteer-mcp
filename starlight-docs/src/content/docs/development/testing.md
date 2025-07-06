@@ -1,6 +1,6 @@
 ---
 title: Testing Guide
-description: Version: 1.0.10  
+description: 'Version 1.0.10 - Comprehensive testing guide'
 ---
 
 # Testing Guide

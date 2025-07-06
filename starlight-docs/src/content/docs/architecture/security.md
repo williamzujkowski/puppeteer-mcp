@@ -1,6 +1,6 @@
 ---
 title: Security Architecture
-description: Comprehensive security model and implementation for Puppeteer MCP.
+description: 'Comprehensive security model and implementation for Puppeteer MCP.'
 ---
 
 # Security Architecture

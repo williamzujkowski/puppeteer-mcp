@@ -1,7 +1,8 @@
 ---
 title: MCP Session Management
 description:
-  This document describes the session management implementation in the MCP (Model Context Protocol)
+  'This document describes the session management implementation in the MCP (Model Context Protocol)
+  server'
 ---
 
 # MCP Session Management

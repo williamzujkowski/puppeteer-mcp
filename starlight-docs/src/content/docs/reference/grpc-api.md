@@ -1,6 +1,6 @@
 ---
 title: gRPC API Reference
-description: ## Overview
+description: 'Overview of the gRPC API services and usage'
 ---
 
 # gRPC API Reference

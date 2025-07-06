@@ -1,6 +1,6 @@
 ---
 title: Puppeteer MCP Quick Start
-description: Version: 1.0.10  
+description: 'Version 1.0.10 - Quick start guide for Puppeteer MCP'
 ---
 
 # Puppeteer MCP Quick Start

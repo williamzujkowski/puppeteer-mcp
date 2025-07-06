@@ -1,7 +1,7 @@
 ---
 title: Architecture Documentation
 description:
-  Understand the design and architecture of Puppeteer MCP, a beta browser automation platform.
+  'Understand the design and architecture of Puppeteer MCP, a beta browser automation platform'
 ---
 
 # Architecture Documentation

@@ -4,7 +4,7 @@ export interface Props {
 }
 
 const { labels } = Astro.props;
-const tabsId = `tabs-${Math.random().toString(36).substr(2, 9)}`;
+const tabsId = `tabs-${Math.random().toString(36).substring(2, 11)}`;
 ---
 
 <div class="tabs-component" data-tabs-id={tabsId}>
@@ -32,7 +32,7 @@ const tabsId = `tabs-${Math.random().toString(36).substr(2, 9)}`;
     
     tabsComponents.forEach((component) => {
       const buttons = component.querySelectorAll('.tab-button');
-      const panels = component.querySelectorAll('.tab-panel');
+      const panels = component.querySelectorAll('.tab-panel') as NodeListOf<HTMLElement>;
       
       buttons.forEach((button, index) => {
         button.addEventListener('click', () => {

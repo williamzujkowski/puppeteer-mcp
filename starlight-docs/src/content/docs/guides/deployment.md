@@ -1,7 +1,8 @@
 ---
 title: Deployment Guide
 description:
-  This guide provides comprehensive instructions for deploying the Puppeteer MCP platform to
+  'This guide provides comprehensive instructions for deploying the Puppeteer MCP platform to
+  production environments'
 ---
 
 # Deployment Guide

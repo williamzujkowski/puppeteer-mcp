@@ -1,8 +1,8 @@
 ---
 title: Contributing to Puppeteer MCP
 description:
-  Thank you for your interest in contributing to Puppeteer MCP! This guide will help you get
-  started.
+  'Thank you for your interest in contributing to Puppeteer MCP! This guide will help you get
+  started'
 ---
 
 # Contributing to Puppeteer MCP

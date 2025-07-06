@@ -1,6 +1,6 @@
 ---
 title: MCP Integration Implementation Plan
-description: ## Overview
+description: 'Overview of the MCP integration implementation plan'
 ---
 
 # MCP Integration Implementation Plan

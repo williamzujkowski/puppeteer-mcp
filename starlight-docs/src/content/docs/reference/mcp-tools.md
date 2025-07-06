@@ -1,6 +1,6 @@
 ---
 title: MCP Tools Reference
-description: ## Overview
+description: 'Overview of MCP tools and their usage'
 ---
 
 # MCP Tools Reference

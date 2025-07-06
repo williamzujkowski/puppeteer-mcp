@@ -1,7 +1,7 @@
 ---
 title: API Integration Guide
 description:
-  This guide provides comprehensive instructions for integrating with the Puppeteer MCP platform
+  'This guide provides comprehensive instructions for integrating with the Puppeteer MCP platform'
 ---
 
 # API Integration Guide

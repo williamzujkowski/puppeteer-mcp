@@ -1,6 +1,6 @@
 ---
 title: Development Documentation
-description: Everything you need to know to develop and contribute to Puppeteer MCP.
+description: 'Everything you need to know to develop and contribute to Puppeteer MCP.'
 ---
 
 # Development Documentation

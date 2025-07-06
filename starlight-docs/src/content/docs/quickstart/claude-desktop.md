@@ -1,6 +1,6 @@
 ---
 title: Claude Desktop Setup Guide
-description: Version: 1.0.10  
+description: 'Version 1.0.10 - Setup guide for Claude Desktop integration'
 ---
 
 # Claude Desktop Setup Guide

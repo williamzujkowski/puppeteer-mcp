@@ -1,6 +1,6 @@
 ---
 title: Common Patterns
-description: ## Form Automation
+description: 'Common patterns for form automation and browser interactions'
 ---
 
 # Common Patterns

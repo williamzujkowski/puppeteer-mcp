@@ -1,6 +1,6 @@
 ---
 title: Puppeteer MCP Documentation
-description: Version: 1.0.10  
+description: 'Version 1.0.10'
 ---
 
 import Card from '@/components/Card.astro'; import CardGrid from '@/components/CardGrid.astro';

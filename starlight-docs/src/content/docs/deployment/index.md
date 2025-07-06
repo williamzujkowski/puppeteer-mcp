@@ -1,7 +1,8 @@
 ---
 title: Deployment Guide
 description:
-  Learn how to deploy Puppeteer MCP in various environments, from local development to production
+  'Learn how to deploy Puppeteer MCP in various environments, from local development to production
+  scale'
 ---
 
 # Deployment Guide

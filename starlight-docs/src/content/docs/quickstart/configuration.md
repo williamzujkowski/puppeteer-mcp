@@ -1,6 +1,6 @@
 ---
 title: Configuration Guide
-description: Version: 1.0.10  
+description: 'Version 1.0.10 - Configuration guide for Puppeteer MCP'
 ---
 
 # Configuration Guide

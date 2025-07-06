@@ -1,6 +1,6 @@
 ---
 title: API Reference
-description: Complete API reference documentation for Puppeteer MCP's multi-protocol interfaces.
+description: "Complete API reference documentation for Puppeteer MCP's multi-protocol interfaces."
 ---
 
 # API Reference

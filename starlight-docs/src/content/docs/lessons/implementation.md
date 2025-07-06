@@ -1,6 +1,6 @@
 ---
 title: Implementation Lessons
-description: Version: 1.0.10  
+description: 'Version 1.0.10 - Lessons learned from implementation'
 ---
 
 # Implementation Lessons

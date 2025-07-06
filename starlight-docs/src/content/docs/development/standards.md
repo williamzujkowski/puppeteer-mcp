@@ -1,6 +1,6 @@
 ---
 title: Development Standards
-description: Version: 1.0.10  
+description: 'Version 1.0.10 - Development standards and best practices'
 ---
 
 # Development Standards

@@ -1,6 +1,6 @@
 ---
 title: Installation Guide
-description: Version: 1.0.10  
+description: 'Version 1.0.10 - Installation guide for Puppeteer MCP'
 ---
 
 # Installation Guide

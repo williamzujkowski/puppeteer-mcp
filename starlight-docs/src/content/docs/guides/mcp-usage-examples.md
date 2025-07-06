@@ -1,8 +1,8 @@
 ---
 title: MCP Integration Usage Examples
 description:
-  This document demonstrates how LLMs will interact with your multi-protocol API platform through
-  the
+  'This document demonstrates how LLMs will interact with your multi-protocol API platform through
+  the MCP integration'
 ---
 
 # MCP Integration Usage Examples

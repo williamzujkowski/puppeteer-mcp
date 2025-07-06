@@ -1,6 +1,6 @@
 ---
 title: AI Routing Patterns
-description: Version: 1.0.10  
+description: 'Version 1.0.10 - AI routing patterns and decision frameworks'
 ---
 
 # AI Routing Patterns

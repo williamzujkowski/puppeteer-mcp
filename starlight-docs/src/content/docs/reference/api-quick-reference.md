@@ -1,6 +1,6 @@
 ---
 title: API Quick Reference
-description: ## Authentication
+description: 'Quick reference guide for authentication and API usage'
 ---
 
 # API Quick Reference

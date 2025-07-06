@@ -1,6 +1,6 @@
 ---
 title: Puppeteer Actions Reference
-description: ## Overview
+description: 'Overview of Puppeteer actions and browser automation commands'
 ---
 
 # Puppeteer Actions Reference

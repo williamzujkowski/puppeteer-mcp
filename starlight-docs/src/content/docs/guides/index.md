@@ -1,8 +1,8 @@
 ---
 title: User Guides
 description:
-  Welcome to the Puppeteer MCP user guides. These guides provide detailed instructions for common
-  use
+  'Welcome to the Puppeteer MCP user guides. These guides provide detailed instructions for common
+  use'
 ---
 
 # User Guides

@@ -1,6 +1,6 @@
 ---
 title: First Steps with Puppeteer MCP
-description: Version: 1.0.10  
+description: 'Version 1.0.10 - Getting started with Puppeteer MCP'
 ---
 
 # First Steps with Puppeteer MCP

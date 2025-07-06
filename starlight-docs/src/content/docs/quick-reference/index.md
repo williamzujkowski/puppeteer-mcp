@@ -1,6 +1,6 @@
 ---
 title: Quick Reference
-description: Fast access to essential information for Puppeteer MCP developers and users.
+description: 'Fast access to essential information for Puppeteer MCP developers and users.'
 ---
 
 # Quick Reference

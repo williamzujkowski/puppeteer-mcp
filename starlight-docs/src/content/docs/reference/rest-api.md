@@ -1,6 +1,6 @@
 ---
 title: REST API Reference
-description: ## Overview
+description: 'Overview of the REST API endpoints and usage'
 ---
 
 # REST API Reference

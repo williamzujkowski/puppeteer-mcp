@@ -1,6 +1,6 @@
 ---
 title: Troubleshooting Guide
-description: Version: 1.0.10  
+description: 'Version 1.0.10 - Troubleshooting common issues'
 ---
 
 # Troubleshooting Guide

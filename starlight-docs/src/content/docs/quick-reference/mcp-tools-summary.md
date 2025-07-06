@@ -1,6 +1,6 @@
 ---
 title: MCP Tools Summary
-description: ## Session Management
+description: 'Summary of MCP tools for session management and browser automation'
 ---
 
 # MCP Tools Summary

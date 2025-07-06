@@ -1,6 +1,6 @@
 ---
 title: Project Planning Lessons Learned
-description: ## Overview
+description: 'Overview of lessons learned from project planning'
 ---
 
 # Project Planning Lessons Learned

@@ -1,7 +1,8 @@
 ---
 title: Browser Automation Guide
 description:
-  This guide covers the comprehensive browser automation capabilities provided by the Puppeteer
+  'This guide covers the comprehensive browser automation capabilities provided by the Puppeteer
+  integration in this platform'
 ---
 
 # Browser Automation Guide

@@ -1,6 +1,6 @@
 ---
 title: API Cheatsheet
-description: ## REST API
+description: 'Quick reference for REST API endpoints and usage'
 ---
 
 # API Cheatsheet

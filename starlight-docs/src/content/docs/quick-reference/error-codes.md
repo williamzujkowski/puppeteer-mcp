@@ -1,6 +1,6 @@
 ---
 title: Error Codes
-description: ## Authentication Errors
+description: 'Reference guide for authentication and system error codes'
 ---
 
 # Error Codes

@@ -1,8 +1,8 @@
 ---
 title: Global npm Installation Guide
 description:
-  This guide provides comprehensive instructions for installing and managing puppeteer-mcp as a
-  global
+  'This guide provides comprehensive instructions for installing and managing puppeteer-mcp as a
+  global npm package'
 ---
 
 # Global npm Installation Guide

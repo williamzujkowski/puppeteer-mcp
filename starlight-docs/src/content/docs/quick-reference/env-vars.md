@@ -1,6 +1,6 @@
 ---
 title: Environment Variables
-description: ## Core Server
+description: 'Reference guide for core server environment variables'
 ---
 
 # Environment Variables

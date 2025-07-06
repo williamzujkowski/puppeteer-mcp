@@ -1,6 +1,6 @@
 ---
 title: Code of Conduct
-description: Version: 1.0.10  
+description: 'Version 1.0.10 - Community code of conduct'
 ---
 
 # Code of Conduct

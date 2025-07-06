@@ -1,6 +1,6 @@
 ---
 title: Contributing to Puppeteer MCP
-description: Version: 1.0.10  
+description: 'Version 1.0.10 - Contributing guidelines'
 ---
 
 # Contributing to Puppeteer MCP
