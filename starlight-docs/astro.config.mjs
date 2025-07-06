@@ -12,7 +12,8 @@ export default defineConfig({
     '/guides/getting-started': '/quickstart/',
     '/guides/deployment': '/deployment/',
   },
-  site: 'https://williamzujkowski.github.io/puppeteer-mcp',
+  site: 'https://williamzujkowski.github.io',
+  base: '/puppeteer-mcp',
   integrations: [
     starlight({
       title: 'Puppeteer MCP',
