@@ -17,22 +17,22 @@ Get started with browser automation in minutes. Choose your path:
 
 <div class="quickstart-grid">
 
-#### [📦 Installation](/puppeteer-mcp/./installation.md)
+#### [📦 Installation](/puppeteer-mcp/quickstart/installation)
 
 All installation methods - npm, source, Docker  
 _2 minute setup_
 
-#### [🚀 First Steps](/puppeteer-mcp/./first-steps.md)
+#### [🚀 First Steps](/puppeteer-mcp/quickstart/first-steps)
 
 Basic usage examples and your first automation  
 _5 minute tutorial_
 
-#### [🤖 Claude Desktop](/puppeteer-mcp/./claude-desktop.md)
+#### [🤖 Claude Desktop](/puppeteer-mcp/quickstart/claude-desktop)
 
 Set up AI-powered browser automation  
 _3 minute setup_
 
-#### [⚙️ Configuration](/puppeteer-mcp/./configuration.md)
+#### [⚙️ Configuration](/puppeteer-mcp/quickstart/configuration)
 
 Essential settings and environment setup  
 _5 minute guide_
@@ -57,7 +57,7 @@ Puppeteer MCP is a **beta browser automation platform** that provides:
 <summary><strong>Use with Claude Desktop</strong></summary>
 
 1. Install globally: `npm install -g puppeteer-mcp`
-2. Configure Claude Desktop ([see guide](/puppeteer-mcp/./claude-desktop.md))
+2. Configure Claude Desktop ([see guide](/puppeteer-mcp/quickstart/claude-desktop))
 3. Ask Claude to browse websites for you!
 
 </details>
@@ -66,7 +66,7 @@ Puppeteer MCP is a **beta browser automation platform** that provides:
 <summary><strong>Integrate into my Node.js project</strong></summary>
 
 1. Install in project: `npm install puppeteer-mcp`
-2. Import and configure ([see examples](/puppeteer-mcp/./first-steps.md))
+2. Import and configure ([see examples](/puppeteer-mcp/quickstart/first-steps))
 3. Start automating browsers programmatically
 
 </details>
@@ -74,8 +74,8 @@ Puppeteer MCP is a **beta browser automation platform** that provides:
 <details>
 <summary><strong>Run as a standalone service</strong></summary>
 
-1. Clone repository or use Docker ([see installation](/puppeteer-mcp/./installation.md))
-2. Configure environment ([see configuration](/puppeteer-mcp/./configuration.md))
+1. Clone repository or use Docker ([see installation](/puppeteer-mcp/quickstart/installation))
+2. Configure environment ([see configuration](/puppeteer-mcp/quickstart/configuration))
 3. Access via REST API, gRPC, or WebSocket
 
 </details>
@@ -165,18 +165,18 @@ Your feedback is crucial for making this project truly production-ready!
 
 ## Need Help?
 
-- **📚 [Full Documentation](/docs)**: Comprehensive guides and API reference
+- **📚 [Full Documentation](/puppeteer-mcp/)**: Comprehensive guides and API reference
 - **💬 [GitHub Issues](https://github.com/williamzujkowski/puppeteer-mcp/issues)**: Report bugs or
   request features
-- **🔧 [Troubleshooting](/puppeteer-mcp/../troubleshooting.md)**: Common issues and solutions
+- **🔧 [Troubleshooting](/puppeteer-mcp/troubleshooting)**: Common issues and solutions
 
 ## Ready to Start?
 
 <div class="cta-buttons">
 
-[📦 Install Now](/puppeteer-mcp/./installation.md) |
-[🚀 View Examples](/puppeteer-mcp/./first-steps.md) |
-[🤖 Setup Claude](/puppeteer-mcp/./claude-desktop.md)
+[📦 Install Now](/puppeteer-mcp/quickstart/installation) |
+[🚀 View Examples](/puppeteer-mcp/quickstart/first-steps) |
+[🤖 Setup Claude](/puppeteer-mcp/quickstart/claude-desktop)
 
 </div>
 
