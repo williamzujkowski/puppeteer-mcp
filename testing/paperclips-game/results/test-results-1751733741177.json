@@ -1,0 +1,33 @@
+{
+  "startTime": "2025-07-05T16:42:21.167Z",
+  "serverConnectivity": false,
+  "sessionCreation": false,
+  "contextCreation": false,
+  "pageNavigation": false,
+  "pageLoading": false,
+  "pageInteraction": false,
+  "screenshotCapture": false,
+  "contentExtraction": false,
+  "issues": [
+    {
+      "timestamp": "2025-07-05T16:42:21.177Z",
+      "message": "Server health check failed: 0 - undefined",
+      "type": "error"
+    },
+    {
+      "timestamp": "2025-07-05T16:42:21.177Z",
+      "message": "Workflow test failed: Server is not available",
+      "type": "error"
+    }
+  ],
+  "successes": [],
+  "performance": {
+    "/health": 9
+  },
+  "screenshots": [],
+  "htmlContent": null,
+  "gameElements": [],
+  "error": "Server is not available",
+  "endTime": "2025-07-05T16:42:21.177Z",
+  "duration": 10
+}

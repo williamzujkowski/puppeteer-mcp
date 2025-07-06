@@ -20,8 +20,8 @@ export class ContextPageHandlers {
   private storage: ContextStorage;
   private browserPool?: BrowserPool;
 
-  constructor(browserPool?: BrowserPool) {
-    this.storage = new ContextStorage();
+  constructor(browserPool?: BrowserPool, storage?: ContextStorage) {
+    this.storage = storage || new ContextStorage();
     this.browserPool = browserPool;
   }
 

@@ -27,8 +27,8 @@ export class ContextHandlers {
   constructor(browserPool?: BrowserPool) {
     this.storage = new ContextStorage();
     this.browserPool = browserPool;
-    this.pageHandlers = new ContextPageHandlers(browserPool);
-    this.actionHandlers = new ContextActionHandlers(browserPool);
+    this.pageHandlers = new ContextPageHandlers(browserPool, this.storage);
+    this.actionHandlers = new ContextActionHandlers(browserPool, this.storage);
   }
 
   /**

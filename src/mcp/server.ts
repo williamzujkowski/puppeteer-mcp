@@ -10,6 +10,11 @@ import {
   ListResourcesRequestSchema,
   ReadResourceRequestSchema,
   ListToolsRequestSchema,
+  InitializeRequestSchema,
+  InitializedNotificationSchema,
+  PingRequestSchema,
+  CancelledNotificationSchema,
+  LATEST_PROTOCOL_VERSION,
   ErrorCode,
   McpError,
 } from '@modelcontextprotocol/sdk/types.js';
@@ -81,13 +86,25 @@ export class MCPServer {
     this.server = new Server(
       {
         name: 'puppeteer-mcp',
-        version: '0.1.0',
+        version: '1.0.10',
       },
       {
         capabilities: {
-          resources: {},
-          tools: {},
-          prompts: {},
+          logging: {},
+          resources: {
+            subscribe: false,
+            listChanged: false,
+          },
+          tools: {
+            listChanged: false,
+          },
+          prompts: {
+            listChanged: false,
+          },
+          experimental: {
+            browserAutomation: {},
+            multiProtocolAdapter: {},
+          },
         },
       },
     );
@@ -127,8 +144,79 @@ export class MCPServer {
    * Set up request handlers for MCP protocol
    */
   private setupHandlers(): void {
+    this.setupProtocolHandlers();
     this.setupToolHandlers();
     this.setupResourceHandlers();
+  }
+
+  /**
+   * Set up core MCP protocol handlers
+   */
+  private setupProtocolHandlers(): void {
+    // Initialize request handler - Required by MCP 2025-06-18
+    this.server.setRequestHandler(InitializeRequestSchema, async (request) => {
+      logger.info({
+        msg: 'MCP initialization request received',
+        clientProtocolVersion: request.params.protocolVersion,
+        timestamp: new Date().toISOString(),
+      });
+
+      return {
+        protocolVersion: LATEST_PROTOCOL_VERSION,
+        capabilities: {
+          logging: {},
+          resources: {
+            subscribe: false,
+            listChanged: false,
+          },
+          tools: {
+            listChanged: false,
+          },
+          prompts: {
+            listChanged: false,
+          },
+          experimental: {
+            browserAutomation: {},
+            multiProtocolAdapter: {},
+          },
+        },
+        serverInfo: {
+          name: 'puppeteer-mcp',
+          version: '1.0.10',
+          title: 'Puppeteer MCP Server',
+        },
+        instructions: 'Multi-protocol browser automation platform with REST/gRPC/WebSocket/MCP interfaces. Use tools for browser automation, session management, and API execution.',
+      };
+    });
+
+    // Initialized notification handler - Required by MCP 2025-06-18
+    this.server.setNotificationHandler(InitializedNotificationSchema, async () => {
+      logger.info({
+        msg: 'MCP server initialized successfully',
+        protocolVersion: LATEST_PROTOCOL_VERSION,
+        timestamp: new Date().toISOString(),
+      });
+    });
+
+    // Ping request handler - Required by MCP 2025-06-18
+    this.server.setRequestHandler(PingRequestSchema, async () => {
+      logger.debug({
+        msg: 'MCP ping received',
+        timestamp: new Date().toISOString(),
+      });
+      return {};
+    });
+
+    // Cancellation notification handler - Required by MCP 2025-06-18
+    this.server.setNotificationHandler(CancelledNotificationSchema, async (notification) => {
+      logger.info({
+        msg: 'MCP request cancellation received',
+        requestId: notification.params.requestId,
+        reason: notification.params.reason,
+        timestamp: new Date().toISOString(),
+      });
+      // TODO: Implement actual request cancellation logic
+    });
   }
 
   /**
@@ -145,32 +233,69 @@ export class MCPServer {
     // Execute tool calls
     this.server.setRequestHandler(CallToolRequestSchema, async (request) => {
       const { name, arguments: args } = request.params;
+      const progressToken = request.params._meta?.progressToken;
 
       logger.info({
         msg: 'MCP tool execution',
         tool: name,
+        hasProgressToken: !!progressToken,
         timestamp: new Date().toISOString(),
       });
 
+      // Send initial progress notification if token provided
+      if (progressToken) {
+        await this.server.notification({
+          method: 'notifications/progress',
+          params: {
+            progressToken,
+            progress: 0,
+            total: 100,
+            message: `Starting ${name} execution`,
+          },
+        });
+      }
+
       try {
+        let result;
         switch (name) {
           case 'execute-api':
-            return await this.executeApiTool.execute(args as unknown as ExecuteApiArgs);
+            result = await this.executeApiTool.execute(args as unknown as ExecuteApiArgs);
+            break;
           case 'create-session':
-            return await this.sessionTools.createSession(args as unknown as CreateSessionArgs);
+            result = await this.sessionTools.createSession(args as unknown as CreateSessionArgs);
+            break;
           case 'list-sessions':
-            return await this.sessionTools.listSessions(args as unknown as ListSessionsArgs);
+            result = await this.sessionTools.listSessions(args as unknown as ListSessionsArgs);
+            break;
           case 'delete-session':
-            return await this.sessionTools.deleteSession(args as unknown as DeleteSessionArgs);
+            result = await this.sessionTools.deleteSession(args as unknown as DeleteSessionArgs);
+            break;
           case 'create-browser-context':
-            return await this.browserContextTool.createBrowserContext(
+            result = await this.browserContextTool.createBrowserContext(
               args as unknown as CreateBrowserContextArgs,
             );
+            break;
           case 'execute-in-context':
-            return await this.executeInContextTool.execute(args as unknown as ExecuteInContextArgs);
+            result = await this.executeInContextTool.execute(args as unknown as ExecuteInContextArgs);
+            break;
           default:
             throw new McpError(ErrorCode.MethodNotFound, `Unknown tool: ${name}`);
         }
+
+        // Send completion progress notification if token provided
+        if (progressToken) {
+          await this.server.notification({
+            method: 'notifications/progress',
+            params: {
+              progressToken,
+              progress: 100,
+              total: 100,
+              message: `Completed ${name} execution`,
+            },
+          });
+        }
+
+        return result;
       } catch (error) {
         logger.error({
           msg: 'MCP tool execution failed',
@@ -192,14 +317,16 @@ export class MCPServer {
         resources: [
           {
             uri: 'api://catalog',
-            name: 'API Catalog',
-            description: 'Complete catalog of available APIs',
+            name: 'api-catalog',
+            title: 'API Catalog',
+            description: 'Complete catalog of available APIs across all protocols',
             mimeType: 'application/json',
           },
           {
             uri: 'api://health',
-            name: 'System Health',
-            description: 'Current system health and status',
+            name: 'system-health',
+            title: 'System Health',
+            description: 'Current system health and status including browser pool',
             mimeType: 'application/json',
           },
         ],

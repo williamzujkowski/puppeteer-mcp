@@ -30,6 +30,8 @@ import { createApiKeyRoutes } from './routes/api-keys.js';
 import { InMemorySessionStore } from './store/in-memory-session-store.js';
 import { createGrpcServer, GrpcServer } from './grpc/server.js';
 import { createWebSocketServer, WSServer } from './ws/server.js';
+import { BrowserPool } from './puppeteer/pool/browser-pool.js';
+import { puppeteerConfig } from './puppeteer/config.js';
 
 // Initialize logger
 const logger = pino({
@@ -59,6 +61,24 @@ const logger = pino({
 
 // Initialize session store
 const sessionStore = new InMemorySessionStore(logger.child({ module: 'session-store' }));
+
+// Initialize browser pool
+const browserPool = new BrowserPool({
+  maxBrowsers: puppeteerConfig.poolMaxSize,
+  maxPagesPerBrowser: 10, // Default reasonable limit
+  idleTimeout: puppeteerConfig.idleTimeout,
+  healthCheckInterval: 60000, // 1 minute
+  launchOptions: {
+    headless: puppeteerConfig.headless,
+    executablePath: puppeteerConfig.executablePath,
+    args: puppeteerConfig.args,
+  },
+});
+
+// Initialize browser pool asynchronously
+browserPool.initialize().catch((error) => {
+  logger.error({ error }, 'Failed to initialize browser pool');
+});
 
 /**
  * Creates and configures the Express application
@@ -166,7 +186,7 @@ export function createApp(): Application {
 
   // Mount versioned routes
   apiRouter.use('/sessions', createSessionRoutes(sessionStore));
-  apiRouter.use('/contexts', createContextRoutes(sessionStore));
+  apiRouter.use('/contexts', createContextRoutes(sessionStore, browserPool));
   apiRouter.use('/api-keys', createApiKeyRoutes(sessionStore));
 
   // Mount API router

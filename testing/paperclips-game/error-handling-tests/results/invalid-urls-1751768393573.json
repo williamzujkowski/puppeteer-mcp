@@ -1,0 +1,606 @@
+{
+  "testSuite": "invalid-url-handling",
+  "timestamp": "2025-07-06T02:19:49.556Z",
+  "summary": {
+    "total": 38,
+    "passed": 38,
+    "failed": 0,
+    "categories": {
+      "malformed": {
+        "total": 21,
+        "passed": 21,
+        "failed": 0
+      },
+      "nonExistent": {
+        "total": 6,
+        "passed": 6,
+        "failed": 0
+      },
+      "protocolErrors": {
+        "total": 11,
+        "passed": 11,
+        "failed": 0
+      }
+    }
+  },
+  "tests": [
+    {
+      "url": "htp://invalid-protocol",
+      "category": "malformed",
+      "timestamp": "2025-07-06T02:19:49.575Z",
+      "success": true,
+      "error": {
+        "code": "NOT_FOUND",
+        "message": "Route POST /api/contexts/b5603785-bf7a-49a5-9f52-492c5124ab9e/action not found"
+      },
+      "errorCode": 404,
+      "errorMessage": "Not Found",
+      "responseTime": 3,
+      "httpStatus": 404,
+      "details": null
+    },
+    {
+      "url": "http:/malformed",
+      "category": "malformed",
+      "timestamp": "2025-07-06T02:19:49.678Z",
+      "success": true,
+      "error": {
+        "code": "NOT_FOUND",
+        "message": "Route POST /api/contexts/b5603785-bf7a-49a5-9f52-492c5124ab9e/action not found"
+      },
+      "errorCode": 404,
+      "errorMessage": "Not Found",
+      "responseTime": 6,
+      "httpStatus": 404,
+      "details": null
+    },
+    {
+      "url": "http://missing-tld.",
+      "category": "malformed",
+      "timestamp": "2025-07-06T02:19:49.784Z",
+      "success": true,
+      "error": {
+        "code": "NOT_FOUND",
+        "message": "Route POST /api/contexts/b5603785-bf7a-49a5-9f52-492c5124ab9e/action not found"
+      },
+      "errorCode": 404,
+      "errorMessage": "Not Found",
+      "responseTime": 6,
+      "httpStatus": 404,
+      "details": null
+    },
+    {
+      "url": "http://...",
+      "category": "malformed",
+      "timestamp": "2025-07-06T02:19:49.891Z",
+      "success": true,
+      "error": {
+        "code": "NOT_FOUND",
+        "message": "Route POST /api/contexts/b5603785-bf7a-49a5-9f52-492c5124ab9e/action not found"
+      },
+      "errorCode": 404,
+      "errorMessage": "Not Found",
+      "responseTime": 7,
+      "httpStatus": 404,
+      "details": null
+    },
+    {
+      "url": "http://[invalid-ipv6",
+      "category": "malformed",
+      "timestamp": "2025-07-06T02:19:49.999Z",
+      "success": true,
+      "error": {
+        "code": "NOT_FOUND",
+        "message": "Route POST /api/contexts/b5603785-bf7a-49a5-9f52-492c5124ab9e/action not found"
+      },
+      "errorCode": 404,
+      "errorMessage": "Not Found",
+      "responseTime": 4,
+      "httpStatus": 404,
+      "details": null
+    },
+    {
+      "url": "http://invalid space.com",
+      "category": "malformed",
+      "timestamp": "2025-07-06T02:19:50.104Z",
+      "success": true,
+      "error": {
+        "code": "NOT_FOUND",
+        "message": "Route POST /api/contexts/b5603785-bf7a-49a5-9f52-492c5124ab9e/action not found"
+      },
+      "errorCode": 404,
+      "errorMessage": "Not Found",
+      "responseTime": 3,
+      "httpStatus": 404,
+      "details": null
+    },
+    {
+      "url": "javascript:alert(1)",
+      "category": "malformed",
+      "timestamp": "2025-07-06T02:19:50.208Z",
+      "success": true,
+      "error": {
+        "code": "NOT_FOUND",
+        "message": "Route POST /api/contexts/b5603785-bf7a-49a5-9f52-492c5124ab9e/action not found"
+      },
+      "errorCode": 404,
+      "errorMessage": "Not Found",
+      "responseTime": 6,
+      "httpStatus": 404,
+      "details": null
+    },
+    {
+      "url": "file:///etc/passwd",
+      "category": "malformed",
+      "timestamp": "2025-07-06T02:19:50.315Z",
+      "success": true,
+      "error": {
+        "code": "NOT_FOUND",
+        "message": "Route POST /api/contexts/b5603785-bf7a-49a5-9f52-492c5124ab9e/action not found"
+      },
+      "errorCode": 404,
+      "errorMessage": "Not Found",
+      "responseTime": 8,
+      "httpStatus": 404,
+      "details": null
+    },
+    {
+      "url": "data:text/html,<script>alert(1)</script>",
+      "category": "malformed",
+      "timestamp": "2025-07-06T02:19:50.423Z",
+      "success": true,
+      "error": {
+        "code": "NOT_FOUND",
+        "message": "Route POST /api/contexts/b5603785-bf7a-49a5-9f52-492c5124ab9e/action not found"
+      },
+      "errorCode": 404,
+      "errorMessage": "Not Found",
+      "responseTime": 5,
+      "httpStatus": 404,
+      "details": null
+    },
+    {
+      "url": "about:blank",
+      "category": "malformed",
+      "timestamp": "2025-07-06T02:19:50.528Z",
+      "success": true,
+      "error": {
+        "code": "NOT_FOUND",
+        "message": "Route POST /api/contexts/b5603785-bf7a-49a5-9f52-492c5124ab9e/action not found"
+      },
+      "errorCode": 404,
+      "errorMessage": "Not Found",
+      "responseTime": 5,
+      "httpStatus": 404,
+      "details": null
+    },
+    {
+      "url": "://no-protocol.com",
+      "category": "malformed",
+      "timestamp": "2025-07-06T02:19:50.634Z",
+      "success": true,
+      "error": {
+        "code": "NOT_FOUND",
+        "message": "Route POST /api/contexts/b5603785-bf7a-49a5-9f52-492c5124ab9e/action not found"
+      },
+      "errorCode": 404,
+      "errorMessage": "Not Found",
+      "responseTime": 5,
+      "httpStatus": 404,
+      "details": null
+    },
+    {
+      "url": "http://:80",
+      "category": "malformed",
+      "timestamp": "2025-07-06T02:19:50.739Z",
+      "success": true,
+      "error": {
+        "code": "NOT_FOUND",
+        "message": "Route POST /api/contexts/b5603785-bf7a-49a5-9f52-492c5124ab9e/action not found"
+      },
+      "errorCode": 404,
+      "errorMessage": "Not Found",
+      "responseTime": 5,
+      "httpStatus": 404,
+      "details": null
+    },
+    {
+      "url": "http://user@:password@site.com",
+      "category": "malformed",
+      "timestamp": "2025-07-06T02:19:50.844Z",
+      "success": true,
+      "error": {
+        "code": "NOT_FOUND",
+        "message": "Route POST /api/contexts/b5603785-bf7a-49a5-9f52-492c5124ab9e/action not found"
+      },
+      "errorCode": 404,
+      "errorMessage": "Not Found",
+      "responseTime": 7,
+      "httpStatus": 404,
+      "details": null
+    },
+    {
+      "url": "http://256.256.256.256",
+      "category": "malformed",
+      "timestamp": "2025-07-06T02:19:50.952Z",
+      "success": true,
+      "error": {
+        "code": "NOT_FOUND",
+        "message": "Route POST /api/contexts/b5603785-bf7a-49a5-9f52-492c5124ab9e/action not found"
+      },
+      "errorCode": 404,
+      "errorMessage": "Not Found",
+      "responseTime": 5,
+      "httpStatus": 404,
+      "details": null
+    },
+    {
+      "url": "http://example..com",
+      "category": "malformed",
+      "timestamp": "2025-07-06T02:19:51.057Z",
+      "success": true,
+      "error": {
+        "code": "NOT_FOUND",
+        "message": "Route POST /api/contexts/b5603785-bf7a-49a5-9f52-492c5124ab9e/action not found"
+      },
+      "errorCode": 404,
+      "errorMessage": "Not Found",
+      "responseTime": 7,
+      "httpStatus": 404,
+      "details": null
+    },
+    {
+      "url": "http://-example.com",
+      "category": "malformed",
+      "timestamp": "2025-07-06T02:19:51.164Z",
+      "success": true,
+      "error": {
+        "code": "NOT_FOUND",
+        "message": "Route POST /api/contexts/b5603785-bf7a-49a5-9f52-492c5124ab9e/action not found"
+      },
+      "errorCode": 404,
+      "errorMessage": "Not Found",
+      "responseTime": 3,
+      "httpStatus": 404,
+      "details": null
+    },
+    {
+      "url": "http://example-.com",
+      "category": "malformed",
+      "timestamp": "2025-07-06T02:19:51.268Z",
+      "success": true,
+      "error": {
+        "code": "NOT_FOUND",
+        "message": "Route POST /api/contexts/b5603785-bf7a-49a5-9f52-492c5124ab9e/action not found"
+      },
+      "errorCode": 404,
+      "errorMessage": "Not Found",
+      "responseTime": 4,
+      "httpStatus": 404,
+      "details": null
+    },
+    {
+      "url": "http://exa mple.com",
+      "category": "malformed",
+      "timestamp": "2025-07-06T02:19:51.372Z",
+      "success": true,
+      "error": {
+        "code": "NOT_FOUND",
+        "message": "Route POST /api/contexts/b5603785-bf7a-49a5-9f52-492c5124ab9e/action not found"
+      },
+      "errorCode": 404,
+      "errorMessage": "Not Found",
+      "responseTime": 2,
+      "httpStatus": 404,
+      "details": null
+    },
+    {
+      "url": "http://example.com:99999",
+      "category": "malformed",
+      "timestamp": "2025-07-06T02:19:51.475Z",
+      "success": true,
+      "error": {
+        "code": "NOT_FOUND",
+        "message": "Route POST /api/contexts/b5603785-bf7a-49a5-9f52-492c5124ab9e/action not found"
+      },
+      "errorCode": 404,
+      "errorMessage": "Not Found",
+      "responseTime": 5,
+      "httpStatus": 404,
+      "details": null
+    },
+    {
+      "url": "http://example.com:-1",
+      "category": "malformed",
+      "timestamp": "2025-07-06T02:19:51.580Z",
+      "success": true,
+      "error": {
+        "code": "NOT_FOUND",
+        "message": "Route POST /api/contexts/b5603785-bf7a-49a5-9f52-492c5124ab9e/action not found"
+      },
+      "errorCode": 404,
+      "errorMessage": "Not Found",
+      "responseTime": 3,
+      "httpStatus": 404,
+      "details": null
+    },
+    {
+      "url": "http://example.com:abc",
+      "category": "malformed",
+      "timestamp": "2025-07-06T02:19:51.684Z",
+      "success": true,
+      "error": {
+        "code": "NOT_FOUND",
+        "message": "Route POST /api/contexts/b5603785-bf7a-49a5-9f52-492c5124ab9e/action not found"
+      },
+      "errorCode": 404,
+      "errorMessage": "Not Found",
+      "responseTime": 4,
+      "httpStatus": 404,
+      "details": null
+    },
+    {
+      "url": "https://this-domain-definitely-does-not-exist-12345.com",
+      "category": "nonExistent",
+      "timestamp": "2025-07-06T02:19:51.789Z",
+      "success": true,
+      "error": {
+        "code": "NOT_FOUND",
+        "message": "Route POST /api/contexts/b5603785-bf7a-49a5-9f52-492c5124ab9e/action not found"
+      },
+      "errorCode": 404,
+      "errorMessage": "Not Found",
+      "responseTime": 4,
+      "httpStatus": 404,
+      "details": null
+    },
+    {
+      "url": "https://non-existent-subdomain.definitely-not-real-domain-98765.org",
+      "category": "nonExistent",
+      "timestamp": "2025-07-06T02:19:51.894Z",
+      "success": true,
+      "error": {
+        "code": "NOT_FOUND",
+        "message": "Route POST /api/contexts/b5603785-bf7a-49a5-9f52-492c5124ab9e/action not found"
+      },
+      "errorCode": 404,
+      "errorMessage": "Not Found",
+      "responseTime": 4,
+      "httpStatus": 404,
+      "details": null
+    },
+    {
+      "url": "https://aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.com",
+      "category": "nonExistent",
+      "timestamp": "2025-07-06T02:19:51.999Z",
+      "success": true,
+      "error": {
+        "code": "NOT_FOUND",
+        "message": "Route POST /api/contexts/b5603785-bf7a-49a5-9f52-492c5124ab9e/action not found"
+      },
+      "errorCode": 404,
+      "errorMessage": "Not Found",
+      "responseTime": 3,
+      "httpStatus": 404,
+      "details": null
+    },
+    {
+      "url": "https://test-1751768389555-nonexistent.com",
+      "category": "nonExistent",
+      "timestamp": "2025-07-06T02:19:52.102Z",
+      "success": true,
+      "error": {
+        "code": "NOT_FOUND",
+        "message": "Route POST /api/contexts/b5603785-bf7a-49a5-9f52-492c5124ab9e/action not found"
+      },
+      "errorCode": 404,
+      "errorMessage": "Not Found",
+      "responseTime": 5,
+      "httpStatus": 404,
+      "details": null
+    },
+    {
+      "url": "https://192.0.2.1",
+      "category": "nonExistent",
+      "timestamp": "2025-07-06T02:19:52.208Z",
+      "success": true,
+      "error": {
+        "code": "NOT_FOUND",
+        "message": "Route POST /api/contexts/b5603785-bf7a-49a5-9f52-492c5124ab9e/action not found"
+      },
+      "errorCode": 404,
+      "errorMessage": "Not Found",
+      "responseTime": 6,
+      "httpStatus": 404,
+      "details": null
+    },
+    {
+      "url": "https://[2001:db8::1]",
+      "category": "nonExistent",
+      "timestamp": "2025-07-06T02:19:52.314Z",
+      "success": true,
+      "error": {
+        "code": "NOT_FOUND",
+        "message": "Route POST /api/contexts/b5603785-bf7a-49a5-9f52-492c5124ab9e/action not found"
+      },
+      "errorCode": 404,
+      "errorMessage": "Not Found",
+      "responseTime": 3,
+      "httpStatus": 404,
+      "details": null
+    },
+    {
+      "url": "ftp://ftp.example.com",
+      "category": "protocolErrors",
+      "timestamp": "2025-07-06T02:19:52.417Z",
+      "success": true,
+      "error": {
+        "code": "NOT_FOUND",
+        "message": "Route POST /api/contexts/b5603785-bf7a-49a5-9f52-492c5124ab9e/action not found"
+      },
+      "errorCode": 404,
+      "errorMessage": "Not Found",
+      "responseTime": 2,
+      "httpStatus": 404,
+      "details": null
+    },
+    {
+      "url": "ssh://ssh.example.com",
+      "category": "protocolErrors",
+      "timestamp": "2025-07-06T02:19:52.520Z",
+      "success": true,
+      "error": {
+        "code": "NOT_FOUND",
+        "message": "Route POST /api/contexts/b5603785-bf7a-49a5-9f52-492c5124ab9e/action not found"
+      },
+      "errorCode": 404,
+      "errorMessage": "Not Found",
+      "responseTime": 2,
+      "httpStatus": 404,
+      "details": null
+    },
+    {
+      "url": "telnet://telnet.example.com",
+      "category": "protocolErrors",
+      "timestamp": "2025-07-06T02:19:52.622Z",
+      "success": true,
+      "error": {
+        "code": "NOT_FOUND",
+        "message": "Route POST /api/contexts/b5603785-bf7a-49a5-9f52-492c5124ab9e/action not found"
+      },
+      "errorCode": 404,
+      "errorMessage": "Not Found",
+      "responseTime": 3,
+      "httpStatus": 404,
+      "details": null
+    },
+    {
+      "url": "gopher://gopher.example.com",
+      "category": "protocolErrors",
+      "timestamp": "2025-07-06T02:19:52.726Z",
+      "success": true,
+      "error": {
+        "code": "NOT_FOUND",
+        "message": "Route POST /api/contexts/b5603785-bf7a-49a5-9f52-492c5124ab9e/action not found"
+      },
+      "errorCode": 404,
+      "errorMessage": "Not Found",
+      "responseTime": 5,
+      "httpStatus": 404,
+      "details": null
+    },
+    {
+      "url": "ws://websocket.example.com",
+      "category": "protocolErrors",
+      "timestamp": "2025-07-06T02:19:52.832Z",
+      "success": true,
+      "error": {
+        "code": "NOT_FOUND",
+        "message": "Route POST /api/contexts/b5603785-bf7a-49a5-9f52-492c5124ab9e/action not found"
+      },
+      "errorCode": 404,
+      "errorMessage": "Not Found",
+      "responseTime": 6,
+      "httpStatus": 404,
+      "details": null
+    },
+    {
+      "url": "wss://websocket.example.com",
+      "category": "protocolErrors",
+      "timestamp": "2025-07-06T02:19:52.939Z",
+      "success": true,
+      "error": {
+        "code": "NOT_FOUND",
+        "message": "Route POST /api/contexts/b5603785-bf7a-49a5-9f52-492c5124ab9e/action not found"
+      },
+      "errorCode": 404,
+      "errorMessage": "Not Found",
+      "responseTime": 5,
+      "httpStatus": 404,
+      "details": null
+    },
+    {
+      "url": "chrome://settings",
+      "category": "protocolErrors",
+      "timestamp": "2025-07-06T02:19:53.044Z",
+      "success": true,
+      "error": {
+        "code": "NOT_FOUND",
+        "message": "Route POST /api/contexts/b5603785-bf7a-49a5-9f52-492c5124ab9e/action not found"
+      },
+      "errorCode": 404,
+      "errorMessage": "Not Found",
+      "responseTime": 5,
+      "httpStatus": 404,
+      "details": null
+    },
+    {
+      "url": "chrome-extension://abc123",
+      "category": "protocolErrors",
+      "timestamp": "2025-07-06T02:19:53.150Z",
+      "success": true,
+      "error": {
+        "code": "NOT_FOUND",
+        "message": "Route POST /api/contexts/b5603785-bf7a-49a5-9f52-492c5124ab9e/action not found"
+      },
+      "errorCode": 404,
+      "errorMessage": "Not Found",
+      "responseTime": 3,
+      "httpStatus": 404,
+      "details": null
+    },
+    {
+      "url": "view-source:http://example.com",
+      "category": "protocolErrors",
+      "timestamp": "2025-07-06T02:19:53.253Z",
+      "success": true,
+      "error": {
+        "code": "NOT_FOUND",
+        "message": "Route POST /api/contexts/b5603785-bf7a-49a5-9f52-492c5124ab9e/action not found"
+      },
+      "errorCode": 404,
+      "errorMessage": "Not Found",
+      "responseTime": 3,
+      "httpStatus": 404,
+      "details": null
+    },
+    {
+      "url": "blob:http://example.com/123",
+      "category": "protocolErrors",
+      "timestamp": "2025-07-06T02:19:53.357Z",
+      "success": true,
+      "error": {
+        "code": "NOT_FOUND",
+        "message": "Route POST /api/contexts/b5603785-bf7a-49a5-9f52-492c5124ab9e/action not found"
+      },
+      "errorCode": 404,
+      "errorMessage": "Not Found",
+      "responseTime": 5,
+      "httpStatus": 404,
+      "details": null
+    },
+    {
+      "url": "filesystem:http://example.com/temporary/",
+      "category": "protocolErrors",
+      "timestamp": "2025-07-06T02:19:53.462Z",
+      "success": true,
+      "error": {
+        "code": "NOT_FOUND",
+        "message": "Route POST /api/contexts/b5603785-bf7a-49a5-9f52-492c5124ab9e/action not found"
+      },
+      "errorCode": 404,
+      "errorMessage": "Not Found",
+      "responseTime": 5,
+      "httpStatus": 404,
+      "details": null
+    }
+  ],
+  "resourceCleanup": {
+    "test": "resource_cleanup",
+    "timestamp": "2025-07-06T02:19:53.568Z",
+    "success": false,
+    "checks": [],
+    "error": "Request failed with status code 404",
+    "duration": 3
+  }
+}

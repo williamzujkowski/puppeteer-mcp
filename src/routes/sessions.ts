@@ -12,6 +12,9 @@ import { createAuthMiddleware, requireRoles } from '../auth/middleware.js';
 import { refreshAccessToken, revokeRefreshToken } from '../auth/refresh.js';
 import { AppError } from '../core/errors/app-error.js';
 import { logSecurityEvent, SecurityEventType } from '../utils/logger.js';
+import { generateTokenPair } from '../auth/jwt.js';
+import { config } from '../core/config.js';
+import crypto from 'crypto';
 
 /**
  * Refresh access token handler
@@ -342,12 +345,92 @@ async function handleAdminTerminateSession(
 }
 
 /**
+ * Development-only session creation handler
+ * WARNING: This endpoint bypasses authentication and should NEVER be enabled in production
+ */
+async function handleDevCreateSession(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+  sessionStore: SessionStore,
+): Promise<void> {
+  try {
+    // Only allow in development mode - SECURITY: Remove this endpoint in production
+    if (config.NODE_ENV === 'production') {
+      throw new AppError('Development endpoint disabled in production', 403);
+    }
+    
+    if (config.NODE_ENV !== 'development') {
+      throw new AppError('This endpoint is only available in development mode', 403);
+    }
+
+    // Validate request body
+    const createSessionSchema = z.object({
+      userId: z.string().optional(),
+      username: z.string().default('dev-user'),
+      roles: z.array(z.string()).default(['user', 'admin']),
+    });
+
+    const { userId, username, roles } = createSessionSchema.parse(req.body);
+    const finalUserId = userId ?? crypto.randomUUID();
+
+    // Create session data
+    const sessionData = {
+      userId: finalUserId,
+      username,
+      roles,
+      createdAt: new Date().toISOString(),
+      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24 hours
+    };
+
+    // Create session in store
+    const sessionId = await sessionStore.create(sessionData);
+
+    // Generate token pair
+    const tokens = generateTokenPair(finalUserId, username, roles, sessionId);
+
+    // Log session creation
+    await logSecurityEvent(SecurityEventType.LOGIN_SUCCESS, {
+      userId: finalUserId,
+      result: 'success',
+      metadata: {
+        method: 'dev-session-creation',
+        ip: req.ip,
+        userAgent: req.headers['user-agent'],
+      },
+    });
+
+    res.json({
+      success: true,
+      data: {
+        sessionId,
+        userId: finalUserId,
+        username,
+        roles,
+        ...tokens,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
  * Create session routes
  * @nist ac-12 "Session termination"
  */
 export const createSessionRoutes = (sessionStore: SessionStore): Router => {
   const router = Router();
   const authMiddleware = createAuthMiddleware(sessionStore);
+
+  /**
+   * Development-only: Create session
+   * POST /v1/sessions/dev-create
+   * WARNING: This endpoint bypasses authentication and should NEVER be enabled in production
+   */
+  router.post('/dev-create', (req, res, next) => {
+    void handleDevCreateSession(req, res, next, sessionStore);
+  });
 
   /**
    * Refresh access token

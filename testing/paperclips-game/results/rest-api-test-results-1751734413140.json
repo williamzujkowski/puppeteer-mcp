@@ -1,0 +1,336 @@
+{
+  "testId": "rest-api-test-1751734381022",
+  "startTime": "2025-07-05T16:53:01.022Z",
+  "endTime": "2025-07-05T16:53:33.140Z",
+  "duration": 32118,
+  "serverStartup": {
+    "success": false,
+    "duration": null,
+    "pid": 523766,
+    "error": "Server failed to start within timeout period"
+  },
+  "authentication": {
+    "tokenGeneration": false,
+    "tokenValidation": false,
+    "tokenExpiry": null,
+    "error": null
+  },
+  "sessionManagement": {
+    "sessionCreation": false,
+    "sessionRetrieval": false,
+    "sessionValidation": false,
+    "sessionId": null,
+    "error": null
+  },
+  "contextManagement": {
+    "contextCreation": false,
+    "contextRetrieval": false,
+    "contextId": null,
+    "pageId": null,
+    "error": null
+  },
+  "browserActions": {
+    "navigate": {
+      "success": false,
+      "duration": null,
+      "error": null
+    },
+    "screenshot": {
+      "success": false,
+      "duration": null,
+      "data": null,
+      "error": null
+    },
+    "content": {
+      "success": false,
+      "duration": null,
+      "data": null,
+      "error": null
+    },
+    "click": {
+      "success": false,
+      "duration": null,
+      "data": null,
+      "error": null
+    },
+    "secondScreenshot": {
+      "success": false,
+      "duration": null,
+      "data": null,
+      "error": null
+    }
+  },
+  "apiMetrics": {
+    "totalRequests": 31,
+    "successfulRequests": 0,
+    "failedRequests": 31,
+    "averageResponseTime": 2.967741935483871,
+    "requestTimes": [
+      23,
+      4,
+      3,
+      3,
+      2,
+      2,
+      4,
+      2,
+      5,
+      2,
+      3,
+      1,
+      2,
+      2,
+      2,
+      3,
+      3,
+      2,
+      2,
+      1,
+      2,
+      2,
+      0,
+      1,
+      3,
+      2,
+      2,
+      2,
+      2,
+      2,
+      3
+    ]
+  },
+  "healthChecks": {
+    "basic": false,
+    "liveness": false,
+    "readiness": false
+  },
+  "issues": [
+    {
+      "timestamp": "2025-07-05T16:53:31.137Z",
+      "message": "Server startup failed: Server failed to start within timeout period",
+      "type": "error"
+    },
+    {
+      "timestamp": "2025-07-05T16:53:31.137Z",
+      "message": "REST API test suite failed: Failed to start server",
+      "type": "error"
+    }
+  ],
+  "successes": [
+    {
+      "timestamp": "2025-07-05T16:53:33.140Z",
+      "message": "Server stopped successfully",
+      "type": "success"
+    }
+  ],
+  "screenshots": [],
+  "token": null,
+  "serverProcess": {
+    "_events": {},
+    "_eventsCount": 0,
+    "_closesNeeded": 3,
+    "_closesGot": 3,
+    "connected": false,
+    "signalCode": null,
+    "exitCode": 1,
+    "killed": false,
+    "spawnfile": "npx",
+    "_handle": null,
+    "spawnargs": [
+      "npx",
+      "puppeteer-mcp",
+      "start"
+    ],
+    "pid": 523766,
+    "stdin": {
+      "connecting": false,
+      "_hadError": false,
+      "_parent": null,
+      "_host": null,
+      "_closeAfterHandlingError": false,
+      "_events": {},
+      "_readableState": {
+        "highWaterMark": 65536,
+        "buffer": [],
+        "bufferIndex": 0,
+        "length": 0,
+        "pipes": [],
+        "awaitDrainWriters": null,
+        "readable": false
+      },
+      "_writableState": {
+        "highWaterMark": 65536,
+        "length": 0,
+        "corked": 0,
+        "writelen": 0,
+        "bufferedIndex": 0,
+        "pendingcb": 0
+      },
+      "allowHalfOpen": false,
+      "_eventsCount": 1,
+      "_sockname": null,
+      "_pendingData": null,
+      "_pendingEncoding": "",
+      "server": null,
+      "_server": null
+    },
+    "stdout": {
+      "connecting": false,
+      "_hadError": false,
+      "_parent": null,
+      "_host": null,
+      "_closeAfterHandlingError": false,
+      "_events": {},
+      "_readableState": {
+        "highWaterMark": 65536,
+        "buffer": [],
+        "bufferIndex": 0,
+        "length": 0,
+        "pipes": [],
+        "awaitDrainWriters": null
+      },
+      "_writableState": {
+        "highWaterMark": 65536,
+        "length": 0,
+        "corked": 0,
+        "writelen": 0,
+        "bufferedIndex": 0,
+        "pendingcb": 0
+      },
+      "allowHalfOpen": false,
+      "_eventsCount": 3,
+      "_sockname": null,
+      "_pendingData": null,
+      "_pendingEncoding": "",
+      "server": null,
+      "_server": null
+    },
+    "stderr": {
+      "connecting": false,
+      "_hadError": false,
+      "_parent": null,
+      "_host": null,
+      "_closeAfterHandlingError": false,
+      "_events": {},
+      "_readableState": {
+        "highWaterMark": 65536,
+        "buffer": [],
+        "bufferIndex": 0,
+        "length": 0,
+        "pipes": [],
+        "awaitDrainWriters": null
+      },
+      "_writableState": {
+        "highWaterMark": 65536,
+        "length": 0,
+        "corked": 0,
+        "writelen": 0,
+        "bufferedIndex": 0,
+        "pendingcb": 0
+      },
+      "allowHalfOpen": false,
+      "_eventsCount": 3,
+      "_sockname": null,
+      "_pendingData": null,
+      "_pendingEncoding": "",
+      "server": null,
+      "_server": null
+    },
+    "stdio": [
+      {
+        "connecting": false,
+        "_hadError": false,
+        "_parent": null,
+        "_host": null,
+        "_closeAfterHandlingError": false,
+        "_events": {},
+        "_readableState": {
+          "highWaterMark": 65536,
+          "buffer": [],
+          "bufferIndex": 0,
+          "length": 0,
+          "pipes": [],
+          "awaitDrainWriters": null,
+          "readable": false
+        },
+        "_writableState": {
+          "highWaterMark": 65536,
+          "length": 0,
+          "corked": 0,
+          "writelen": 0,
+          "bufferedIndex": 0,
+          "pendingcb": 0
+        },
+        "allowHalfOpen": false,
+        "_eventsCount": 1,
+        "_sockname": null,
+        "_pendingData": null,
+        "_pendingEncoding": "",
+        "server": null,
+        "_server": null
+      },
+      {
+        "connecting": false,
+        "_hadError": false,
+        "_parent": null,
+        "_host": null,
+        "_closeAfterHandlingError": false,
+        "_events": {},
+        "_readableState": {
+          "highWaterMark": 65536,
+          "buffer": [],
+          "bufferIndex": 0,
+          "length": 0,
+          "pipes": [],
+          "awaitDrainWriters": null
+        },
+        "_writableState": {
+          "highWaterMark": 65536,
+          "length": 0,
+          "corked": 0,
+          "writelen": 0,
+          "bufferedIndex": 0,
+          "pendingcb": 0
+        },
+        "allowHalfOpen": false,
+        "_eventsCount": 3,
+        "_sockname": null,
+        "_pendingData": null,
+        "_pendingEncoding": "",
+        "server": null,
+        "_server": null
+      },
+      {
+        "connecting": false,
+        "_hadError": false,
+        "_parent": null,
+        "_host": null,
+        "_closeAfterHandlingError": false,
+        "_events": {},
+        "_readableState": {
+          "highWaterMark": 65536,
+          "buffer": [],
+          "bufferIndex": 0,
+          "length": 0,
+          "pipes": [],
+          "awaitDrainWriters": null
+        },
+        "_writableState": {
+          "highWaterMark": 65536,
+          "length": 0,
+          "corked": 0,
+          "writelen": 0,
+          "bufferedIndex": 0,
+          "pendingcb": 0
+        },
+        "allowHalfOpen": false,
+        "_eventsCount": 3,
+        "_sockname": null,
+        "_pendingData": null,
+        "_pendingEncoding": "",
+        "server": null,
+        "_server": null
+      }
+    ]
+  }
+}

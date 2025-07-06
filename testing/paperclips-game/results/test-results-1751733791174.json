@@ -1,0 +1,45 @@
+{
+  "startTime": "2025-07-05T16:43:11.146Z",
+  "serverConnectivity": true,
+  "sessionCreation": true,
+  "contextCreation": false,
+  "pageNavigation": false,
+  "pageLoading": false,
+  "pageInteraction": false,
+  "screenshotCapture": false,
+  "contentExtraction": false,
+  "issues": [
+    {
+      "timestamp": "2025-07-05T16:43:11.174Z",
+      "message": "Context creation failed: 401 - {\"error\":\"Error\",\"message\":\"Invalid token\"}",
+      "type": "error"
+    },
+    {
+      "timestamp": "2025-07-05T16:43:11.174Z",
+      "message": "Workflow test failed: Could not create browser context",
+      "type": "error"
+    }
+  ],
+  "successes": [
+    {
+      "timestamp": "2025-07-05T16:43:11.160Z",
+      "message": "Server is running and responsive",
+      "type": "success"
+    },
+    {
+      "timestamp": "2025-07-05T16:43:11.164Z",
+      "message": "Session created successfully",
+      "type": "success"
+    }
+  ],
+  "performance": {
+    "/health": 12,
+    "/api/v1/contexts": 10
+  },
+  "screenshots": [],
+  "htmlContent": null,
+  "gameElements": [],
+  "error": "Could not create browser context",
+  "endTime": "2025-07-05T16:43:11.174Z",
+  "duration": 28
+}

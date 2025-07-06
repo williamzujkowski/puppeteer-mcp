@@ -29,8 +29,8 @@ export class ContextActionHandlers {
   private browserPool?: BrowserPool;
   private actionExecutor: BrowserActionExecutor;
 
-  constructor(browserPool?: BrowserPool) {
-    this.storage = new ContextStorage();
+  constructor(browserPool?: BrowserPool, storage?: ContextStorage) {
+    this.storage = storage || new ContextStorage();
     this.browserPool = browserPool;
     
     // Create action executor with page manager if browser pool is available

@@ -1,0 +1,290 @@
+{
+  "title": "Puppeteer-MCP Error Handling Test Report",
+  "timestamp": "2025-07-06T02:18:26.663Z",
+  "environment": {
+    "node": "v23.9.0",
+    "platform": "linux",
+    "arch": "x64"
+  },
+  "summary": {
+    "totalSuites": 6,
+    "passedSuites": 6,
+    "failedSuites": 0,
+    "totalTests": 0,
+    "totalPassed": 0,
+    "totalFailed": 0,
+    "totalDuration": 686
+  },
+  "suites": [
+    {
+      "suite": "Invalid URLs",
+      "file": "test-invalid-urls.js",
+      "startTime": "2025-07-06T02:18:13.963Z",
+      "endTime": "2025-07-06T02:18:14.077Z",
+      "duration": 114,
+      "exitCode": 0,
+      "output": [
+        {
+          "type": "stdout",
+          "data": "Starting Invalid URL Error Handling Tests...\n\n"
+        },
+        {
+          "type": "stdout",
+          "data": "Setting up test session...\n"
+        },
+        {
+          "type": "stderr",
+          "data": "Failed to create session: {\n  success: false,\n  error: { code: 'NOT_FOUND', message: 'Route POST /api/sessions not found' }\n}\n"
+        },
+        {
+          "type": "stderr",
+          "data": "\nTest suite error: Request failed with status code 404\n"
+        },
+        {
+          "type": "stdout",
+          "data": "\n\nTest Summary:\n==================================================\nTotal Tests: 0\n"
+        },
+        {
+          "type": "stdout",
+          "data": "Passed: 0 (NaN%)\nFailed: 0\n"
+        },
+        {
+          "type": "stdout",
+          "data": "\nBy Category:\n\n\nVulnerability Analysis:\n==================================================\n✓ No vulnerabilities found - all invalid URLs properly rejected\n\nError codes encountered: \n"
+        }
+      ],
+      "error": null,
+      "summary": null
+    },
+    {
+      "suite": "Timeout Scenarios",
+      "file": "test-timeout-scenarios.js",
+      "startTime": "2025-07-06T02:18:16.080Z",
+      "endTime": "2025-07-06T02:18:16.195Z",
+      "duration": 115,
+      "exitCode": 0,
+      "output": [
+        {
+          "type": "stdout",
+          "data": "Starting Timeout Scenario Tests...\n\n"
+        },
+        {
+          "type": "stdout",
+          "data": "Setting up test session...\n"
+        },
+        {
+          "type": "stderr",
+          "data": "Failed to create session: {\n  success: false,\n  error: { code: 'NOT_FOUND', message: 'Route POST /api/sessions not found' }\n}\n\nTest suite error: Request failed with status code 404\n"
+        },
+        {
+          "type": "stdout",
+          "data": "\n\nTest Summary:\n==================================================\nTotal Tests: 0\nPassed: 0 (NaN%)\n"
+        },
+        {
+          "type": "stdout",
+          "data": "Failed: 0\n"
+        },
+        {
+          "type": "stdout",
+          "data": "\nBy Category:\n"
+        },
+        {
+          "type": "stdout",
+          "data": "\n\nTimeout Handling Analysis:\n==================================================\n✓ 0 operations properly timed out\n"
+        }
+      ],
+      "error": null,
+      "summary": null
+    },
+    {
+      "suite": "Network Errors",
+      "file": "test-network-errors.js",
+      "startTime": "2025-07-06T02:18:18.197Z",
+      "endTime": "2025-07-06T02:18:18.307Z",
+      "duration": 110,
+      "exitCode": 0,
+      "output": [
+        {
+          "type": "stdout",
+          "data": "Starting Network Error Handling Tests...\n\n"
+        },
+        {
+          "type": "stdout",
+          "data": "Setting up test session...\n"
+        },
+        {
+          "type": "stderr",
+          "data": "Failed to create session: {\n  success: false,\n  error: { code: 'NOT_FOUND', message: 'Route POST /api/sessions not found' }\n}\n\nTest suite error: Request failed with status code 404\n"
+        },
+        {
+          "type": "stdout",
+          "data": "\n\nTest Summary:\n==================================================\nTotal Tests: 0\n"
+        },
+        {
+          "type": "stdout",
+          "data": "Passed: 0 (NaN%)\n"
+        },
+        {
+          "type": "stdout",
+          "data": "Failed: 0\n"
+        },
+        {
+          "type": "stdout",
+          "data": "\nBy Category:\n"
+        },
+        {
+          "type": "stdout",
+          "data": "\n\nNetwork Error Handling Analysis:\n"
+        },
+        {
+          "type": "stdout",
+          "data": "==================================================\n"
+        },
+        {
+          "type": "stdout",
+          "data": "✓ 0/0 network errors properly handled\n"
+        },
+        {
+          "type": "stdout",
+          "data": "\nError Distribution:\n"
+        }
+      ],
+      "error": null,
+      "summary": null
+    },
+    {
+      "suite": "JavaScript Errors",
+      "file": "test-javascript-errors.js",
+      "startTime": "2025-07-06T02:18:20.310Z",
+      "endTime": "2025-07-06T02:18:20.422Z",
+      "duration": 112,
+      "exitCode": 0,
+      "output": [
+        {
+          "type": "stdout",
+          "data": "Starting JavaScript Error Handling Tests...\n\n"
+        },
+        {
+          "type": "stdout",
+          "data": "Setting up test session...\n"
+        },
+        {
+          "type": "stderr",
+          "data": "Failed to create session: {\n  success: false,\n  error: { code: 'NOT_FOUND', message: 'Route POST /api/sessions not found' }\n}\n\nTest suite error: Request failed with status code 404\n"
+        },
+        {
+          "type": "stdout",
+          "data": "\n\nTest Summary:\n==================================================\nTotal Tests: 0\nPassed: 0 (NaN%)\n"
+        },
+        {
+          "type": "stdout",
+          "data": "Failed: 0\n"
+        },
+        {
+          "type": "stdout",
+          "data": "\nBy Category:\n\n\nJavaScript Error Handling Analysis:\n==================================================\n✓ 0/0 JavaScript errors properly caught\n\nError Types Distribution:\n"
+        }
+      ],
+      "error": null,
+      "summary": null
+    },
+    {
+      "suite": "Invalid Selectors",
+      "file": "test-invalid-selectors.js",
+      "startTime": "2025-07-06T02:18:22.423Z",
+      "endTime": "2025-07-06T02:18:22.540Z",
+      "duration": 117,
+      "exitCode": 0,
+      "output": [
+        {
+          "type": "stdout",
+          "data": "Starting Invalid Selector and Element Not Found Tests...\n\n"
+        },
+        {
+          "type": "stdout",
+          "data": "Setting up test session...\n"
+        },
+        {
+          "type": "stderr",
+          "data": "Failed to create session: {\n  success: false,\n  error: { code: 'NOT_FOUND', message: 'Route POST /api/sessions not found' }\n}\n\nTest suite error: Request failed with status code 404\n"
+        },
+        {
+          "type": "stdout",
+          "data": "\n\nTest Summary:\n==================================================\nTotal Tests: 0\n"
+        },
+        {
+          "type": "stdout",
+          "data": "Passed: 0 (NaN%)\n"
+        },
+        {
+          "type": "stdout",
+          "data": "Failed: 0\n"
+        },
+        {
+          "type": "stdout",
+          "data": "\nBy Category:\n"
+        },
+        {
+          "type": "stdout",
+          "data": "\n\nSelector Error Handling Analysis:\n"
+        },
+        {
+          "type": "stdout",
+          "data": "==================================================\n✓ 0/0 selector errors properly handled\n"
+        },
+        {
+          "type": "stdout",
+          "data": "\nError Patterns:\n"
+        }
+      ],
+      "error": null,
+      "summary": null
+    },
+    {
+      "suite": "Concurrent Operations",
+      "file": "test-concurrent-operations.js",
+      "startTime": "2025-07-06T02:18:24.542Z",
+      "endTime": "2025-07-06T02:18:24.660Z",
+      "duration": 118,
+      "exitCode": 0,
+      "output": [
+        {
+          "type": "stdout",
+          "data": "Starting Concurrent Operation Tests...\n\n"
+        },
+        {
+          "type": "stdout",
+          "data": "Setting up test session...\n"
+        },
+        {
+          "type": "stderr",
+          "data": "Failed to create session: {\n  success: false,\n  error: { code: 'NOT_FOUND', message: 'Route POST /api/sessions not found' }\n}\n\nTest suite error: Request failed with status code 404\n"
+        },
+        {
+          "type": "stdout",
+          "data": "\n\nTest Summary:\n"
+        },
+        {
+          "type": "stdout",
+          "data": "==================================================\nTotal Tests: 0\n"
+        },
+        {
+          "type": "stdout",
+          "data": "Passed: 0 (NaN%)\n"
+        },
+        {
+          "type": "stdout",
+          "data": "Failed: 0\n"
+        },
+        {
+          "type": "stdout",
+          "data": "\nBy Category:\n"
+        }
+      ],
+      "error": null,
+      "summary": null
+    }
+  ],
+  "vulnerabilities": [],
+  "recommendations": []
+}

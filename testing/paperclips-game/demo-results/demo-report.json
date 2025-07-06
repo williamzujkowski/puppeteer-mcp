@@ -1,0 +1,809 @@
+{
+  "startTime": "2025-07-06T01:19:26.328Z",
+  "endTime": "2025-07-06T01:19:58.357Z",
+  "duration": 32.029,
+  "gameStats": [
+    {
+      "title": "",
+      "url": "https://williamzujkowski.github.io/paperclips/index2.html",
+      "paperclips": "0",
+      "money": "0.00",
+      "buttons": 61,
+      "inputs": 1,
+      "clipButtonFound": true,
+      "clipButtonText": "Make Paperclip",
+      "timestamp": "2025-07-06T01:19:27.741Z"
+    },
+    {
+      "title": "",
+      "url": "https://williamzujkowski.github.io/paperclips/index2.html",
+      "paperclips": "5",
+      "money": "0.00",
+      "buttons": 61,
+      "inputs": 1,
+      "clipButtonFound": true,
+      "clipButtonText": "Make Paperclip",
+      "timestamp": "2025-07-06T01:19:29.759Z"
+    },
+    {
+      "title": "",
+      "url": "https://williamzujkowski.github.io/paperclips/index2.html",
+      "paperclips": "10",
+      "money": "0.50",
+      "buttons": 61,
+      "inputs": 1,
+      "clipButtonFound": true,
+      "clipButtonText": "Make Paperclip",
+      "timestamp": "2025-07-06T01:19:32.279Z"
+    },
+    {
+      "title": "",
+      "url": "https://williamzujkowski.github.io/paperclips/index2.html",
+      "paperclips": "15",
+      "money": "1.00",
+      "buttons": 61,
+      "inputs": 1,
+      "clipButtonFound": true,
+      "clipButtonText": "Make Paperclip",
+      "timestamp": "2025-07-06T01:19:34.931Z"
+    },
+    {
+      "title": "",
+      "url": "https://williamzujkowski.github.io/paperclips/index2.html",
+      "paperclips": "20",
+      "money": "1.50",
+      "buttons": 61,
+      "inputs": 1,
+      "clipButtonFound": true,
+      "clipButtonText": "Make Paperclip",
+      "timestamp": "2025-07-06T01:19:37.450Z"
+    },
+    {
+      "title": "",
+      "url": "https://williamzujkowski.github.io/paperclips/index2.html",
+      "paperclips": "25",
+      "money": "2.50",
+      "buttons": 61,
+      "inputs": 1,
+      "clipButtonFound": true,
+      "clipButtonText": "Make Paperclip",
+      "timestamp": "2025-07-06T01:19:40.109Z"
+    },
+    {
+      "title": "",
+      "url": "https://williamzujkowski.github.io/paperclips/index2.html",
+      "paperclips": "30",
+      "money": "2.50",
+      "buttons": 61,
+      "inputs": 1,
+      "clipButtonFound": true,
+      "clipButtonText": "Make Paperclip",
+      "timestamp": "2025-07-06T01:19:42.627Z"
+    },
+    {
+      "title": "",
+      "url": "https://williamzujkowski.github.io/paperclips/index2.html",
+      "paperclips": "35",
+      "money": "2.50",
+      "buttons": 61,
+      "inputs": 1,
+      "clipButtonFound": true,
+      "clipButtonText": "Make Paperclip",
+      "timestamp": "2025-07-06T01:19:45.278Z"
+    },
+    {
+      "title": "",
+      "url": "https://williamzujkowski.github.io/paperclips/index2.html",
+      "paperclips": "40",
+      "money": "3.50",
+      "buttons": 61,
+      "inputs": 1,
+      "clipButtonFound": true,
+      "clipButtonText": "Make Paperclip",
+      "timestamp": "2025-07-06T01:19:47.798Z"
+    },
+    {
+      "title": "",
+      "url": "https://williamzujkowski.github.io/paperclips/index2.html",
+      "paperclips": "45",
+      "money": "4.00",
+      "buttons": 61,
+      "inputs": 1,
+      "clipButtonFound": true,
+      "clipButtonText": "Make Paperclip",
+      "timestamp": "2025-07-06T01:19:50.466Z"
+    },
+    {
+      "title": "",
+      "url": "https://williamzujkowski.github.io/paperclips/index2.html",
+      "paperclips": "50",
+      "money": "4.50",
+      "buttons": 61,
+      "inputs": 1,
+      "clipButtonFound": true,
+      "clipButtonText": "Make Paperclip",
+      "timestamp": "2025-07-06T01:19:52.989Z"
+    },
+    {
+      "title": "",
+      "url": "https://williamzujkowski.github.io/paperclips/index2.html",
+      "paperclips": "55",
+      "money": "5.00",
+      "buttons": 61,
+      "inputs": 1,
+      "clipButtonFound": true,
+      "clipButtonText": "Make Paperclip",
+      "timestamp": "2025-07-06T01:19:55.673Z"
+    },
+    {
+      "title": "",
+      "url": "https://williamzujkowski.github.io/paperclips/index2.html",
+      "paperclips": "59",
+      "money": "5.50",
+      "buttons": 61,
+      "inputs": 1,
+      "clipButtonFound": true,
+      "clipButtonText": "Make Paperclip",
+      "timestamp": "2025-07-06T01:19:58.188Z"
+    }
+  ],
+  "screenshots": [
+    {
+      "name": "initial",
+      "filename": "screenshot-initial-1751764767738.png",
+      "filepath": "/home/william/git/puppeteer-mcp/testing/paperclips-game/demo-results/screenshot-initial-1751764767738.png",
+      "timestamp": "2025-07-06T01:19:27.739Z",
+      "size": 50179
+    },
+    {
+      "name": "gameplay-10-clicks",
+      "filename": "screenshot-gameplay-10-clicks-1751764772412.png",
+      "filepath": "/home/william/git/puppeteer-mcp/testing/paperclips-game/demo-results/screenshot-gameplay-10-clicks-1751764772412.png",
+      "timestamp": "2025-07-06T01:19:32.412Z",
+      "size": 50515
+    },
+    {
+      "name": "gameplay-20-clicks",
+      "filename": "screenshot-gameplay-20-clicks-1751764777589.png",
+      "filepath": "/home/william/git/puppeteer-mcp/testing/paperclips-game/demo-results/screenshot-gameplay-20-clicks-1751764777589.png",
+      "timestamp": "2025-07-06T01:19:37.590Z",
+      "size": 50982
+    },
+    {
+      "name": "gameplay-30-clicks",
+      "filename": "screenshot-gameplay-30-clicks-1751764782759.png",
+      "filepath": "/home/william/git/puppeteer-mcp/testing/paperclips-game/demo-results/screenshot-gameplay-30-clicks-1751764782759.png",
+      "timestamp": "2025-07-06T01:19:42.760Z",
+      "size": 51317
+    },
+    {
+      "name": "gameplay-40-clicks",
+      "filename": "screenshot-gameplay-40-clicks-1751764787944.png",
+      "filepath": "/home/william/git/puppeteer-mcp/testing/paperclips-game/demo-results/screenshot-gameplay-40-clicks-1751764787944.png",
+      "timestamp": "2025-07-06T01:19:47.945Z",
+      "size": 51285
+    },
+    {
+      "name": "gameplay-50-clicks",
+      "filename": "screenshot-gameplay-50-clicks-1751764793157.png",
+      "filepath": "/home/william/git/puppeteer-mcp/testing/paperclips-game/demo-results/screenshot-gameplay-50-clicks-1751764793157.png",
+      "timestamp": "2025-07-06T01:19:53.157Z",
+      "size": 50994
+    },
+    {
+      "name": "final-state",
+      "filename": "screenshot-final-state-1751764798357.png",
+      "filepath": "/home/william/git/puppeteer-mcp/testing/paperclips-game/demo-results/screenshot-final-state-1751764798357.png",
+      "timestamp": "2025-07-06T01:19:58.357Z",
+      "size": 58693
+    }
+  ],
+  "actions": [
+    {
+      "timestamp": "2025-07-06T01:19:26.754Z",
+      "type": "success",
+      "message": "Browser launched successfully"
+    },
+    {
+      "timestamp": "2025-07-06T01:19:27.589Z",
+      "type": "success",
+      "message": "Page loaded successfully"
+    },
+    {
+      "timestamp": "2025-07-06T01:19:27.743Z",
+      "type": "action",
+      "message": "Attempting to click Make Paperclip button..."
+    },
+    {
+      "timestamp": "2025-07-06T01:19:27.744Z",
+      "type": "success",
+      "message": "Successfully clicked button: \"Make Paperclip\" (#btnMakePaperclip)"
+    },
+    {
+      "timestamp": "2025-07-06T01:19:28.245Z",
+      "type": "action",
+      "message": "Attempting to click Make Paperclip button..."
+    },
+    {
+      "timestamp": "2025-07-06T01:19:28.247Z",
+      "type": "success",
+      "message": "Successfully clicked button: \"Make Paperclip\" (#btnMakePaperclip)"
+    },
+    {
+      "timestamp": "2025-07-06T01:19:28.748Z",
+      "type": "action",
+      "message": "Attempting to click Make Paperclip button..."
+    },
+    {
+      "timestamp": "2025-07-06T01:19:28.751Z",
+      "type": "success",
+      "message": "Successfully clicked button: \"Make Paperclip\" (#btnMakePaperclip)"
+    },
+    {
+      "timestamp": "2025-07-06T01:19:29.251Z",
+      "type": "action",
+      "message": "Attempting to click Make Paperclip button..."
+    },
+    {
+      "timestamp": "2025-07-06T01:19:29.254Z",
+      "type": "success",
+      "message": "Successfully clicked button: \"Make Paperclip\" (#btnMakePaperclip)"
+    },
+    {
+      "timestamp": "2025-07-06T01:19:29.755Z",
+      "type": "action",
+      "message": "Attempting to click Make Paperclip button..."
+    },
+    {
+      "timestamp": "2025-07-06T01:19:29.757Z",
+      "type": "success",
+      "message": "Successfully clicked button: \"Make Paperclip\" (#btnMakePaperclip)"
+    },
+    {
+      "timestamp": "2025-07-06T01:19:30.260Z",
+      "type": "action",
+      "message": "Attempting to click Make Paperclip button..."
+    },
+    {
+      "timestamp": "2025-07-06T01:19:30.262Z",
+      "type": "success",
+      "message": "Successfully clicked button: \"Make Paperclip\" (#btnMakePaperclip)"
+    },
+    {
+      "timestamp": "2025-07-06T01:19:30.763Z",
+      "type": "action",
+      "message": "Attempting to click Make Paperclip button..."
+    },
+    {
+      "timestamp": "2025-07-06T01:19:30.766Z",
+      "type": "success",
+      "message": "Successfully clicked button: \"Make Paperclip\" (#btnMakePaperclip)"
+    },
+    {
+      "timestamp": "2025-07-06T01:19:31.268Z",
+      "type": "action",
+      "message": "Attempting to click Make Paperclip button..."
+    },
+    {
+      "timestamp": "2025-07-06T01:19:31.270Z",
+      "type": "success",
+      "message": "Successfully clicked button: \"Make Paperclip\" (#btnMakePaperclip)"
+    },
+    {
+      "timestamp": "2025-07-06T01:19:31.771Z",
+      "type": "action",
+      "message": "Attempting to click Make Paperclip button..."
+    },
+    {
+      "timestamp": "2025-07-06T01:19:31.775Z",
+      "type": "success",
+      "message": "Successfully clicked button: \"Make Paperclip\" (#btnMakePaperclip)"
+    },
+    {
+      "timestamp": "2025-07-06T01:19:32.276Z",
+      "type": "action",
+      "message": "Attempting to click Make Paperclip button..."
+    },
+    {
+      "timestamp": "2025-07-06T01:19:32.278Z",
+      "type": "success",
+      "message": "Successfully clicked button: \"Make Paperclip\" (#btnMakePaperclip)"
+    },
+    {
+      "timestamp": "2025-07-06T01:19:32.913Z",
+      "type": "action",
+      "message": "Attempting to click Make Paperclip button..."
+    },
+    {
+      "timestamp": "2025-07-06T01:19:32.916Z",
+      "type": "success",
+      "message": "Successfully clicked button: \"Make Paperclip\" (#btnMakePaperclip)"
+    },
+    {
+      "timestamp": "2025-07-06T01:19:33.418Z",
+      "type": "action",
+      "message": "Attempting to click Make Paperclip button..."
+    },
+    {
+      "timestamp": "2025-07-06T01:19:33.420Z",
+      "type": "success",
+      "message": "Successfully clicked button: \"Make Paperclip\" (#btnMakePaperclip)"
+    },
+    {
+      "timestamp": "2025-07-06T01:19:33.921Z",
+      "type": "action",
+      "message": "Attempting to click Make Paperclip button..."
+    },
+    {
+      "timestamp": "2025-07-06T01:19:33.924Z",
+      "type": "success",
+      "message": "Successfully clicked button: \"Make Paperclip\" (#btnMakePaperclip)"
+    },
+    {
+      "timestamp": "2025-07-06T01:19:34.424Z",
+      "type": "action",
+      "message": "Attempting to click Make Paperclip button..."
+    },
+    {
+      "timestamp": "2025-07-06T01:19:34.427Z",
+      "type": "success",
+      "message": "Successfully clicked button: \"Make Paperclip\" (#btnMakePaperclip)"
+    },
+    {
+      "timestamp": "2025-07-06T01:19:34.928Z",
+      "type": "action",
+      "message": "Attempting to click Make Paperclip button..."
+    },
+    {
+      "timestamp": "2025-07-06T01:19:34.930Z",
+      "type": "success",
+      "message": "Successfully clicked button: \"Make Paperclip\" (#btnMakePaperclip)"
+    },
+    {
+      "timestamp": "2025-07-06T01:19:35.433Z",
+      "type": "action",
+      "message": "Attempting to click Make Paperclip button..."
+    },
+    {
+      "timestamp": "2025-07-06T01:19:35.436Z",
+      "type": "success",
+      "message": "Successfully clicked button: \"Make Paperclip\" (#btnMakePaperclip)"
+    },
+    {
+      "timestamp": "2025-07-06T01:19:35.936Z",
+      "type": "action",
+      "message": "Attempting to click Make Paperclip button..."
+    },
+    {
+      "timestamp": "2025-07-06T01:19:35.939Z",
+      "type": "success",
+      "message": "Successfully clicked button: \"Make Paperclip\" (#btnMakePaperclip)"
+    },
+    {
+      "timestamp": "2025-07-06T01:19:36.440Z",
+      "type": "action",
+      "message": "Attempting to click Make Paperclip button..."
+    },
+    {
+      "timestamp": "2025-07-06T01:19:36.442Z",
+      "type": "success",
+      "message": "Successfully clicked button: \"Make Paperclip\" (#btnMakePaperclip)"
+    },
+    {
+      "timestamp": "2025-07-06T01:19:36.943Z",
+      "type": "action",
+      "message": "Attempting to click Make Paperclip button..."
+    },
+    {
+      "timestamp": "2025-07-06T01:19:36.944Z",
+      "type": "success",
+      "message": "Successfully clicked button: \"Make Paperclip\" (#btnMakePaperclip)"
+    },
+    {
+      "timestamp": "2025-07-06T01:19:37.445Z",
+      "type": "action",
+      "message": "Attempting to click Make Paperclip button..."
+    },
+    {
+      "timestamp": "2025-07-06T01:19:37.448Z",
+      "type": "success",
+      "message": "Successfully clicked button: \"Make Paperclip\" (#btnMakePaperclip)"
+    },
+    {
+      "timestamp": "2025-07-06T01:19:38.091Z",
+      "type": "action",
+      "message": "Attempting to click Make Paperclip button..."
+    },
+    {
+      "timestamp": "2025-07-06T01:19:38.093Z",
+      "type": "success",
+      "message": "Successfully clicked button: \"Make Paperclip\" (#btnMakePaperclip)"
+    },
+    {
+      "timestamp": "2025-07-06T01:19:38.594Z",
+      "type": "action",
+      "message": "Attempting to click Make Paperclip button..."
+    },
+    {
+      "timestamp": "2025-07-06T01:19:38.596Z",
+      "type": "success",
+      "message": "Successfully clicked button: \"Make Paperclip\" (#btnMakePaperclip)"
+    },
+    {
+      "timestamp": "2025-07-06T01:19:39.097Z",
+      "type": "action",
+      "message": "Attempting to click Make Paperclip button..."
+    },
+    {
+      "timestamp": "2025-07-06T01:19:39.098Z",
+      "type": "success",
+      "message": "Successfully clicked button: \"Make Paperclip\" (#btnMakePaperclip)"
+    },
+    {
+      "timestamp": "2025-07-06T01:19:39.599Z",
+      "type": "action",
+      "message": "Attempting to click Make Paperclip button..."
+    },
+    {
+      "timestamp": "2025-07-06T01:19:39.602Z",
+      "type": "success",
+      "message": "Successfully clicked button: \"Make Paperclip\" (#btnMakePaperclip)"
+    },
+    {
+      "timestamp": "2025-07-06T01:19:40.103Z",
+      "type": "action",
+      "message": "Attempting to click Make Paperclip button..."
+    },
+    {
+      "timestamp": "2025-07-06T01:19:40.107Z",
+      "type": "success",
+      "message": "Successfully clicked button: \"Make Paperclip\" (#btnMakePaperclip)"
+    },
+    {
+      "timestamp": "2025-07-06T01:19:40.611Z",
+      "type": "action",
+      "message": "Attempting to click Make Paperclip button..."
+    },
+    {
+      "timestamp": "2025-07-06T01:19:40.612Z",
+      "type": "success",
+      "message": "Successfully clicked button: \"Make Paperclip\" (#btnMakePaperclip)"
+    },
+    {
+      "timestamp": "2025-07-06T01:19:41.112Z",
+      "type": "action",
+      "message": "Attempting to click Make Paperclip button..."
+    },
+    {
+      "timestamp": "2025-07-06T01:19:41.115Z",
+      "type": "success",
+      "message": "Successfully clicked button: \"Make Paperclip\" (#btnMakePaperclip)"
+    },
+    {
+      "timestamp": "2025-07-06T01:19:41.616Z",
+      "type": "action",
+      "message": "Attempting to click Make Paperclip button..."
+    },
+    {
+      "timestamp": "2025-07-06T01:19:41.619Z",
+      "type": "success",
+      "message": "Successfully clicked button: \"Make Paperclip\" (#btnMakePaperclip)"
+    },
+    {
+      "timestamp": "2025-07-06T01:19:42.120Z",
+      "type": "action",
+      "message": "Attempting to click Make Paperclip button..."
+    },
+    {
+      "timestamp": "2025-07-06T01:19:42.122Z",
+      "type": "success",
+      "message": "Successfully clicked button: \"Make Paperclip\" (#btnMakePaperclip)"
+    },
+    {
+      "timestamp": "2025-07-06T01:19:42.623Z",
+      "type": "action",
+      "message": "Attempting to click Make Paperclip button..."
+    },
+    {
+      "timestamp": "2025-07-06T01:19:42.625Z",
+      "type": "success",
+      "message": "Successfully clicked button: \"Make Paperclip\" (#btnMakePaperclip)"
+    },
+    {
+      "timestamp": "2025-07-06T01:19:43.261Z",
+      "type": "action",
+      "message": "Attempting to click Make Paperclip button..."
+    },
+    {
+      "timestamp": "2025-07-06T01:19:43.264Z",
+      "type": "success",
+      "message": "Successfully clicked button: \"Make Paperclip\" (#btnMakePaperclip)"
+    },
+    {
+      "timestamp": "2025-07-06T01:19:43.765Z",
+      "type": "action",
+      "message": "Attempting to click Make Paperclip button..."
+    },
+    {
+      "timestamp": "2025-07-06T01:19:43.766Z",
+      "type": "success",
+      "message": "Successfully clicked button: \"Make Paperclip\" (#btnMakePaperclip)"
+    },
+    {
+      "timestamp": "2025-07-06T01:19:44.267Z",
+      "type": "action",
+      "message": "Attempting to click Make Paperclip button..."
+    },
+    {
+      "timestamp": "2025-07-06T01:19:44.270Z",
+      "type": "success",
+      "message": "Successfully clicked button: \"Make Paperclip\" (#btnMakePaperclip)"
+    },
+    {
+      "timestamp": "2025-07-06T01:19:44.771Z",
+      "type": "action",
+      "message": "Attempting to click Make Paperclip button..."
+    },
+    {
+      "timestamp": "2025-07-06T01:19:44.774Z",
+      "type": "success",
+      "message": "Successfully clicked button: \"Make Paperclip\" (#btnMakePaperclip)"
+    },
+    {
+      "timestamp": "2025-07-06T01:19:45.275Z",
+      "type": "action",
+      "message": "Attempting to click Make Paperclip button..."
+    },
+    {
+      "timestamp": "2025-07-06T01:19:45.277Z",
+      "type": "success",
+      "message": "Successfully clicked button: \"Make Paperclip\" (#btnMakePaperclip)"
+    },
+    {
+      "timestamp": "2025-07-06T01:19:45.780Z",
+      "type": "action",
+      "message": "Attempting to click Make Paperclip button..."
+    },
+    {
+      "timestamp": "2025-07-06T01:19:45.783Z",
+      "type": "success",
+      "message": "Successfully clicked button: \"Make Paperclip\" (#btnMakePaperclip)"
+    },
+    {
+      "timestamp": "2025-07-06T01:19:46.284Z",
+      "type": "action",
+      "message": "Attempting to click Make Paperclip button..."
+    },
+    {
+      "timestamp": "2025-07-06T01:19:46.286Z",
+      "type": "success",
+      "message": "Successfully clicked button: \"Make Paperclip\" (#btnMakePaperclip)"
+    },
+    {
+      "timestamp": "2025-07-06T01:19:46.787Z",
+      "type": "action",
+      "message": "Attempting to click Make Paperclip button..."
+    },
+    {
+      "timestamp": "2025-07-06T01:19:46.790Z",
+      "type": "success",
+      "message": "Successfully clicked button: \"Make Paperclip\" (#btnMakePaperclip)"
+    },
+    {
+      "timestamp": "2025-07-06T01:19:47.291Z",
+      "type": "action",
+      "message": "Attempting to click Make Paperclip button..."
+    },
+    {
+      "timestamp": "2025-07-06T01:19:47.294Z",
+      "type": "success",
+      "message": "Successfully clicked button: \"Make Paperclip\" (#btnMakePaperclip)"
+    },
+    {
+      "timestamp": "2025-07-06T01:19:47.795Z",
+      "type": "action",
+      "message": "Attempting to click Make Paperclip button..."
+    },
+    {
+      "timestamp": "2025-07-06T01:19:47.797Z",
+      "type": "success",
+      "message": "Successfully clicked button: \"Make Paperclip\" (#btnMakePaperclip)"
+    },
+    {
+      "timestamp": "2025-07-06T01:19:48.446Z",
+      "type": "action",
+      "message": "Attempting to click Make Paperclip button..."
+    },
+    {
+      "timestamp": "2025-07-06T01:19:48.449Z",
+      "type": "success",
+      "message": "Successfully clicked button: \"Make Paperclip\" (#btnMakePaperclip)"
+    },
+    {
+      "timestamp": "2025-07-06T01:19:48.950Z",
+      "type": "action",
+      "message": "Attempting to click Make Paperclip button..."
+    },
+    {
+      "timestamp": "2025-07-06T01:19:48.953Z",
+      "type": "success",
+      "message": "Successfully clicked button: \"Make Paperclip\" (#btnMakePaperclip)"
+    },
+    {
+      "timestamp": "2025-07-06T01:19:49.454Z",
+      "type": "action",
+      "message": "Attempting to click Make Paperclip button..."
+    },
+    {
+      "timestamp": "2025-07-06T01:19:49.459Z",
+      "type": "success",
+      "message": "Successfully clicked button: \"Make Paperclip\" (#btnMakePaperclip)"
+    },
+    {
+      "timestamp": "2025-07-06T01:19:49.960Z",
+      "type": "action",
+      "message": "Attempting to click Make Paperclip button..."
+    },
+    {
+      "timestamp": "2025-07-06T01:19:49.961Z",
+      "type": "success",
+      "message": "Successfully clicked button: \"Make Paperclip\" (#btnMakePaperclip)"
+    },
+    {
+      "timestamp": "2025-07-06T01:19:50.462Z",
+      "type": "action",
+      "message": "Attempting to click Make Paperclip button..."
+    },
+    {
+      "timestamp": "2025-07-06T01:19:50.465Z",
+      "type": "success",
+      "message": "Successfully clicked button: \"Make Paperclip\" (#btnMakePaperclip)"
+    },
+    {
+      "timestamp": "2025-07-06T01:19:50.969Z",
+      "type": "action",
+      "message": "Attempting to click Make Paperclip button..."
+    },
+    {
+      "timestamp": "2025-07-06T01:19:50.971Z",
+      "type": "success",
+      "message": "Successfully clicked button: \"Make Paperclip\" (#btnMakePaperclip)"
+    },
+    {
+      "timestamp": "2025-07-06T01:19:51.472Z",
+      "type": "action",
+      "message": "Attempting to click Make Paperclip button..."
+    },
+    {
+      "timestamp": "2025-07-06T01:19:51.474Z",
+      "type": "success",
+      "message": "Successfully clicked button: \"Make Paperclip\" (#btnMakePaperclip)"
+    },
+    {
+      "timestamp": "2025-07-06T01:19:51.975Z",
+      "type": "action",
+      "message": "Attempting to click Make Paperclip button..."
+    },
+    {
+      "timestamp": "2025-07-06T01:19:51.978Z",
+      "type": "success",
+      "message": "Successfully clicked button: \"Make Paperclip\" (#btnMakePaperclip)"
+    },
+    {
+      "timestamp": "2025-07-06T01:19:52.480Z",
+      "type": "action",
+      "message": "Attempting to click Make Paperclip button..."
+    },
+    {
+      "timestamp": "2025-07-06T01:19:52.483Z",
+      "type": "success",
+      "message": "Successfully clicked button: \"Make Paperclip\" (#btnMakePaperclip)"
+    },
+    {
+      "timestamp": "2025-07-06T01:19:52.984Z",
+      "type": "action",
+      "message": "Attempting to click Make Paperclip button..."
+    },
+    {
+      "timestamp": "2025-07-06T01:19:52.987Z",
+      "type": "success",
+      "message": "Successfully clicked button: \"Make Paperclip\" (#btnMakePaperclip)"
+    },
+    {
+      "timestamp": "2025-07-06T01:19:53.658Z",
+      "type": "action",
+      "message": "Attempting to click Make Paperclip button..."
+    },
+    {
+      "timestamp": "2025-07-06T01:19:53.659Z",
+      "type": "success",
+      "message": "Successfully clicked button: \"Make Paperclip\" (#btnMakePaperclip)"
+    },
+    {
+      "timestamp": "2025-07-06T01:19:54.159Z",
+      "type": "action",
+      "message": "Attempting to click Make Paperclip button..."
+    },
+    {
+      "timestamp": "2025-07-06T01:19:54.161Z",
+      "type": "success",
+      "message": "Successfully clicked button: \"Make Paperclip\" (#btnMakePaperclip)"
+    },
+    {
+      "timestamp": "2025-07-06T01:19:54.663Z",
+      "type": "action",
+      "message": "Attempting to click Make Paperclip button..."
+    },
+    {
+      "timestamp": "2025-07-06T01:19:54.665Z",
+      "type": "success",
+      "message": "Successfully clicked button: \"Make Paperclip\" (#btnMakePaperclip)"
+    },
+    {
+      "timestamp": "2025-07-06T01:19:55.166Z",
+      "type": "action",
+      "message": "Attempting to click Make Paperclip button..."
+    },
+    {
+      "timestamp": "2025-07-06T01:19:55.168Z",
+      "type": "success",
+      "message": "Successfully clicked button: \"Make Paperclip\" (#btnMakePaperclip)"
+    },
+    {
+      "timestamp": "2025-07-06T01:19:55.669Z",
+      "type": "action",
+      "message": "Attempting to click Make Paperclip button..."
+    },
+    {
+      "timestamp": "2025-07-06T01:19:55.672Z",
+      "type": "success",
+      "message": "Successfully clicked button: \"Make Paperclip\" (#btnMakePaperclip)"
+    },
+    {
+      "timestamp": "2025-07-06T01:19:56.175Z",
+      "type": "action",
+      "message": "Attempting to click Make Paperclip button..."
+    },
+    {
+      "timestamp": "2025-07-06T01:19:56.177Z",
+      "type": "success",
+      "message": "Successfully clicked button: \"Make Paperclip\" (#btnMakePaperclip)"
+    },
+    {
+      "timestamp": "2025-07-06T01:19:56.677Z",
+      "type": "action",
+      "message": "Attempting to click Make Paperclip button..."
+    },
+    {
+      "timestamp": "2025-07-06T01:19:56.679Z",
+      "type": "success",
+      "message": "Successfully clicked button: \"Make Paperclip\" (#btnMakePaperclip)"
+    },
+    {
+      "timestamp": "2025-07-06T01:19:57.180Z",
+      "type": "action",
+      "message": "Attempting to click Make Paperclip button..."
+    },
+    {
+      "timestamp": "2025-07-06T01:19:57.182Z",
+      "type": "success",
+      "message": "Successfully clicked button: \"Make Paperclip\" (#btnMakePaperclip)"
+    },
+    {
+      "timestamp": "2025-07-06T01:19:57.683Z",
+      "type": "action",
+      "message": "Attempting to click Make Paperclip button..."
+    },
+    {
+      "timestamp": "2025-07-06T01:19:57.685Z",
+      "type": "success",
+      "message": "Successfully clicked button: \"Make Paperclip\" (#btnMakePaperclip)"
+    },
+    {
+      "timestamp": "2025-07-06T01:19:58.186Z",
+      "type": "success",
+      "message": "Automation completed: 59 clicks in 30s"
+    }
+  ],
+  "errors": []
+}

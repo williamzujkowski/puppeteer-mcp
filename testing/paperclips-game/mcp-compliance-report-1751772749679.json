@@ -1,0 +1,106 @@
+{
+  "testSuite": "MCP 2025-06-18 Compliance",
+  "timestamp": "2025-07-06T03:32:29.679Z",
+  "duration": 4029,
+  "summary": {
+    "total": 8,
+    "passed": 8,
+    "failed": 0,
+    "passRate": 100
+  },
+  "protocolVersion": "2025-06-18",
+  "compliance": "COMPLIANT",
+  "results": [
+    {
+      "test": "INITIALIZE_FLOW",
+      "passed": true,
+      "details": "Initialize request/response working correctly",
+      "timestamp": "2025-07-06T03:32:28.665Z"
+    },
+    {
+      "test": "INITIALIZED_NOTIFICATION",
+      "passed": true,
+      "details": "Initialized notification sent successfully",
+      "timestamp": "2025-07-06T03:32:29.166Z"
+    },
+    {
+      "test": "PING_REQUEST",
+      "passed": true,
+      "details": "Ping request/response working correctly",
+      "timestamp": "2025-07-06T03:32:29.168Z"
+    },
+    {
+      "test": "TOOLS_LIST",
+      "passed": {
+        "type": "object",
+        "properties": {
+          "protocol": {
+            "type": "string",
+            "enum": [
+              "rest",
+              "grpc",
+              "websocket"
+            ],
+            "description": "Protocol to use"
+          },
+          "operation": {
+            "type": "object",
+            "description": "Protocol-specific operation details"
+          },
+          "auth": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "jwt",
+                  "apikey",
+                  "session"
+                ]
+              },
+              "credentials": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "required": [
+          "protocol",
+          "operation"
+        ]
+      },
+      "details": "Tools list valid with 6 tools, all with proper metadata",
+      "timestamp": "2025-07-06T03:32:29.169Z"
+    },
+    {
+      "test": "TOOL_EXECUTION_PROGRESS",
+      "passed": true,
+      "details": "Tool execution successful with progress notifications",
+      "timestamp": "2025-07-06T03:32:29.171Z"
+    },
+    {
+      "test": "RESOURCES_FLOW",
+      "passed": [
+        {
+          "uri": "api://catalog",
+          "mimeType": "application/json",
+          "text": "{\n  \"rest\": {\n    \"baseUrl\": \"/api/v1\",\n    \"endpoints\": [\n      {\n        \"path\": \"/sessions\",\n        \"methods\": [\n          \"GET\",\n          \"POST\",\n          \"DELETE\"\n        ],\n        \"description\": \"Session management\"\n      },\n      {\n        \"path\": \"/sessions/:id\",\n        \"methods\": [\n          \"GET\",\n          \"DELETE\"\n        ],\n        \"description\": \"Individual session operations\"\n      },\n      {\n        \"path\": \"/contexts\",\n        \"methods\": [\n          \"GET\",\n          \"POST\",\n          \"PUT\",\n          \"DELETE\"\n        ],\n        \"description\": \"Context management\"\n      },\n      {\n        \"path\": \"/contexts/:id\",\n        \"methods\": [\n          \"GET\",\n          \"PUT\",\n          \"DELETE\"\n        ],\n        \"description\": \"Individual context operations\"\n      },\n      {\n        \"path\": \"/contexts/:id/execute\",\n        \"methods\": [\n          \"POST\"\n        ],\n        \"description\": \"Execute commands in context\"\n      },\n      {\n        \"path\": \"/api-keys\",\n        \"methods\": [\n          \"GET\",\n          \"POST\"\n        ],\n        \"description\": \"API key management\"\n      },\n      {\n        \"path\": \"/api-keys/:id\",\n        \"methods\": [\n          \"DELETE\"\n        ],\n        \"description\": \"Individual API key operations\"\n      },\n      {\n        \"path\": \"/health\",\n        \"methods\": [\n          \"GET\"\n        ],\n        \"description\": \"Health check\"\n      }\n    ],\n    \"authentication\": {\n      \"methods\": [\n        \"jwt\",\n        \"apikey\",\n        \"session\"\n      ],\n      \"headers\": {\n        \"jwt\": \"Authorization: Bearer <token>\",\n        \"apikey\": \"X-API-Key: <key>\"\n      }\n    }\n  },\n  \"grpc\": {\n    \"services\": [\n      {\n        \"name\": \"SessionService\",\n        \"methods\": [\n          \"CreateSession\",\n          \"GetSession\",\n          \"DeleteSession\",\n          \"ListSessions\"\n        ]\n      },\n      {\n        \"name\": \"ContextService\",\n        \"methods\": [\n          \"CreateContext\",\n          \"GetContext\",\n          \"ExecuteCommand\"\n        ]\n      },\n      {\n        \"name\": \"HealthService\",\n        \"methods\": [\n          \"Check\",\n          \"Watch\"\n        ]\n      }\n    ]\n  },\n  \"websocket\": {\n    \"endpoint\": \"/ws\",\n    \"topics\": [\n      {\n        \"name\": \"session-updates\",\n        \"description\": \"Real-time session events\"\n      },\n      {\n        \"name\": \"context-updates\",\n        \"description\": \"Real-time context events\"\n      }\n    ]\n  }\n}"
+        }
+      ],
+      "details": "Resources flow working: 2 resources listed, first resource read successfully",
+      "timestamp": "2025-07-06T03:32:29.172Z"
+    },
+    {
+      "test": "CANCELLATION_SUPPORT",
+      "passed": true,
+      "details": "Cancellation notification sent successfully",
+      "timestamp": "2025-07-06T03:32:29.674Z"
+    },
+    {
+      "test": "PROTOCOL_VERSION",
+      "passed": true,
+      "details": "Server correctly responds with supported protocol version",
+      "timestamp": "2025-07-06T03:32:29.677Z"
+    }
+  ]
+}

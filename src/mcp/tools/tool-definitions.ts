@@ -7,6 +7,7 @@
 export const TOOL_DEFINITIONS = [
   {
     name: 'execute-api',
+    title: 'Execute API',
     description: 'Execute API calls across REST, gRPC, or WebSocket protocols',
     inputSchema: {
       type: 'object',
@@ -33,6 +34,7 @@ export const TOOL_DEFINITIONS = [
   },
   {
     name: 'create-session',
+    title: 'Create Session',
     description: 'Create a new session for API interactions',
     inputSchema: {
       type: 'object',
@@ -46,6 +48,7 @@ export const TOOL_DEFINITIONS = [
   },
   {
     name: 'list-sessions',
+    title: 'List Sessions',
     description: 'List active sessions',
     inputSchema: {
       type: 'object',
@@ -56,6 +59,7 @@ export const TOOL_DEFINITIONS = [
   },
   {
     name: 'delete-session',
+    title: 'Delete Session',
     description: 'Delete an active session',
     inputSchema: {
       type: 'object',
@@ -67,6 +71,7 @@ export const TOOL_DEFINITIONS = [
   },
   {
     name: 'create-browser-context',
+    title: 'Create Browser Context',
     description: 'Create a Puppeteer browser context',
     inputSchema: {
       type: 'object',
@@ -91,6 +96,7 @@ export const TOOL_DEFINITIONS = [
   },
   {
     name: 'execute-in-context',
+    title: 'Execute in Context',
     description: 'Execute commands in a browser context',
     inputSchema: {
       type: 'object',

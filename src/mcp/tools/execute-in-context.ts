@@ -8,6 +8,7 @@ import { logger } from '../../utils/logger.js';
 import type { RestAdapter } from '../adapters/rest-adapter.js';
 import type { ExecuteInContextArgs, ToolResponse } from '../types/tool-types.js';
 import type { MCPResponse } from '../adapters/adapter.interface.js';
+import { getBrowserExecutor } from './browser-executor.js';
 
 /**
  * Execute in context tool handler
@@ -28,14 +29,32 @@ export class ExecuteInContextTool {
         return validation;
       }
 
-      // Check adapter availability
-      this.ensureRestAdapter();
-
-      // Execute the command
-      const result = await this.executeCommand(args);
-
-      // Parse and return response
-      return this.parseResponse(result);
+      // Check if REST adapter is available
+      if (this.restAdapter) {
+        // Use REST adapter if available
+        const result = await this.executeCommand(args);
+        return this.parseResponse(result);
+      } else {
+        // Use direct browser executor for stdio mode
+        const browserExecutor = getBrowserExecutor();
+        const actionResult = await browserExecutor.executeInContext(args);
+        
+        // Convert action result to tool response
+        return {
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify({
+                success: actionResult.success,
+                data: actionResult.data,
+                error: actionResult.error,
+                duration: actionResult.duration,
+                timestamp: actionResult.timestamp,
+              }),
+            },
+          ],
+        };
+      }
     } catch (error) {
       logger.error({
         msg: 'MCP context execution failed',
@@ -69,18 +88,6 @@ export class ExecuteInContextTool {
     }
 
     return null;
-  }
-
-  /**
-   * Ensure REST adapter is available
-   */
-  private ensureRestAdapter(): void {
-    if (!this.restAdapter) {
-      throw new McpError(
-        ErrorCode.InvalidRequest,
-        'REST adapter not initialized. Express app required.',
-      );
-    }
   }
 
   /**
