@@ -12,7 +12,7 @@ import { MCPAuthCredentials } from './mcp-auth.js';
 function extractJwtFromHeaders(
   headers?: Record<string, string | string[] | undefined>,
 ): string | undefined {
-  if (!headers?.authorization) {
+  if (headers?.authorization === undefined || headers.authorization === null) {
     return undefined;
   }
 
@@ -20,7 +20,7 @@ function extractJwtFromHeaders(
     ? headers.authorization[0]
     : headers.authorization;
 
-  if (authHeader?.startsWith('Bearer ')) {
+  if (authHeader?.startsWith('Bearer ') === true) {
     return authHeader.substring(7);
   }
 
@@ -34,7 +34,7 @@ function extractApiKeyFromHeaders(
   headers?: Record<string, string | string[] | undefined>,
 ): string | undefined {
   const apiKeyHeader = headers?.['x-api-key'] ?? headers?.['apikey'];
-  if (!apiKeyHeader) {
+  if (apiKeyHeader === undefined || apiKeyHeader === null) {
     return undefined;
   }
 
@@ -47,7 +47,7 @@ function extractApiKeyFromHeaders(
 function extractTokenFromQuery(
   query?: Record<string, string | string[] | undefined>,
 ): string | undefined {
-  if (!query?.token) {
+  if (query?.token === undefined || query.token === null) {
     return undefined;
   }
   return Array.isArray(query.token) ? query.token[0] : query.token;
@@ -59,7 +59,7 @@ function extractTokenFromQuery(
 function extractApiKeyFromQuery(
   query?: Record<string, string | string[] | undefined>,
 ): string | undefined {
-  if (!query?.apikey) {
+  if (query?.apikey === undefined || query.apikey === null) {
     return undefined;
   }
   return Array.isArray(query.apikey) ? query.apikey[0] : query.apikey;
@@ -71,7 +71,7 @@ function extractApiKeyFromQuery(
 function extractSessionIdFromQuery(
   query?: Record<string, string | string[] | undefined>,
 ): string | undefined {
-  if (!query?.sessionId) {
+  if (query?.sessionId === undefined || query.sessionId === null) {
     return undefined;
   }
   return Array.isArray(query.sessionId) ? query.sessionId[0] : query.sessionId;
@@ -81,12 +81,19 @@ function extractSessionIdFromQuery(
  * Extract credentials from WebSocket metadata
  */
 function extractFromMetadata(metadata?: Record<string, unknown>): MCPAuthCredentials | undefined {
-  if (!metadata?.auth) {
+  if (metadata?.auth === undefined || metadata.auth === null) {
     return undefined;
   }
 
   const auth = metadata.auth as { type?: string; credentials?: string };
-  if (auth.type && auth.credentials && ['jwt', 'apikey', 'session'].includes(auth.type)) {
+  if (
+    auth.type !== undefined &&
+    auth.type !== null &&
+    auth.credentials !== undefined &&
+    auth.credentials !== null &&
+    auth.credentials !== '' &&
+    ['jwt', 'apikey', 'session'].includes(auth.type)
+  ) {
     return {
       type: auth.type as 'jwt' | 'apikey' | 'session',
       credentials: auth.credentials,
@@ -100,7 +107,7 @@ function extractFromMetadata(metadata?: Record<string, unknown>): MCPAuthCredent
  * Check if a credential value is valid
  */
 function isValidCredential(value: string | undefined): value is string {
-  return !!value && value !== '';
+  return value !== undefined && value !== null && value !== '';
 }
 
 /**

@@ -9,10 +9,10 @@ import { contextStore, type Context } from '../../store/context-store.js';
 import { BrowserPool } from '../../puppeteer/pool/browser-pool.js';
 import { BrowserActionExecutor } from '../../puppeteer/actions/action-executor.js';
 import { getPageManager } from '../../puppeteer/pages/page-manager.js';
-import type { 
-  BrowserAction, 
+import type {
+  BrowserAction,
   ActionContext,
-  ActionResult 
+  ActionResult,
 } from '../../puppeteer/interfaces/action-executor.interface.js';
 import type { ExecuteInContextArgs } from '../types/tool-types.js';
 
@@ -31,9 +31,7 @@ export class BrowserExecutor {
    * Get singleton instance
    */
   static getInstance(): BrowserExecutor {
-    if (!BrowserExecutor.instance) {
-      BrowserExecutor.instance = new BrowserExecutor();
-    }
+    BrowserExecutor.instance ??= new BrowserExecutor();
     return BrowserExecutor.instance;
   }
 
@@ -64,13 +62,13 @@ export class BrowserExecutor {
       });
 
       await this.browserPool.initialize();
-      
+
       // Create action executor with page manager
       const pageManager = getPageManager(this.browserPool);
       this.actionExecutor = new BrowserActionExecutor(pageManager);
-      
+
       this.initialized = true;
-      
+
       logger.info({
         msg: 'MCP browser executor initialized',
         maxBrowsers: 2,
@@ -108,7 +106,7 @@ export class BrowserExecutor {
 
       // Create action context
       const actionContext: ActionContext = {
-        sessionId: args.sessionId || context.sessionId,
+        sessionId: args.sessionId ?? context.sessionId,
         contextId: args.contextId,
         userId: context.userId,
         metadata: {
@@ -152,107 +150,154 @@ export class BrowserExecutor {
   }
 
   /**
-   * Parse command string into browser action
+   * Map common commands to browser actions
    */
-  private parseCommand(
-    command: string, 
-    parameters?: Record<string, unknown>
-  ): BrowserAction {
-    // Map common commands to browser actions
+  private getActionType(command: string): string {
     const commandMap: Record<string, string> = {
-      'navigate': 'navigate',
-      'goto': 'navigate',
-      'click': 'click',
-      'type': 'type',
-      'fill': 'type',
-      'screenshot': 'screenshot',
-      'wait': 'wait',
-      'waitForSelector': 'wait',
-      'evaluate': 'evaluate',
-      'execute': 'evaluate',
-      'scroll': 'scroll',
-      'select': 'select',
-      'press': 'keyboard',
-      'hover': 'mouse',
-      'pdf': 'pdf',
-      'setCookie': 'cookie',
-      'getCookies': 'cookie',
+      navigate: 'navigate',
+      goto: 'navigate',
+      click: 'click',
+      type: 'type',
+      fill: 'type',
+      screenshot: 'screenshot',
+      wait: 'wait',
+      waitForSelector: 'wait',
+      evaluate: 'evaluate',
+      execute: 'evaluate',
+      scroll: 'scroll',
+      select: 'select',
+      press: 'keyboard',
+      hover: 'mouse',
+      pdf: 'pdf',
+      setCookie: 'cookie',
+      getCookies: 'cookie',
     };
 
-    const actionType = commandMap[command.toLowerCase()] || command;
+    return commandMap[command.toLowerCase()] ?? command;
+  }
+
+  /**
+   * Create navigate action
+   */
+  private createNavigateAction(parameters?: Record<string, unknown>): BrowserAction {
+    return {
+      type: 'navigate',
+      pageId: '', // Will be set later
+      url: (parameters?.url as string) ?? (parameters?.href as string) ?? '',
+      waitUntil:
+        (parameters?.waitUntil as 'load' | 'domcontentloaded' | 'networkidle0' | 'networkidle2') ??
+        'load',
+    };
+  }
+
+  /**
+   * Create click action
+   */
+  private createClickAction(parameters?: Record<string, unknown>): BrowserAction {
+    return {
+      type: 'click',
+      pageId: '',
+      selector: (parameters?.selector as string) ?? '',
+      button: (parameters?.button as 'left' | 'right' | 'middle') ?? 'left',
+      clickCount: (parameters?.clickCount as number) ?? 1,
+      delay: (parameters?.delay as number) ?? 0,
+    };
+  }
+
+  /**
+   * Create type action
+   */
+  private createTypeAction(parameters?: Record<string, unknown>): BrowserAction {
+    return {
+      type: 'type',
+      pageId: '',
+      selector: (parameters?.selector as string) ?? '',
+      text: (parameters?.text as string) ?? (parameters?.value as string) ?? '',
+      delay: (parameters?.delay as number) ?? 0,
+    };
+  }
+
+  /**
+   * Create screenshot action
+   */
+  private createScreenshotAction(parameters?: Record<string, unknown>): BrowserAction {
+    return {
+      type: 'screenshot',
+      pageId: '',
+      fullPage: (parameters?.fullPage as boolean) ?? false,
+      format: (parameters?.format as 'png' | 'jpeg' | 'webp') ?? 'png',
+      quality: (parameters?.quality as number) ?? undefined,
+    };
+  }
+
+  /**
+   * Create wait action
+   */
+  private createWaitAction(parameters?: Record<string, unknown>): BrowserAction {
+    if (parameters?.selector !== undefined && parameters.selector !== null) {
+      return {
+        type: 'wait',
+        pageId: '',
+        waitType: 'selector',
+        selector: parameters.selector as string,
+      };
+    } else {
+      return {
+        type: 'wait',
+        pageId: '',
+        waitType: 'timeout',
+        duration: (parameters?.duration as number) ?? (parameters?.timeout as number) ?? 1000,
+      };
+    }
+  }
+
+  /**
+   * Create evaluate action
+   */
+  private createEvaluateAction(parameters?: Record<string, unknown>): BrowserAction {
+    return {
+      type: 'evaluate',
+      pageId: '',
+      function: (parameters?.code as string) ?? (parameters?.script as string) ?? '',
+      args: (parameters?.args as unknown[]) ?? [],
+    };
+  }
+
+  /**
+   * Create scroll action
+   */
+  private createScrollAction(parameters?: Record<string, unknown>): BrowserAction {
+    return {
+      type: 'scroll',
+      pageId: '',
+      direction: (parameters?.direction as 'up' | 'down' | 'left' | 'right') ?? 'down',
+      distance: (parameters?.distance as number) ?? (parameters?.amount as number) ?? 100,
+      smooth: (parameters?.smooth as boolean) ?? true,
+    };
+  }
+
+  /**
+   * Parse command string into browser action
+   */
+  private parseCommand(command: string, parameters?: Record<string, unknown>): BrowserAction {
+    const actionType = this.getActionType(command);
 
     // Build action based on type
     switch (actionType) {
       case 'navigate':
-        return {
-          type: 'navigate',
-          pageId: '', // Will be set later
-          url: (parameters?.url as string) || (parameters?.href as string) || '',
-          waitUntil: (parameters?.waitUntil as 'load' | 'domcontentloaded' | 'networkidle0' | 'networkidle2') || 'load',
-        };
-
+        return this.createNavigateAction(parameters);
       case 'click':
-        return {
-          type: 'click',
-          pageId: '',
-          selector: (parameters?.selector as string) || '',
-          button: (parameters?.button as 'left' | 'right' | 'middle') || 'left',
-          clickCount: (parameters?.clickCount as number) || 1,
-          delay: (parameters?.delay as number) || 0,
-        };
-
+        return this.createClickAction(parameters);
       case 'type':
-        return {
-          type: 'type',
-          pageId: '',
-          selector: (parameters?.selector as string) || '',
-          text: (parameters?.text as string) || (parameters?.value as string) || '',
-          delay: (parameters?.delay as number) || 0,
-        };
-
+        return this.createTypeAction(parameters);
       case 'screenshot':
-        return {
-          type: 'screenshot',
-          pageId: '',
-          fullPage: (parameters?.fullPage as boolean) || false,
-          format: (parameters?.format as 'png' | 'jpeg' | 'webp') || 'png',
-          quality: (parameters?.quality as number) || undefined,
-        };
-
+        return this.createScreenshotAction(parameters);
       case 'wait':
-        if (parameters?.selector) {
-          return {
-            type: 'wait',
-            pageId: '',
-            waitType: 'selector',
-            selector: parameters.selector as string,
-          };
-        } else {
-          return {
-            type: 'wait',
-            pageId: '',
-            waitType: 'timeout',
-            duration: (parameters?.duration as number) || (parameters?.timeout as number) || 1000,
-          };
-        }
-
+        return this.createWaitAction(parameters);
       case 'evaluate':
-        return {
-          type: 'evaluate',
-          pageId: '',
-          function: (parameters?.code as string) || (parameters?.script as string) || '',
-          args: (parameters?.args as unknown[]) || [],
-        };
-
+        return this.createEvaluateAction(parameters);
       case 'scroll':
-        return {
-          type: 'scroll',
-          pageId: '',
-          direction: (parameters?.direction as 'up' | 'down' | 'left' | 'right') || 'down',
-          distance: (parameters?.distance as number) || (parameters?.amount as number) || 100,
-          smooth: (parameters?.smooth as boolean) || true,
-        };
-
+        return this.createScrollAction(parameters);
       default:
         // Generic action with all parameters
         return {
@@ -272,11 +317,11 @@ export class BrowserExecutor {
     }
 
     const pageManager = getPageManager(this.browserPool);
-    
+
     // Check if context already has pages
     const existingPages = await pageManager.listPagesForContext(context.id, sessionId);
-    
-    if (existingPages.length > 0 && existingPages[0]) {
+
+    if (existingPages.length > 0 && existingPages[0] !== undefined) {
       // Return the first available page
       return existingPages[0].id;
     }
@@ -287,7 +332,7 @@ export class BrowserExecutor {
       context.id,
       sessionId,
       browser.id,
-      context.config as Record<string, unknown>
+      context.config,
     );
 
     logger.info({

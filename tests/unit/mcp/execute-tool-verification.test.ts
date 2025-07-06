@@ -47,12 +47,12 @@ describe('Execute-in-Context Tool Implementation', () => {
   });
 
   it('should have a case for execute-in-context in the tool handler switch', () => {
-    const serverPath = join(process.cwd(), 'src/mcp/server.ts');
-    const serverContent = readFileSync(serverPath, 'utf-8');
+    const serverToolHandlersPath = join(process.cwd(), 'src/mcp/server-tool-handlers.ts');
+    const serverToolHandlersContent = readFileSync(serverToolHandlersPath, 'utf-8');
 
     // Check that the case is in the switch statement
-    expect(serverContent).toContain("case 'execute-in-context':");
-    expect(serverContent).toContain('this.executeInContextTool.execute');
+    expect(serverToolHandlersContent).toContain("case 'execute-in-context':");
+    expect(serverToolHandlersContent).toContain('tools.executeInContextTool.execute');
   });
 
   it('should have proper input validation and REST adapter integration', () => {

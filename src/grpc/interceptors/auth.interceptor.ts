@@ -27,7 +27,7 @@ function extractBearerToken(authHeaders: grpc.MetadataValue[]): string | null {
   if (authHeaders.length === 0) return null;
 
   const authHeader = authHeaders[0]?.toString();
-  if (!authHeader?.startsWith('Bearer ')) return null;
+  if (authHeader?.startsWith('Bearer ') !== true) return null;
 
   return authHeader.substring(7);
 }
@@ -49,12 +49,12 @@ function extractToken(metadata: grpc.Metadata): string | null {
   const authHeaders = metadata.get('authorization');
   if (authHeaders !== undefined) {
     const bearerToken = extractBearerToken(authHeaders);
-    if (bearerToken !== null && bearerToken !== undefined && bearerToken !== '') return bearerToken;
+    if (bearerToken !== null && bearerToken !== '') return bearerToken;
   }
 
   // Check x-api-key header
   const apiKeys = metadata.get('x-api-key');
-  if (apiKeys !== undefined && apiKeys !== null) {
+  if (apiKeys !== undefined && apiKeys.length > 0) {
     return extractApiKey(apiKeys);
   }
 
@@ -198,7 +198,7 @@ export function authInterceptor(
       // Extract authentication token
       const token = extractToken(call.metadata);
 
-      if (token === null || token === undefined || token === '') {
+      if (token === null || token === '') {
         await logAuthFailure(context, 'Missing authentication token');
         return callback(createAuthError('Missing authentication token'));
       }
@@ -241,7 +241,7 @@ async function tryOptionalAuth(
 ): Promise<void> {
   const token = extractToken(call.metadata);
 
-  if (token === null || token === undefined || token === '') {
+  if (token === null || token === '') {
     return;
   }
 

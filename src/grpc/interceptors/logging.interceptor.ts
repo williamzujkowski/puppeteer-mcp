@@ -49,7 +49,8 @@ function getRequestId(metadata: grpc.Metadata): string {
  */
 function getClientIp(metadata: grpc.Metadata, call: ExtendedCall): string {
   const forwardedFor = metadata.get('x-forwarded-for')?.[0]?.toString();
-  if (forwardedFor) return forwardedFor;
+  if (forwardedFor !== undefined && forwardedFor !== null && forwardedFor !== '')
+    return forwardedFor;
 
   const peer = call.getPeer?.();
   return peer ?? 'unknown';
