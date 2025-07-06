@@ -21,7 +21,7 @@ export class ContextPageHandlers {
   private browserPool?: BrowserPool;
 
   constructor(browserPool?: BrowserPool, storage?: ContextStorage) {
-    this.storage = storage || new ContextStorage();
+    this.storage = storage ?? new ContextStorage();
     this.browserPool = browserPool;
   }
 
@@ -31,39 +31,40 @@ export class ContextPageHandlers {
    * @nist au-2 "Audit events"
    * @nist ac-3 "Access enforcement"
    */
-  listPages = (req: Request, res: Response, next: NextFunction): void => void (async () => {
-    try {
-      if (!req.user) {
-        throw new AppError('Not authenticated', 401);
+  listPages = (req: Request, res: Response, next: NextFunction): void =>
+    void (async () => {
+      try {
+        if (!req.user) {
+          throw new AppError('Not authenticated', 401);
+        }
+
+        if (!this.browserPool) {
+          throw new AppError('Browser pool not available', 503);
+        }
+
+        const { contextId } = req.params;
+        if (contextId === null || contextId === '') {
+          throw new AppError('Context ID is required', 400);
+        }
+
+        // Verify context exists and user has access
+        await this.storage.getContext(contextId as string, req.user.userId, req.user.roles);
+
+        // Get pages for context
+        const pageManager = getPageManager(this.browserPool);
+        const pages = await pageManager.listPagesForContext(
+          contextId as string,
+          req.user.sessionId ?? req.user.userId,
+        );
+
+        res.json({
+          success: true,
+          data: pages,
+        });
+      } catch (error) {
+        next(error);
       }
-
-      if (!this.browserPool) {
-        throw new AppError('Browser pool not available', 503);
-      }
-
-      const { contextId } = req.params;
-      if (contextId === null || contextId === '') {
-        throw new AppError('Context ID is required', 400);
-      }
-
-      // Verify context exists and user has access
-      await this.storage.getContext(contextId as string, req.user.userId, req.user.roles);
-
-      // Get pages for context
-      const pageManager = getPageManager(this.browserPool);
-      const pages = await pageManager.listPagesForContext(
-        contextId as string,
-        req.user.sessionId || req.user.userId
-      );
-
-      res.json({
-        success: true,
-        data: pages,
-      });
-    } catch (error) {
-      next(error);
-    }
-  })();
+    })();
 
   /**
    * Create a new page in a context
@@ -71,46 +72,51 @@ export class ContextPageHandlers {
    * @nist au-2 "Audit events"
    * @nist ac-3 "Access enforcement"
    */
-  createPage = (req: Request, res: Response, next: NextFunction): void => void (async () => {
-    try {
-      // Validate request
-      validatePageRequest(req);
+  createPage = (req: Request, res: Response, next: NextFunction): void =>
+    void (async () => {
+      try {
+        // Validate request
+        validatePageRequest(req);
 
-      if (!this.browserPool) {
-        throw new AppError('Browser pool not available', 503);
+        if (!this.browserPool) {
+          throw new AppError('Browser pool not available', 503);
+        }
+
+        const { contextId } = req.params;
+
+        // Verify context exists and user has access
+        if (!req.user) {
+          throw new Error('User not authenticated');
+        }
+        const context = await this.storage.getContext(
+          contextId as string,
+          req.user.userId,
+          req.user.roles,
+        );
+
+        // Acquire browser for this session
+        const sessionId = getUserSessionId(req.user);
+        const browser = await this.browserPool.acquireBrowser(sessionId);
+
+        // Create page with context configuration and optional overrides
+        const pageOptions = buildPageOptions(req.body, context.config);
+
+        const pageManager = getPageManager(this.browserPool);
+        const pageInfo = await pageManager.createPage(
+          contextId as string,
+          sessionId,
+          browser.id,
+          pageOptions,
+        );
+
+        res.status(201).json({
+          success: true,
+          data: pageInfo,
+        });
+      } catch (error) {
+        next(error);
       }
-
-      const { contextId } = req.params;
-
-      // Verify context exists and user has access
-      if (!req.user) {
-        throw new Error('User not authenticated');
-      }
-      const context = await this.storage.getContext(contextId as string, req.user.userId, req.user.roles);
-
-      // Acquire browser for this session
-      const sessionId = getUserSessionId(req.user);
-      const browser = await this.browserPool.acquireBrowser(sessionId);
-
-      // Create page with context configuration and optional overrides
-      const pageOptions = buildPageOptions(req.body, context.config);
-
-      const pageManager = getPageManager(this.browserPool);
-      const pageInfo = await pageManager.createPage(
-        contextId as string,
-        sessionId,
-        browser.id,
-        pageOptions
-      );
-
-      res.status(201).json({
-        success: true,
-        data: pageInfo,
-      });
-    } catch (error) {
-      next(error);
-    }
-  })();
+    })();
 
   /**
    * Get context metrics
@@ -126,7 +132,7 @@ export class ContextPageHandlers {
       // Check if context exists and user has access
       // Note: We're not using async/await here since this is synchronous
       // In a real implementation, you'd want to verify access first
-      
+
       // TODO: Integrate with actual metrics collection
       const metrics = {
         memory: {

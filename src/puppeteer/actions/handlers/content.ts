@@ -34,10 +34,10 @@ const logger = createLogger('puppeteer:content');
 export async function handleScreenshot(
   action: ScreenshotAction,
   page: Page,
-  context: ActionContext
+  context: ActionContext,
 ): Promise<ActionResult<Buffer | string>> {
   const startTime = Date.now();
-  
+
   try {
     logger.info('Executing screenshot action', {
       sessionId: context.sessionId,
@@ -52,7 +52,7 @@ export async function handleScreenshot(
     const screenshotOptions = buildScreenshotOptions(action);
 
     // Delegate to specific screenshot method
-    const result = (action.selector !== null && action.selector !== undefined && action.selector !== '')
+    const result = action.selector
       ? await captureElementScreenshot(action, page, screenshotOptions, context)
       : await capturePageScreenshot(action, page, screenshotOptions, context);
 
@@ -62,7 +62,6 @@ export async function handleScreenshot(
       duration,
       timestamp: new Date(),
     };
-
   } catch (error) {
     const duration = Date.now() - startTime;
     const errorMessage = error instanceof Error ? error.message : 'Unknown screenshot error';
@@ -101,10 +100,10 @@ export async function handleScreenshot(
 export async function handlePdf(
   action: PDFAction,
   page: Page,
-  context: ActionContext
+  context: ActionContext,
 ): Promise<ActionResult<Buffer>> {
   const startTime = Date.now();
-  
+
   try {
     logger.info('Executing PDF action', {
       sessionId: context.sessionId,
@@ -119,7 +118,7 @@ export async function handlePdf(
 
     // Generate PDF
     const pdf = Buffer.from(await page.pdf(pdfOptions));
-    
+
     const duration = Date.now() - startTime;
 
     logger.info('PDF action completed', {
@@ -143,7 +142,6 @@ export async function handlePdf(
         pageCount: action.pageRanges ? 'custom' : 'all',
       },
     };
-
   } catch (error) {
     const duration = Date.now() - startTime;
     const errorMessage = error instanceof Error ? error.message : 'Unknown PDF error';
@@ -181,10 +179,10 @@ export async function handlePdf(
 export async function handleContent(
   action: ContentAction,
   page: Page,
-  context: ActionContext
+  context: ActionContext,
 ): Promise<ActionResult<string>> {
   const startTime = Date.now();
-  
+
   try {
     logger.info('Executing content action', {
       sessionId: context.sessionId,
@@ -199,7 +197,7 @@ export async function handleContent(
     if (action.selector) {
       // Get content of specific element
       const sanitizedSelector = sanitizeSelector(action.selector);
-      
+
       await page.waitForSelector(sanitizedSelector, {
         timeout: action.timeout ?? 30000,
       });
@@ -215,14 +213,14 @@ export async function handleContent(
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return el.textContent ?? '';
       });
-      
+
       contentType = 'element';
     } else {
       // Get full page content
       content = await page.content();
       contentType = 'page';
     }
-    
+
     const duration = Date.now() - startTime;
 
     logger.info('Content action completed', {
@@ -246,7 +244,6 @@ export async function handleContent(
         length: content.length,
       },
     };
-
   } catch (error) {
     const duration = Date.now() - startTime;
     const errorMessage = error instanceof Error ? error.message : 'Unknown content error';

@@ -43,14 +43,17 @@ export function validateCookieValue(value?: string): void {
  * @returns Normalized domain
  * @throws Error if domain is invalid
  */
-export function validateCookieDomain(domain: string | undefined, currentUrl: string): string | undefined {
+export function validateCookieDomain(
+  domain: string | undefined,
+  currentUrl: string,
+): string | undefined {
   if (domain === null || domain === undefined || domain === '') {
     return undefined;
   }
 
   // Remove leading dot if present
   const normalizedDomain = domain.replace(/^\./, '');
-  
+
   // Validate domain format
   if (!/^[a-zA-Z0-9.-]+$/.test(normalizedDomain)) {
     throw new Error('Invalid cookie domain format');
@@ -71,7 +74,12 @@ export function validateCookieDomain(domain: string | undefined, currentUrl: str
  * @throws Error if path is invalid
  */
 export function validateCookiePath(path?: string): void {
-  if (path !== null && path !== undefined && path !== '' && (path.length > 255 || path.startsWith('/') === false)) {
+  if (
+    path !== null &&
+    path !== undefined &&
+    path !== '' &&
+    (path.length > 255 || !path.startsWith('/'))
+  ) {
     throw new Error('Invalid cookie path');
   }
 }
@@ -93,8 +101,15 @@ export function validateCookieExpiration(expires?: number): void {
  * @param secure - Secure flag
  * @throws Error if settings are invalid
  */
-export function validateCookieSecurity(sameSite?: 'Strict' | 'Lax' | 'None', secure?: boolean): void {
-  if (sameSite !== null && sameSite !== undefined && ['Strict', 'Lax', 'None'].includes(sameSite) === false) {
+export function validateCookieSecurity(
+  sameSite?: 'Strict' | 'Lax' | 'None',
+  secure?: boolean,
+): void {
+  if (
+    sameSite !== null &&
+    sameSite !== undefined &&
+    !['Strict', 'Lax', 'None'].includes(sameSite)
+  ) {
     throw new Error('Invalid SameSite value');
   }
 
@@ -121,7 +136,7 @@ export function validateCookie(
     secure?: boolean;
     sameSite?: 'Strict' | 'Lax' | 'None';
   },
-  currentUrl: string
+  currentUrl: string,
 ): Cookie {
   // Validate individual components
   validateCookieName(cookie.name);
@@ -138,7 +153,7 @@ export function validateCookie(
     domain: domain ?? new URL(currentUrl).hostname,
     path: cookie.path ?? '/',
     expires: cookie.expires ?? -1,
-    size: (cookie.name.length + (cookie.value ?? '').length),
+    size: cookie.name.length + (cookie.value ?? '').length,
     httpOnly: cookie.httpOnly ?? false,
     secure: cookie.secure ?? false,
     session: cookie.expires === undefined,

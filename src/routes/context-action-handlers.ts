@@ -12,10 +12,10 @@ import { ContextStorage } from './context-storage.js';
 import { getPageManager } from '../puppeteer/pages/page-manager.js';
 import { BrowserActionExecutor, validateAction } from '../puppeteer/actions/index.js';
 import type { BrowserPool } from '../puppeteer/interfaces/browser-pool.interface.js';
-import type { 
-  BrowserAction, 
+import type {
+  BrowserAction,
   ActionContext,
-  ActionResult
+  ActionResult,
 } from '../puppeteer/interfaces/action-executor.interface.js';
 
 const logger = createLogger('routes:context-action-handlers');
@@ -30,9 +30,9 @@ export class ContextActionHandlers {
   private actionExecutor: BrowserActionExecutor;
 
   constructor(browserPool?: BrowserPool, storage?: ContextStorage) {
-    this.storage = storage || new ContextStorage();
+    this.storage = storage ?? new ContextStorage();
     this.browserPool = browserPool;
-    
+
     // Create action executor with page manager if browser pool is available
     const pageManager = browserPool ? getPageManager(browserPool) : undefined;
     this.actionExecutor = new BrowserActionExecutor(pageManager);
@@ -44,32 +44,32 @@ export class ContextActionHandlers {
    * @nist au-2 "Audit events"
    * @nist ac-3 "Access enforcement"
    */
-  executeAction = (req: Request, res: Response, next: NextFunction): void => void (async () => {
-    try {
-      // Validate request
-      const { contextId, browserAction } = await this.validateExecuteRequest(req);
+  executeAction = (req: Request, res: Response, next: NextFunction): void =>
+    void (async () => {
+      try {
+        // Validate request
+        const { contextId, browserAction } = await this.validateExecuteRequest(req);
 
-      // Create action context
-      const actionContext = this.createActionContext(req, contextId);
+        // Create action context
+        const actionContext = this.createActionContext(req, contextId);
 
-      // Update context and log action
-      await this.updateContextAndLog(contextId, req, browserAction);
+        // Update context and log action
+        await this.updateContextAndLog(contextId, req, browserAction);
 
-      // Execute action
-      const result = await this.actionExecutor.execute(browserAction, actionContext);
+        // Execute action
+        const result = await this.actionExecutor.execute(browserAction, actionContext);
 
-      // Send response
-      res.json(this.formatActionResult(result, contextId));
-
-    } catch (error) {
-      logger.error('Action execution failed', {
-        contextId: req.params.contextId,
-        userId: req.user?.userId,
-        error: error instanceof Error ? error.message : 'Unknown error',
-      });
-      next(error);
-    }
-  })();
+        // Send response
+        res.json(this.formatActionResult(result, contextId));
+      } catch (error) {
+        logger.error('Action execution failed', {
+          contextId: req.params.contextId,
+          userId: req.user?.userId,
+          error: error instanceof Error ? error.message : 'Unknown error',
+        });
+        next(error);
+      }
+    })();
 
   /**
    * Validate execute action request
@@ -99,8 +99,8 @@ export class ContextActionHandlers {
     const validationResult = validateAction(browserAction);
     if (!validationResult.valid) {
       throw new AppError(
-        `Invalid action: ${validationResult.errors.map(e => e.message).join(', ')}`,
-        400
+        `Invalid action: ${validationResult.errors.map((e) => e.message).join(', ')}`,
+        400,
       );
     }
 
@@ -115,7 +115,7 @@ export class ContextActionHandlers {
       throw new AppError('Not authenticated', 401);
     }
     return {
-      sessionId: req.user.sessionId || req.user.userId,
+      sessionId: req.user.sessionId ?? req.user.userId,
       contextId,
       userId: req.user.userId,
       metadata: {
@@ -132,7 +132,7 @@ export class ContextActionHandlers {
   private async updateContextAndLog(
     contextId: string,
     req: Request,
-    browserAction: BrowserAction
+    browserAction: BrowserAction,
   ): Promise<void> {
     if (!req.user) {
       throw new AppError('Not authenticated', 401);
@@ -149,7 +149,7 @@ export class ContextActionHandlers {
     });
 
     logger.info('Executing browser action', {
-      sessionId: req.user.sessionId || req.user.userId,
+      sessionId: req.user.sessionId ?? req.user.userId,
       contextId,
       userId: req.user.userId,
       actionType: browserAction.type,
@@ -160,10 +160,7 @@ export class ContextActionHandlers {
   /**
    * Format action result for response
    */
-  private formatActionResult(
-    result: ActionResult,
-    contextId: string
-  ): Record<string, unknown> {
+  private formatActionResult(result: ActionResult, contextId: string): Record<string, unknown> {
     return {
       success: result.success,
       data: {

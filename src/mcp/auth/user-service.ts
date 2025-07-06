@@ -113,7 +113,7 @@ class UserService {
 
     // Parse salt and hash from stored value
     const [salt, hash] = storedHash.split(':');
-    if (!salt || !hash) {
+    if (salt === undefined || hash === undefined) {
       return false;
     }
 

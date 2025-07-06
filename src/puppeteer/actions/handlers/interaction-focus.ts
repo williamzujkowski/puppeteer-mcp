@@ -24,10 +24,10 @@ export async function handleHover(
   selector: string,
   page: Page,
   context: ActionContext,
-  timeout?: number
+  timeout?: number,
 ): Promise<ActionResult> {
   const startTime = Date.now();
-  
+
   try {
     logger.info('Executing hover action', {
       sessionId: context.sessionId,
@@ -68,7 +68,6 @@ export async function handleHover(
         originalSelector: selector,
       },
     };
-
   } catch (error) {
     const duration = Date.now() - startTime;
     const errorMessage = error instanceof Error ? error.message : 'Unknown hover error';
@@ -107,10 +106,10 @@ export async function handleFocus(
   selector: string,
   page: Page,
   context: ActionContext,
-  timeout?: number
+  timeout?: number,
 ): Promise<ActionResult> {
   const startTime = Date.now();
-  
+
   try {
     logger.info('Executing focus action', {
       sessionId: context.sessionId,
@@ -151,7 +150,6 @@ export async function handleFocus(
         originalSelector: selector,
       },
     };
-
   } catch (error) {
     const duration = Date.now() - startTime;
     const errorMessage = error instanceof Error ? error.message : 'Unknown focus error';
@@ -190,10 +188,10 @@ export async function handleBlur(
   selector: string,
   page: Page,
   context: ActionContext,
-  timeout?: number
+  timeout?: number,
 ): Promise<ActionResult> {
   const startTime = Date.now();
-  
+
   try {
     logger.info('Executing blur action', {
       sessionId: context.sessionId,
@@ -215,9 +213,10 @@ export async function handleBlur(
       throw new Error(`Element not found: ${sanitizedSelector}`);
     }
 
-    await element.evaluate((el: any) => {
-      if (el.blur) {
-        el.blur();
+    await element.evaluate((el) => {
+      const element = el as unknown as { blur?: () => void };
+      if (element.blur) {
+        element.blur();
       }
     });
 
@@ -242,7 +241,6 @@ export async function handleBlur(
         originalSelector: selector,
       },
     };
-
   } catch (error) {
     const duration = Date.now() - startTime;
     const errorMessage = error instanceof Error ? error.message : 'Unknown blur error';

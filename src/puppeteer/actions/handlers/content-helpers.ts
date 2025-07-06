@@ -18,7 +18,9 @@ const logger = createLogger('puppeteer:content-helpers');
 /**
  * Build screenshot options from action
  */
-export function buildScreenshotOptions(action: ScreenshotAction): Parameters<Page['screenshot']>[0] {
+export function buildScreenshotOptions(
+  action: ScreenshotAction,
+): Parameters<Page['screenshot']>[0] {
   const options: Parameters<Page['screenshot']>[0] = {
     type: action.format ?? 'png',
     fullPage: action.fullPage ?? false,
@@ -26,7 +28,11 @@ export function buildScreenshotOptions(action: ScreenshotAction): Parameters<Pag
   };
 
   // Add quality for JPEG/WebP
-  if ((action.format === 'jpeg' || action.format === 'webp') && action.quality !== null && action.quality !== undefined && action.quality > 0) {
+  if (
+    (action.format === 'jpeg' || action.format === 'webp') &&
+    action.quality !== null &&
+    action.quality !== undefined
+  ) {
     const qualityOptions = options as { quality?: number };
     qualityOptions.quality = Math.max(1, Math.min(100, action.quality));
   }
@@ -37,11 +43,13 @@ export function buildScreenshotOptions(action: ScreenshotAction): Parameters<Pag
 /**
  * Build PDF margin options
  */
-export function buildPdfMargins(margin?: PDFAction['margin']): NonNullable<Parameters<Page['pdf']>[0]>['margin'] {
-  if (margin === null || margin === undefined) {
+export function buildPdfMargins(
+  margin?: PDFAction['margin'],
+): NonNullable<Parameters<Page['pdf']>[0]>['margin'] {
+  if (!margin) {
     return undefined;
   }
-  
+
   return {
     top: margin.top ?? '0.5in',
     bottom: margin.bottom ?? '0.5in',
@@ -71,16 +79,16 @@ function buildBasePdfOptions(action: PDFAction): NonNullable<Parameters<Page['pd
  */
 function addOptionalPdfProperties(
   pdfOptions: NonNullable<Parameters<Page['pdf']>[0]>,
-  action: PDFAction
+  action: PDFAction,
 ): void {
   // Add page ranges if specified
-  if (action.pageRanges !== null && action.pageRanges !== undefined && action.pageRanges !== '') {
+  if (action.pageRanges) {
     pdfOptions.pageRanges = action.pageRanges;
   }
 
   // Add margins if specified
   const margins = buildPdfMargins(action.margin);
-  if (margins !== null && margins !== undefined) {
+  if (margins) {
     pdfOptions.margin = margins;
   }
 }
@@ -101,13 +109,13 @@ export async function captureElementScreenshot(
   action: ScreenshotAction,
   page: Page,
   screenshotOptions: Parameters<Page['screenshot']>[0],
-  context: ActionContext
+  context: ActionContext,
 ): Promise<Omit<ActionResult<Buffer>, 'duration' | 'timestamp'>> {
-  if (action.selector === null || action.selector === undefined || action.selector === '') {
+  if (!action.selector) {
     throw new Error('Selector is required for element screenshot');
   }
   const sanitizedSelector = sanitizeSelector(action.selector);
-  
+
   // Wait for element to be visible
   await page.waitForSelector(sanitizedSelector, {
     timeout: action.timeout ?? 30000,
@@ -115,12 +123,12 @@ export async function captureElementScreenshot(
   });
 
   const element = await page.$(sanitizedSelector);
-  if (element === null || element === undefined) {
+  if (!element) {
     throw new Error(`Element not found: ${sanitizedSelector}`);
   }
 
   // Take element screenshot
-  const screenshot = await element.screenshot(screenshotOptions) as Buffer;
+  const screenshot = (await element.screenshot(screenshotOptions)) as Buffer;
 
   logger.info('Element screenshot action completed', {
     sessionId: context.sessionId,
@@ -151,9 +159,9 @@ export async function capturePageScreenshot(
   action: ScreenshotAction,
   page: Page,
   screenshotOptions: Parameters<Page['screenshot']>[0],
-  context: ActionContext
+  context: ActionContext,
 ): Promise<Omit<ActionResult<Buffer>, 'duration' | 'timestamp'>> {
-  const screenshot = await page.screenshot(screenshotOptions) as Buffer;
+  const screenshot = (await page.screenshot(screenshotOptions)) as Buffer;
 
   logger.info('Page screenshot action completed', {
     sessionId: context.sessionId,
