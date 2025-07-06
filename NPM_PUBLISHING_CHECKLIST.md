@@ -6,7 +6,7 @@
    - ✅ Added `bin` entry for CLI usage (`puppeteer-mcp`)
    - ✅ Added `files` field to include only necessary files
    - ✅ Added repository, homepage, and bugs URLs
-   - ✅ Updated version to 1.0.0
+   - ✅ Updated version to 1.0.10
    - ✅ Added author information
 
 2. **File Management**

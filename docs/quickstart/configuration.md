@@ -1,7 +1,7 @@
 # Configuration Guide
 
-**Version**: 1.0.0  
-**Last Updated**: 2025-01-05  
+**Version**: 1.0.10  
+**Last Updated**: 2025-01-06  
 **Reading Time**: 8 minutes
 
 ## Overview

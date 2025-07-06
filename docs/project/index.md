@@ -4,7 +4,7 @@ Stay informed about the Puppeteer MCP project's evolution, current status, and f
 
 ## Project Documentation
 
-### [Changelog](changelog.md)
+### [Changelog](../../CHANGELOG.md)
 
 Track all changes and releases:
 

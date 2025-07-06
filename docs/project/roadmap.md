@@ -1,6 +1,6 @@
 # Project Roadmap
 
-**Version:** 1.0.0  
+**Version:** 1.0.10  
 **Last Updated:** 2025-01-07  
 **Status:** Active
 

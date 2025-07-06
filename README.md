@@ -1,7 +1,7 @@
 # Puppeteer MCP
 
-**Version**: 1.0.8  
-**Last Updated**: 2025-01-05  
+**Version**: 1.0.10  
+**Last Updated**: 2025-01-06  
 **Status**: Beta - Seeking Production Feedback  
 **Type**: Browser Automation Platform  
 **Audience**: Developers, AI Engineers, DevOps
@@ -179,7 +179,7 @@ RATE_LIMIT_MAX_REQUESTS=100
 - **[Getting Started](docs/guides/getting-started.md)** - Quick setup guide
 - **[API Integration](docs/guides/api-integration.md)** - Working with all protocols
 - **[Browser Automation](docs/guides/browser-automation.md)** - Puppeteer actions guide
-- **[Security Guide](docs/security.md)** - NIST compliance and authentication
+- **[Security Guide](SECURITY.md)** - NIST compliance and authentication
 - **[Deployment Guide](docs/guides/deployment.md)** - Production deployment
 
 ### API References
@@ -214,7 +214,7 @@ requirements:
 - **🐛 Report Issues**: [GitHub Issues](https://github.com/williamzujkowski/puppeteer-mcp/issues)
 - **💡 Feature Requests**: Share what functionality you need
 - **📊 Performance**: Report any performance or stability concerns
-- **🔒 Security**: See [Security Guide](docs/security.md) for reporting vulnerabilities
+- **🔒 Security**: See [Security Guide](SECURITY.md) for reporting vulnerabilities
 - **📝 Documentation**: Let us know what needs clarification
 
 Your feedback is crucial for making this project truly production-ready!
@@ -248,7 +248,7 @@ For production deployment, see [Deployment Guide](docs/guides/deployment.md).
 - JWT + API key authentication
 - Input validation on all endpoints
 
-See [Security Guide](docs/security.md) for details.
+See [Security Guide](SECURITY.md) for details.
 
 ## 📄 License
 
@@ -258,7 +258,7 @@ Apache License 2.0 - see [LICENSE](LICENSE) file for details.
 
 - **npm Package**: [npmjs.com/package/puppeteer-mcp](https://www.npmjs.com/package/puppeteer-mcp)
 - **Issues**: [GitHub Issues](https://github.com/williamzujkowski/puppeteer-mcp/issues)
-- **Security**: See [Security Guide](docs/security.md) for reporting vulnerabilities
+- **Security**: See [Security Guide](SECURITY.md) for reporting vulnerabilities
 
 ---
 

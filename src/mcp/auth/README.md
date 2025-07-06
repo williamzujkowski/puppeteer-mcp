@@ -1,6 +1,7 @@
 # MCP Authentication Bridge
 
-The MCP Authentication Bridge provides unified authentication for MCP (Model Context Protocol) requests across different authentication methods.
+The MCP Authentication Bridge provides unified authentication for MCP (Model Context Protocol)
+requests across different authentication methods.
 
 ## Features
 
@@ -20,19 +21,19 @@ import { mcpAuthBridge } from './mcp/auth/index.js';
 // JWT Authentication
 const jwtAuth = await mcpAuthBridge.authenticate({
   type: 'jwt',
-  credentials: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
+  credentials: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
 });
 
 // API Key Authentication
 const apiKeyAuth = await mcpAuthBridge.authenticate({
   type: 'apikey',
-  credentials: 'mcp_1234567890abcdef...'
+  credentials: 'mcp_1234567890abcdef...',
 });
 
 // Session Authentication
 const sessionAuth = await mcpAuthBridge.authenticate({
   type: 'session',
-  credentials: 'session-uuid-here'
+  credentials: 'session-uuid-here',
 });
 ```
 
@@ -44,15 +45,15 @@ The bridge can automatically extract credentials from various sources:
 // From HTTP headers
 const creds = mcpAuthBridge.extractCredentials({
   headers: {
-    'authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
-  }
+    authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+  },
 });
 
 // From query parameters
 const creds = mcpAuthBridge.extractCredentials({
   query: {
-    apikey: 'mcp_1234567890abcdef...'
-  }
+    apikey: 'mcp_1234567890abcdef...',
+  },
 });
 
 // From WebSocket metadata
@@ -60,9 +61,9 @@ const creds = mcpAuthBridge.extractCredentials({
   metadata: {
     auth: {
       type: 'jwt',
-      credentials: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
-    }
-  }
+      credentials: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+    },
+  },
 });
 ```
 
@@ -85,6 +86,7 @@ await mcpAuthBridge.requireToolPermission(authContext, 'navigate');
 The following permissions are mapped to MCP tools:
 
 ### Browser Control Tools
+
 - `navigate` → `context:execute`
 - `click` → `context:execute`
 - `type` → `context:execute`
@@ -93,6 +95,7 @@ The following permissions are mapped to MCP tools:
 - `evaluate` → `context:execute`
 
 ### Page Information Tools
+
 - `screenshot` → `context:read`
 - `getTitle` → `context:read`
 - `getUrl` → `context:read`
@@ -100,11 +103,13 @@ The following permissions are mapped to MCP tools:
 - `getCookies` → `context:read`
 
 ### Session Management Tools
+
 - `createSession` → `session:create`
 - `closeSession` → `session:delete`
 - `listSessions` → `session:list`
 
 ### Context Management Tools
+
 - `createContext` → `context:create`
 - `getContext` → `context:read`
 - `updateContext` → `context:update`
@@ -119,7 +124,7 @@ import { mcpAuthBridge } from './mcp/auth/index.js';
 
 const server = new MCPServer({
   name: 'puppeteer-mcp',
-  version: '1.0.0'
+  version: '1.0.10',
 });
 
 // Add authentication to tool handlers
@@ -127,15 +132,15 @@ server.setRequestHandler('navigate', async (request, context) => {
   // Extract credentials from request context
   const credentials = mcpAuthBridge.extractCredentials({
     headers: context.headers,
-    metadata: context.metadata
+    metadata: context.metadata,
   });
-  
+
   // Authenticate the request
   const authContext = await mcpAuthBridge.authenticate(credentials);
-  
+
   // Check permissions
   await mcpAuthBridge.requireToolPermission(authContext, 'navigate');
-  
+
   // Tool implementation...
 });
 ```
@@ -150,6 +155,7 @@ server.setRequestHandler('navigate', async (request, context) => {
 ## Error Handling
 
 The bridge throws `AppError` with appropriate HTTP status codes:
+
 - `401`: Authentication failed (invalid credentials, expired tokens)
 - `403`: Authorization failed (insufficient permissions)
 - `400`: Invalid authentication type or malformed request

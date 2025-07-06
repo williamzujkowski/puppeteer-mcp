@@ -1,6 +1,6 @@
 # Security Policy
 
-**Version:** 1.0.0  
+**Version:** 1.0.10  
 **Last Updated:** 2025-01-07  
 **Status:** Active
 
@@ -28,7 +28,7 @@ We appreciate security researchers who help us maintain platform security. Pleas
 disclosure practices:
 
 1. **Do NOT** create public GitHub issues for security vulnerabilities
-2. **Email**: Send details to security@example.com
+2. **Email**: Send details to williamzujkowski@gmail.com
 3. **Encrypt**: Use our PGP key (available below) for sensitive information
 4. **Timeline**: We aim to respond within 48 hours
 

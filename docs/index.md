@@ -1,7 +1,7 @@
 # Puppeteer MCP Documentation
 
-**Version:** 1.0.1  
-**Last Updated:** 2025-01-05  
+**Version:** 1.0.10  
+**Last Updated:** 2025-01-06  
 **Status:** Beta - Seeking Production Feedback  
 **Type:** Documentation Hub  
 **Audience:** Developers, Users, Contributors

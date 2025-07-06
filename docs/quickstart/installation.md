@@ -1,7 +1,7 @@
 # Installation Guide
 
-**Version**: 1.0.0  
-**Last Updated**: 2025-01-05  
+**Version**: 1.0.10  
+**Last Updated**: 2025-01-06  
 **Reading Time**: 5 minutes
 
 ## Prerequisites
@@ -216,7 +216,7 @@ Expected response:
 ```json
 {
   "status": "healthy",
-  "version": "1.0.0",
+  "version": "1.0.10",
   "uptime": 12.345,
   "timestamp": "2025-01-05T12:00:00.000Z"
 }
