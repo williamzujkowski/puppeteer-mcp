@@ -8,54 +8,55 @@ export default tseslint.config(
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,
-  
+
   // Global ignores
   {
     ignores: [
       // Dependencies
       'node_modules/**',
-      
+
       // Build output
       'dist/**',
       'build/**',
       'coverage/**',
       '*.tsbuildinfo',
-      
+
       // Generated files
       'src/grpc/generated/**',
       '**/*.d.ts',
-      
+
       // IDE
       '.vscode/**',
       '.idea/**',
-      
+
       // Environment
       '.env',
       '.env.*',
-      
+
       // Logs
       '*.log',
       'logs/**',
-      
+
       // OS files
       '.DS_Store',
       'Thumbs.db',
-      
+
       // Test coverage
       '.nyc_output/**',
-      
+
       // Temporary files
       'tmp/**',
       'temp/**',
       '*.tmp',
-      
+
       // Documentation build
       'docs/.vitepress/dist/**',
       'docs/.vitepress/cache/**',
-      
+      'starlight-docs/**',
+
       // Scripts (JavaScript files)
       'scripts/*.js',
-      
+
       // Config files that should be ignored
       '*.js',
       '*.mjs',
@@ -63,7 +64,7 @@ export default tseslint.config(
       '!eslint.config.js', // Except this config file
     ],
   },
-  
+
   // TypeScript parser options
   {
     languageOptions: {
@@ -73,7 +74,7 @@ export default tseslint.config(
       },
     },
   },
-  
+
   // Main configuration for TypeScript files
   {
     files: ['src/**/*.ts', 'tests/**/*.ts'],
@@ -82,19 +83,25 @@ export default tseslint.config(
     },
     rules: {
       // TypeScript Strict Rules (CS:TS Standards)
-      '@typescript-eslint/explicit-function-return-type': ['warn', {
-        allowExpressions: true,
-        allowTypedFunctionExpressions: true,
-      }],
+      '@typescript-eslint/explicit-function-return-type': [
+        'warn',
+        {
+          allowExpressions: true,
+          allowTypedFunctionExpressions: true,
+        },
+      ],
       '@typescript-eslint/explicit-module-boundary-types': 'off',
       '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
       '@typescript-eslint/no-non-null-assertion': 'error',
-      '@typescript-eslint/strict-boolean-expressions': ['warn', {
-        allowString: true,
-        allowNumber: true,
-        allowNullableObject: true,
-      }],
+      '@typescript-eslint/strict-boolean-expressions': [
+        'warn',
+        {
+          allowString: true,
+          allowNumber: true,
+          allowNullableObject: true,
+        },
+      ],
       '@typescript-eslint/no-floating-promises': 'error',
       '@typescript-eslint/no-misused-promises': 'error',
       '@typescript-eslint/await-thenable': 'error',
@@ -107,7 +114,7 @@ export default tseslint.config(
       '@typescript-eslint/no-unsafe-argument': 'off',
       '@typescript-eslint/no-require-imports': 'off', // Allow require imports for dynamic loading
       '@typescript-eslint/no-base-to-string': 'warn', // Warn about object-to-string conversions
-      
+
       // Security Rules (SEC:API Standards)
       'security/detect-object-injection': 'error',
       'security/detect-non-literal-require': 'error',
@@ -119,14 +126,14 @@ export default tseslint.config(
       'security/detect-disable-mustache-escape': 'error',
       'security/detect-no-csrf-before-method-override': 'error',
       'security/detect-possible-timing-attacks': 'warn',
-      
+
       // General Best Practices
       'no-console': ['error', { allow: ['warn', 'error'] }],
       'no-debugger': 'error',
       'no-var': 'error',
       'prefer-const': 'error',
-      'eqeqeq': ['error', 'always'],
-      'curly': ['error', 'all'],
+      eqeqeq: ['error', 'always'],
+      curly: ['error', 'all'],
       'no-throw-literal': 'error',
       'prefer-promise-reject-errors': 'error',
       'no-return-await': 'off', // Disabled in favor of @typescript-eslint/return-await
@@ -135,16 +142,16 @@ export default tseslint.config(
       '@typescript-eslint/require-await': 'error',
       'no-async-promise-executor': 'error',
       'no-promise-executor-return': 'error',
-      
+
       // Code Quality
-      'complexity': ['error', 10],
+      complexity: ['error', 10],
       'max-lines': ['error', { max: 300, skipBlankLines: true, skipComments: true }],
       'max-lines-per-function': ['warn', { max: 100, skipBlankLines: true, skipComments: true }],
       'max-depth': ['error', 4],
       'max-params': ['error', 4],
     },
   },
-  
+
   // Test file overrides
   {
     files: ['**/*.test.ts', '**/*.spec.ts'],
@@ -154,7 +161,7 @@ export default tseslint.config(
       'max-lines': 'off',
     },
   },
-  
+
   // Apply prettier config last to disable conflicting rules
   prettierConfig,
 );
