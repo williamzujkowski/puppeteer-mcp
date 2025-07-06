@@ -82,7 +82,8 @@ Then restart Claude Desktop.
 JWT_SECRET=$(openssl rand -hex 32) TLS_ENABLED=false puppeteer-mcp
 ```
 
-For detailed setup instructions, see [Getting Started Guide](docs/guides/getting-started.md).
+For detailed setup instructions, see
+[Getting Started Guide](https://williamzujkowski.github.io/puppeteer-mcp/quickstart/).
 
 ## 🎯 Key Features
 
@@ -146,7 +147,8 @@ Once connected to Claude Desktop, you can use browser automation tools:
 - `create-context` - Create new browser contexts
 - `list-contexts` - List active browser contexts
 
-For detailed MCP usage examples, see [MCP Usage Guide](docs/guides/mcp-usage-examples.md).
+For detailed MCP usage examples, see
+[MCP Usage Guide](https://williamzujkowski.github.io/puppeteer-mcp/guides/mcp-usage-examples).
 
 ### Configuration
 
@@ -174,21 +176,28 @@ RATE_LIMIT_MAX_REQUESTS=100
 
 ## 📚 Documentation
 
+Full documentation is available at
+[https://williamzujkowski.github.io/puppeteer-mcp](https://williamzujkowski.github.io/puppeteer-mcp)
+
 ### Quick Links
 
-- **[Getting Started](docs/guides/getting-started.md)** - Quick setup guide
-- **[API Integration](docs/guides/api-integration.md)** - Working with all protocols
-- **[Browser Automation](docs/guides/browser-automation.md)** - Puppeteer actions guide
+- **[Getting Started](https://williamzujkowski.github.io/puppeteer-mcp/quickstart/)** - Quick setup
+  guide
+- **[API Integration](https://williamzujkowski.github.io/puppeteer-mcp/guides/api-integration)** -
+  Working with all protocols
+- **[Browser Automation](https://williamzujkowski.github.io/puppeteer-mcp/guides/browser-automation)** -
+  Puppeteer actions guide
 - **[Security Guide](SECURITY.md)** - NIST compliance and authentication
-- **[Deployment Guide](docs/guides/deployment.md)** - Production deployment
+- **[Deployment Guide](https://williamzujkowski.github.io/puppeteer-mcp/deployment/)** - Production
+  deployment
 
 ### API References
 
-- [REST API](docs/reference/rest-api.md)
-- [gRPC Services](docs/reference/grpc-api.md)
-- [WebSocket Protocol](docs/reference/websocket-api.md)
-- [MCP Tools](docs/reference/mcp-tools.md)
-- [Puppeteer Actions](docs/reference/puppeteer-actions.md)
+- [REST API](https://williamzujkowski.github.io/puppeteer-mcp/reference/rest-api)
+- [gRPC Services](https://williamzujkowski.github.io/puppeteer-mcp/reference/grpc-api)
+- [WebSocket Protocol](https://williamzujkowski.github.io/puppeteer-mcp/reference/websocket-api)
+- [MCP Tools](https://williamzujkowski.github.io/puppeteer-mcp/reference/mcp-tools)
+- [Puppeteer Actions](https://williamzujkowski.github.io/puppeteer-mcp/reference/puppeteer-actions)
 
 ## 🔧 Development
 
@@ -204,7 +213,8 @@ npm run lint        # Linting
 npm run check       # Run all checks
 ```
 
-For detailed development workflow, see [Development Guide](docs/development/workflow.md).
+For detailed development workflow, see
+[Development Guide](https://williamzujkowski.github.io/puppeteer-mcp/development/workflow).
 
 ## 📣 Feedback Requested
 
@@ -221,7 +231,8 @@ Your feedback is crucial for making this project truly production-ready!
 
 ## 🤝 Contributing
 
-We welcome contributions! Please see our [Contributing Guide](docs/contributing.md).
+We welcome contributions! Please see our
+[Contributing Guide](https://williamzujkowski.github.io/puppeteer-mcp/contributing/).
 
 This project follows [William Zujkowski's Standards](https://github.com/williamzujkowski/standards):
 
@@ -239,7 +250,8 @@ docker build -t puppeteer-mcp .
 docker run -p 3000:3000 -p 50051:50051 -e JWT_SECRET=your-secret puppeteer-mcp
 ```
 
-For production deployment, see [Deployment Guide](docs/guides/deployment.md).
+For production deployment, see
+[Deployment Guide](https://williamzujkowski.github.io/puppeteer-mcp/deployment/).
 
 ## 🔒 Security
 
