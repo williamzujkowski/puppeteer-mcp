@@ -4,6 +4,8 @@
  */
 
 import { Router, Request, Response, NextFunction } from 'express';
+import type { BrowserPool } from '../puppeteer/pool/browser-pool.js';
+
 // Health check response type
 export interface HealthResponse {
   status: 'ok';
@@ -13,61 +15,93 @@ export interface HealthResponse {
   version: string;
 }
 
-// Create router
-export const healthRouter = Router();
+// Extended health response with pool metrics
+export interface ExtendedHealthResponse extends HealthResponse {
+  browserPool?: {
+    total: number;
+    active: number;
+    idle: number;
+    utilization: number;
+  };
+}
 
-// Middleware to restrict to GET methods only
-const restrictToGet = (req: Request, res: Response, next: NextFunction): void => {
-  if (req.method !== 'GET') {
-    res.status(405).json({ error: 'Method Not Allowed' });
-    return;
-  }
-  next();
-};
+// Create router factory
+export function createHealthRouter(browserPool?: BrowserPool): Router {
+  const router = Router();
 
-// Apply method restriction to all routes
-healthRouter.all('/*splat', restrictToGet);
-
-/**
- * GET /health
- * Basic health check endpoint
- */
-healthRouter.get('/', (_req: Request, res: Response) => {
-  const response: HealthResponse = {
-    status: 'ok',
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
-    environment: process.env.NODE_ENV ?? 'development',
-    version: process.env.npm_package_version ?? '0.1.0',
+  // Middleware to restrict to GET methods only
+  const restrictToGet = (req: Request, res: Response, next: NextFunction): void => {
+    if (req.method !== 'GET') {
+      res.status(405).json({ error: 'Method Not Allowed' });
+      return;
+    }
+    next();
   };
 
-  res.json(response);
-});
+  // Apply method restriction to all routes
+  router.all('/*splat', restrictToGet);
 
-/**
- * GET /health/live
- * Kubernetes liveness probe endpoint
- */
-healthRouter.get('/live', (_req: Request, res: Response) => {
-  res.status(200).json({ status: 'alive' });
-});
+  /**
+   * GET /health
+   * Basic health check endpoint
+   */
+  router.get('/', (_req: Request, res: Response) => {
+    const response: ExtendedHealthResponse = {
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+      environment: process.env.NODE_ENV ?? 'development',
+      version: process.env.npm_package_version ?? '0.1.0',
+    };
 
-/**
- * GET /health/ready
- * Kubernetes readiness probe endpoint
- */
-healthRouter.get('/ready', (_req: Request, res: Response) => {
-  // Add checks for external dependencies (database, redis, etc.)
-  const checks = {
-    server: true,
-    // database: await checkDatabase(),
-    // redis: await checkRedis(),
-  };
+    // Add browser pool metrics if available
+    if (browserPool) {
+      try {
+        const metrics = browserPool.getMetrics();
+        response.browserPool = {
+          total: metrics.totalBrowsers,
+          active: metrics.activeBrowsers,
+          idle: metrics.idleBrowsers,
+          utilization: metrics.utilizationPercentage,
+        };
+      } catch {
+        // Ignore errors in health check
+      }
+    }
 
-  const allHealthy = Object.values(checks).every((check) => check === true);
-
-  res.status(allHealthy ? 200 : 503).json({
-    status: allHealthy ? 'ready' : 'not ready',
-    checks,
+    res.json(response);
   });
-});
+
+  /**
+   * GET /health/live
+   * Kubernetes liveness probe endpoint
+   */
+  router.get('/live', (_req: Request, res: Response) => {
+    res.status(200).json({ status: 'alive' });
+  });
+
+  /**
+   * GET /health/ready
+   * Kubernetes readiness probe endpoint
+   */
+  router.get('/ready', (_req: Request, res: Response) => {
+    // Add checks for external dependencies (database, redis, etc.)
+    const checks = {
+      server: true,
+      // database: await checkDatabase(),
+      // redis: await checkRedis(),
+    };
+
+    const allHealthy = Object.values(checks).every((check) => check === true);
+
+    res.status(allHealthy ? 200 : 503).json({
+      status: allHealthy ? 'ready' : 'not ready',
+      checks,
+    });
+  });
+
+  return router;
+}
+
+// Export for backward compatibility
+export const healthRouter = createHealthRouter();

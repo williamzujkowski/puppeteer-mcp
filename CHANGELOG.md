@@ -5,6 +5,34 @@ All notable changes to the Puppeteer MCP platform are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.14] - 2025-01-07
+
+### Added
+- Comprehensive performance metrics collection for browser pool operations
+- New REST API endpoints for metrics: `/api/v1/metrics/browser-pool`
+- Time-series data collection for utilization, errors, and queue metrics
+- Resource monitoring (CPU, memory) for browser processes
+- Enhanced health checks with browser pool metrics
+
+### Fixed
+- Improved test cleanup to prevent "worker process failed to exit gracefully" warnings
+- Added proper afterAll hooks and browser pool cleanup in test suites
+- Fixed timer and resource cleanup in tests
+
+### Changed
+- Updated critical dependencies:
+  - @modelcontextprotocol/sdk: 1.13.3 → 1.15.0
+  - puppeteer & puppeteer-core: 24.11.2 → 24.12.0
+  - zod: 3.22.4 → 3.25.75
+- Reduced ESLint warnings from 87 to 43 by removing 'any' types
+- Updated Docker configuration to use Node 22 LTS instead of Node 24
+- Added .nvmrc file to specify Node 22 for development
+
+### Improved
+- Better type safety across the codebase
+- Enhanced error handling and logging
+- More robust browser pool health monitoring
+
 ## [1.0.10] - 2025-01-06
 
 ### Changed
@@ -229,7 +257,7 @@ This marks the first production-ready release of the Puppeteer MCP platform, a c
 
 ## Migration Guide
 
-For users upgrading to v1.0.13:
+For users upgrading to v1.0.14:
 
 1. **New Dependencies**: Puppeteer is now required (`npm install`)
 2. **Configuration**: Add browser-specific environment variables

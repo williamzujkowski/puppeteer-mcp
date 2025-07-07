@@ -1,6 +1,6 @@
 # Testing Documentation Index
 
-**Project**: puppeteer-mcp v1.0.13  
+**Project**: puppeteer-mcp v1.0.14  
 **Documentation Date**: July 6, 2025  
 **Purpose**: Complete index of all testing documentation and artifacts
 

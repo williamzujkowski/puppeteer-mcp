@@ -13,7 +13,7 @@ description: 'Version 1.0.13 - Project roadmap and future plans'
 This roadmap outlines the future development plans for Puppeteer MCP, focusing on enhancing
 capabilities, improving performance, and expanding integration options.
 
-## Current Status (v1.0.13) ✅
+## Current Status (v1.0.14) ✅
 
 - **Production Ready**: Zero TypeScript errors, comprehensive testing
 - **Multi-Protocol Support**: REST, gRPC, WebSocket, and MCP

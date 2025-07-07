@@ -1,6 +1,6 @@
 # Maintenance Recommendations for puppeteer-mcp
 
-**Project**: puppeteer-mcp v1.0.13  
+**Project**: puppeteer-mcp v1.0.14  
 **Documentation Date**: July 6, 2025  
 **Purpose**: Comprehensive maintenance and operational recommendations
 

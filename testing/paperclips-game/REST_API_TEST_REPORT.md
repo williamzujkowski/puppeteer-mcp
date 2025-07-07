@@ -2,7 +2,7 @@
 
 **Date**: 2025-07-05  
 **Test Duration**: Multiple test cycles  
-**Server Version**: puppeteer-mcp v1.0.13  
+**Server Version**: puppeteer-mcp v1.0.14  
 **Test Environment**: Development (localhost:3000)
 
 ## Executive Summary

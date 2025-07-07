@@ -225,7 +225,7 @@ The puppeteer-mcp browser automation platform demonstrates:
 - **OS**: Linux 6.11.0-26-generic
 - **Node.js**: v23.9.0
 - **Browser**: Chromium (headless)
-- **Platform**: puppeteer-mcp v1.0.13
+- **Platform**: puppeteer-mcp v1.0.14
 
 ---
 
