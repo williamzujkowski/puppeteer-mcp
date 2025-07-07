@@ -5,7 +5,7 @@
  * Tests all major functionality and identifies issues
  */
 
-import fetch from 'node-fetch';
+// Using native fetch (Node.js 18+)
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 
@@ -22,7 +22,7 @@ class PuppeteerMCPDiagnostic {
     const timestamp = new Date().toISOString();
     const prefix = type === 'error' ? '❌' : type === 'success' ? '✅' : 'ℹ️';
     console.log(`${prefix} [${timestamp}] ${message}`);
-    
+
     if (type === 'error') {
       this.issues.push(message);
     } else if (type === 'success') {
@@ -74,7 +74,7 @@ class PuppeteerMCPDiagnostic {
         type: 'access',
       },
       JWT_SECRET,
-      { expiresIn: '1h' }
+      { expiresIn: '1h' },
     );
   }
 
@@ -108,29 +108,41 @@ class PuppeteerMCPDiagnostic {
 
     // Test 2: Invalid JWT
     const invalidJWT = await this.makeRequest('/api/v1/contexts', 'GET', null, {
-      'Authorization': 'Bearer invalid-token'
+      Authorization: 'Bearer invalid-token',
     });
-    this.log(`Invalid JWT response: ${invalidJWT.status} - ${JSON.stringify(invalidJWT.data)}`, 'info');
+    this.log(
+      `Invalid JWT response: ${invalidJWT.status} - ${JSON.stringify(invalidJWT.data)}`,
+      'info',
+    );
 
     // Test 3: Valid JWT structure but wrong secret
     const wrongSecret = jwt.sign({ sub: 'test' }, 'wrong-secret');
     const wrongSecretResponse = await this.makeRequest('/api/v1/contexts', 'GET', null, {
-      'Authorization': `Bearer ${wrongSecret}`
+      Authorization: `Bearer ${wrongSecret}`,
     });
-    this.log(`Wrong secret response: ${wrongSecretResponse.status} - ${JSON.stringify(wrongSecretResponse.data)}`, 'info');
+    this.log(
+      `Wrong secret response: ${wrongSecretResponse.status} - ${JSON.stringify(wrongSecretResponse.data)}`,
+      'info',
+    );
 
     // Test 4: Correct secret but missing session
     const missingSession = this.createTestToken();
     const missingSessionResponse = await this.makeRequest('/api/v1/contexts', 'GET', null, {
-      'Authorization': `Bearer ${missingSession}`
+      Authorization: `Bearer ${missingSession}`,
     });
-    this.log(`Missing session response: ${missingSessionResponse.status} - ${JSON.stringify(missingSessionResponse.data)}`, 'info');
+    this.log(
+      `Missing session response: ${missingSessionResponse.status} - ${JSON.stringify(missingSessionResponse.data)}`,
+      'info',
+    );
 
     // Test 5: API Key authentication
     const apiKeyResponse = await this.makeRequest('/api/v1/contexts', 'GET', null, {
-      'X-API-Key': 'test-api-key-that-doesnt-exist'
+      'X-API-Key': 'test-api-key-that-doesnt-exist',
     });
-    this.log(`API Key response: ${apiKeyResponse.status} - ${JSON.stringify(apiKeyResponse.data)}`, 'info');
+    this.log(
+      `API Key response: ${apiKeyResponse.status} - ${JSON.stringify(apiKeyResponse.data)}`,
+      'info',
+    );
   }
 
   async testSessionManagement() {
@@ -138,30 +150,34 @@ class PuppeteerMCPDiagnostic {
 
     // Try to list sessions
     const listSessions = await this.makeRequest('/api/v1/sessions');
-    this.log(`List sessions: ${listSessions.status} - ${JSON.stringify(listSessions.data)}`, 'info');
+    this.log(
+      `List sessions: ${listSessions.status} - ${JSON.stringify(listSessions.data)}`,
+      'info',
+    );
 
     // Try to create a session
     const createSession = await this.makeRequest('/api/v1/sessions', 'POST', {
       userId: 'test-user',
       username: 'test-user',
-      roles: ['user']
+      roles: ['user'],
     });
-    this.log(`Create session: ${createSession.status} - ${JSON.stringify(createSession.data)}`, 'info');
+    this.log(
+      `Create session: ${createSession.status} - ${JSON.stringify(createSession.data)}`,
+      'info',
+    );
   }
 
   async testAvailableEndpoints() {
     this.log('Testing available API endpoints...', 'info');
 
-    const endpoints = [
-      '/api/v1',
-      '/api/v1/sessions',
-      '/api/v1/contexts',
-      '/api/v1/api-keys',
-    ];
+    const endpoints = ['/api/v1', '/api/v1/sessions', '/api/v1/contexts', '/api/v1/api-keys'];
 
     for (const endpoint of endpoints) {
       const response = await this.makeRequest(endpoint);
-      this.log(`${endpoint}: ${response.status} - ${JSON.stringify(response.data).substring(0, 100)}...`, 'info');
+      this.log(
+        `${endpoint}: ${response.status} - ${JSON.stringify(response.data).substring(0, 100)}...`,
+        'info',
+      );
     }
   }
 
@@ -174,12 +190,15 @@ class PuppeteerMCPDiagnostic {
 
     // Check if we can hit any MCP-related HTTP endpoints
     const mcpHealth = await this.makeRequest('/mcp/health');
-    this.log(`MCP health endpoint: ${mcpHealth.status} - ${JSON.stringify(mcpHealth.data)}`, 'info');
+    this.log(
+      `MCP health endpoint: ${mcpHealth.status} - ${JSON.stringify(mcpHealth.data)}`,
+      'info',
+    );
   }
 
   async testGrpcInterface() {
     this.log('Testing gRPC interface...', 'info');
-    
+
     // gRPC testing would require a gRPC client, which is complex to set up inline
     // For now, just log that gRPC is running on port 50052
     this.log('gRPC server should be running on port 50052 (requires gRPC client to test)', 'info');
@@ -187,9 +206,12 @@ class PuppeteerMCPDiagnostic {
 
   async testWebSocketInterface() {
     this.log('Testing WebSocket interface...', 'info');
-    
+
     // WebSocket testing would require a WebSocket client
-    this.log('WebSocket server should be available at /ws endpoint (requires WS client to test)', 'info');
+    this.log(
+      'WebSocket server should be available at /ws endpoint (requires WS client to test)',
+      'info',
+    );
   }
 
   async identifyAuthenticationIssues() {
@@ -202,19 +224,22 @@ class PuppeteerMCPDiagnostic {
     this.log('2. Session must exist in server session store', 'info');
     this.log('3. Session store is created per server instance', 'info');
     this.log('4. No public endpoint to create sessions', 'info');
-    this.log('5. Chicken-and-egg problem: need auth to create session, need session for auth', 'info');
+    this.log(
+      '5. Chicken-and-egg problem: need auth to create session, need session for auth',
+      'info',
+    );
   }
 
   async proposeSolutions() {
     this.log('Proposed solutions for authentication:', 'info');
-    
+
     const solutions = [
       'Solution 1: Add development-mode authentication bypass',
       'Solution 2: Add public session creation endpoint for development',
       'Solution 3: Add seed user/session creation on server startup',
       'Solution 4: Add API key-based initial authentication',
       'Solution 5: Use MCP interface which may have different auth',
-      'Solution 6: Modify server to accept auth without session for context creation'
+      'Solution 6: Modify server to accept auth without session for context creation',
     ];
 
     solutions.forEach((solution, index) => {
@@ -224,7 +249,7 @@ class PuppeteerMCPDiagnostic {
 
   async runFullDiagnostic() {
     this.log('Starting comprehensive puppeteer-mcp diagnostic...', 'info');
-    
+
     await this.testBasicConnectivity();
     await this.testAuthenticationMethods();
     await this.testSessionManagement();

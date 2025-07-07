@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const fetch = require('node-fetch');
+// Using native fetch (Node.js 18+)
 const { URL } = require('url');
 
 const BASE_URL = 'https://williamzujkowski.github.io/puppeteer-mcp';

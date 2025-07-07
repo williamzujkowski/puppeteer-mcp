@@ -1,6 +1,6 @@
 {
   "name": "puppeteer-mcp",
-  "version": "1.0.12",
+  "version": "1.0.13",
   "description": "Beta - AI-enabled browser automation platform seeking production feedback",
   "type": "module",
   "main": "dist/server.js",
@@ -87,7 +87,6 @@
     "helmet": "^8.1.0",
     "is-ci": "^4.1.0",
     "jsonwebtoken": "^9.0.2",
-    "node-fetch": "^3.3.2",
     "pino": "^9.7.0",
     "puppeteer": "^24.11.2",
     "puppeteer-core": "^24.11.2",
