@@ -365,3 +365,37 @@ export const loggers = {
   redis: createLogger('redis'),
   performance: createLogger('performance'),
 };
+
+/**
+ * Cleanup function for tests
+ */
+export const cleanupLoggers = (): Promise<void> => {
+  // Flush and close audit logger if it exists
+  if (auditLoggerInstance) {
+    try {
+      const symbols = Object.getOwnPropertySymbols(auditLoggerInstance);
+      const streamSymbol = symbols.find(s => s.toString().includes('pino.stream'));
+      if (streamSymbol) {
+        const stream = (auditLoggerInstance as Record<symbol, unknown>)[streamSymbol];
+        if (stream !== null && stream !== undefined && typeof stream === 'object') {
+          // Try to flush synchronously if ready
+          if (stream.readyState !== 'opening' && typeof stream.flushSync === 'function') {
+            try {
+              stream.flushSync();
+            } catch {
+              // Ignore flush errors
+            }
+          }
+          // End the stream
+          if (typeof stream.end === 'function') {
+            stream.end();
+          }
+        }
+      }
+    } catch {
+      // Ignore cleanup errors in tests
+    }
+    auditLoggerInstance = null;
+    auditLoggerPromise = null;
+  }
+};

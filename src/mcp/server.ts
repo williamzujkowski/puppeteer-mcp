@@ -34,8 +34,8 @@ import { ApiCatalogResource } from './resources/api-catalog.js';
 import { SystemHealthResource } from './resources/system-health.js';
 
 // Create store instance
-const sessionStore = new InMemorySessionStore(logger.child({ module: 'session-store' }));
-const authBridge = new MCPAuthBridge(sessionStore, logger.child({ module: 'mcp-auth' }));
+let sessionStore: InMemorySessionStore | undefined;
+let authBridge: MCPAuthBridge | undefined;
 
 /**
  * MCP Server implementation for multi-protocol API platform
@@ -59,6 +59,10 @@ export class MCPServer {
   private systemHealthResource: SystemHealthResource;
 
   constructor(app?: Application, grpcServer?: GrpcServer, wsServer?: WebSocketServer) {
+    // Initialize store instances for this server
+    sessionStore = new InMemorySessionStore(logger.child({ module: 'session-store' }));
+    authBridge = new MCPAuthBridge(sessionStore, logger.child({ module: 'mcp-auth' }));
+    
     this.server = new Server(
       {
         name: 'puppeteer-mcp',
@@ -247,6 +251,11 @@ export class MCPServer {
    */
   async stop(): Promise<void> {
     await this.server.close();
+
+    // Clean up the session store
+    if (sessionStore) {
+      await sessionStore.clear();
+    }
 
     logger.info({
       msg: 'MCP server stopped',

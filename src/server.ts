@@ -75,10 +75,12 @@ const browserPool = new BrowserPool({
   },
 });
 
-// Initialize browser pool asynchronously
-browserPool.initialize().catch((error) => {
-  logger.error({ error }, 'Failed to initialize browser pool');
-});
+// Initialize browser pool asynchronously only in non-test environments
+if (config.NODE_ENV !== 'test') {
+  browserPool.initialize().catch((error) => {
+    logger.error({ error }, 'Failed to initialize browser pool');
+  });
+}
 
 /**
  * Creates and configures the Express application
@@ -332,6 +334,15 @@ async function gracefulShutdown(
     await sessionStore.clear();
   }
 
+  // Shutdown browser pool
+  try {
+    logger.info('Shutting down browser pool...');
+    await browserPool.shutdown(true);
+    logger.info('Browser pool shut down successfully');
+  } catch (error) {
+    logger.error({ error }, 'Error shutting down browser pool');
+  }
+
   // Force exit after 30 seconds
   setTimeout(() => {
     logger.error('Could not close connections in time, forcefully shutting down');
@@ -475,4 +486,4 @@ if (config.NODE_ENV !== 'test' && process.env.MCP_TRANSPORT === undefined) {
 }
 
 // Export for testing
-export { sessionStore };
+export { sessionStore, browserPool };

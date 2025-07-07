@@ -1,6 +1,7 @@
 // Global test setup for all tests
 import { jest } from '@jest/globals';
 import { mkdirSync } from 'fs';
+import { cleanupLoggers } from '../src/utils/logger.js';
 
 // Set test environment
 process.env.NODE_ENV = 'test';
@@ -9,7 +10,7 @@ process.env.LOG_LEVEL = 'silent';
 // Define __dirname for ES modules compatibility in Jest
 // Since this is the setup file, we can use process.cwd() as a base
 // The actual __dirname will be defined within each module using the conditional check
-(global as any).__dirname = process.cwd();
+(global as unknown as { __dirname: string }).__dirname = process.cwd();
 
 // Ensure logs directory exists for tests
 try {
@@ -120,7 +121,7 @@ beforeAll(() => {
   console.error = jest.fn();
 });
 
-afterAll(() => {
+afterAll(async () => {
   // eslint-disable-next-line no-console
   console.log = originalConsole.log;
   // eslint-disable-next-line no-console
@@ -129,4 +130,7 @@ afterAll(() => {
   console.warn = originalConsole.warn;
 
   console.error = originalConsole.error;
+  
+  // Clean up loggers
+  await cleanupLoggers();
 });

@@ -77,7 +77,7 @@ export async function acquireBrowser(params: AcquireBrowserParams): Promise<Brow
 export function releaseBrowser(
   browserId: string,
   browsers: Map<string, InternalBrowserInstance>,
-  queue: any,
+  queue: { processNext: (instance: InternalBrowserInstance) => void },
   onReleased: (browserId: string) => void,
 ): void {
   const instance = browsers.get(browserId);

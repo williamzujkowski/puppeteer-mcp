@@ -6,7 +6,7 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from '@jest/globals';
 import request from 'supertest';
 import { Application } from 'express';
-import { createApp, sessionStore } from '../../src/server.js';
+import { createApp, sessionStore, browserPool } from '../../src/server.js';
 import { generateTokenPair } from '../../src/auth/jwt.js';
 import type { SessionData } from '../../src/types/session.js';
 
@@ -44,6 +44,7 @@ describe('Contexts API Integration Tests', () => {
 
   afterAll(async () => {
     await sessionStore.clear();
+    await browserPool.shutdown(true);
   });
 
   describe('POST /api/v1/contexts', () => {

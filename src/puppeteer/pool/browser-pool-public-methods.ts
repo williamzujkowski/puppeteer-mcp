@@ -126,7 +126,7 @@ export function configure(
   logger.info(newOptions, 'Browser pool configuration updated');
 
   // Restart maintenance if interval changed
-  if (newOptions.healthCheckInterval) {
+  if (newOptions.healthCheckInterval !== null && newOptions.healthCheckInterval !== undefined && newOptions.healthCheckInterval > 0) {
     maintenance.stopMaintenance();
     maintenance.startMaintenance(performMaintenance, 60000);
   }

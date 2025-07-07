@@ -233,19 +233,19 @@ export class ContextHandlers {
   })();
 
   // Delegate methods to handlers
-  executeAction = (req: Request, res: Response, next: NextFunction) => {
+  executeAction = (req: Request, res: Response, next: NextFunction): void => {
     this.actionHandlers.executeAction(req, res, next);
   };
 
-  getMetrics = (req: Request, res: Response, next: NextFunction) => {
+  getMetrics = (req: Request, res: Response, next: NextFunction): void => {
     this.pageHandlers.getMetrics(req, res, next);
   };
   
-  listPages = (req: Request, res: Response, next: NextFunction) => {
+  listPages = (req: Request, res: Response, next: NextFunction): void => {
     this.pageHandlers.listPages(req, res, next);
   };
   
-  createPage = (req: Request, res: Response, next: NextFunction) => {
+  createPage = (req: Request, res: Response, next: NextFunction): void => {
     this.pageHandlers.createPage(req, res, next);
   };
 }

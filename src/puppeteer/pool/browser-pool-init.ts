@@ -16,7 +16,7 @@ const logger = createLogger('browser-pool-init');
 export async function initializePool(
   _pool: BrowserPool,
   maxBrowsers: number,
-  launchNewBrowser: () => Promise<any>
+  launchNewBrowser: () => Promise<unknown>
 ): Promise<void> {
   logger.info({
     maxBrowsers,

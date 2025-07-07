@@ -56,6 +56,8 @@ export class BrowserPoolMaintenance {
    */
   startMaintenance(performMaintenance: () => Promise<void>, intervalMs = 60000): void {
     this.maintenanceInterval = setInterval(() => void performMaintenance(), intervalMs);
+    // Don't keep the process alive just for maintenance
+    this.maintenanceInterval.unref();
   }
 
   /**

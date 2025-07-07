@@ -56,8 +56,9 @@ describe('gRPC Interceptors', () => {
     };
   });
 
-  afterEach(() => {
+  afterEach(async () => {
     jest.clearAllMocks();
+    await sessionStore.clear();
   });
 
   describe('authInterceptor', () => {

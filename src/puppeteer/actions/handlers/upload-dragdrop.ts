@@ -138,7 +138,7 @@ async function simulateDragDrop(
 ): Promise<void> {
   await page.evaluate(
     (dropSelector: string, files: typeof fileData) => {
-      const doc = (globalThis as any).document;
+      const doc = globalThis.document;
       const dropZone = doc.querySelector(dropSelector);
       if (!dropZone) {
         throw new Error('Drop zone not found');
@@ -147,22 +147,20 @@ async function simulateDragDrop(
       // Create file list
       const fileList = files.map(fileData => {
         const uint8Array = new Uint8Array(fileData.content);
-        const File = (globalThis as any).File;
+        const File = globalThis.File;
         const file = new File([uint8Array], fileData.name, {
           type: fileData.type,
         });
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return file;
       });
 
       // Create data transfer object
-      const DataTransfer = (globalThis as any).DataTransfer;
+      const DataTransfer = globalThis.DataTransfer;
       const dataTransfer = new DataTransfer();
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-return
-      fileList.forEach((file: any) => dataTransfer.items.add(file));
+      fileList.forEach((file) => dataTransfer.items.add(file));
 
       // Create and dispatch drop event
-      const DragEvent = (globalThis as any).DragEvent;
+      const DragEvent = globalThis.DragEvent;
       const dropEvent = new DragEvent('drop', {
         bubbles: true,
         cancelable: true,

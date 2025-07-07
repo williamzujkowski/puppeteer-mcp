@@ -111,7 +111,8 @@ describe('MCP Server Session Management', () => {
     server = new MCPServer();
   });
 
-  afterEach(() => {
+  afterEach(async () => {
+    await server.stop();
     jest.clearAllMocks();
   });
 

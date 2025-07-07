@@ -57,10 +57,12 @@ describe('SessionService', () => {
     });
   });
 
-  afterEach(() => {
+  afterEach(async () => {
     jest.clearAllMocks();
     // Clear metadata to avoid interference between tests
     mockCall.metadata = new grpc.Metadata();
+    // Clean up session store
+    await sessionStore.clear();
   });
 
   describe('createSession', () => {

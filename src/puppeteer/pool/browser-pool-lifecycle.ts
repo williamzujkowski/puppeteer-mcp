@@ -63,8 +63,8 @@ export async function initializePoolWithBrowsers(
   launchBrowser: () => Promise<{ browser: Browser; instance: InternalBrowserInstance }>
 ): Promise<void> {
   // Note: First parameter type mismatch - initializePool expects BrowserPool but we have EventEmitter
-  // Cast to any to maintain compatibility
-  await initializePool(eventEmitter as any, maxBrowsers, launchBrowser);
+  // Cast to unknown then to expected type to maintain compatibility
+  await initializePool(eventEmitter as unknown as Parameters<typeof initializePool>[0], maxBrowsers, launchBrowser);
 }
 
 /**
@@ -91,7 +91,7 @@ export interface CreateAndAcquireNewBrowserParams {
   browsers: Map<string, InternalBrowserInstance>;
   healthMonitor: BrowserHealthMonitor;
   handleUnhealthyBrowser: (browserId: string) => Promise<void>;
-  emitEvent: (event: string, data: any) => void;
+  emitEvent: (event: string, data: unknown) => void;
 }
 
 /**
@@ -135,7 +135,7 @@ export interface LaunchBrowserParams {
   browsers: Map<string, InternalBrowserInstance>;
   healthMonitor: BrowserHealthMonitor;
   handleUnhealthyBrowser: (browserId: string) => Promise<void>;
-  emitEvent: (event: string, data: any) => void;
+  emitEvent: (event: string, data: unknown) => void;
 }
 
 /**
@@ -166,7 +166,7 @@ export async function launchBrowser(
 export function createBrowserPoolHelpers(
   browsers: Map<string, InternalBrowserInstance>,
   options: BrowserPoolOptions,
-  emit: (event: string, data: any) => void
+  emit: (event: string, data: unknown) => void
 ): {
   findIdleBrowser: () => InternalBrowserInstance | null;
   activateBrowser: (instance: InternalBrowserInstance, sessionId: string) => InternalBrowserInstance;
