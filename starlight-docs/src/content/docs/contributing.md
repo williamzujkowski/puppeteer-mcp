@@ -6,7 +6,6 @@ description: 'Version 1.0.11 - Contributing guidelines'
 # Contributing to Puppeteer MCP
 
 **Version:** 1.0.11  
-**Last Updated:** 2025-01-07  
 **Status:** Active
 
 Thank you for your interest in contributing to Puppeteer MCP! This guide will help you get started

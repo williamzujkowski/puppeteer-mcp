@@ -6,7 +6,6 @@ description: 'Version 1.0.11 - Community code of conduct'
 # Code of Conduct
 
 **Version**: 1.0.11  
-**Last Updated**: 2025-01-05  
 **Status**: Active
 
 ## Our Pledge

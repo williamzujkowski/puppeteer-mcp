@@ -9,7 +9,6 @@ import Tabs from '@/components/Tabs.astro'; import TabItem from '@/components/Ta
 # Puppeteer MCP Documentation
 
 **Version:** 1.0.11  
-**Last Updated:** 2025-07-07  
 **Status:** Beta - Seeking Production Feedback  
 **Type:** Documentation Hub  
 **Audience:** Developers, Users, Contributors
@@ -97,7 +96,7 @@ protocol interfaces. We're seeking feedback to ensure production readiness. It e
 
 🔌 **API Testing** : Browser-based API testing with full network control
 
-</div>
+</CardGrid>
 
 ## 📚 Documentation Structure
 
@@ -142,7 +141,8 @@ npm run dev
 
 ### Basic Usage
 
-<Tabs labels={["REST API", "MCP"]}> <TabItem label="REST API">
+<Tabs labels={["REST API", "MCP"]}>
+  <TabItem label="REST API">
 
 ```bash
 # Create a browser context
@@ -158,8 +158,8 @@ curl -X POST http://localhost:8443/api/v1/contexts/{id}/execute \
   -d '{"action": "navigate", "params": {"url": "https://example.com"}}'
 ```
 
-</TabItem>
-<TabItem label="MCP">
+  </TabItem>
+  <TabItem label="MCP">
 
 ```json
 {
@@ -176,7 +176,7 @@ curl -X POST http://localhost:8443/api/v1/contexts/{id}/execute \
 }
 ```
 
-</TabItem>
+  </TabItem>
 </Tabs>
 
 ## 🔗 Quick Links

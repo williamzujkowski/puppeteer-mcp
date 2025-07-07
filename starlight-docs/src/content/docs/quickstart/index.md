@@ -6,7 +6,6 @@ description: 'Version 1.0.11 - Quick start guide for Puppeteer MCP'
 # Puppeteer MCP Quick Start
 
 **Version**: 1.0.11  
-**Last Updated**: 2025-01-05  
 **Reading Time**: 2 minutes
 
 ## Welcome to Puppeteer MCP! 🚀

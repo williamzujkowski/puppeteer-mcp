@@ -6,7 +6,6 @@ description: 'Version 1.0.11 - Setup guide for Claude Desktop integration'
 # Claude Desktop Setup Guide
 
 **Version**: 1.0.11  
-**Last Updated**: 2025-01-05  
 **Reading Time**: 5 minutes
 
 ## Overview

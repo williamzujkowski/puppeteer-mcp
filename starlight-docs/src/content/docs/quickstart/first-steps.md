@@ -6,7 +6,6 @@ description: 'Version 1.0.11 - Getting started with Puppeteer MCP'
 # First Steps with Puppeteer MCP
 
 **Version**: 1.0.11  
-**Last Updated**: 2025-01-05  
 **Reading Time**: 7 minutes
 
 ## Your First Browser Automation
