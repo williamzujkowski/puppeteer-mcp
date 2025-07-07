@@ -337,7 +337,7 @@ async function gracefulShutdown(
   // Shutdown browser pool
   try {
     logger.info('Shutting down browser pool...');
-    await browserPool.shutdown(true);
+    await browserPool.shutdown();
     logger.info('Browser pool shut down successfully');
   } catch (error) {
     logger.error({ error }, 'Error shutting down browser pool');

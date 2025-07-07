@@ -369,26 +369,26 @@ export const loggers = {
 /**
  * Cleanup function for tests
  */
-export const cleanupLoggers = (): Promise<void> => {
+export const cleanupLoggers = async (): Promise<void> => {
   // Flush and close audit logger if it exists
   if (auditLoggerInstance) {
     try {
       const symbols = Object.getOwnPropertySymbols(auditLoggerInstance);
       const streamSymbol = symbols.find(s => s.toString().includes('pino.stream'));
       if (streamSymbol) {
-        const stream = (auditLoggerInstance as Record<symbol, unknown>)[streamSymbol];
+        const stream = (auditLoggerInstance as any)[streamSymbol];
         if (stream !== null && stream !== undefined && typeof stream === 'object') {
           // Try to flush synchronously if ready
-          if (stream.readyState !== 'opening' && typeof stream.flushSync === 'function') {
+          if ((stream as any).readyState !== 'opening' && typeof (stream as any).flushSync === 'function') {
             try {
-              stream.flushSync();
+              (stream as any).flushSync();
             } catch {
               // Ignore flush errors
             }
           }
           // End the stream
-          if (typeof stream.end === 'function') {
-            stream.end();
+          if (typeof (stream as any).end === 'function') {
+            (stream as any).end();
           }
         }
       }

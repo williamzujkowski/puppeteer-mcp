@@ -36,8 +36,8 @@ export async function handleScrollPage(
   // Get current scroll position
    
   const beforePosition = await page.evaluate(() => ({
-    x: globalThis.pageXOffset ?? 0,
-    y: globalThis.pageYOffset ?? 0,
+    x: (globalThis as any).pageXOffset ?? 0,
+    y: (globalThis as any).pageYOffset ?? 0,
   }));
 
   // Calculate scroll amounts
@@ -45,14 +45,14 @@ export async function handleScrollPage(
 
   // Perform scroll
   await page.evaluate((x: number, y: number) => {
-    globalThis.scrollBy(x, y);
+    (globalThis as any).scrollBy(x, y);
   }, scrollX, scrollY);
 
   // Get new scroll position
    
   const afterPosition = await page.evaluate(() => ({
-    x: globalThis.pageXOffset ?? 0,
-    y: globalThis.pageYOffset ?? 0,
+    x: (globalThis as any).pageXOffset ?? 0,
+    y: (globalThis as any).pageYOffset ?? 0,
   }));
 
   // Calculate actual scrolled distance
@@ -97,19 +97,19 @@ export async function handleScrollToCoordinates(
 
   // Get current position
   const beforePosition = await page.evaluate(() => ({
-    x: globalThis.pageXOffset ?? 0,
-    y: globalThis.pageYOffset ?? 0,
+    x: (globalThis as any).pageXOffset ?? 0,
+    y: (globalThis as any).pageYOffset ?? 0,
   }));
 
   // Scroll to position
   await page.evaluate((targetX: number, targetY: number) => {
-    globalThis.scrollTo(targetX, targetY);
+    (globalThis as any).scrollTo(targetX, targetY);
   }, x, y);
 
   // Get new position
   const afterPosition = await page.evaluate(() => ({
-    x: globalThis.pageXOffset ?? 0,
-    y: globalThis.pageYOffset ?? 0,
+    x: (globalThis as any).pageXOffset ?? 0,
+    y: (globalThis as any).pageYOffset ?? 0,
   }));
 
   // Calculate distance scrolled
@@ -154,8 +154,8 @@ export async function handleSmoothScroll(
 
   // Get current position
   const startPosition = await page.evaluate(() => ({
-    x: globalThis.pageXOffset ?? 0,
-    y: globalThis.pageYOffset ?? 0,
+    x: (globalThis as any).pageXOffset ?? 0,
+    y: (globalThis as any).pageYOffset ?? 0,
   }));
 
   // Calculate target position
@@ -170,8 +170,8 @@ export async function handleSmoothScroll(
   await page.evaluate(
     (tX: number, tY: number, dur: number) => {
       return new Promise<void>((resolve) => {
-        const startX = globalThis.pageXOffset ?? 0;
-        const startY = globalThis.pageYOffset ?? 0;
+        const startX = (globalThis as any).pageXOffset ?? 0;
+        const startY = (globalThis as any).pageYOffset ?? 0;
         const distanceX = tX - startX;
         const distanceY = tY - startY;
         const startTime = performance.now();
@@ -188,16 +188,16 @@ export async function handleSmoothScroll(
           const currentX = startX + distanceX * easeProgress;
           const currentY = startY + distanceY * easeProgress;
 
-          globalThis.scrollTo(currentX, currentY);
+          (globalThis as any).scrollTo(currentX, currentY);
 
           if (progress < 1) {
-            globalThis.requestAnimationFrame(scrollStep);
+            (globalThis as any).requestAnimationFrame(scrollStep);
           } else {
             resolve();
           }
         }
 
-        globalThis.requestAnimationFrame(scrollStep);
+        (globalThis as any).requestAnimationFrame(scrollStep);
       });
     },
     targetX,
@@ -207,8 +207,8 @@ export async function handleSmoothScroll(
 
   // Get final position
   const endPosition = await page.evaluate(() => ({
-    x: globalThis.pageXOffset ?? 0,
-    y: globalThis.pageYOffset ?? 0,
+    x: (globalThis as any).pageXOffset ?? 0,
+    y: (globalThis as any).pageYOffset ?? 0,
   }));
 
   const actualDistance = Math.abs(endPosition.x - startPosition.x) + 
