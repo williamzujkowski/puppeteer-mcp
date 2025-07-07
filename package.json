@@ -1,6 +1,6 @@
 {
   "name": "puppeteer-mcp",
-  "version": "1.0.11",
+  "version": "1.0.12",
   "description": "Beta - AI-enabled browser automation platform seeking production feedback",
   "type": "module",
   "main": "dist/server.js",
