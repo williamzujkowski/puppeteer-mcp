@@ -83,7 +83,7 @@
   "dependencies": {
     "@grpc/grpc-js": "^1.9.13",
     "@grpc/proto-loader": "^0.7.10",
-    "@modelcontextprotocol/sdk": "^1.13.3",
+    "@modelcontextprotocol/sdk": "^1.15.0",
     "@types/puppeteer": "^5.4.7",
     "@types/uuid": "^10.0.0",
     "compression": "^1.7.4",
