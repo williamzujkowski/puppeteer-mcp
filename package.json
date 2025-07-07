@@ -98,7 +98,7 @@
     "puppeteer-core": "^24.12.0",
     "uuid": "^11.1.0",
     "ws": "^8.16.0",
-    "zod": "^3.22.4"
+    "zod": "^3.25.75"
   },
   "devDependencies": {
     "@types/compression": "^1.7.5",
