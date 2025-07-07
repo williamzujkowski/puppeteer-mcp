@@ -1,11 +1,11 @@
 ---
 title: Development Workflow
-description: 'Version 1.0.11 - Development workflow guide'
+description: 'Version 1.0.13 - Development workflow guide'
 ---
 
 # Development Workflow
 
-**Version**: 1.0.11  
+**Version**: 1.0.13  
 **Last Updated**: 2025-07-07  
 **Status**: Active  
 **Category**: Development Process

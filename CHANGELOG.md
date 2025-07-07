@@ -229,7 +229,7 @@ This marks the first production-ready release of the Puppeteer MCP platform, a c
 
 ## Migration Guide
 
-For users upgrading to v1.0.0:
+For users upgrading to v1.0.13:
 
 1. **New Dependencies**: Puppeteer is now required (`npm install`)
 2. **Configuration**: Add browser-specific environment variables

@@ -1,11 +1,11 @@
 ---
 title: AI Routing Patterns
-description: 'Version 1.0.11 - AI routing patterns and decision frameworks'
+description: 'Version 1.0.13 - AI routing patterns and decision frameworks'
 ---
 
 # AI Routing Patterns
 
-**Version**: 1.0.11  
+**Version**: 1.0.13  
 **Last Updated**: 2025-07-07  
 **Status**: Active  
 **Category**: AI Guidance

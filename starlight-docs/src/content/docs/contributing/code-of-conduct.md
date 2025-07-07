@@ -1,11 +1,11 @@
 ---
 title: Code of Conduct
-description: 'Version 1.0.11 - Community code of conduct'
+description: 'Version 1.0.13 - Community code of conduct'
 ---
 
 # Code of Conduct
 
-**Version**: 1.0.11  
+**Version**: 1.0.13  
 **Status**: Active
 
 ## Our Pledge

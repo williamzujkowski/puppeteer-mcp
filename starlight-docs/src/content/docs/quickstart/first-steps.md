@@ -1,11 +1,11 @@
 ---
 title: First Steps with Puppeteer MCP
-description: 'Version 1.0.11 - Getting started with Puppeteer MCP'
+description: 'Version 1.0.13 - Getting started with Puppeteer MCP'
 ---
 
 # First Steps with Puppeteer MCP
 
-**Version**: 1.0.11  
+**Version**: 1.0.13  
 **Reading Time**: 7 minutes
 
 ## Your First Browser Automation

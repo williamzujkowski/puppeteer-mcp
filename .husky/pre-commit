@@ -1,6 +1,9 @@
 # Run lint-staged for TypeScript files
 lint-staged
 
+# Check for version updates
+./scripts/version-sync-hook.sh
+
 # Run type checking
 echo "Running type check..."
 npm run typecheck || {

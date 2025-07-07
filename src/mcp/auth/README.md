@@ -124,7 +124,7 @@ import { mcpAuthBridge } from './mcp/auth/index.js';
 
 const server = new MCPServer({
   name: 'puppeteer-mcp',
-  version: '1.0.11',
+  version: '1.0.13',
 });
 
 // Add authentication to tool handlers

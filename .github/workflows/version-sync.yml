@@ -1,0 +1,50 @@
+name: Version Sync
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'package.json'
+  pull_request:
+    paths:
+      - 'package.json'
+
+jobs:
+  sync-version:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Check version consistency
+        run: |
+          echo "Checking documentation version consistency..."
+          npm run update:version:dry
+
+      - name: Update versions if needed
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          # Configure git
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+
+          # Run version update
+          npm run update:version
+
+          # Check if there are changes
+          if [[ -n $(git status --porcelain) ]]; then
+            echo "Version updates detected, creating commit..."
+            git add -A
+            git commit -m "chore: sync documentation versions with package.json [skip ci]"
+            git push
+          else
+            echo "No version updates needed"
+          fi

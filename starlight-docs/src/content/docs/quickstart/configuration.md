@@ -1,12 +1,11 @@
 ---
 title: Configuration Guide
-description: 'Version 1.0.11 - Configuration guide for Puppeteer MCP'
+description: 'Version 1.0.13 - Configuration guide for Puppeteer MCP'
 ---
 
 # Configuration Guide
 
-**Version**: 1.0.11  
-**Last Updated**: 2025-01-06  
+**Version**: 1.0.13  
 **Reading Time**: 8 minutes
 
 ## Overview

@@ -1,0 +1,89 @@
+name: Version Bump and Sync
+
+on:
+  workflow_dispatch:
+    inputs:
+      version_type:
+        description: 'Version bump type'
+        required: true
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+          - prerelease
+        default: patch
+
+jobs:
+  version-bump:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Configure Git
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+
+      - name: Bump version
+        id: version
+        run: |
+          # Get current version
+          CURRENT_VERSION=$(node -p "require('./package.json').version")
+          echo "Current version: $CURRENT_VERSION"
+
+          # Bump version
+          npm version ${{ github.event.inputs.version_type }} --no-git-tag-version
+
+          # Get new version
+          NEW_VERSION=$(node -p "require('./package.json').version")
+          echo "New version: $NEW_VERSION"
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Update documentation versions
+        run: |
+          echo "Updating documentation to version ${{ steps.version.outputs.new_version }}..."
+          npm run update:version
+
+      - name: Commit changes
+        run: |
+          git add -A
+          git commit -m "chore: bump version to ${{ steps.version.outputs.new_version }}"
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: version-bump-${{ steps.version.outputs.new_version }}
+          title: 'chore: bump version to ${{ steps.version.outputs.new_version }}'
+          body: |
+            ## Version Bump to ${{ steps.version.outputs.new_version }}
+
+            This PR bumps the version from `${{ steps.version.outputs.current_version }}` to `${{ steps.version.outputs.new_version }}` and updates all documentation references.
+
+            ### Changes
+            - Updated version in `package.json`
+            - Synchronized version references across all documentation files
+
+            ### Checklist
+            - [ ] Review CHANGELOG.md for completeness
+            - [ ] Verify all documentation versions are updated
+            - [ ] Confirm tests pass
+            - [ ] Ready for release
+
+            ---
+            *This PR was automatically created by the Version Bump workflow*
+          labels: |
+            version-bump
+            automated-pr
+            documentation

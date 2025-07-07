@@ -10,7 +10,7 @@ Complete guide for deploying Puppeteer MCP as an npm package.
 ## Package Overview
 
 - **Name**: `puppeteer-mcp`
-- **Current Version**: 1.0.11
+- **Current Version**: 1.0.13
 - **License**: MIT
 - **Registry**: [npmjs.com/package/puppeteer-mcp](https://www.npmjs.com/package/puppeteer-mcp)
 
@@ -170,7 +170,7 @@ npm publish --tag next
 ```json
 {
   "name": "puppeteer-mcp",
-  "version": "1.0.11",
+  "version": "1.0.13",
   "description": "AI-enabled browser automation platform",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
