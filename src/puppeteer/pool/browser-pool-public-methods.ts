@@ -42,7 +42,7 @@ export async function closePage(
   sessionId: string,
   browsers: Map<string, InternalBrowserInstance>,
 ): Promise<void> {
-  closeBrowserPage(browserId, sessionId, browsers);
+  return Promise.resolve(closeBrowserPage(browserId, sessionId, browsers));
 }
 
 /**
@@ -126,7 +126,11 @@ export function configure(
   logger.info(newOptions, 'Browser pool configuration updated');
 
   // Restart maintenance if interval changed
-  if (newOptions.healthCheckInterval !== null && newOptions.healthCheckInterval !== undefined && newOptions.healthCheckInterval > 0) {
+  if (
+    newOptions.healthCheckInterval !== null &&
+    newOptions.healthCheckInterval !== undefined &&
+    newOptions.healthCheckInterval > 0
+  ) {
     maintenance.stopMaintenance();
     maintenance.startMaintenance(performMaintenance, 60000);
   }
