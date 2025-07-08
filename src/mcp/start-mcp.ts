@@ -51,11 +51,16 @@ async function startMCPServer(): Promise<void> {
 }
 
 // Run if called directly
-// Debug: log the comparison
-if (process.env.MCP_DEBUG) {
-  console.error('import.meta.url:', import.meta.url);
-  console.error('process.argv[1]:', process.argv[1]);
-  console.error('file URL:', `file://${process.argv[1]}`);
+// Debug: log the comparison (only in non-test environments)
+if (process.env.MCP_DEBUG && process.env.NODE_ENV !== 'test' && process.env.JEST_WORKER_ID === undefined) {
+  try {
+    const importMeta = eval('import.meta');
+    console.error('import.meta.url:', importMeta.url);
+    console.error('process.argv[1]:', process.argv[1]);
+    console.error('file URL:', `file://${process.argv[1]}`);
+  } catch {
+    console.error('import.meta not available in this environment');
+  }
 }
 
 // Always start if this is the main module

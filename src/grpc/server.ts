@@ -30,21 +30,18 @@ function findProtoPath(): string {
     join(process.cwd(), 'proto', 'control.proto'),
   ];
 
-  // In production (non-test), also check relative to the module location
+  // In production environments, also check common installation paths
   /* istanbul ignore next - production-only code path */
   if (process.env.NODE_ENV !== 'test' && process.env.JEST_WORKER_ID === undefined) {
-    try {
-      const __filename = fileURLToPath(import.meta.url);
-      const __dirname = dirname(__filename);
-
-      // Global npm install - look relative to this file's location
-      possiblePaths.push(
-        resolve(__dirname, '..', '..', 'proto', 'control.proto'),
-        resolve(__dirname, '..', 'proto', 'control.proto'),
-      );
-    } catch {
-      // Ignore errors if import.meta.url is not available
-    }
+    // Add common global npm installation paths
+    possiblePaths.push(
+      // Relative to dist directory in production
+      join(process.cwd(), 'dist', '..', 'proto', 'control.proto'),
+      join(process.cwd(), '..', 'proto', 'control.proto'),
+      // Global npm paths  
+      join('/usr/local/lib/node_modules/puppeteer-mcp/proto/control.proto'),
+      join(process.env.HOME || '/home/user', '.npm/lib/node_modules/puppeteer-mcp/proto/control.proto'),
+    );
   }
 
   for (const path of possiblePaths) {
