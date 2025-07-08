@@ -44,8 +44,8 @@ export default {
   ],
   roots: ['<rootDir>/src', '<rootDir>/tests'],
   testMatch: [
-    '**/__tests__/**/*.+(ts|tsx|js)',
-    '**/?(*.)+(spec|test).+(ts|tsx|js)',
+    '**/tests/acceptance/**/*.+(ts|tsx|js)',
+    '**/tests/acceptance/**/?(*.)+(spec|test).+(ts|tsx|js)',
   ],
   collectCoverageFrom: [
     'src/**/*.{ts,tsx}',
@@ -53,52 +53,17 @@ export default {
     '!src/**/index.ts',
     '!src/grpc/generated/**',
   ],
-  coverageThreshold: {
-    global: {
-      branches: 15,
-      functions: 18,
-      lines: 17,
-      statements: 18,
-    },
-    'src/auth/middleware.ts': {
-      branches: 80,
-      functions: 90,
-      lines: 85,
-      statements: 85,
-    },
-    'src/auth/jwt.ts': {
-      branches: 80,
-      functions: 60,
-      lines: 80,
-      statements: 85,
-    },
-    'src/utils/logger.ts': {
-      branches: 40,
-      functions: 50,
-      lines: 60,
-      statements: 60,
-    },
-    'src/utils/!(logger).ts': {
-      branches: 50,
-      functions: 70,
-      lines: 80,
-      statements: 80,
-    },
-    'src/utils/**/!(logger).ts': {
-      branches: 50,
-      functions: 70,
-      lines: 80,
-      statements: 80,
-    },
-  },
-  coverageDirectory: '<rootDir>/coverage',
+  coverageDirectory: '<rootDir>/coverage/acceptance',
   coverageReporters: ['text', 'lcov', 'html'],
-  testTimeout: 10000,
+  testTimeout: 60000, // Longer timeout for acceptance tests
   setupFilesAfterEnv: ['<rootDir>/tests/setup.ts'],
   testPathIgnorePatterns: [
     '/node_modules/',
-    '/tests/integration/', // Temporarily disable integration tests
-    '/tests/acceptance/', // Disable acceptance tests by default (run explicitly)
-    '/tests/unit/ws/server.test.ts' // Temporarily disable failing WebSocket tests
   ],
+  // Acceptance test specific settings
+  maxWorkers: 2, // Limit parallelism for external dependencies
+  bail: false, // Don't stop on first failure - run all tests
+  verbose: true,
+  detectOpenHandles: true,
+  forceExit: true, // Force exit after tests complete
 };

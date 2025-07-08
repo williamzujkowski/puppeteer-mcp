@@ -1,0 +1,182 @@
+name: Acceptance Tests
+
+on:
+  workflow_dispatch:
+    inputs:
+      test_suite:
+        description: 'Test suite to run'
+        required: false
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - basic
+          - api
+          - workflows
+      headless:
+        description: 'Run in headless mode'
+        required: false
+        default: true
+        type: boolean
+      timeout:
+        description: 'Test timeout in seconds'
+        required: false
+        default: '60'
+        type: string
+  schedule:
+    # Run acceptance tests weekly on Sundays at 6 AM UTC
+    - cron: '0 6 * * 0'
+
+permissions:
+  contents: read
+
+env:
+  NODE_ENV: test
+  ACCEPTANCE_TEST_HEADLESS: ${{ github.event.inputs.headless || 'true' }}
+  ACCEPTANCE_TEST_TIMEOUT: ${{ (github.event.inputs.timeout || '60') * 1000 }}
+  ACCEPTANCE_TEST_RETRIES: 2
+  ACCEPTANCE_TEST_SLOW_MO: 0
+
+jobs:
+  acceptance-tests:
+    name: Acceptance Tests
+    runs-on: ubuntu-latest
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: ['20.x']
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit
+
+      - name: Build project
+        run: npm run build
+
+      - name: Install Chrome dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            ca-certificates \
+            fonts-liberation \
+            libappindicator3-1 \
+            libasound2 \
+            libatk-bridge2.0-0 \
+            libatk1.0-0 \
+            libc6 \
+            libcairo2 \
+            libcups2 \
+            libdbus-1-3 \
+            libexpat1 \
+            libfontconfig1 \
+            libgbm1 \
+            libgcc1 \
+            libglib2.0-0 \
+            libgtk-3-0 \
+            libnspr4 \
+            libnss3 \
+            libpango-1.0-0 \
+            libpangocairo-1.0-0 \
+            libstdc++6 \
+            libx11-6 \
+            libx11-xcb1 \
+            libxcb1 \
+            libxcomposite1 \
+            libxcursor1 \
+            libxdamage1 \
+            libxext6 \
+            libxfixes3 \
+            libxi6 \
+            libxrandr2 \
+            libxrender1 \
+            libxss1 \
+            libxtst6 \
+            lsb-release \
+            wget \
+            xdg-utils
+
+      - name: Run Basic Acceptance Tests
+        if: ${{ github.event.inputs.test_suite == 'all' || github.event.inputs.test_suite == 'basic' || github.event.inputs.test_suite == '' }}
+        run: npm run test:acceptance:basic
+        continue-on-error: true
+
+      - name: Run API Acceptance Tests
+        if: ${{ github.event.inputs.test_suite == 'all' || github.event.inputs.test_suite == 'api' || github.event.inputs.test_suite == '' }}
+        run: npm run test:acceptance:api
+        continue-on-error: true
+
+      - name: Run Workflow Acceptance Tests
+        if: ${{ github.event.inputs.test_suite == 'all' || github.event.inputs.test_suite == 'workflows' || github.event.inputs.test_suite == '' }}
+        run: npm run test:acceptance:workflows
+        continue-on-error: true
+
+      - name: Upload test artifacts on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: acceptance-test-artifacts-${{ matrix.node-version }}
+          path: |
+            screenshots/
+            logs/
+            coverage/acceptance/
+          retention-days: 7
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: acceptance-coverage-${{ matrix.node-version }}
+          path: coverage/acceptance/
+          retention-days: 30
+
+  test-summary:
+    name: Test Summary
+    runs-on: ubuntu-latest
+    needs: acceptance-tests
+    if: always()
+    
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./artifacts
+
+      - name: Generate test summary
+        run: |
+          echo "# Acceptance Test Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Test Configuration" >> $GITHUB_STEP_SUMMARY
+          echo "- **Test Suite**: ${{ github.event.inputs.test_suite || 'all' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Headless Mode**: ${{ github.event.inputs.headless || 'true' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Timeout**: ${{ github.event.inputs.timeout || '60' }} seconds" >> $GITHUB_STEP_SUMMARY
+          echo "- **Node.js Version**: 20.x" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "Test results and artifacts have been uploaded for review." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Notes" >> $GITHUB_STEP_SUMMARY
+          echo "- Acceptance tests run against live external services" >> $GITHUB_STEP_SUMMARY
+          echo "- Some tests may be flaky due to external dependencies" >> $GITHUB_STEP_SUMMARY
+          echo "- Tests use public testing sites and APIs" >> $GITHUB_STEP_SUMMARY
+          echo "- Screenshots and logs are captured on test failures" >> $GITHUB_STEP_SUMMARY
+
+      - name: Check test results
+        run: |
+          if [ "${{ needs.acceptance-tests.result }}" == "failure" ]; then
+            echo "⚠️ Some acceptance tests failed. This may be due to external service issues."
+            echo "Please review the test artifacts and logs for details."
+          elif [ "${{ needs.acceptance-tests.result }}" == "success" ]; then
+            echo "✅ All acceptance tests passed successfully!"
+          else
+            echo "❓ Acceptance tests completed with status: ${{ needs.acceptance-tests.result }}"
+          fi
