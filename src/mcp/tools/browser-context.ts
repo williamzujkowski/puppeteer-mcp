@@ -24,7 +24,7 @@ export class BrowserContextTool {
   async createBrowserContext(args: CreateBrowserContextArgs): Promise<ToolResponse> {
     try {
       // Validate session
-      if (!args.sessionId || args.sessionId === '') {
+      if (args.sessionId === undefined || args.sessionId === null || args.sessionId === '') {
         return this.errorResponse('Session ID is required', 'INVALID_SESSION');
       }
 
