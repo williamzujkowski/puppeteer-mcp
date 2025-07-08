@@ -153,7 +153,7 @@ describe('MCP Transport Layer', () => {
     let transport: HttpTransport;
 
     afterEach(async () => {
-      if (transport) {
+      if (transport !== undefined && transport !== null) {
         try {
           await transport.stop();
         } catch {

@@ -304,17 +304,21 @@ describe('MCP Server', () => {
         await testServer.stop();
       } finally {
         // Restore original env values
-        if (originalTransport) {
+        if (
+          originalTransport !== undefined &&
+          originalTransport !== null &&
+          originalTransport !== ''
+        ) {
           process.env.MCP_TRANSPORT = originalTransport;
         } else {
           delete process.env.MCP_TRANSPORT;
         }
-        if (originalPort) {
+        if (originalPort !== undefined && originalPort !== null && originalPort !== '') {
           process.env.MCP_HTTP_PORT = originalPort;
         } else {
           delete process.env.MCP_HTTP_PORT;
         }
-        if (originalTls) {
+        if (originalTls !== undefined && originalTls !== null && originalTls !== '') {
           process.env.TLS_ENABLED = originalTls;
         } else {
           delete process.env.TLS_ENABLED;

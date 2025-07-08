@@ -94,6 +94,26 @@ export async function createMCPClient(): Promise<MCPTestClient> {
 }
 
 /**
+ * Helper to extract and validate text from MCP result
+ */
+function extractResultText(result: any, errorMessage: string): string {
+  const text = result.content?.[0]?.text;
+  if (typeof text !== 'string' || text === '') {
+    throw new Error(errorMessage);
+  }
+  return text;
+}
+
+/**
+ * Helper to check for errors in parsed data
+ */
+function checkDataError(data: any, errorPrefix: string): void {
+  if (data.error !== undefined && data.error !== null && data.error !== '') {
+    throw new Error(`${errorPrefix}: ${data.error}`);
+  }
+}
+
+/**
  * Create a browser session through MCP
  */
 export async function createMCPSession(client: Client): Promise<MCPSessionInfo> {
@@ -107,11 +127,8 @@ export async function createMCPSession(client: Client): Promise<MCPSessionInfo> 
     },
   });
 
-  if (!sessionResult.content?.[0]?.text) {
-    throw new Error('Failed to create session');
-  }
-
-  const sessionData = JSON.parse(sessionResult.content[0].text);
+  const sessionText = extractResultText(sessionResult, 'Failed to create session');
+  const sessionData = JSON.parse(sessionText);
   const sessionId = sessionData.sessionId;
 
   // Create browser context
@@ -127,17 +144,10 @@ export async function createMCPSession(client: Client): Promise<MCPSessionInfo> 
     },
   });
 
-  if (!contextResult.content?.[0]?.text) {
-    throw new Error('Failed to create browser context');
-  }
+  const contextText = extractResultText(contextResult, 'Failed to create browser context');
+  const contextData = JSON.parse(contextText);
 
-  const contextData = JSON.parse(contextResult.content[0].text);
-
-  // Check for error in response
-  if (contextData.error) {
-    throw new Error(`Failed to create browser context: ${contextData.error}`);
-  }
-
+  checkDataError(contextData, 'Failed to create browser context');
   const contextId = contextData.contextId;
 
   return { sessionId, contextId };
@@ -158,15 +168,9 @@ export async function mcpNavigate(client: Client, contextId: string, url: string
     },
   });
 
-  if (!result.content?.[0]?.text) {
-    throw new Error('Navigation failed');
-  }
-
-  const data = JSON.parse(result.content[0].text);
-  // Check for error response format
-  if (data.error) {
-    throw new Error(`Navigation failed: ${data.error}`);
-  }
+  const text = extractResultText(result, 'Navigation failed');
+  const data = JSON.parse(text);
+  checkDataError(data, 'Navigation failed');
 }
 
 /**
@@ -185,12 +189,12 @@ export async function mcpClick(client: Client, contextId: string, selector: stri
   });
 
   const resultText = result.content?.[0]?.text;
-  if (!resultText) {
+  if (resultText === undefined || resultText === null) {
     throw new Error('Click failed');
   }
 
   const data = JSON.parse(resultText) as { error?: string };
-  if (data.error) {
+  if (data.error !== undefined && data.error !== null && data.error !== '') {
     throw new Error(`Click failed: ${data.error}`);
   }
 }
@@ -217,12 +221,12 @@ export async function mcpType(
   });
 
   const resultText = result.content?.[0]?.text;
-  if (!resultText) {
+  if (resultText === undefined || resultText === null) {
     throw new Error('Type failed');
   }
 
   const data = JSON.parse(resultText) as { error?: string };
-  if (data.error) {
+  if (data.error !== undefined && data.error !== null && data.error !== '') {
     throw new Error(`Type failed: ${data.error}`);
   }
 }
@@ -247,12 +251,12 @@ export async function mcpGetContent(
   });
 
   const resultText = result.content?.[0]?.text;
-  if (!resultText) {
+  if (resultText === undefined || resultText === null) {
     throw new Error('Get content failed');
   }
 
   const data = JSON.parse(resultText) as { error?: string; success?: boolean; data?: string };
-  if (data.error) {
+  if (data.error !== undefined && data.error !== null && data.error !== '') {
     throw new Error(`Get content failed: ${data.error}`);
   }
 
@@ -282,12 +286,12 @@ export async function mcpWaitForSelector(
   });
 
   const resultText = result.content?.[0]?.text;
-  if (!resultText) {
+  if (resultText === undefined || resultText === null) {
     throw new Error('Wait for selector failed');
   }
 
   const data = JSON.parse(resultText) as { error?: string };
-  if (data.error) {
+  if (data.error !== undefined && data.error !== null && data.error !== '') {
     throw new Error(`Wait for selector failed: ${data.error}`);
   }
 }
@@ -312,12 +316,12 @@ export async function mcpScreenshot(
   });
 
   const resultText = result.content?.[0]?.text;
-  if (!resultText) {
+  if (resultText === undefined || resultText === null) {
     throw new Error('Screenshot failed');
   }
 
   const data = JSON.parse(resultText) as { error?: string; filename?: string };
-  if (data.error) {
+  if (data.error !== undefined && data.error !== null && data.error !== '') {
     throw new Error(`Screenshot failed: ${data.error}`);
   }
 
@@ -343,9 +347,9 @@ export async function cleanupMCPSession(
       },
     });
 
-    if (result.content?.[0]?.text) {
+    if (result.content?.[0]?.text !== undefined && result.content[0].text !== null) {
       const response = JSON.parse(result.content[0].text);
-      if (response.success) {
+      if (response.success === true) {
         console.warn(`Session ${sessionInfo.sessionId} cleaned up successfully`);
       }
     }

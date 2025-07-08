@@ -34,7 +34,7 @@ export async function retryOperation<T>(
     }
   }
 
-  if (!lastError) {
+  if (lastError === undefined) {
     throw Object.assign(new Error('Retry operation failed without error'), {
       code: 'RETRY_FAILED',
     });

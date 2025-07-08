@@ -44,7 +44,7 @@ describe('API and HTTP Interaction Tests', () => {
   }, TEST_CONFIG.timeout);
 
   afterAll(async () => {
-    if (mcpClient) {
+    if (mcpClient !== null) {
       await mcpClient.cleanup();
     }
   });
@@ -54,7 +54,7 @@ describe('API and HTTP Interaction Tests', () => {
   }, TEST_CONFIG.timeout);
 
   afterEach(async () => {
-    if (sessionInfo) {
+    if (sessionInfo !== null) {
       await cleanupMCPSession(mcpClient.client, sessionInfo);
     }
   });
@@ -89,7 +89,7 @@ describe('API and HTTP Interaction Tests', () => {
             return; // Skip JSON validation but test passed
           }
 
-          if (jsonData) {
+          if (jsonData !== undefined && jsonData !== null) {
             expect(jsonData).toHaveProperty('slideshow');
             expect(jsonData.slideshow).toHaveProperty('title');
           }

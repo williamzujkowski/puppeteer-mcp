@@ -47,7 +47,7 @@ describe('E-commerce Workflow Tests', () => {
   }, TEST_CONFIG.timeout);
 
   afterAll(async () => {
-    if (mcpClient) {
+    if (mcpClient !== null) {
       await mcpClient.cleanup();
     }
   });
@@ -57,7 +57,7 @@ describe('E-commerce Workflow Tests', () => {
   }, TEST_CONFIG.timeout);
 
   afterEach(async () => {
-    if (sessionInfo) {
+    if (sessionInfo !== null) {
       await cleanupMCPSession(mcpClient.client, sessionInfo);
     }
   });
