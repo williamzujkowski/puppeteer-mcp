@@ -1,7 +1,7 @@
 # CLAUDE.md
 
 **Version**: 2.2.0  
-**Last Updated**: 2025-07-07  
+**Last Updated**: 2025-07-08  
 **Status**: Active  
 **Type**: AI Assistant Router  
 **NPM Package**: [puppeteer-mcp](https://www.npmjs.com/package/puppeteer-mcp) v1.0.14

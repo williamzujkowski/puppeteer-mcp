@@ -6,7 +6,7 @@ description: 'Version 1.0.13 - Troubleshooting common issues'
 # Troubleshooting Guide
 
 **Version**: 1.0.13  
-**Last Updated**: 2025-01-04  
+**Last Updated**: 2025-07-08  
 **Status**: Active
 
 This guide addresses common issues users encounter with puppeteer-mcp installation, configuration,

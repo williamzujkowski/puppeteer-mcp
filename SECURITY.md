@@ -1,7 +1,7 @@
 # Security Policy
 
 **Version:** 1.0.13  
-**Last Updated:** 2025-01-07  
+**Last Updated:** 2025-07-08  
 **Status:** Active
 
 ## Overview
