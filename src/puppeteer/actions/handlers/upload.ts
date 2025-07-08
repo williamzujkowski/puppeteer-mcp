@@ -54,8 +54,9 @@ export async function handleUpload(
     });
 
     // Verify element is a file input
-    const isFileInput = await page.$eval(sanitizedSelector, (el: any) => {
-      return el.tagName === 'INPUT' && el.type === 'file';
+    const isFileInput = await page.$eval(sanitizedSelector, (el) => {
+      const element = el as { tagName: string; type?: string };
+      return element.tagName === 'INPUT' && element.type === 'file';
     });
 
     if (!isFileInput) {

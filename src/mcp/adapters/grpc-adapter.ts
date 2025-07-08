@@ -350,8 +350,19 @@ export class GrpcAdapter implements ProtocolAdapter {
       const responses: Record<string, unknown>[] = [];
 
       // Create a mock call object that matches gRPC's ServerWritableStream interface
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const call: any = {
+      interface MockStreamCall {
+        request: Record<string, unknown>;
+        metadata: grpc.Metadata;
+        getPeer: () => string;
+        sendMetadata: () => void;
+        write: (chunk: unknown) => boolean;
+        end: () => void;
+        destroy: (error?: Error) => void;
+        on: () => MockStreamCall;
+        emit: () => boolean;
+      }
+
+      const call: MockStreamCall = {
         request: request ?? {},
         metadata,
         getPeer: () => 'mcp-internal',
@@ -368,7 +379,6 @@ export class GrpcAdapter implements ProtocolAdapter {
             reject(error);
           }
         },
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         on: () => call,
         emit: (): boolean => true,
       };

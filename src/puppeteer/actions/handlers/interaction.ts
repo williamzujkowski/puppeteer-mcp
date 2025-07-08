@@ -150,12 +150,14 @@ export async function handleType(
 
     // Clear existing content if requested
     if (action.clearFirst === true) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await element.evaluate((el: any) => {
-        if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
-          el.value = '';
+      await element.evaluate((el) => {
+        const elem = el as { tagName: string; value?: string; textContent?: string | null };
+        if (elem.tagName === 'INPUT' || elem.tagName === 'TEXTAREA') {
+          if ('value' in elem) {
+            elem.value = '';
+          }
         } else {
-          el.textContent = '';
+          elem.textContent = '';
         }
       });
     }

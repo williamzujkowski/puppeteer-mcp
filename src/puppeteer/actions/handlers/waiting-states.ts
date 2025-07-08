@@ -124,7 +124,12 @@ async function waitForElementByState(
       break;
     case 'detached':
       await page.waitForFunction(
-        (sel: string) => !(globalThis as any).document?.querySelector(sel),
+        (sel: string) => {
+          const win = globalThis as unknown as {
+            document?: { querySelector: (selector: string) => unknown };
+          };
+          return !win.document?.querySelector(sel);
+        },
         {
           timeout,
           polling: 'mutation',

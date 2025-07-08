@@ -8,6 +8,7 @@
 import { promises as fs } from 'fs';
 import type { Page } from 'puppeteer';
 import type { ActionResult, ActionContext } from '../../interfaces/action-executor.interface.js';
+import type { BrowserWindow } from '../../types/browser-context.js';
 import { sanitizeSelector } from '../validation.js';
 import { validateFilePaths } from './upload-validation.js';
 import { createLogger } from '../../../utils/logger.js';
@@ -139,7 +140,7 @@ async function simulateDragDrop(
 ): Promise<void> {
   await page.evaluate(
     (dropSelector: string, files: typeof fileData) => {
-      const doc = (globalThis as any).document;
+      const doc = (globalThis as unknown as BrowserWindow).document;
       const dropZone = doc.querySelector(dropSelector);
       if (!dropZone) {
         throw new Error('Drop zone not found');
@@ -148,29 +149,29 @@ async function simulateDragDrop(
       // Create file list
       const fileList = files.map((fileData) => {
         const uint8Array = new Uint8Array(fileData.content);
-        const File = (globalThis as any).File;
-        const file = new File([uint8Array], fileData.name, {
+        const FileConstructor = (globalThis as unknown as BrowserWindow).File;
+        const file = new FileConstructor([uint8Array], fileData.name, {
           type: fileData.type,
         });
-        return file as File;
+        return file;
       });
 
       // Create data transfer object
-      const DataTransfer = (globalThis as any).DataTransfer;
-      const dataTransfer = new DataTransfer();
+      const DataTransferConstructor = (globalThis as unknown as BrowserWindow).DataTransfer;
+      const dataTransfer = new DataTransferConstructor();
       fileList.forEach((file) => {
         void dataTransfer.items.add(file);
       });
 
       // Create and dispatch drop event
-      const DragEvent = (globalThis as any).DragEvent;
-      const dropEvent = new DragEvent('drop', {
+      const DragEventConstructor = (globalThis as unknown as BrowserWindow).DragEvent;
+      const dropEvent = new DragEventConstructor('drop', {
         bubbles: true,
         cancelable: true,
         dataTransfer,
       });
 
-      dropZone.dispatchEvent(dropEvent);
+      (dropZone as unknown as { dispatchEvent: (event: unknown) => void }).dispatchEvent(dropEvent);
     },
     selector,
     fileData,

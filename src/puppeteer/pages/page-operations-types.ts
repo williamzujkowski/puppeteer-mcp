@@ -7,6 +7,8 @@ import type { Page, Browser, Viewport, WaitForOptions } from 'puppeteer';
 import type { BrowserEvent } from '../interfaces/browser-events.interface.js';
 import type { PageInfo } from '../interfaces/page-manager.interface.js';
 import type { ActionContext } from '../interfaces/action-executor.interface.js';
+import type { Logger as PinoLogger } from 'pino';
+import type { SessionStore } from '../../store/session-store.interface.js';
 
 /**
  * Parameters for close page operation
@@ -15,8 +17,8 @@ export interface ClosePageOperationParams {
   page: Page;
   pageInfo: PageInfo;
   browser: Browser;
-  sessionStore: any;
-  logger: any;
+  sessionStore: SessionStore;
+  logger: PinoLogger;
   pageEventHandler?: (event: BrowserEvent['type'], data: unknown) => void;
 }
 
@@ -90,7 +92,7 @@ export interface SetCookiesParams {
   cookies: Array<{ name: string; value: string; domain?: string; path?: string }>;
   context: ActionContext;
   pageId: string;
-  logger: any;
+  logger: PinoLogger;
 }
 
 /**
@@ -112,5 +114,5 @@ export interface TakeScreenshotParams {
   fullPage: boolean;
   quality?: number;
   context: ActionContext;
-  logger: any;
+  logger: PinoLogger;
 }

@@ -8,18 +8,11 @@
 import type { Page } from 'puppeteer';
 import type { ActionContext } from '../../interfaces/action-executor.interface.js';
 import type { ScrollWithinElementParams } from './scroll-element-types.js';
+import type { BrowserWindow } from '../../types/browser-context.js';
 import { sanitizeSelector } from '../validation.js';
 import { createLogger } from '../../../utils/logger.js';
 
 const logger = createLogger('puppeteer:scroll-element');
-
-// Type alias for browser window global
-type BrowserWindow = typeof globalThis & {
-  document: any;
-  pageXOffset?: number;
-  pageYOffset?: number;
-  HTMLElement: any;
-};
 
 /**
  * Handle scroll to element
@@ -37,7 +30,7 @@ export async function handleScrollToElement(
 
   // Check if element exists
   const elementExists = await page.evaluate((sel: string) => {
-    return (globalThis as BrowserWindow).document.querySelector(sel) !== null;
+    return (globalThis as unknown as BrowserWindow).document.querySelector(sel) !== null;
   }, sanitizedSelector);
 
   if (!elementExists) {
@@ -46,7 +39,11 @@ export async function handleScrollToElement(
 
   // Scroll to element
   const elementPosition = await page.evaluate((sel: string) => {
-    const element = (globalThis as BrowserWindow).document.querySelector(sel);
+    const win = globalThis as unknown as BrowserWindow;
+    const element = win.document.querySelector(sel) as {
+      scrollIntoView: (options: { behavior: string; block: string; inline: string }) => void;
+      getBoundingClientRect: () => { left: number; top: number };
+    };
     if (!element) {
       throw new Error('Element not found');
     }
@@ -55,8 +52,8 @@ export async function handleScrollToElement(
 
     const rect = element.getBoundingClientRect();
     return {
-      x: rect.left + ((globalThis as BrowserWindow).pageXOffset ?? 0),
-      y: rect.top + ((globalThis as BrowserWindow).pageYOffset ?? 0),
+      x: rect.left + (win.pageXOffset ?? 0),
+      y: rect.top + (win.pageYOffset ?? 0),
     };
   }, sanitizedSelector);
 
@@ -91,7 +88,7 @@ export async function handleScrollWithinElement(
 
   // Check if element exists
   const elementExists = await page.evaluate((sel: string) => {
-    return (globalThis as BrowserWindow).document.querySelector(sel) !== null;
+    return (globalThis as unknown as BrowserWindow).document.querySelector(sel) !== null;
   }, sanitizedSelector);
 
   if (!elementExists) {
@@ -101,12 +98,13 @@ export async function handleScrollWithinElement(
   // Scroll within the element
   const actualDistance = await page.evaluate(
     (sel: string, scrollDirection: string, scrollDistance: number) => {
-      const el = (globalThis as BrowserWindow).document.querySelector(sel);
-      if (
-        el === null ||
-        el === undefined ||
-        !(el instanceof (globalThis as BrowserWindow).HTMLElement)
-      ) {
+      const win = globalThis as unknown as BrowserWindow;
+      const el = win.document.querySelector(sel) as {
+        scrollTop: number;
+        scrollLeft: number;
+        scrollBy: (x: number, y: number) => void;
+      } | null;
+      if (!el) {
         throw new Error('Element not found or not scrollable');
       }
 
