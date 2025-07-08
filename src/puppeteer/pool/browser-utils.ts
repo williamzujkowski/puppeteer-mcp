@@ -47,7 +47,7 @@ export async function launchBrowser(
  * Check if browser has been idle too long
  */
 export function isIdleTooLong(instance: InternalBrowserInstance, maxIdleTimeMs: number): boolean {
-  if (instance.state !== 'idle' || !instance.lastUsedAt) {
+  if (instance.state !== 'idle') {
     return false;
   }
 

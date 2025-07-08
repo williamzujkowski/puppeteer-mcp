@@ -128,7 +128,10 @@ async function waitForElementByState(
           const win = globalThis as unknown as {
             document?: { querySelector: (selector: string) => unknown };
           };
-          return !win.document?.querySelector(sel);
+          return (
+            win.document?.querySelector(sel) === null ||
+            win.document?.querySelector(sel) === undefined
+          );
         },
         {
           timeout,

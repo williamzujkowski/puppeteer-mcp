@@ -142,7 +142,7 @@ async function simulateDragDrop(
     (dropSelector: string, files: typeof fileData) => {
       const doc = (globalThis as unknown as BrowserWindow).document;
       const dropZone = doc.querySelector(dropSelector);
-      if (!dropZone) {
+      if (dropZone === null) {
         throw new Error('Drop zone not found');
       }
 

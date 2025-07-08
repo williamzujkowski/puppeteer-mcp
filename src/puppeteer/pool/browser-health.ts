@@ -31,7 +31,7 @@ async function getProcessMetrics(
 ): Promise<{ memoryUsage?: number; cpuUsage?: number }> {
   const process = browser.process();
 
-  if (!process?.pid || process.pid === 0) {
+  if (process?.pid === null || process?.pid === undefined || process.pid === 0) {
     return {};
   }
 

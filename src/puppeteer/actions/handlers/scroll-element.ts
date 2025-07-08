@@ -43,8 +43,8 @@ export async function handleScrollToElement(
     const element = win.document.querySelector(sel) as {
       scrollIntoView: (options: { behavior: string; block: string; inline: string }) => void;
       getBoundingClientRect: () => { left: number; top: number };
-    };
-    if (!element) {
+    } | null;
+    if (element === null) {
       throw new Error('Element not found');
     }
 
