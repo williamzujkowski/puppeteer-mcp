@@ -366,14 +366,20 @@ export async function startHTTPServer(): Promise<void> {
     validateProductionConfig();
 
     // Log service start
-    await logSecurityEvent(SecurityEventType.SERVICE_START, {
-      result: 'success',
-      metadata: {
-        environment: config.NODE_ENV,
-        port: config.PORT,
-        tlsEnabled: config.TLS_ENABLED,
-      },
-    });
+    try {
+      if (SecurityEventType?.SERVICE_START && logSecurityEvent) {
+        await logSecurityEvent(SecurityEventType.SERVICE_START, {
+          result: 'success',
+          metadata: {
+            environment: config.NODE_ENV,
+            port: config.PORT,
+            tlsEnabled: config.TLS_ENABLED,
+          },
+        });
+      }
+    } catch {
+      // Ignore errors during security logging
+    }
 
     const app = createApp();
     const server = createServer(app);
@@ -468,12 +474,18 @@ export async function startHTTPServer(): Promise<void> {
     logger.error('Failed to start server:', error);
 
     // Try to log security event but don't wait for it on exit
-    logSecurityEvent(SecurityEventType.SERVICE_START, {
-      result: 'failure',
-      reason: error instanceof Error ? error.message : 'Unknown error',
-    }).catch(() => {
-      // Ignore errors during shutdown
-    });
+    try {
+      if (SecurityEventType?.SERVICE_START && logSecurityEvent) {
+        logSecurityEvent(SecurityEventType.SERVICE_START, {
+          result: 'failure',
+          reason: error instanceof Error ? error.message : 'Unknown error',
+        }).catch(() => {
+          // Ignore errors during shutdown
+        });
+      }
+    } catch {
+      // Ignore errors during import or security logging
+    }
 
     // Give logger a chance to flush before exit
     setTimeout(() => {
@@ -483,7 +495,12 @@ export async function startHTTPServer(): Promise<void> {
 }
 
 // Start server if not in test environment and not in MCP mode
-if (config.NODE_ENV !== 'test' && process.env.MCP_TRANSPORT === undefined) {
+if (
+  config.NODE_ENV !== 'test' && 
+  process.env.NODE_ENV !== 'test' && 
+  process.env.JEST_WORKER_ID === undefined &&
+  process.env.MCP_TRANSPORT === undefined
+) {
   void startHTTPServer();
 }
 
