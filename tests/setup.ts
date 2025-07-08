@@ -130,7 +130,11 @@ afterAll(async () => {
   console.warn = originalConsole.warn;
 
   console.error = originalConsole.error;
-  
+
+  // Clean up all session store instances
+  const { InMemorySessionStore } = await import('../src/store/in-memory-session-store.js');
+  await InMemorySessionStore.cleanupAll();
+
   // Clean up loggers
   await cleanupLoggers();
 });

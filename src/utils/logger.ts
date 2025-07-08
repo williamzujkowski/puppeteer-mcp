@@ -413,7 +413,7 @@ const flushAndEndStream = (stream: unknown): void => {
 /**
  * Cleanup function for tests
  */
-export const cleanupLoggers = (): void => {
+export const cleanupLoggers = async (): Promise<void> => {
   // Flush and close audit logger if it exists
   if (!auditLoggerInstance) {
     return;
@@ -422,6 +422,12 @@ export const cleanupLoggers = (): void => {
   try {
     const stream = getLoggerStream(auditLoggerInstance);
     flushAndEndStream(stream);
+
+    // Wait a bit for the stream to finish
+    await new Promise<void>((resolve) => {
+      const timer = setTimeout(resolve, 100);
+      timer.unref?.();
+    });
   } catch {
     // Ignore cleanup errors in tests
   }

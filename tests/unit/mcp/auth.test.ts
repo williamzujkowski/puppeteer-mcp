@@ -4,7 +4,12 @@
  */
 
 import { describe, it, expect, beforeEach, jest, afterEach } from '@jest/globals';
-import { MCPAuthBridge, MCP_TOOL_PERMISSIONS, type AuthContext, type MCPAuthCredentials } from '../../../src/mcp/auth/mcp-auth.js';
+import {
+  MCPAuthBridge,
+  MCP_TOOL_PERMISSIONS,
+  type AuthContext,
+  type MCPAuthCredentials,
+} from '../../../src/mcp/auth/mcp-auth.js';
 import { generateToken } from '../../../src/auth/jwt.js';
 import { apiKeyStore } from '../../../src/store/api-key-store.js';
 import { InMemorySessionStore } from '../../../src/store/in-memory-session-store.js';
@@ -65,22 +70,22 @@ describe('MCPAuthBridge', () => {
   });
 
   afterEach(async () => {
-    await sessionStore.clear();
+    await sessionStore.destroy();
     await apiKeyStore.clear();
   });
 
   describe('authenticate', () => {
     it('should reject when no auth credentials provided', async () => {
       await expect(authBridge.authenticate()).rejects.toThrow(
-        new AppError('Authentication required', 401)
+        new AppError('Authentication required', 401),
       );
-      
+
       expect(logger.logSecurityEvent).toHaveBeenCalledWith(
         logger.SecurityEventType.LOGIN_FAILURE,
         expect.objectContaining({
           reason: 'No authentication credentials provided',
           result: 'failure',
-        })
+        }),
       );
     });
 
@@ -91,7 +96,7 @@ describe('MCPAuthBridge', () => {
       };
 
       await expect(authBridge.authenticate(auth)).rejects.toThrow(
-        new AppError('Invalid authentication type', 400)
+        new AppError('Invalid authentication type', 400),
       );
     });
 
@@ -140,7 +145,7 @@ describe('MCPAuthBridge', () => {
                 method: 'jwt',
                 context: 'mcp',
               }),
-            })
+            }),
           );
         } catch (error) {
           console.error('JWT authentication error:', error);
@@ -173,7 +178,7 @@ describe('MCPAuthBridge', () => {
         };
 
         await expect(authBridge.authenticate(auth)).rejects.toThrow(
-          new AppError('Invalid or expired JWT token', 401)
+          new AppError('Invalid or expired JWT token', 401),
         );
 
         expect(logger.logSecurityEvent).toHaveBeenCalledWith(
@@ -183,7 +188,7 @@ describe('MCPAuthBridge', () => {
             metadata: expect.objectContaining({
               method: 'jwt',
             }),
-          })
+          }),
         );
       });
 
@@ -196,7 +201,7 @@ describe('MCPAuthBridge', () => {
             sessionId: '987e6543-e21b-12d3-a456-426614174001',
             type: 'access',
           },
-          -1 // Negative expiry to create expired token
+          -1, // Negative expiry to create expired token
         );
 
         const auth: MCPAuthCredentials = {
@@ -205,7 +210,7 @@ describe('MCPAuthBridge', () => {
         };
 
         await expect(authBridge.authenticate(auth)).rejects.toThrow(
-          new AppError('Invalid or expired JWT token', 401)
+          new AppError('Invalid or expired JWT token', 401),
         );
       });
     });
@@ -249,7 +254,7 @@ describe('MCPAuthBridge', () => {
               method: 'apikey',
               context: 'mcp',
             }),
-          })
+          }),
         );
       });
 
@@ -260,7 +265,7 @@ describe('MCPAuthBridge', () => {
         };
 
         await expect(authBridge.authenticate(auth)).rejects.toThrow(
-          new AppError('Invalid API key', 401)
+          new AppError('Invalid API key', 401),
         );
 
         expect(logger.logSecurityEvent).toHaveBeenCalledWith(
@@ -268,7 +273,7 @@ describe('MCPAuthBridge', () => {
           expect.objectContaining({
             reason: 'Invalid API key',
             result: 'failure',
-          })
+          }),
         );
       });
 
@@ -286,7 +291,7 @@ describe('MCPAuthBridge', () => {
         };
 
         await expect(authBridge.authenticate(auth)).rejects.toThrow(
-          new AppError('Invalid API key', 401)
+          new AppError('Invalid API key', 401),
         );
       });
     });
@@ -330,7 +335,7 @@ describe('MCPAuthBridge', () => {
               method: 'session',
               context: 'mcp',
             }),
-          })
+          }),
         );
       });
 
@@ -341,7 +346,7 @@ describe('MCPAuthBridge', () => {
         };
 
         await expect(authBridge.authenticate(auth)).rejects.toThrow(
-          new AppError('Invalid or expired session', 401)
+          new AppError('Invalid or expired session', 401),
         );
 
         expect(logger.logSecurityEvent).toHaveBeenCalledWith(
@@ -349,7 +354,7 @@ describe('MCPAuthBridge', () => {
           expect.objectContaining({
             reason: 'Invalid or expired session',
             result: 'failure',
-          })
+          }),
         );
       });
 
@@ -368,7 +373,7 @@ describe('MCPAuthBridge', () => {
         };
 
         await expect(authBridge.authenticate(auth)).rejects.toThrow(
-          new AppError('Invalid or expired session', 401)
+          new AppError('Invalid or expired session', 401),
         );
       });
 
@@ -442,7 +447,7 @@ describe('MCPAuthBridge', () => {
       };
 
       await expect(
-        authBridge.requireToolPermission(authContext, 'navigate')
+        authBridge.requireToolPermission(authContext, 'navigate'),
       ).resolves.toBeUndefined();
     });
 
@@ -454,13 +459,11 @@ describe('MCPAuthBridge', () => {
         authMethod: 'jwt',
       };
 
-      await expect(
-        authBridge.requireToolPermission(authContext, 'navigate')
-      ).rejects.toThrow(
+      await expect(authBridge.requireToolPermission(authContext, 'navigate')).rejects.toThrow(
         new AppError(
           `Permission denied: ${Permission.CONTEXT_EXECUTE} required for tool navigate`,
-          403
-        )
+          403,
+        ),
       );
 
       expect(logger.logSecurityEvent).toHaveBeenCalledWith(
@@ -470,7 +473,7 @@ describe('MCPAuthBridge', () => {
           resource: 'mcp:tool:navigate',
           action: Permission.CONTEXT_EXECUTE,
           result: 'failure',
-        })
+        }),
       );
     });
 
@@ -482,13 +485,8 @@ describe('MCPAuthBridge', () => {
         authMethod: 'jwt',
       };
 
-      await expect(
-        authBridge.requireToolPermission(authContext, 'unknownTool')
-      ).rejects.toThrow(
-        new AppError(
-          'Permission denied: unknown required for tool unknownTool',
-          403
-        )
+      await expect(authBridge.requireToolPermission(authContext, 'unknownTool')).rejects.toThrow(
+        new AppError('Permission denied: unknown required for tool unknownTool', 403),
       );
     });
   });
@@ -640,8 +638,8 @@ describe('MCPAuthBridge', () => {
   describe('MCP_TOOL_PERMISSIONS', () => {
     it('should have permissions for all browser control tools', () => {
       const browserTools = ['navigate', 'click', 'type', 'scroll', 'waitForSelector', 'evaluate'];
-      
-      browserTools.forEach(tool => {
+
+      browserTools.forEach((tool) => {
         // eslint-disable-next-line security/detect-object-injection
         expect(MCP_TOOL_PERMISSIONS[tool]).toBe(Permission.CONTEXT_EXECUTE);
       });
@@ -649,8 +647,8 @@ describe('MCPAuthBridge', () => {
 
     it('should have read permissions for information tools', () => {
       const infoTools = ['screenshot', 'getTitle', 'getUrl', 'getContent', 'getCookies'];
-      
-      infoTools.forEach(tool => {
+
+      infoTools.forEach((tool) => {
         // eslint-disable-next-line security/detect-object-injection
         expect(MCP_TOOL_PERMISSIONS[tool]).toBe(Permission.CONTEXT_READ);
       });

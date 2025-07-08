@@ -27,7 +27,7 @@ describe('InMemorySessionStore', () => {
 
   afterAll(async () => {
     // Make sure to clean up completely
-    await store.clear();
+    await store.destroy();
   });
 
   describe('create', () => {
@@ -172,7 +172,10 @@ describe('InMemorySessionStore', () => {
       const originalTime = new Date(originalSession?.lastAccessedAt ?? '').getTime();
 
       // Wait a bit to ensure time difference
-      await new Promise<void>((resolve) => { setTimeout(resolve, 100); });
+      await new Promise<void>((resolve) => {
+        const timer = setTimeout(resolve, 100);
+        timer.unref?.();
+      });
 
       const touched = await store.touch(id);
       expect(touched).toBe(true);

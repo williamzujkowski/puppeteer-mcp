@@ -313,6 +313,9 @@ describe('WebSocketAdapter', () => {
         },
       });
       expect(connection.pendingRequests.has(requestId)).toBe(false);
+
+      // Clean up the timeout
+      clearTimeout(timeout);
     });
 
     it('should handle event messages for subscriptions', async () => {
@@ -385,6 +388,9 @@ describe('WebSocketAdapter', () => {
 
       expect(rejectSpy).toHaveBeenCalledWith(expect.any(AppError));
       expect(connection.pendingRequests.has(requestId)).toBe(false);
+
+      // Clean up the timeout
+      clearTimeout(timeout);
     });
   });
 

@@ -26,10 +26,10 @@ export async function handleDragDropUpload(
   filePaths: string[],
   selector: string,
   page: Page,
-  context: ActionContext
+  context: ActionContext,
 ): Promise<ActionResult> {
   const startTime = Date.now();
-  
+
   try {
     logger.info('Executing drag and drop upload action', {
       sessionId: context.sessionId,
@@ -68,7 +68,7 @@ export async function handleDragDropUpload(
       actionType: 'dragDropUpload',
       data: {
         selector: sanitizedSelector,
-        uploadedFiles: validatedFiles.map(f => ({
+        uploadedFiles: validatedFiles.map((f) => ({
           name: f.name,
           size: f.size,
           type: f.type,
@@ -82,7 +82,6 @@ export async function handleDragDropUpload(
         originalFilePaths: filePaths,
       },
     };
-
   } catch (error) {
     const duration = Date.now() - startTime;
     const errorMessage = error instanceof Error ? error.message : 'Unknown drag drop upload error';
@@ -112,19 +111,21 @@ export async function handleDragDropUpload(
 /**
  * Prepare file data for drag and drop
  */
- 
-async function prepareFileData(validatedFiles: Array<{ path: string; name: string; type: string }>): Promise<Array<{ name: string; type: string; content: number[] }>> {
+
+async function prepareFileData(
+  validatedFiles: Array<{ path: string; name: string; type: string }>,
+): Promise<Array<{ name: string; type: string; content: number[] }>> {
   return Promise.all(
     validatedFiles.map(async (file) => {
       // Security: File path is validated by validateFilePaths
-       
+
       const content = await fs.readFile(file.path);
       return {
         name: file.name,
         type: file.type,
         content: Array.from(content),
       };
-    })
+    }),
   );
 }
 
@@ -134,7 +135,7 @@ async function prepareFileData(validatedFiles: Array<{ path: string; name: strin
 async function simulateDragDrop(
   page: Page,
   selector: string,
-  fileData: Array<{ name: string; type: string; content: number[] }>
+  fileData: Array<{ name: string; type: string; content: number[] }>,
 ): Promise<void> {
   await page.evaluate(
     (dropSelector: string, files: typeof fileData) => {
@@ -145,19 +146,21 @@ async function simulateDragDrop(
       }
 
       // Create file list
-      const fileList = files.map(fileData => {
+      const fileList = files.map((fileData) => {
         const uint8Array = new Uint8Array(fileData.content);
         const File = (globalThis as any).File;
         const file = new File([uint8Array], fileData.name, {
           type: fileData.type,
         });
-        return file;
+        return file as File;
       });
 
       // Create data transfer object
       const DataTransfer = (globalThis as any).DataTransfer;
       const dataTransfer = new DataTransfer();
-      fileList.forEach((file) => dataTransfer.items.add(file));
+      fileList.forEach((file) => {
+        void dataTransfer.items.add(file);
+      });
 
       // Create and dispatch drop event
       const DragEvent = (globalThis as any).DragEvent;
@@ -170,6 +173,6 @@ async function simulateDragDrop(
       dropZone.dispatchEvent(dropEvent);
     },
     selector,
-    fileData
+    fileData,
   );
 }

@@ -15,6 +15,7 @@ import { logDataAccess } from '../utils/logger.js';
  * Note: This is for development/testing only. Use Redis or similar for production.
  */
 export class InMemorySessionStore implements SessionStore {
+  private static instances: Set<InMemorySessionStore> = new Set();
   private sessions: Map<string, Session> = new Map();
   private userSessions: Map<string, Set<string>> = new Map();
   private logger: pino.Logger;
@@ -30,6 +31,9 @@ export class InMemorySessionStore implements SessionStore {
 
     // Make sure the interval doesn't keep the process alive
     this.cleanupInterval.unref();
+
+    // Track this instance
+    InMemorySessionStore.instances.add(this);
   }
 
   async create(data: SessionData): Promise<string> {
@@ -214,5 +218,25 @@ export class InMemorySessionStore implements SessionStore {
     }
 
     this.logger.info('All sessions cleared');
+  }
+
+  /**
+   * Destroy the session store and clean up resources
+   */
+  async destroy(): Promise<void> {
+    await this.clear();
+    // Remove from instances set
+    InMemorySessionStore.instances.delete(this);
+  }
+
+  /**
+   * Clean up all instances (for testing)
+   */
+  static async cleanupAll(): Promise<void> {
+    const cleanupPromises = Array.from(InMemorySessionStore.instances).map((instance) =>
+      instance.destroy(),
+    );
+    await Promise.all(cleanupPromises);
+    InMemorySessionStore.instances.clear();
   }
 }

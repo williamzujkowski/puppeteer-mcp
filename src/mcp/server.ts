@@ -254,7 +254,7 @@ export class MCPServer {
 
     // Clean up the session store
     if (sessionStore) {
-      await sessionStore.clear();
+      await sessionStore.destroy();
     }
 
     logger.info({

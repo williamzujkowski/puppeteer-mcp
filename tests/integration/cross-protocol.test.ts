@@ -103,6 +103,9 @@ describe('Cross-Protocol Integration', () => {
 
   afterAll(async () => {
     // Cleanup
+    if (sessionStore !== undefined) {
+      await sessionStore.destroy();
+    }
     if (wsServer !== undefined) {
       await wsServer.shutdown();
     }
