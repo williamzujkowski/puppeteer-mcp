@@ -169,7 +169,7 @@ export async function handleTerminateSession(
     }
 
     const { sessionId } = req.params;
-    if (!sessionId) {
+    if (sessionId === undefined || sessionId === null || sessionId === '') {
       throw new AppError('Session ID is required', 400);
     }
 
@@ -295,7 +295,7 @@ export async function handleAdminTerminateSession(
 ): Promise<void> {
   try {
     const { sessionId } = req.params;
-    if (!sessionId) {
+    if (sessionId === undefined || sessionId === null || sessionId === '') {
       throw new AppError('Session ID is required', 400);
     }
 

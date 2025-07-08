@@ -160,7 +160,7 @@ export class ContextHandlers {
           success: true,
           data: {
             ...context,
-            ...(pages && { pages }),
+            ...(pages.length > 0 ? { pages } : {}),
           },
         });
       } catch (error) {

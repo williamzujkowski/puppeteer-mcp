@@ -168,7 +168,9 @@ export class ContextActionHandlers {
         contextId,
         executedAt: result.timestamp.toISOString(),
       },
-      ...(result.error && { error: result.error }),
+      ...(result.error !== undefined && result.error !== null && result.error !== ''
+        ? { error: result.error }
+        : {}),
     };
   }
 }

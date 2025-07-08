@@ -51,7 +51,7 @@ export function getDirnameFromSrc(relativePath: string): string {
     // Use process.argv[1] to get the current script path as a safer alternative
     // This avoids using Function constructor and the no-implied-eval issue
     const currentScriptPath = process.argv[1];
-    if (currentScriptPath) {
+    if (currentScriptPath !== undefined && currentScriptPath !== null && currentScriptPath !== '') {
       const scriptDir = dirname(currentScriptPath);
       // If we're in the dist directory, use it; otherwise fall back to process.cwd()
       if (scriptDir.includes('dist')) {
