@@ -429,9 +429,12 @@ function setupServerErrorHandlers(server: HttpServer | HttpsServer, PORT: number
 /**
  * Log security event with error handling
  */
-async function logSecurityEventSafe(eventType: any, eventData: any): Promise<void> {
+async function logSecurityEventSafe(
+  eventType: (typeof SecurityEventType)[keyof typeof SecurityEventType],
+  eventData: Record<string, unknown>,
+): Promise<void> {
   try {
-    if (SecurityEventType?.SERVICE_START && logSecurityEvent) {
+    if (SecurityEventType?.SERVICE_START !== undefined && logSecurityEvent !== undefined) {
       await logSecurityEvent(eventType, eventData);
     }
   } catch {

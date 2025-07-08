@@ -13,6 +13,14 @@ import { createLogger } from '../../../utils/logger.js';
 
 const logger = createLogger('puppeteer:scroll-element');
 
+// Type alias for browser window global
+type BrowserWindow = typeof globalThis & {
+  document: any;
+  pageXOffset?: number;
+  pageYOffset?: number;
+  HTMLElement: any;
+};
+
 /**
  * Handle scroll to element
  * @param selector - CSS selector
@@ -29,7 +37,7 @@ export async function handleScrollToElement(
 
   // Check if element exists
   const elementExists = await page.evaluate((sel: string) => {
-    return (globalThis as any).document.querySelector(sel) !== null;
+    return (globalThis as BrowserWindow).document.querySelector(sel) !== null;
   }, sanitizedSelector);
 
   if (!elementExists) {
@@ -38,7 +46,7 @@ export async function handleScrollToElement(
 
   // Scroll to element
   const elementPosition = await page.evaluate((sel: string) => {
-    const element = (globalThis as any).document.querySelector(sel);
+    const element = (globalThis as BrowserWindow).document.querySelector(sel);
     if (!element) {
       throw new Error('Element not found');
     }
@@ -47,8 +55,8 @@ export async function handleScrollToElement(
 
     const rect = element.getBoundingClientRect();
     return {
-      x: rect.left + ((globalThis as any).pageXOffset ?? 0),
-      y: rect.top + ((globalThis as any).pageYOffset ?? 0),
+      x: rect.left + ((globalThis as BrowserWindow).pageXOffset ?? 0),
+      y: rect.top + ((globalThis as BrowserWindow).pageYOffset ?? 0),
     };
   }, sanitizedSelector);
 
@@ -83,7 +91,7 @@ export async function handleScrollWithinElement(
 
   // Check if element exists
   const elementExists = await page.evaluate((sel: string) => {
-    return (globalThis as any).document.querySelector(sel) !== null;
+    return (globalThis as BrowserWindow).document.querySelector(sel) !== null;
   }, sanitizedSelector);
 
   if (!elementExists) {
@@ -93,8 +101,12 @@ export async function handleScrollWithinElement(
   // Scroll within the element
   const actualDistance = await page.evaluate(
     (sel: string, scrollDirection: string, scrollDistance: number) => {
-      const el = (globalThis as any).document.querySelector(sel);
-      if (el === null || el === undefined || !(el instanceof (globalThis as any).HTMLElement)) {
+      const el = (globalThis as BrowserWindow).document.querySelector(sel);
+      if (
+        el === null ||
+        el === undefined ||
+        !(el instanceof (globalThis as BrowserWindow).HTMLElement)
+      ) {
         throw new Error('Element not found or not scrollable');
       }
 

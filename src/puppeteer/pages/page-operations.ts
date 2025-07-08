@@ -256,7 +256,7 @@ export async function cleanupIdlePages(
   pageStore: PageInfoStore,
 ): Promise<number> {
   const now = Date.now();
-  const predicate = (pageInfo: PageInfo) => {
+  const predicate = (pageInfo: PageInfo): boolean => {
     const idleTime = now - pageInfo.lastActivityAt.getTime();
     return idleTime > idleTimeout;
   };
