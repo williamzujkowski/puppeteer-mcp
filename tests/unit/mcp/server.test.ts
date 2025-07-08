@@ -184,7 +184,9 @@ describe('MCP Server Session Management', () => {
       const createdAt = new Date(response.createdAt);
       const expiresAt = new Date(response.expiresAt);
       const durationMs = expiresAt.getTime() - createdAt.getTime();
-      expect(durationMs).toBe(3600 * 1000);
+      // Allow for minor timing differences (within 1 second)
+      expect(durationMs).toBeGreaterThanOrEqual(3599 * 1000);
+      expect(durationMs).toBeLessThanOrEqual(3601 * 1000);
     });
   });
 

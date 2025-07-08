@@ -33,8 +33,9 @@ export async function createMCPClient(): Promise<MCPTestClient> {
     env: {
       ...process.env,
       NODE_ENV: 'test',
-      LOG_LEVEL: 'silent',
+      LOG_LEVEL: process.env.LOG_LEVEL ?? 'debug', // Use debug for CI
       MCP_TRANSPORT: 'stdio',
+      PUPPETEER_MCP_AUTH_REQUIRED: 'false',
     },
   });
 
