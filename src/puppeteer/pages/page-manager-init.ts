@@ -34,7 +34,7 @@ export function initializePageManager(
   browserPool: BrowserPool,
   pageStore: PageInfoStore | undefined,
   _emitter: EventEmitter,
-  performCleanup: () => Promise<void>
+  performCleanup: () => Promise<void>,
 ): PageManagerInit {
   // Initialize base properties
   const init: PageManagerInit = {

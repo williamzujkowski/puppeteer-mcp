@@ -6,12 +6,12 @@
  */
 
 import type { Page } from 'puppeteer';
-import type { 
+import type {
   ClickAction,
   TypeAction,
   SelectAction,
-  ActionResult, 
-  ActionContext 
+  ActionResult,
+  ActionContext,
 } from '../../interfaces/action-executor.interface.js';
 import { sanitizeSelector } from '../validation.js';
 import { createLogger } from '../../../utils/logger.js';
@@ -32,7 +32,7 @@ export { handleHover, handleFocus, handleBlur } from './interaction-focus.js';
 export async function handleClick(
   action: ClickAction,
   page: Page,
-  context: ActionContext
+  context: ActionContext,
 ): Promise<ActionResult> {
   const startTime = Date.now();
   try {
@@ -117,7 +117,7 @@ export async function handleClick(
 export async function handleType(
   action: TypeAction,
   page: Page,
-  context: ActionContext
+  context: ActionContext,
 ): Promise<ActionResult> {
   const startTime = Date.now();
   try {
@@ -227,7 +227,7 @@ export async function handleType(
 export async function handleSelect(
   action: SelectAction,
   page: Page,
-  context: ActionContext
+  context: ActionContext,
 ): Promise<ActionResult> {
   const startTime = Date.now();
   try {

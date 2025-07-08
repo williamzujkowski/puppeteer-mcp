@@ -32,7 +32,7 @@ export interface PageEvents {
 export function configurePageEventHandlers(
   page: Page,
   pageId: string,
-  emitter: EventEmitter
+  emitter: EventEmitter,
 ): void {
   // Page navigation
   page.on('framenavigated', (frame) => {
@@ -51,11 +51,14 @@ export function configurePageEventHandlers(
 
   // Console messages
   page.on('console', (msg) => {
-    logger.debug({
-      pageId,
-      type: msg.type(),
-      text: msg.text(),
-    }, 'Page console message');
+    logger.debug(
+      {
+        pageId,
+        type: msg.type(),
+        text: msg.text(),
+      },
+      'Page console message',
+    );
   });
 
   // Page crashes
@@ -66,11 +69,14 @@ export function configurePageEventHandlers(
 
   // Request failures
   page.on('requestfailed', (request) => {
-    logger.warn({
-      pageId,
-      url: request.url(),
-      error: request.failure()?.errorText,
-    }, 'Page request failed');
+    logger.warn(
+      {
+        pageId,
+        url: request.url(),
+        error: request.failure()?.errorText,
+      },
+      'Page request failed',
+    );
   });
 }
 

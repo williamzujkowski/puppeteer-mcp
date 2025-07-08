@@ -26,10 +26,7 @@ export class WSSubscriptionManager {
   private logger: pino.Logger;
   private connectionManager: WSConnectionManager;
 
-  constructor(
-    logger: pino.Logger,
-    connectionManager: WSConnectionManager
-  ) {
+  constructor(logger: pino.Logger, connectionManager: WSConnectionManager) {
     this.logger = logger.child({ module: 'ws-subscription-manager' });
     this.connectionManager = connectionManager;
   }
@@ -41,7 +38,7 @@ export class WSSubscriptionManager {
   handleSubscriptionMessage(
     ws: WebSocket,
     connectionId: string,
-    message: WSSubscriptionMessage
+    message: WSSubscriptionMessage,
   ): void {
     // Check authentication
     const connectionState = this.connectionManager.getConnectionState(connectionId);
@@ -81,7 +78,7 @@ export class WSSubscriptionManager {
 
     // Add subscription
     const added = this.connectionManager.addSubscription(connectionId, topic);
-    
+
     if (added) {
       this.logger.info('Client subscribed to topic', {
         connectionId,
@@ -101,11 +98,11 @@ export class WSSubscriptionManager {
     ws: WebSocket,
     connectionId: string,
     connectionState: WSConnectionState,
-    topic: string
+    topic: string,
   ): void {
     // Remove subscription
     const removed = this.connectionManager.removeSubscription(connectionId, topic);
-    
+
     if (removed) {
       this.logger.info('Client unsubscribed from topic', {
         connectionId,
@@ -124,16 +121,19 @@ export class WSSubscriptionManager {
    * Validate subscription permission
    * @nist ac-3 "Access enforcement"
    */
-  private validateSubscriptionPermission(connectionState: WSConnectionState, topic: string): boolean {
+  private validateSubscriptionPermission(
+    connectionState: WSConnectionState,
+    topic: string,
+  ): boolean {
     // Parse topic to check permissions
     const topicParts = topic.split('.');
-    
+
     if (topicParts.length === 0) {
       return false;
     }
 
     const resource = topicParts[0];
-    
+
     // Delegate to specific validation methods
     switch (resource) {
       case 'sessions':
@@ -147,7 +147,10 @@ export class WSSubscriptionManager {
     }
   }
 
-  private validateSessionsSubscription(topicParts: string[], connectionState: WSConnectionState): boolean {
+  private validateSessionsSubscription(
+    topicParts: string[],
+    connectionState: WSConnectionState,
+  ): boolean {
     // Users can only subscribe to their own session events
     const targetUserId = topicParts[1];
     if (targetUserId !== null && targetUserId !== '' && targetUserId !== connectionState.userId) {
@@ -161,17 +164,13 @@ export class WSSubscriptionManager {
     return hasPermission(
       connectionState.roles ?? [],
       Permission.SUBSCRIPTION_READ,
-      connectionState.scopes
+      connectionState.scopes,
     );
   }
 
   private validateSystemSubscription(connectionState: WSConnectionState): boolean {
     // System events require admin role
-    return hasPermission(
-      connectionState.roles ?? [],
-      Permission.ADMIN_ALL,
-      connectionState.scopes
-    );
+    return hasPermission(connectionState.roles ?? [], Permission.ADMIN_ALL, connectionState.scopes);
   }
 
   /**
@@ -204,7 +203,7 @@ export class WSSubscriptionManager {
    */
   broadcastEvent(topic: string, event: string, data: unknown): void {
     const connections = this.connectionManager.getConnectionsByTopic(topic);
-    
+
     connections.forEach(({ ws, state }) => {
       // Additional permission check if needed
       if (this.validateSubscriptionPermission(state, topic)) {

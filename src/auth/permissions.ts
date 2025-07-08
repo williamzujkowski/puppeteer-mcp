@@ -19,7 +19,7 @@ export enum Permission {
   SESSION_DELETE = 'session:delete',
   SESSION_LIST = 'session:list',
   SESSION_REFRESH = 'session:refresh',
-  
+
   // Context permissions
   CONTEXT_CREATE = 'context:create',
   CONTEXT_READ = 'context:read',
@@ -27,18 +27,18 @@ export enum Permission {
   CONTEXT_DELETE = 'context:delete',
   CONTEXT_LIST = 'context:list',
   CONTEXT_EXECUTE = 'context:execute',
-  
+
   // API key permissions
   API_KEY_CREATE = 'apikey:create',
   API_KEY_READ = 'apikey:read',
   API_KEY_DELETE = 'apikey:delete',
   API_KEY_LIST = 'apikey:list',
-  
+
   // Subscription permissions
   SUBSCRIPTION_CREATE = 'subscription:create',
   SUBSCRIPTION_READ = 'subscription:read',
   SUBSCRIPTION_DELETE = 'subscription:delete',
-  
+
   // Admin permissions
   ADMIN_ALL = 'admin:*',
   ADMIN_USERS = 'admin:users',
@@ -71,7 +71,7 @@ const rolePermissionsObject: Record<string, Permission[]> = {
     Permission.SUBSCRIPTION_READ,
     Permission.SUBSCRIPTION_DELETE,
   ],
-  
+
   // Power user with execute permissions
   poweruser: [
     Permission.SESSION_CREATE,
@@ -94,12 +94,10 @@ const rolePermissionsObject: Record<string, Permission[]> = {
     Permission.SUBSCRIPTION_DELETE,
     Permission.CONTEXT_EXECUTE,
   ],
-  
+
   // Admin with all permissions
-  admin: [
-    Permission.ADMIN_ALL,
-  ],
-  
+  admin: [Permission.ADMIN_ALL],
+
   // Read-only role
   readonly: [
     Permission.SESSION_READ,
@@ -110,7 +108,7 @@ const rolePermissionsObject: Record<string, Permission[]> = {
     Permission.API_KEY_LIST,
     Permission.SUBSCRIPTION_READ,
   ],
-  
+
   // Service account role (for API keys)
   service: [
     Permission.SESSION_CREATE,
@@ -132,26 +130,22 @@ export const RolePermissions = new Map(Object.entries(rolePermissionsObject));
  * Check if a set of roles has a specific permission
  * @nist ac-3 "Access enforcement"
  */
-export function hasPermission(
-  roles: string[],
-  permission: Permission,
-  scopes?: string[]
-): boolean {
+export function hasPermission(roles: string[], permission: Permission, scopes?: string[]): boolean {
   // Check if user has admin:* permission
   if (roles.includes('admin')) {
     return true;
   }
-  
+
   // Check role-based permissions
   if (checkRolePermissions(roles, permission)) {
     return true;
   }
-  
+
   // Check scope-based permissions (for API keys)
   if (scopes && checkScopePermissions(scopes, permission)) {
     return true;
   }
-  
+
   return false;
 }
 
@@ -164,7 +158,7 @@ function checkRolePermissions(roles: string[], permission: Permission): boolean 
     if (!rolePerms) {
       continue;
     }
-    
+
     // Check for exact permission match or wildcard admin permission
     if (rolePerms.includes(permission) || rolePerms.includes(Permission.ADMIN_ALL)) {
       return true;
@@ -181,18 +175,18 @@ function checkScopePermissions(scopes: string[], permission: Permission): boolea
   if (scopes.includes('*')) {
     return true;
   }
-  
+
   // Check for specific permission in scopes
   if (scopes.includes(permission)) {
     return true;
   }
-  
+
   // Check for resource wildcard (e.g., "context:*" matches "context:read")
   const [resource] = permission.split(':');
   if (scopes.includes(`${resource}:*`)) {
     return true;
   }
-  
+
   return false;
 }
 
@@ -219,7 +213,7 @@ export async function requirePermission({
   roles,
   permission,
   resource,
-  scopes
+  scopes,
 }: PermissionCheckParams): Promise<void> {
   if (!hasPermission(roles, permission, scopes)) {
     await logSecurityEvent(SecurityEventType.ACCESS_DENIED, {
@@ -234,11 +228,8 @@ export async function requirePermission({
         userScopes: scopes,
       },
     });
-    
-    throw new AppError(
-      `Permission denied: ${permission} required`,
-      403
-    );
+
+    throw new AppError(`Permission denied: ${permission} required`, 403);
   }
 }
 
@@ -247,7 +238,7 @@ export async function requirePermission({
  */
 export function getPermissionsForRoles(roles: string[]): Permission[] {
   const permissions = new Set<Permission>();
-  
+
   for (const role of roles) {
     const rolePerms = RolePermissions.get(role);
     if (rolePerms) {
@@ -256,12 +247,12 @@ export function getPermissionsForRoles(roles: string[]): Permission[] {
       }
     }
   }
-  
+
   // If user has admin:*, add all permissions
   if (permissions.has(Permission.ADMIN_ALL)) {
     return Object.values(Permission);
   }
-  
+
   return Array.from(permissions);
 }
 

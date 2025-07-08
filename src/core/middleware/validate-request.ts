@@ -48,7 +48,7 @@ export function validateRequest<T extends ZodSchema>(schema: T) {
           error: {
             code: 'VALIDATION_ERROR',
             message: 'Request validation failed',
-            details: error.errors.map(err => ({
+            details: error.errors.map((err) => ({
               path: err.path.join('.'),
               message: err.message,
               code: err.code,
@@ -67,7 +67,9 @@ export function validateRequest<T extends ZodSchema>(schema: T) {
  * Create request validator for specific fields
  * @nist si-10 "Information input validation"
  */
-export function createValidator<T extends ZodSchema>(schema: T): {
+export function createValidator<T extends ZodSchema>(
+  schema: T,
+): {
   body: ReturnType<typeof validateRequest>;
   query: ReturnType<typeof validateRequest>;
   params: ReturnType<typeof validateRequest>;

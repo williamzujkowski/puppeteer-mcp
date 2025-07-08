@@ -171,14 +171,23 @@ const parseCSPDirectives = (directives: string): Record<string, string[]> => {
     if (key !== undefined && key !== '' && values.length > 0) {
       // Convert camelCase to kebab-case for CSP directives
       const cspKey = key.replace(/([A-Z])/g, '-$1').toLowerCase();
-      
+
       // Skip if it's a default directive that we're already setting
-      const defaultDirectives = ['default-src', 'style-src', 'script-src', 'img-src', 'connect-src', 
-                                 'font-src', 'object-src', 'media-src', 'frame-src'];
+      const defaultDirectives = [
+        'default-src',
+        'style-src',
+        'script-src',
+        'img-src',
+        'connect-src',
+        'font-src',
+        'object-src',
+        'media-src',
+        'frame-src',
+      ];
       if (defaultDirectives.includes(cspKey)) {
         return;
       }
-      
+
       // Safe assignment with string key
       Object.defineProperty(parsed, cspKey, {
         value: values,

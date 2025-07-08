@@ -6,10 +6,10 @@
  */
 
 import type { Page } from 'puppeteer';
-import type { 
-  NavigateAction, 
-  ActionResult, 
-  ActionContext 
+import type {
+  NavigateAction,
+  ActionResult,
+  ActionContext,
 } from '../../interfaces/action-executor.interface.js';
 import { sanitizeUrl } from '../validation.js';
 import { createLogger } from '../../../utils/logger.js';
@@ -31,10 +31,10 @@ export { handleGoBack, handleGoForward, handleReload } from './navigation-histor
 export async function handleNavigate(
   action: NavigateAction,
   page: Page,
-  context: ActionContext
+  context: ActionContext,
 ): Promise<ActionResult> {
   const startTime = Date.now();
-  
+
   try {
     logger.info('Executing navigate action', {
       sessionId: context.sessionId,
@@ -96,7 +96,6 @@ export async function handleNavigate(
         waitUntil: action.waitUntil,
       },
     };
-
   } catch (error) {
     const duration = Date.now() - startTime;
     const errorMessage = error instanceof Error ? error.message : 'Unknown navigation error';

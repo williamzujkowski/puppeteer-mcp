@@ -16,7 +16,10 @@ import {
   validateCommandContext,
 } from './context-helpers.js';
 import type { Context } from '../../store/context-store.js';
-import type { AuthenticatedServerUnaryCall, AuthenticatedServerWritableStream } from '../interceptors/types.js';
+import type {
+  AuthenticatedServerUnaryCall,
+  AuthenticatedServerWritableStream,
+} from '../interceptors/types.js';
 import type { ExecuteCommandRequest, ExecuteCommandResponse } from '../types/context.types.js';
 
 export class CommandExecutor {
@@ -31,7 +34,7 @@ export class CommandExecutor {
   async executeCommand(
     call: AuthenticatedServerUnaryCall<ExecuteCommandRequest, ExecuteCommandResponse>,
     callback: grpc.sendUnaryData<ExecuteCommandResponse>,
-    context: Context
+    context: Context,
   ): Promise<void> {
     try {
       const { command, args, env, working_dir, timeout_seconds } = call.request;
@@ -81,21 +84,21 @@ export class CommandExecutor {
 
       child.on('close', (code) => {
         void (async () => {
-        const duration = Date.now() - startTime;
+          const duration = Date.now() - startTime;
 
-        // Log command completion
-        await logSecurityEvent(SecurityEventType.COMMAND_EXECUTED, {
-          resource: `context:${context.id}`,
-          action: 'execute_command',
-          result: code === 0 ? 'success' : 'failure',
-          metadata: {
-            userId: call.userId,
-            command,
-            exitCode: code,
-            duration,
-            timedOut,
-          },
-        });
+          // Log command completion
+          await logSecurityEvent(SecurityEventType.COMMAND_EXECUTED, {
+            resource: `context:${context.id}`,
+            action: 'execute_command',
+            result: code === 0 ? 'success' : 'failure',
+            metadata: {
+              userId: call.userId,
+              command,
+              exitCode: code,
+              duration,
+              timedOut,
+            },
+          });
 
           callback(null, {
             output: stdout,
@@ -124,7 +127,7 @@ export class CommandExecutor {
    */
   streamCommand(
     call: AuthenticatedServerWritableStream<ExecuteCommandRequest, ExecuteCommandResponse>,
-    context: Context
+    context: Context,
   ): void {
     try {
       const { command, args, env, working_dir } = call.request;
@@ -154,9 +157,9 @@ export class CommandExecutor {
       });
 
       child.on('close', (code) => {
-        call.write({ 
+        call.write({
           output: '',
-          exit_code: code ?? 0 
+          exit_code: code ?? 0,
         });
         call.end();
       });

@@ -4,11 +4,7 @@
  */
 
 export { PageManager, getPageManager, type PageEvents } from './page-manager.js';
-export { 
-  InMemoryPageInfoStore, 
-  pageInfoStore,
-  type PageInfoStore 
-} from './page-info-store.js';
+export { InMemoryPageInfoStore, pageInfoStore, type PageInfoStore } from './page-info-store.js';
 export type {
   PageManager as IPageManager,
   PageInfo,

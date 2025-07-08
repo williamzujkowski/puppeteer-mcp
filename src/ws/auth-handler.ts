@@ -44,8 +44,10 @@ export class WSAuthHandler {
    * Validate authentication credentials
    */
   private validateCredentials(token?: string, apiKey?: string): { valid: boolean; error?: string } {
-    if ((token === null || token === undefined || token.length === 0) && 
-        (apiKey === null || apiKey === undefined || apiKey.length === 0)) {
+    if (
+      (token === null || token === undefined || token.length === 0) &&
+      (apiKey === null || apiKey === undefined || apiKey.length === 0)
+    ) {
       return { valid: false, error: 'Missing credentials' };
     }
     return { valid: true };
@@ -61,15 +63,29 @@ export class WSAuthHandler {
   async handleAuth(
     ws: WebSocket,
     connectionId: string,
-    message: WSAuthMessage
-  ): Promise<{ success: boolean; userId?: string; sessionId?: string; roles?: string[]; permissions?: string[]; scopes?: string[]; error?: string }> {
+    message: WSAuthMessage,
+  ): Promise<{
+    success: boolean;
+    userId?: string;
+    sessionId?: string;
+    roles?: string[];
+    permissions?: string[];
+    scopes?: string[];
+    error?: string;
+  }> {
     try {
       const { token, apiKey } = message.data;
 
       // Validate input
       const validation = this.validateCredentials(token, apiKey);
       if (!validation.valid) {
-        return await this.handleAuthFailure({ ws, connectionId, messageId: message.id, code: 'MISSING_CREDENTIALS', reason: validation.error ?? 'Missing credentials' });
+        return await this.handleAuthFailure({
+          ws,
+          connectionId,
+          messageId: message.id,
+          code: 'MISSING_CREDENTIALS',
+          reason: validation.error ?? 'Missing credentials',
+        });
       }
 
       // Try token authentication first
@@ -82,14 +98,25 @@ export class WSAuthHandler {
 
       // Try API key authentication
       if (this.apiKeyHandler.hasValidApiKey(apiKey)) {
-        const result = await this.apiKeyHandler.authenticateWithApiKey(ws, connectionId, message.id, apiKey ?? '');
+        const result = await this.apiKeyHandler.authenticateWithApiKey(
+          ws,
+          connectionId,
+          message.id,
+          apiKey ?? '',
+        );
         if (result.success) {
           return result;
         }
       }
 
       // All authentication methods failed
-      return await this.handleAuthFailure({ ws, connectionId, messageId: message.id, code: 'INVALID_CREDENTIALS', reason: 'Invalid token or API key' });
+      return await this.handleAuthFailure({
+        ws,
+        connectionId,
+        messageId: message.id,
+        code: 'INVALID_CREDENTIALS',
+        reason: 'Invalid token or API key',
+      });
     } catch (error) {
       return this.handleAuthError(ws, connectionId, message.id, error);
     }
@@ -98,11 +125,15 @@ export class WSAuthHandler {
   /**
    * Handle authentication failure
    */
-  private async handleAuthFailure(options: AuthFailureOptions): Promise<{ success: boolean; error: string }> {
+  private async handleAuthFailure(
+    options: AuthFailureOptions,
+  ): Promise<{ success: boolean; error: string }> {
     return this.sendAuthFailureResponse(options);
   }
 
-  private async sendAuthFailureResponse(options: AuthFailureOptions): Promise<{ success: boolean; error: string }> {
+  private async sendAuthFailureResponse(
+    options: AuthFailureOptions,
+  ): Promise<{ success: boolean; error: string }> {
     const { ws, connectionId, messageId, code, reason } = options;
     await logSecurityEvent(SecurityEventType.AUTH_FAILURE, {
       resource: 'websocket',
@@ -123,10 +154,10 @@ export class WSAuthHandler {
     ws: WebSocket,
     connectionId: string,
     messageId: string | undefined,
-    error: unknown
+    error: unknown,
   ): Promise<{ success: boolean; error: string }> {
     this.logger.error('Authentication error:', error);
-    
+
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     await logSecurityEvent(SecurityEventType.AUTH_FAILURE, {
       resource: 'websocket',
@@ -147,7 +178,6 @@ export class WSAuthHandler {
     return token !== null && token !== undefined && token.length > 0;
   }
 
-
   /**
    * Authenticate with JWT token
    * @nist ia-2 "Identification and authentication"
@@ -156,19 +186,27 @@ export class WSAuthHandler {
     ws: WebSocket,
     connectionId: string,
     messageId: string | undefined,
-    token: string
-  ): Promise<{ success: boolean; userId?: string; sessionId?: string; roles?: string[]; permissions?: string[]; scopes?: string[]; error?: string }> {
+    token: string,
+  ): Promise<{
+    success: boolean;
+    userId?: string;
+    sessionId?: string;
+    roles?: string[];
+    permissions?: string[];
+    scopes?: string[];
+    error?: string;
+  }> {
     try {
       // Verify token
       const payload = await verifyToken(token, 'access');
-      
+
       if (!payload?.sessionId) {
         return { success: false, error: 'Invalid token' };
       }
 
       // Get session
       const session = await this.sessionStore.get(payload.sessionId);
-      
+
       if (!session) {
         return { success: false, error: 'Session not found' };
       }
@@ -217,15 +255,18 @@ export class WSAuthHandler {
     }
   }
 
-
-
   /**
    * Validate connection has required permissions
    * @nist ac-3 "Access enforcement"
    */
   validatePermissions(
-    connectionState: { authenticated?: boolean; roles?: string[]; permissions?: string[]; scopes?: string[] },
-    requiredPermission?: Permission
+    connectionState: {
+      authenticated?: boolean;
+      roles?: string[];
+      permissions?: string[];
+      scopes?: string[];
+    },
+    requiredPermission?: Permission,
   ): boolean {
     if (connectionState.authenticated !== true) {
       return false;
@@ -239,7 +280,7 @@ export class WSAuthHandler {
     // Check if user has the required permission
     const roles = connectionState.roles ?? [];
     const scopes = connectionState.scopes ?? [];
-    
+
     return hasPermission(roles, requiredPermission, scopes);
   }
 
@@ -247,15 +288,11 @@ export class WSAuthHandler {
    * Refresh authentication
    * @nist ia-2 "Identification and authentication"
    */
-  async refreshAuth(
-    _ws: WebSocket,
-    connectionId: string,
-    sessionId: string
-  ): Promise<boolean> {
+  async refreshAuth(_ws: WebSocket, connectionId: string, sessionId: string): Promise<boolean> {
     try {
       // Get current session
       const session = await this.sessionStore.get(sessionId);
-      
+
       if (!session) {
         this.logger.warn('Session not found for refresh', { connectionId, sessionId });
         return false;

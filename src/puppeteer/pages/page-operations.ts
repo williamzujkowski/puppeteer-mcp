@@ -22,7 +22,7 @@ export async function getPageMetrics(
   pageStore: PageInfoStore,
 ): Promise<Record<string, unknown>> {
   const pageInfo = await pageStore.get(pageId);
-  if ((pageInfo === null || pageInfo === undefined) || pageInfo.sessionId !== sessionId) {
+  if (pageInfo === null || pageInfo === undefined || pageInfo.sessionId !== sessionId) {
     throw new AppError('Page not found or access denied', 404);
   }
 
@@ -59,7 +59,7 @@ export async function setCookies(params: SetCookiesParams): Promise<void> {
   const { pageId, cookies, sessionId, pages, pageStore } = params;
 
   const pageInfo = await pageStore.get(pageId);
-  if ((pageInfo === null || pageInfo === undefined) || pageInfo.sessionId !== sessionId) {
+  if (pageInfo === null || pageInfo === undefined || pageInfo.sessionId !== sessionId) {
     throw new AppError('Page not found or access denied', 404);
   }
 
@@ -82,7 +82,7 @@ export async function getCookies(
   pageStore: PageInfoStore,
 ): Promise<Cookie[]> {
   const pageInfo = await pageStore.get(pageId);
-  if ((pageInfo === null || pageInfo === undefined) || pageInfo.sessionId !== sessionId) {
+  if (pageInfo === null || pageInfo === undefined || pageInfo.sessionId !== sessionId) {
     throw new AppError('Page not found or access denied', 404);
   }
 
@@ -116,7 +116,7 @@ export async function clearPageData(params: ClearPageDataParams): Promise<void> 
   const { pageId, sessionId, options, pages, pageStore } = params;
 
   const pageInfo = await pageStore.get(pageId);
-  if ((pageInfo === null || pageInfo === undefined) || pageInfo.sessionId !== sessionId) {
+  if (pageInfo === null || pageInfo === undefined || pageInfo.sessionId !== sessionId) {
     throw new AppError('Page not found or access denied', 404);
   }
 
@@ -133,7 +133,10 @@ export async function clearPageData(params: ClearPageDataParams): Promise<void> 
 /**
  * Clear specific types of page data
  */
-async function clearPageDataByType(page: Page, options: ClearPageDataParams['options']): Promise<void> {
+async function clearPageDataByType(
+  page: Page,
+  options: ClearPageDataParams['options'],
+): Promise<void> {
   if (options?.cookies) {
     await page.deleteCookie(...(await page.cookies()));
   }
@@ -184,9 +187,13 @@ export async function takeScreenshot(params: TakeScreenshotParams): Promise<Buff
 /**
  * Validate page access for security
  */
-async function validatePageAccess(pageId: string, sessionId: string, pageStore: PageInfoStore): Promise<void> {
+async function validatePageAccess(
+  pageId: string,
+  sessionId: string,
+  pageStore: PageInfoStore,
+): Promise<void> {
   const pageInfo = await pageStore.get(pageId);
-  if ((pageInfo === null || pageInfo === undefined) || pageInfo.sessionId !== sessionId) {
+  if (pageInfo === null || pageInfo === undefined || pageInfo.sessionId !== sessionId) {
     await logSecurityEvent(SecurityEventType.ACCESS_DENIED, {
       userId: sessionId,
       resource: `page:${pageId}`,
@@ -200,7 +207,11 @@ async function validatePageAccess(pageId: string, sessionId: string, pageStore: 
 /**
  * Get and validate page instance
  */
-async function getValidPageInstance(pageId: string, pages: Map<string, Page>, pageStore: PageInfoStore): Promise<Page> {
+async function getValidPageInstance(
+  pageId: string,
+  pages: Map<string, Page>,
+  pageStore: PageInfoStore,
+): Promise<Page> {
   const page = pages.get(pageId);
   if (!page || page.isClosed()) {
     await pageStore.delete(pageId);
@@ -213,7 +224,10 @@ async function getValidPageInstance(pageId: string, pages: Map<string, Page>, pa
 /**
  * Capture screenshot with options
  */
-async function captureScreenshot(page: Page, options: ScreenshotOptions | undefined): Promise<Buffer> {
+async function captureScreenshot(
+  page: Page,
+  options: ScreenshotOptions | undefined,
+): Promise<Buffer> {
   const screenshot = await page.screenshot({
     type: options?.type ?? 'png',
     fullPage: options?.fullPage ?? false,
@@ -228,7 +242,7 @@ async function captureScreenshot(page: Page, options: ScreenshotOptions | undefi
 /**
  * Check if page is active
  */
- 
+
 export async function isPageActive(pageId: string, pageStore: PageInfoStore): Promise<boolean> {
   const pageInfo = await pageStore.get(pageId);
   return pageInfo?.state === 'active';

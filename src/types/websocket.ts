@@ -14,18 +14,18 @@ export enum WSMessageType {
   DISCONNECT = 'disconnect',
   PING = 'ping',
   PONG = 'pong',
-  
+
   // Authentication
   AUTH = 'auth',
   AUTH_SUCCESS = 'auth_success',
   AUTH_ERROR = 'auth_error',
-  
+
   // Data messages
   REQUEST = 'request',
   RESPONSE = 'response',
   EVENT = 'event',
   ERROR = 'error',
-  
+
   // Subscriptions
   SUBSCRIBE = 'subscribe',
   UNSUBSCRIBE = 'unsubscribe',
@@ -38,7 +38,10 @@ export enum WSMessageType {
 export const wsBaseMessageSchema = z.object({
   type: z.nativeEnum(WSMessageType),
   id: z.string().uuid().optional(),
-  timestamp: z.string().datetime().default(() => new Date().toISOString()),
+  timestamp: z
+    .string()
+    .datetime()
+    .default(() => new Date().toISOString()),
 });
 
 /**
@@ -72,11 +75,13 @@ export const wsResponseMessageSchema = wsBaseMessageSchema.extend({
   id: z.string().uuid(), // Matches request ID
   status: z.number().int().positive(),
   data: z.unknown().optional(),
-  error: z.object({
-    code: z.string(),
-    message: z.string(),
-    details: z.unknown().optional(),
-  }).optional(),
+  error: z
+    .object({
+      code: z.string(),
+      message: z.string(),
+      details: z.unknown().optional(),
+    })
+    .optional(),
 });
 
 /**

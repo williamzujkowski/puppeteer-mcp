@@ -6,14 +6,18 @@
  */
 
 import type { Page } from 'puppeteer';
-import type { 
+import type {
   KeyboardAction,
-  ActionResult, 
-  ActionContext 
+  ActionResult,
+  ActionContext,
 } from '../../interfaces/action-executor.interface.js';
 import { createLogger } from '../../../utils/logger.js';
 import { isValidKey } from './keyboard-validation.js';
-export { handleKeyboardShortcut, handleKeyCombination, handleKeyboardType } from './keyboard-shortcuts.js';
+export {
+  handleKeyboardShortcut,
+  handleKeyCombination,
+  handleKeyboardType,
+} from './keyboard-shortcuts.js';
 
 const logger = createLogger('puppeteer:keyboard');
 
@@ -29,10 +33,10 @@ const logger = createLogger('puppeteer:keyboard');
 export async function handleKeyboard(
   action: KeyboardAction,
   page: Page,
-  context: ActionContext
+  context: ActionContext,
 ): Promise<ActionResult> {
   const startTime = Date.now();
-  
+
   try {
     logger.info('Executing keyboard action', {
       sessionId: context.sessionId,
@@ -83,7 +87,6 @@ export async function handleKeyboard(
       duration,
       timestamp: new Date(),
     };
-
   } catch (error) {
     const duration = Date.now() - startTime;
     const errorMessage = error instanceof Error ? error.message : 'Unknown keyboard error';
@@ -111,4 +114,3 @@ export async function handleKeyboard(
     };
   }
 }
-

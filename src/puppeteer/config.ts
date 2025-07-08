@@ -24,13 +24,15 @@ export const puppeteerConfigSchema = z.object({
   idleTimeout: z.number().int().positive().default(300000), // 5 minutes
   downloadPath: z.string().optional(),
   cacheEnabled: z.boolean().default(true),
-  defaultViewport: z.object({
-    width: z.number().int().positive().default(1280),
-    height: z.number().int().positive().default(720),
-    deviceScaleFactor: z.number().positive().default(1),
-    isMobile: z.boolean().default(false),
-    hasTouch: z.boolean().default(false),
-  }).default({}),
+  defaultViewport: z
+    .object({
+      width: z.number().int().positive().default(1280),
+      height: z.number().int().positive().default(720),
+      deviceScaleFactor: z.number().positive().default(1),
+      isMobile: z.boolean().default(false),
+      hasTouch: z.boolean().default(false),
+    })
+    .default({}),
   timeout: z.number().int().positive().default(30000), // 30 seconds
 });
 
@@ -103,15 +105,15 @@ const PRIVACY_BROWSER_ARGS = [
  * @nist cm-6 "Configuration settings"
  */
 export function getDefaultLaunchOptions(): LaunchOptions {
-  const args = [
-    ...SECURITY_BROWSER_ARGS,
-    ...PERFORMANCE_BROWSER_ARGS,
-    ...PRIVACY_BROWSER_ARGS,
-  ];
+  const args = [...SECURITY_BROWSER_ARGS, ...PERFORMANCE_BROWSER_ARGS, ...PRIVACY_BROWSER_ARGS];
 
   // Parse additional args from environment
-  if (config.PUPPETEER_ARGS !== null && config.PUPPETEER_ARGS !== undefined && config.PUPPETEER_ARGS !== '') {
-    const additionalArgs = config.PUPPETEER_ARGS.split(',').map(arg => arg.trim());
+  if (
+    config.PUPPETEER_ARGS !== null &&
+    config.PUPPETEER_ARGS !== undefined &&
+    config.PUPPETEER_ARGS !== ''
+  ) {
+    const additionalArgs = config.PUPPETEER_ARGS.split(',').map((arg) => arg.trim());
     args.push(...additionalArgs);
   }
 
@@ -136,7 +138,11 @@ export function getDefaultLaunchOptions(): LaunchOptions {
  * @nist cm-7 "Least functionality"
  */
 export function getBrowserExecutablePath(): string | undefined {
-  if (config.PUPPETEER_EXECUTABLE_PATH !== null && config.PUPPETEER_EXECUTABLE_PATH !== undefined && config.PUPPETEER_EXECUTABLE_PATH !== '') {
+  if (
+    config.PUPPETEER_EXECUTABLE_PATH !== null &&
+    config.PUPPETEER_EXECUTABLE_PATH !== undefined &&
+    config.PUPPETEER_EXECUTABLE_PATH !== ''
+  ) {
     return config.PUPPETEER_EXECUTABLE_PATH;
   }
 
@@ -154,7 +160,11 @@ export function getBrowserExecutablePath(): string | undefined {
  * @nist cm-6 "Configuration settings"
  */
 export function getCacheDirectory(): string {
-  if (config.PUPPETEER_DOWNLOAD_PATH !== null && config.PUPPETEER_DOWNLOAD_PATH !== undefined && config.PUPPETEER_DOWNLOAD_PATH !== '') {
+  if (
+    config.PUPPETEER_DOWNLOAD_PATH !== null &&
+    config.PUPPETEER_DOWNLOAD_PATH !== undefined &&
+    config.PUPPETEER_DOWNLOAD_PATH !== ''
+  ) {
     return config.PUPPETEER_DOWNLOAD_PATH;
   }
 
@@ -188,11 +198,7 @@ export function getEnvironmentConfig(): Partial<LaunchOptions> {
     case 'test':
       return {
         headless: true,
-        args: [
-          ...SECURITY_BROWSER_ARGS,
-          '--disable-extensions',
-          '--disable-default-apps',
-        ],
+        args: [...SECURITY_BROWSER_ARGS, '--disable-extensions', '--disable-default-apps'],
         handleSIGINT: false,
         handleSIGTERM: false,
         handleSIGHUP: false,
@@ -217,11 +223,13 @@ export function validatePoolConfig(poolSize: number, idleTimeout: number): void 
     throw new Error('Browser pool size cannot exceed 20 to prevent resource exhaustion');
   }
 
-  if (idleTimeout < 60000) { // 1 minute
+  if (idleTimeout < 60000) {
+    // 1 minute
     throw new Error('Browser idle timeout must be at least 1 minute');
   }
 
-  if (idleTimeout > 3600000) { // 1 hour
+  if (idleTimeout > 3600000) {
+    // 1 hour
     throw new Error('Browser idle timeout cannot exceed 1 hour');
   }
 }
@@ -244,7 +252,8 @@ export function getSecureContextOptions(): Record<string, unknown> {
     // Disable geolocation
     geolocation: undefined,
     // Set secure user agent
-    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    userAgent:
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
     // Disable JavaScript if not needed
     javaScriptEnabled: true, // Can be toggled based on use case
     // Block images to save bandwidth
@@ -264,7 +273,7 @@ export function getSecureContextOptions(): Record<string, unknown> {
 export const puppeteerConfig: PuppeteerConfig = {
   executablePath: config.PUPPETEER_EXECUTABLE_PATH,
   headless: config.PUPPETEER_HEADLESS,
-  args: config.PUPPETEER_ARGS?.split(',').map(arg => arg.trim()) ?? [],
+  args: config.PUPPETEER_ARGS?.split(',').map((arg) => arg.trim()) ?? [],
   poolMaxSize: config.BROWSER_POOL_MAX_SIZE,
   idleTimeout: config.BROWSER_IDLE_TIMEOUT,
   downloadPath: config.PUPPETEER_DOWNLOAD_PATH,

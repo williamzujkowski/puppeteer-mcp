@@ -16,22 +16,31 @@ const logger = createLogger('browser-pool-init');
 export async function initializePool(
   _pool: BrowserPool,
   maxBrowsers: number,
-  launchNewBrowser: () => Promise<unknown>
+  launchNewBrowser: () => Promise<unknown>,
 ): Promise<void> {
-  logger.info({
-    maxBrowsers,
-  }, 'Initializing browser pool');
+  logger.info(
+    {
+      maxBrowsers,
+    },
+    'Initializing browser pool',
+  );
 
   // Launch one browser initially
   try {
     await launchNewBrowser();
   } catch (error) {
-    logger.error({
-      error: error instanceof Error ? error.message : 'Unknown error',
-    }, 'Failed to launch initial browser');
+    logger.error(
+      {
+        error: error instanceof Error ? error.message : 'Unknown error',
+      },
+      'Failed to launch initial browser',
+    );
   }
 
-  logger.info({
-    activeBrowsers: 1,
-  }, 'Browser pool initialized');
+  logger.info(
+    {
+      activeBrowsers: 1,
+    },
+    'Browser pool initialized',
+  );
 }

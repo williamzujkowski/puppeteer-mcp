@@ -4,9 +4,8 @@ import { Application } from 'express';
 import http from 'http';
 
 declare global {
-   
   var testApp: Application;
-   
+
   var testServer: http.Server;
 }
 

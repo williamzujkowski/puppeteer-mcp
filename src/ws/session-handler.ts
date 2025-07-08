@@ -25,7 +25,7 @@ export class WSSessionHandler {
   constructor(
     private sessionStore: SessionStore,
     private authHandler: WSAuthHandler,
-    private connectionManager: WSConnectionManager
+    private connectionManager: WSConnectionManager,
   ) {}
 
   /**
@@ -54,10 +54,12 @@ export class WSSessionHandler {
    * Validate user authentication
    */
   private validateAuthentication(connectionState: WSConnectionState): void {
-    if (connectionState.authenticated !== true || 
-        connectionState.userId === null || 
-        connectionState.userId === undefined || 
-        connectionState.userId.length === 0) {
+    if (
+      connectionState.authenticated !== true ||
+      connectionState.userId === null ||
+      connectionState.userId === undefined ||
+      connectionState.userId.length === 0
+    ) {
       throw new Error('Authentication required');
     }
   }
@@ -65,23 +67,29 @@ export class WSSessionHandler {
   /**
    * Handle GET session requests
    */
-  private handleGetRequest(connectionState: WSConnectionState, sessionId?: string): Promise<unknown> {
+  private handleGetRequest(
+    connectionState: WSConnectionState,
+    sessionId?: string,
+  ): Promise<unknown> {
     if (this.isEmptySessionId(sessionId)) {
       return this.sessionStore.getByUserId(connectionState.userId ?? '');
     }
-    
+
     return this.getSessionForUser(connectionState.userId ?? '', sessionId ?? '');
   }
 
   /**
    * Handle POST session requests
    */
-  private async handlePostRequest(connectionState: WSConnectionState, data?: unknown): Promise<unknown> {
+  private async handlePostRequest(
+    connectionState: WSConnectionState,
+    data?: unknown,
+  ): Promise<unknown> {
     interface SessionData {
       username?: string;
       roles?: string[];
     }
-    
+
     const sessionData = data as SessionData;
     const newSessionId = await this.sessionStore.create({
       userId: connectionState.userId ?? '',
@@ -90,7 +98,7 @@ export class WSSessionHandler {
       createdAt: new Date().toISOString(),
       expiresAt: new Date(Date.now() + 3600000).toISOString(), // 1 hour
     });
-    
+
     return { sessionId: newSessionId };
   }
 
@@ -98,26 +106,29 @@ export class WSSessionHandler {
    * Handle PUT session requests
    */
   private handlePutRequest(
-    connectionState: WSConnectionState, 
-    sessionId?: string, 
-    data?: unknown, 
-    action?: string
+    connectionState: WSConnectionState,
+    sessionId?: string,
+    data?: unknown,
+    action?: string,
   ): Promise<unknown> {
     if (action === 'refresh') {
       return this.handleRefreshAction(connectionState, sessionId);
     }
-    
+
     return this.handleUpdateAction(connectionState, sessionId, data);
   }
 
   /**
    * Handle DELETE session requests
    */
-  private async handleDeleteRequest(connectionState: WSConnectionState, sessionId?: string): Promise<unknown> {
+  private async handleDeleteRequest(
+    connectionState: WSConnectionState,
+    sessionId?: string,
+  ): Promise<unknown> {
     if (this.isEmptySessionId(sessionId)) {
       throw new Error('Session ID required');
     }
-    
+
     await this.getSessionForUser(connectionState.userId ?? '', sessionId ?? '');
     await this.sessionStore.delete(sessionId ?? '');
     return { success: true };
@@ -126,28 +137,35 @@ export class WSSessionHandler {
   /**
    * Handle session refresh action
    */
-  private async handleRefreshAction(connectionState: WSConnectionState, sessionId?: string): Promise<unknown> {
+  private async handleRefreshAction(
+    connectionState: WSConnectionState,
+    sessionId?: string,
+  ): Promise<unknown> {
     const ws = this.connectionManager.getWebSocket(connectionState.id);
     if (ws === undefined || sessionId === undefined) {
       throw new Error('WebSocket or session ID not found');
     }
-    
+
     const refreshed = await this.authHandler.refreshAuth(ws, connectionState.id, sessionId);
     if (!refreshed) {
       throw new Error('Failed to refresh session');
     }
-    
+
     return { success: true };
   }
 
   /**
    * Handle session update action
    */
-  private async handleUpdateAction(connectionState: WSConnectionState, sessionId?: string, data?: unknown): Promise<unknown> {
+  private async handleUpdateAction(
+    connectionState: WSConnectionState,
+    sessionId?: string,
+    data?: unknown,
+  ): Promise<unknown> {
     if (sessionId === undefined) {
       throw new Error('Session ID required');
     }
-    
+
     await this.getSessionForUser(connectionState.userId ?? '', sessionId);
     await this.sessionStore.update(sessionId, data as Record<string, unknown>);
     return { success: true };

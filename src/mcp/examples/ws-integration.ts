@@ -59,19 +59,21 @@ async function subscribeToSessionUpdates(): Promise<void> {
     // Handle streaming updates
     if (subscriptionId) {
       const stream = wsAdapter.createStreamingResponse(subscriptionId);
-      
+
       // console.log('Listening for updates...');
-      
+
       for await (const update of stream) {
         // console.log('Received update:', update);
-        
+
         // Process the update
         JSON.parse(update.content[0]?.text as string);
         // const data = JSON.parse(update.content[0]?.text as string);
         // console.log('Session data:', data);
-        
+
         // Break after 10 updates for this example
-        if (Math.random() > 0.9) {break;}
+        if (Math.random() > 0.9) {
+          break;
+        }
       }
     }
   } catch {
@@ -151,11 +153,7 @@ async function manageMultipleSubscriptions(): Promise<void> {
 
   try {
     // Subscribe to multiple topics
-    const topics = [
-      'contexts.updates',
-      'sessions.events',
-      'system.alerts',
-    ];
+    const topics = ['contexts.updates', 'sessions.events', 'system.alerts'];
 
     for (const topic of topics) {
       const response = await wsAdapter.executeRequest({
@@ -172,12 +170,14 @@ async function manageMultipleSubscriptions(): Promise<void> {
 
       const subscriptionId = response.metadata?.subscriptionId as string;
       subscriptions.push({ id: subscriptionId, topic });
-      
+
       // console.log(`Subscribed to ${topic} with ID ${subscriptionId}`);
     }
 
     // Wait for some time
-    await new Promise<void>(resolve => { setTimeout(resolve, 30000); });
+    await new Promise<void>((resolve) => {
+      setTimeout(resolve, 30000);
+    });
 
     // Unsubscribe from all topics
     for (const { topic } of subscriptions) {
@@ -188,7 +188,7 @@ async function manageMultipleSubscriptions(): Promise<void> {
         },
         sessionId: 'multi-sub-session',
       });
-      
+
       // console.log(`Unsubscribed from ${topic}`);
     }
   } catch {
@@ -232,11 +232,13 @@ async function handleConnectionErrors(): Promise<void> {
     } catch (error) {
       if (error instanceof Error) {
         // console.error(`Connection attempt ${retryCount + 1} failed:`, error.message);
-        
+
         if (error.message.includes('CONNECTION_CLOSED') && retryCount < maxRetries) {
           retryCount++;
           // console.log(`Retrying in ${retryCount * 2} seconds...`);
-          await new Promise<void>(resolve => { setTimeout(resolve, retryCount * 2000); });
+          await new Promise<void>((resolve) => {
+            setTimeout(resolve, retryCount * 2000);
+          });
           return attemptConnection();
         }
       }
@@ -288,7 +290,9 @@ async function runExamples(): Promise<void> {
 
 // Run the examples
 if (import.meta.url === `file://${process.argv[1]}`) {
-  runExamples().catch(() => {/* error already handled */});
+  runExamples().catch(() => {
+    /* error already handled */
+  });
 }
 
 export {

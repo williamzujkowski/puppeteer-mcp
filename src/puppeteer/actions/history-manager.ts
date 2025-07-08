@@ -32,14 +32,14 @@ export class ActionHistoryManager {
   addToHistory(context: ActionContext, result: ActionResult): void {
     const contextKey = `${context.sessionId}:${context.contextId}`;
     const history = this.actionHistory.get(contextKey) ?? [];
-    
+
     history.push(result);
-    
+
     // Limit history size
     if (history.length > this.maxHistorySize) {
       history.splice(0, history.length - this.maxHistorySize);
     }
-    
+
     this.actionHistory.set(contextKey, history);
   }
 
@@ -58,7 +58,7 @@ export class ActionHistoryManager {
       actionTypes?: string[];
       startDate?: Date;
       endDate?: Date;
-    }
+    },
   ): ActionResult[] {
     const contextKey = `${context.sessionId}:${context.contextId}`;
     const history = this.actionHistory.get(contextKey) ?? [];
@@ -79,30 +79,24 @@ export class ActionHistoryManager {
       actionTypes?: string[];
       startDate?: Date;
       endDate?: Date;
-    }
+    },
   ): ActionResult[] {
     let filteredHistory = [...history];
 
     // Filter by action types
     if (options?.actionTypes && options.actionTypes.length > 0) {
       const actionTypes = options.actionTypes;
-      filteredHistory = filteredHistory.filter(result => 
-        actionTypes.includes(result.actionType)
-      );
+      filteredHistory = filteredHistory.filter((result) => actionTypes.includes(result.actionType));
     }
 
     // Filter by date range
     if (options?.startDate) {
       const startDate = options.startDate;
-      filteredHistory = filteredHistory.filter(result => 
-        result.timestamp >= startDate
-      );
+      filteredHistory = filteredHistory.filter((result) => result.timestamp >= startDate);
     }
     if (options?.endDate) {
       const endDate = options.endDate;
-      filteredHistory = filteredHistory.filter(result => 
-        result.timestamp <= endDate
-      );
+      filteredHistory = filteredHistory.filter((result) => result.timestamp <= endDate);
     }
 
     return filteredHistory;
@@ -116,11 +110,11 @@ export class ActionHistoryManager {
     options?: {
       limit?: number;
       offset?: number;
-    }
+    },
   ): ActionResult[] {
     const offset = options?.offset ?? 0;
     const limit = options?.limit ?? 100;
-    
+
     return history
       .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
       .slice(offset, offset + limit);
@@ -134,10 +128,10 @@ export class ActionHistoryManager {
    */
   clearHistory(context: ActionContext, before?: Date): void {
     const contextKey = `${context.sessionId}:${context.contextId}`;
-    
+
     if (before) {
       const history = this.actionHistory.get(contextKey) ?? [];
-      const filteredHistory = history.filter(result => result.timestamp >= before);
+      const filteredHistory = history.filter((result) => result.timestamp >= before);
       this.actionHistory.set(contextKey, filteredHistory);
     } else {
       this.actionHistory.delete(contextKey);
@@ -166,11 +160,12 @@ export class ActionHistoryManager {
     const contextKey = `${context.sessionId}:${context.contextId}`;
     const history = this.actionHistory.get(contextKey) ?? [];
 
-    const successfulActions = history.filter(result => result.success).length;
+    const successfulActions = history.filter((result) => result.success).length;
     const failedActions = history.length - successfulActions;
-    const averageDuration = history.length > 0 
-      ? history.reduce((sum, result) => sum + result.duration, 0) / history.length 
-      : 0;
+    const averageDuration =
+      history.length > 0
+        ? history.reduce((sum, result) => sum + result.duration, 0) / history.length
+        : 0;
 
     const actionTypeBreakdown: Record<string, number> = {};
     for (const result of history) {

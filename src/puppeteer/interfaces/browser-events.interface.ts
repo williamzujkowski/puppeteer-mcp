@@ -165,7 +165,14 @@ export interface BrowserLifecycleEvent {
 export interface TargetEvent {
   type: 'target:created' | 'target:destroyed' | 'target:changed';
   targetId: string;
-  targetType: 'page' | 'background_page' | 'service_worker' | 'shared_worker' | 'other' | 'browser' | 'webview';
+  targetType:
+    | 'page'
+    | 'background_page'
+    | 'service_worker'
+    | 'shared_worker'
+    | 'other'
+    | 'browser'
+    | 'webview';
   url?: string;
   title?: string;
   timestamp: Date;
@@ -190,7 +197,9 @@ export type BrowserEvent =
 /**
  * Event handler function type
  */
-export type EventHandler<T extends BrowserEvent = BrowserEvent> = (event: T) => void | Promise<void>;
+export type EventHandler<T extends BrowserEvent = BrowserEvent> = (
+  event: T,
+) => void | Promise<void>;
 
 /**
  * Event filter options
@@ -198,20 +207,20 @@ export type EventHandler<T extends BrowserEvent = BrowserEvent> = (event: T) => 
 export interface EventFilter {
   /** Filter by event types */
   types?: BrowserEvent['type'][];
-  
+
   /** Filter by page IDs */
   pageIds?: string[];
-  
+
   /** Filter by session IDs */
   sessionIds?: string[];
-  
+
   /** Filter by browser IDs */
   browserIds?: string[];
-  
+
   /** Filter by time range */
   startTime?: Date;
   endTime?: Date;
-  
+
   /** Custom filter function */
   customFilter?: (event: BrowserEvent) => boolean;
 }
@@ -222,19 +231,19 @@ export interface EventFilter {
 export interface EventSubscriptionOptions {
   /** Event filter */
   filter?: EventFilter;
-  
+
   /** Buffer events before delivery */
   bufferSize?: number;
-  
+
   /** Delivery mode */
   mode?: 'immediate' | 'batched';
-  
+
   /** Batch interval for batched mode (ms) */
   batchInterval?: number;
-  
+
   /** Include historical events */
   includeHistory?: boolean;
-  
+
   /** History limit */
   historyLimit?: number;
 }
@@ -245,19 +254,19 @@ export interface EventSubscriptionOptions {
 export interface EventSubscription {
   /** Subscription ID */
   id: string;
-  
+
   /** Subscription filter */
   filter: EventFilter;
-  
+
   /** Subscription options */
   options: EventSubscriptionOptions;
-  
+
   /** Creation timestamp */
   createdAt: Date;
-  
+
   /** Event count */
   eventCount: number;
-  
+
   /** Unsubscribe function */
   unsubscribe: () => void;
 }
@@ -275,11 +284,8 @@ export interface BrowserEventEmitter {
    * @returns Event subscription handle
    * @nist au-12 "Audit generation"
    */
-  subscribe(
-    handler: EventHandler,
-    options?: EventSubscriptionOptions
-  ): EventSubscription;
-  
+  subscribe(handler: EventHandler, options?: EventSubscriptionOptions): EventSubscription;
+
   /**
    * Subscribe to specific event type
    * @param eventType - Event type to subscribe to
@@ -290,28 +296,28 @@ export interface BrowserEventEmitter {
   subscribeToType<T extends BrowserEvent>(
     eventType: T['type'],
     handler: EventHandler<T>,
-    options?: EventSubscriptionOptions
+    options?: EventSubscriptionOptions,
   ): EventSubscription;
-  
+
   /**
    * Unsubscribe from events
    * @param subscriptionId - Subscription ID to cancel
    */
   unsubscribe(subscriptionId: string): void;
-  
+
   /**
    * Emit an event
    * @param event - Browser event to emit
    * @nist au-3 "Content of audit records"
    */
   emit(event: BrowserEvent): void;
-  
+
   /**
    * Emit multiple events
    * @param events - Array of browser events
    */
   emitBatch(events: BrowserEvent[]): void;
-  
+
   /**
    * Get event history
    * @param filter - Event filter
@@ -320,12 +326,8 @@ export interface BrowserEventEmitter {
    * @returns Array of historical events
    * @nist au-7 "Audit reduction and report generation"
    */
-  getHistory(
-    filter?: EventFilter,
-    limit?: number,
-    offset?: number
-  ): Promise<BrowserEvent[]>;
-  
+  getHistory(filter?: EventFilter, limit?: number, offset?: number): Promise<BrowserEvent[]>;
+
   /**
    * Clear event history
    * @param filter - Event filter for selective clearing
@@ -333,7 +335,7 @@ export interface BrowserEventEmitter {
    * @nist au-4 "Audit storage capacity"
    */
   clearHistory(filter?: EventFilter, before?: Date): Promise<void>;
-  
+
   /**
    * Get event statistics
    * @param filter - Event filter
@@ -348,25 +350,25 @@ export interface BrowserEventEmitter {
     errorRate: number;
     averageResponseTime?: number;
   }>;
-  
+
   /**
    * List active subscriptions
    * @returns Array of active subscriptions
    */
   listSubscriptions(): EventSubscription[];
-  
+
   /**
    * Pause event emission
    * @param subscriptionId - Optional subscription ID to pause
    */
   pause(subscriptionId?: string): void;
-  
+
   /**
    * Resume event emission
    * @param subscriptionId - Optional subscription ID to resume
    */
   resume(subscriptionId?: string): void;
-  
+
   /**
    * Check if paused
    * @param subscriptionId - Optional subscription ID to check

@@ -36,7 +36,7 @@ export interface SendErrorParams {
  */
 export function sendResponse(params: SendResponseParams, logger: pino.Logger): void {
   const { ws, requestId, status, data } = params;
-  
+
   const responseMessage: WSMessage = {
     type: WSMessageType.RESPONSE,
     id: requestId,
@@ -58,7 +58,7 @@ export function sendResponse(params: SendResponseParams, logger: pino.Logger): v
  */
 export function sendError(params: SendErrorParams, logger: pino.Logger): void {
   const { ws, requestId, code, message, details } = params;
-  
+
   const errorMessage: WSMessage = {
     type: WSMessageType.ERROR,
     id: requestId ?? uuidv4(),

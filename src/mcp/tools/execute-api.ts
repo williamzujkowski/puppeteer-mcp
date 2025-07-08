@@ -20,7 +20,7 @@ export class ExecuteApiTool {
   constructor(
     private restAdapter?: RestAdapter,
     private grpcAdapter?: GrpcAdapter,
-    private wsAdapter?: WebSocketAdapter
+    private wsAdapter?: WebSocketAdapter,
   ) {}
 
   /**
@@ -28,35 +28,35 @@ export class ExecuteApiTool {
    */
   async execute(args: ExecuteApiArgs): Promise<ToolResponse> {
     const { protocol } = args;
-    
+
     try {
       // Validate and normalize authentication
       const normalizedAuth = this.normalizeAuth(args);
-      
+
       // Execute based on protocol
       const result = await this.executeForProtocol(protocol, {
         operation: args.operation,
         auth: normalizedAuth,
         sessionId: args.sessionId,
       });
-      
+
       return result;
     } catch (error) {
       // If it's already an McpError, re-throw it
       if (error instanceof McpError) {
         throw error;
       }
-      
+
       // Otherwise, wrap it
       logger.error({
         msg: 'MCP API execution failed',
         protocol,
         error: error instanceof Error ? error.message : 'Unknown error',
       });
-      
+
       throw new McpError(
         ErrorCode.InternalError,
-        error instanceof Error ? error.message : 'API execution failed'
+        error instanceof Error ? error.message : 'API execution failed',
       );
     }
   }
@@ -66,7 +66,7 @@ export class ExecuteApiTool {
    */
   private normalizeAuth(args: ExecuteApiArgs): ExecuteApiArgs['auth'] {
     const { auth } = args;
-    
+
     // If session type but no credentials, try to use sessionId from args
     if (auth && auth.type === 'session' && !auth.credentials) {
       if (args.sessionId !== null && args.sessionId !== undefined && args.sessionId !== '') {
@@ -76,7 +76,7 @@ export class ExecuteApiTool {
         };
       }
     }
-    
+
     return auth;
   }
 
@@ -84,8 +84,8 @@ export class ExecuteApiTool {
    * Execute request for specific protocol
    */
   private async executeForProtocol(
-    protocol: string, 
-    request: { operation: unknown; auth?: ExecuteApiArgs['auth']; sessionId?: string }
+    protocol: string,
+    request: { operation: unknown; auth?: ExecuteApiArgs['auth']; sessionId?: string },
   ): Promise<ToolResponse> {
     switch (protocol) {
       case 'rest': {
@@ -101,24 +101,25 @@ export class ExecuteApiTool {
         return result;
       }
       default:
-        throw new McpError(
-          ErrorCode.InvalidRequest,
-          `Unsupported protocol: ${protocol}`
-        );
+        throw new McpError(ErrorCode.InvalidRequest, `Unsupported protocol: ${protocol}`);
     }
   }
 
   /**
    * Execute REST request
    */
-  private async executeRestRequest(request: { operation: unknown; auth?: ExecuteApiArgs['auth']; sessionId?: string }): Promise<ToolResponse> {
+  private async executeRestRequest(request: {
+    operation: unknown;
+    auth?: ExecuteApiArgs['auth'];
+    sessionId?: string;
+  }): Promise<ToolResponse> {
     if (!this.restAdapter) {
       throw new McpError(
-        ErrorCode.InvalidRequest, 
-        'REST adapter not initialized. Express app required.'
+        ErrorCode.InvalidRequest,
+        'REST adapter not initialized. Express app required.',
       );
     }
-    
+
     const response = await this.restAdapter.executeRequest(request);
     return this.convertToToolResponse(response);
   }
@@ -126,14 +127,18 @@ export class ExecuteApiTool {
   /**
    * Execute gRPC request
    */
-  private async executeGrpcRequest(request: { operation: unknown; auth?: ExecuteApiArgs['auth']; sessionId?: string }): Promise<ToolResponse> {
+  private async executeGrpcRequest(request: {
+    operation: unknown;
+    auth?: ExecuteApiArgs['auth'];
+    sessionId?: string;
+  }): Promise<ToolResponse> {
     if (!this.grpcAdapter) {
       throw new McpError(
-        ErrorCode.InvalidRequest, 
-        'gRPC adapter not initialized. gRPC server required.'
+        ErrorCode.InvalidRequest,
+        'gRPC adapter not initialized. gRPC server required.',
       );
     }
-    
+
     const response = await this.grpcAdapter.executeRequest(request);
     return this.convertToToolResponse(response);
   }
@@ -141,14 +146,18 @@ export class ExecuteApiTool {
   /**
    * Execute WebSocket request
    */
-  private async executeWebSocketRequest(request: { operation: unknown; auth?: ExecuteApiArgs['auth']; sessionId?: string }): Promise<ToolResponse> {
+  private async executeWebSocketRequest(request: {
+    operation: unknown;
+    auth?: ExecuteApiArgs['auth'];
+    sessionId?: string;
+  }): Promise<ToolResponse> {
     if (!this.wsAdapter) {
       throw new McpError(
-        ErrorCode.InvalidRequest, 
-        'WebSocket adapter not initialized. WebSocket server required.'
+        ErrorCode.InvalidRequest,
+        'WebSocket adapter not initialized. WebSocket server required.',
       );
     }
-    
+
     const response = await this.wsAdapter.executeRequest(request);
     return this.convertToToolResponse(response);
   }

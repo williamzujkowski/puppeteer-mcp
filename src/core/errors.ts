@@ -26,14 +26,14 @@ export const ErrorCodes = {
   GONE: 'GONE',
   UNPROCESSABLE_ENTITY: 'UNPROCESSABLE_ENTITY',
   TOO_MANY_REQUESTS: 'TOO_MANY_REQUESTS',
-  
+
   // Server errors (5xx)
   INTERNAL_SERVER_ERROR: 'INTERNAL_SERVER_ERROR',
   NOT_IMPLEMENTED: 'NOT_IMPLEMENTED',
   BAD_GATEWAY: 'BAD_GATEWAY',
   SERVICE_UNAVAILABLE: 'SERVICE_UNAVAILABLE',
   GATEWAY_TIMEOUT: 'GATEWAY_TIMEOUT',
-  
+
   // Custom business errors
   SESSION_EXPIRED: 'SESSION_EXPIRED',
   INVALID_TOKEN: 'INVALID_TOKEN',
@@ -46,7 +46,7 @@ export const ErrorCodes = {
   EXTERNAL_SERVICE_ERROR: 'EXTERNAL_SERVICE_ERROR',
 } as const;
 
-export type ErrorCode = typeof ErrorCodes[keyof typeof ErrorCodes];
+export type ErrorCode = (typeof ErrorCodes)[keyof typeof ErrorCodes];
 
 /**
  * Additional error classes
@@ -73,7 +73,10 @@ export class InternalServerError extends AppError {
 }
 
 export class ServiceUnavailableError extends AppError {
-  constructor(message: string = 'Service temporarily unavailable', details?: Record<string, unknown>) {
+  constructor(
+    message: string = 'Service temporarily unavailable',
+    details?: Record<string, unknown>,
+  ) {
     super(message, 503, true, details);
     this.name = 'ServiceUnavailableError';
   }
@@ -153,14 +156,14 @@ export const serializeErrorForREST = (
   requestId?: string,
 ): ErrorResponse => {
   const timestamp = new Date().toISOString();
-  
+
   if (error instanceof ZodError) {
     return {
       error: {
         code: ErrorCodes.VALIDATION_ERROR,
         message: 'Validation failed',
         details: {
-          errors: error.errors.map(e => ({
+          errors: error.errors.map((e) => ({
             path: e.path.join('.'),
             message: e.message,
             type: e.code,
@@ -171,7 +174,7 @@ export const serializeErrorForREST = (
       },
     };
   }
-  
+
   if (error instanceof AppError) {
     return {
       error: {
@@ -183,14 +186,13 @@ export const serializeErrorForREST = (
       },
     };
   }
-  
+
   // Generic error
   return {
     error: {
       code: ErrorCodes.INTERNAL_SERVER_ERROR,
-      message: process.env.NODE_ENV === 'production' 
-        ? 'An unexpected error occurred' 
-        : error.message,
+      message:
+        process.env.NODE_ENV === 'production' ? 'An unexpected error occurred' : error.message,
       timestamp,
       requestId,
     },
@@ -200,7 +202,9 @@ export const serializeErrorForREST = (
 /**
  * Serialize error for gRPC response
  */
-export const serializeErrorForGRPC = (error: Error | AppError | ZodError): {
+export const serializeErrorForGRPC = (
+  error: Error | AppError | ZodError,
+): {
   code: number;
   message: string;
   details: string;
@@ -212,7 +216,7 @@ export const serializeErrorForGRPC = (error: Error | AppError | ZodError): {
       details: JSON.stringify(error.errors),
     };
   }
-  
+
   if (error instanceof AppError) {
     return {
       code: grpcStatusFromHttpStatus(error.statusCode),
@@ -220,7 +224,7 @@ export const serializeErrorForGRPC = (error: Error | AppError | ZodError): {
       details: JSON.stringify(error.details ?? {}),
     };
   }
-  
+
   return {
     code: 13, // INTERNAL
     message: 'Internal server error',
@@ -244,7 +248,7 @@ export const serializeErrorForWebSocket = (
   };
 } => {
   const serialized = serializeErrorForREST(error);
-  
+
   return {
     type: 'error',
     id: messageId,
@@ -278,11 +282,11 @@ const STATUS_TO_ERROR_CODE: Record<number, string> = {
 const getErrorCode = (error: AppError): string => {
   // Special case for 401 errors
   if (error.statusCode === 401) {
-    return error.name === 'AuthenticationError' 
-      ? ErrorCodes.AUTHENTICATION_FAILED 
+    return error.name === 'AuthenticationError'
+      ? ErrorCodes.AUTHENTICATION_FAILED
       : ErrorCodes.UNAUTHORIZED;
   }
-  
+
   // Use Object.prototype.hasOwnProperty.call for safe property access
   if (Object.prototype.hasOwnProperty.call(STATUS_TO_ERROR_CODE, error.statusCode)) {
     return STATUS_TO_ERROR_CODE[error.statusCode] ?? ErrorCodes.INTERNAL_SERVER_ERROR;
@@ -294,16 +298,16 @@ const getErrorCode = (error: AppError): string => {
  * Mapping of HTTP status codes to gRPC status codes
  */
 const HTTP_TO_GRPC_STATUS: Record<number, number> = {
-  400: 3,  // INVALID_ARGUMENT
+  400: 3, // INVALID_ARGUMENT
   401: 16, // UNAUTHENTICATED
-  403: 7,  // PERMISSION_DENIED
-  404: 5,  // NOT_FOUND
-  409: 6,  // ALREADY_EXISTS
-  429: 8,  // RESOURCE_EXHAUSTED
+  403: 7, // PERMISSION_DENIED
+  404: 5, // NOT_FOUND
+  409: 6, // ALREADY_EXISTS
+  429: 8, // RESOURCE_EXHAUSTED
   500: 13, // INTERNAL
   501: 12, // UNIMPLEMENTED
   503: 14, // UNAVAILABLE
-  504: 4,  // DEADLINE_EXCEEDED
+  504: 4, // DEADLINE_EXCEEDED
 };
 
 /**
@@ -343,14 +347,14 @@ export const normalizeError = (error: unknown): Error => {
   if (error instanceof Error) {
     return error;
   }
-  
+
   if (typeof error === 'string') {
     return new Error(error);
   }
-  
+
   if (typeof error === 'object' && error !== null && 'message' in error) {
     return new Error(String(error.message));
   }
-  
+
   return new Error('An unknown error occurred');
 };

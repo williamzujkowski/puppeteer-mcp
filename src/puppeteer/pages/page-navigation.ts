@@ -29,11 +29,9 @@ export interface NavigateParams {
  * Navigate page
  * @nist ac-3 "Access enforcement"
  */
-export async function navigatePage(
-  params: NavigateParams
-): Promise<void> {
+export async function navigatePage(params: NavigateParams): Promise<void> {
   const { pageId, sessionId, url, options, pages, pageStore } = params;
-  
+
   const pageInfo = await pageStore.get(pageId);
   if (!pageInfo || pageInfo.sessionId !== sessionId) {
     throw new AppError('Page not found or access denied', 404);
@@ -65,11 +63,9 @@ export async function navigatePage(
  * @param options - Navigation options
  * @nist ac-4 "Information flow enforcement"
  */
-export async function navigateTo(
-  params: NavigateParams
-): Promise<void> {
+export async function navigateTo(params: NavigateParams): Promise<void> {
   const { pageId, url, sessionId, options, pages, pageStore } = params;
-  
+
   const pageInfo = await pageStore.get(pageId);
   if (!pageInfo || pageInfo.sessionId !== sessionId) {
     throw new AppError('Page not found or access denied', 404);
@@ -81,20 +77,19 @@ export async function navigateTo(
   }
 
   await pageStore.updateState(pageId, 'navigating');
-  
+
   try {
     await page.goto(url, {
       timeout: options?.timeout ?? 30000,
       waitUntil: options?.waitUntil ?? 'load',
       referer: options?.referer,
     });
-    
+
     const title = await page.title();
     await pageStore.updateUrl(pageId, url);
     await pageStore.updateTitle(pageId, title);
     await pageStore.addNavigationHistory(pageId, url);
     await pageStore.updateState(pageId, 'active');
-    
   } catch (error) {
     await pageStore.updateState(pageId, 'active');
     await pageStore.incrementErrorCount(pageId);
@@ -120,9 +115,7 @@ export interface NavigateWithEventsParams extends NavigateParams {
  * @param emitter - Event emitter for page events
  * @nist ac-4 "Information flow enforcement"
  */
-export async function navigateToWithEvents(
-  params: NavigateWithEventsParams
-): Promise<void> {
+export async function navigateToWithEvents(params: NavigateWithEventsParams): Promise<void> {
   const { emitter, ...navigateParams } = params;
   await navigateTo(navigateParams);
   emitter.emit('page:navigated', { pageId: params.pageId, url: params.url });
@@ -146,11 +139,9 @@ export interface UpdatePageOptionsParams {
  * @param options - Page options to update
  * @param sessionId - Session identifier for validation
  */
-export async function updatePageOptions(
-  params: UpdatePageOptionsParams
-): Promise<void> {
+export async function updatePageOptions(params: UpdatePageOptionsParams): Promise<void> {
   const { pageId, options, sessionId, pages, pageStore, configurePageOptions } = params;
-  
+
   const pageInfo = await pageStore.get(pageId);
   if (!pageInfo || pageInfo.sessionId !== sessionId) {
     throw new AppError('Page not found or access denied', 404);

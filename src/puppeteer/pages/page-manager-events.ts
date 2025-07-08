@@ -15,24 +15,27 @@ export function setupPageStoreHandlers(
   page: Page,
   pageInfo: PageInfo,
   pageStore: PageInfoStore,
-  emitter: EventEmitter
+  emitter: EventEmitter,
 ): void {
   const pageId = pageInfo.id;
 
   // Update store on navigation
   emitter.on('page:navigated', ({ pageId: navPageId, url }) => {
     if (navPageId === pageId) {
-      void page.title().then(title => {
-        void pageStore.updateUrl(pageId, url);
-        void pageStore.updateTitle(pageId, title);
-        void pageStore.addNavigationHistory(pageId, url);
-        void pageStore.touchActivity(pageId);
-      }).catch(() => {
-        // If title fails, still update other fields
-        void pageStore.updateUrl(pageId, url);
-        void pageStore.addNavigationHistory(pageId, url);
-        void pageStore.touchActivity(pageId);
-      });
+      void page
+        .title()
+        .then((title) => {
+          void pageStore.updateUrl(pageId, url);
+          void pageStore.updateTitle(pageId, title);
+          void pageStore.addNavigationHistory(pageId, url);
+          void pageStore.touchActivity(pageId);
+        })
+        .catch(() => {
+          // If title fails, still update other fields
+          void pageStore.updateUrl(pageId, url);
+          void pageStore.addNavigationHistory(pageId, url);
+          void pageStore.touchActivity(pageId);
+        });
     }
   });
 

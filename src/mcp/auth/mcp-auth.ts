@@ -42,31 +42,31 @@ export interface MCPAuthCredentials {
  */
 export const MCP_TOOL_PERMISSIONS: Record<string, Permission> = {
   // Browser control tools
-  'navigate': Permission.CONTEXT_EXECUTE,
-  'screenshot': Permission.CONTEXT_READ,
-  'click': Permission.CONTEXT_EXECUTE,
-  'type': Permission.CONTEXT_EXECUTE,
-  'scroll': Permission.CONTEXT_EXECUTE,
-  'waitForSelector': Permission.CONTEXT_EXECUTE,
-  'evaluate': Permission.CONTEXT_EXECUTE,
-  
+  navigate: Permission.CONTEXT_EXECUTE,
+  screenshot: Permission.CONTEXT_READ,
+  click: Permission.CONTEXT_EXECUTE,
+  type: Permission.CONTEXT_EXECUTE,
+  scroll: Permission.CONTEXT_EXECUTE,
+  waitForSelector: Permission.CONTEXT_EXECUTE,
+  evaluate: Permission.CONTEXT_EXECUTE,
+
   // Page information tools
-  'getTitle': Permission.CONTEXT_READ,
-  'getUrl': Permission.CONTEXT_READ,
-  'getContent': Permission.CONTEXT_READ,
-  'getCookies': Permission.CONTEXT_READ,
-  
+  getTitle: Permission.CONTEXT_READ,
+  getUrl: Permission.CONTEXT_READ,
+  getContent: Permission.CONTEXT_READ,
+  getCookies: Permission.CONTEXT_READ,
+
   // Session management tools
-  'createSession': Permission.SESSION_CREATE,
-  'closeSession': Permission.SESSION_DELETE,
-  'listSessions': Permission.SESSION_LIST,
-  
+  createSession: Permission.SESSION_CREATE,
+  closeSession: Permission.SESSION_DELETE,
+  listSessions: Permission.SESSION_LIST,
+
   // Context management tools
-  'createContext': Permission.CONTEXT_CREATE,
-  'getContext': Permission.CONTEXT_READ,
-  'updateContext': Permission.CONTEXT_UPDATE,
-  'deleteContext': Permission.CONTEXT_DELETE,
-  'listContexts': Permission.CONTEXT_LIST,
+  createContext: Permission.CONTEXT_CREATE,
+  getContext: Permission.CONTEXT_READ,
+  updateContext: Permission.CONTEXT_UPDATE,
+  deleteContext: Permission.CONTEXT_DELETE,
+  listContexts: Permission.CONTEXT_LIST,
 };
 
 /**
@@ -94,7 +94,7 @@ export class MCPAuthBridge {
       await logSecurityEvent(SecurityEventType.LOGIN_FAILURE, {
         reason: 'No authentication credentials provided',
         result: 'failure',
-        metadata: { context: 'mcp' }
+        metadata: { context: 'mcp' },
       });
       throw new AppError('Authentication required', 401);
     }
@@ -111,7 +111,7 @@ export class MCPAuthBridge {
           await logSecurityEvent(SecurityEventType.LOGIN_FAILURE, {
             reason: 'Invalid authentication type',
             result: 'failure',
-            metadata: { type: auth.type, context: 'mcp' }
+            metadata: { type: auth.type, context: 'mcp' },
           });
           throw new AppError('Invalid authentication type', 400);
       }
@@ -120,7 +120,7 @@ export class MCPAuthBridge {
       if (error instanceof AppError) {
         throw error;
       }
-      
+
       // Log unexpected errors
       this.logger.error({ error }, 'Authentication error');
       throw new AppError('Authentication failed', 401);
@@ -135,49 +135,49 @@ export class MCPAuthBridge {
   private async authenticateJWT(token: string): Promise<AuthContext> {
     try {
       // Handle Bearer token format if already prefixed
-      const actualToken = token.startsWith('Bearer ') 
-        ? extractTokenFromHeader(token) ?? token
+      const actualToken = token.startsWith('Bearer ')
+        ? (extractTokenFromHeader(token) ?? token)
         : token;
-      
+
       // Verify the token
       const decoded = await verifyToken(actualToken);
-      
+
       // Get permissions for roles
       const permissions = getPermissionsForRoles(decoded.roles);
-      
+
       await logSecurityEvent(SecurityEventType.LOGIN_SUCCESS, {
         userId: decoded.sub,
         result: 'success',
-        metadata: { 
+        metadata: {
           method: 'jwt',
           context: 'mcp',
-          sessionId: decoded.sessionId
-        }
+          sessionId: decoded.sessionId,
+        },
       });
-      
+
       return {
         userId: decoded.sub,
         username: decoded.username,
         roles: decoded.roles,
-        permissions: permissions.map(p => p.toString()),
+        permissions: permissions.map((p) => p.toString()),
         sessionId: decoded.sessionId,
-        authMethod: 'jwt'
+        authMethod: 'jwt',
       };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'JWT verification failed';
       await logSecurityEvent(SecurityEventType.LOGIN_FAILURE, {
         reason: errorMessage,
         result: 'failure',
-        metadata: { 
-          method: 'jwt', 
+        metadata: {
+          method: 'jwt',
           context: 'mcp',
-          errorDetails: error instanceof Error ? error.stack : String(error)
-        }
+          errorDetails: error instanceof Error ? error.stack : String(error),
+        },
       });
-      
+
       // Log the actual error for debugging
       this.logger.error({ error, errorMessage }, 'JWT authentication failed');
-      
+
       throw new AppError('Invalid or expired JWT token', 401);
     }
   }
@@ -191,40 +191,40 @@ export class MCPAuthBridge {
     try {
       // Verify the API key
       const apiKey = await apiKeyStore.verify(key);
-      
+
       if (!apiKey) {
         await logSecurityEvent(SecurityEventType.LOGIN_FAILURE, {
           reason: 'Invalid API key',
           result: 'failure',
-          metadata: { method: 'apikey', context: 'mcp' }
+          metadata: { method: 'apikey', context: 'mcp' },
         });
         throw new AppError('Invalid API key', 401);
       }
-      
+
       // Get permissions based on roles and scopes
       const rolePermissions = getPermissionsForRoles(apiKey.roles);
       const allPermissions = new Set<string>([
-        ...rolePermissions.map(p => p.toString()),
-        ...apiKey.scopes
+        ...rolePermissions.map((p) => p.toString()),
+        ...apiKey.scopes,
       ]);
-      
+
       await logSecurityEvent(SecurityEventType.LOGIN_SUCCESS, {
         userId: apiKey.userId,
         result: 'success',
-        metadata: { 
+        metadata: {
           method: 'apikey',
           context: 'mcp',
           apiKeyId: apiKey.id,
-          keyPrefix: apiKey.prefix
-        }
+          keyPrefix: apiKey.prefix,
+        },
       });
-      
+
       return {
         userId: apiKey.userId,
         roles: apiKey.roles,
         permissions: Array.from(allPermissions),
         apiKeyId: apiKey.id,
-        authMethod: 'apikey'
+        authMethod: 'apikey',
       };
     } catch (error) {
       if (error instanceof AppError) {
@@ -233,7 +233,7 @@ export class MCPAuthBridge {
       await logSecurityEvent(SecurityEventType.LOGIN_FAILURE, {
         reason: 'API key verification failed',
         result: 'failure',
-        metadata: { method: 'apikey', context: 'mcp' }
+        metadata: { method: 'apikey', context: 'mcp' },
       });
       throw new AppError('API key authentication failed', 401);
     }
@@ -248,39 +248,39 @@ export class MCPAuthBridge {
     try {
       // Get session from store
       const session = await this.sessionStore.get(sessionId);
-      
+
       if (!session) {
         await logSecurityEvent(SecurityEventType.LOGIN_FAILURE, {
           reason: 'Invalid or expired session',
           result: 'failure',
-          metadata: { method: 'session', context: 'mcp' }
+          metadata: { method: 'session', context: 'mcp' },
         });
         throw new AppError('Invalid or expired session', 401);
       }
-      
+
       // Touch session to update last accessed time
       await this.sessionStore.touch(sessionId);
-      
+
       // Get permissions for roles
       const permissions = getPermissionsForRoles(session.data.roles);
-      
+
       await logSecurityEvent(SecurityEventType.LOGIN_SUCCESS, {
         userId: session.data.userId,
         result: 'success',
-        metadata: { 
+        metadata: {
           method: 'session',
           context: 'mcp',
-          sessionId: session.id
-        }
+          sessionId: session.id,
+        },
       });
-      
+
       return {
         userId: session.data.userId,
         username: session.data.username,
         roles: session.data.roles,
-        permissions: permissions.map(p => p.toString()),
+        permissions: permissions.map((p) => p.toString()),
         sessionId: session.id,
-        authMethod: 'session'
+        authMethod: 'session',
       };
     } catch (error) {
       if (error instanceof AppError) {
@@ -289,7 +289,7 @@ export class MCPAuthBridge {
       await logSecurityEvent(SecurityEventType.LOGIN_FAILURE, {
         reason: 'Session authentication failed',
         result: 'failure',
-        metadata: { method: 'session', context: 'mcp' }
+        metadata: { method: 'session', context: 'mcp' },
       });
       throw new AppError('Session authentication failed', 401);
     }
@@ -302,13 +302,13 @@ export class MCPAuthBridge {
   hasToolPermission(authContext: AuthContext, toolName: string): boolean {
     // eslint-disable-next-line security/detect-object-injection
     const requiredPermission = MCP_TOOL_PERMISSIONS[toolName];
-    
+
     if (requiredPermission === null || requiredPermission === undefined) {
       // Unknown tool - deny by default (fail-safe)
       this.logger.warn({ toolName }, 'Unknown MCP tool requested');
       return false;
     }
-    
+
     return authContext.permissions.includes(requiredPermission);
   }
 
@@ -321,7 +321,7 @@ export class MCPAuthBridge {
     if (!this.hasToolPermission(authContext, toolName)) {
       // eslint-disable-next-line security/detect-object-injection
       const requiredPermission = MCP_TOOL_PERMISSIONS[toolName] ?? 'unknown';
-      
+
       await logSecurityEvent(SecurityEventType.ACCESS_DENIED, {
         userId: authContext.userId,
         resource: `mcp:tool:${toolName}`,
@@ -331,13 +331,13 @@ export class MCPAuthBridge {
           context: 'mcp',
           tool: toolName,
           authMethod: authContext.authMethod,
-          userPermissions: authContext.permissions
-        }
+          userPermissions: authContext.permissions,
+        },
       });
-      
+
       throw new AppError(
         `Permission denied: ${requiredPermission} required for tool ${toolName}`,
-        403
+        403,
       );
     }
   }

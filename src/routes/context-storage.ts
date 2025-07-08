@@ -26,7 +26,7 @@ export class ContextStorage {
    */
   async createContext(
     userId: string,
-    config: z.infer<typeof contextConfigSchema>
+    config: z.infer<typeof contextConfigSchema>,
   ): Promise<Context> {
     // Generate context ID
     const contextId = `ctx_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -120,7 +120,7 @@ export class ContextStorage {
     contextId: string,
     updates: Partial<z.infer<typeof contextConfigSchema>>,
     userId: string,
-    userRoles: string[]
+    userRoles: string[],
   ): Promise<Context> {
     const context = this.contexts.get(contextId);
 
@@ -152,11 +152,7 @@ export class ContextStorage {
    * @nist ac-3 "Access enforcement"
    * @nist au-2 "Audit events"
    */
-  async deleteContext(
-    contextId: string,
-    userId: string,
-    userRoles: string[]
-  ): Promise<void> {
+  async deleteContext(contextId: string, userId: string, userRoles: string[]): Promise<void> {
     const context = this.contexts.get(contextId);
 
     if (!context) {
@@ -184,11 +180,7 @@ export class ContextStorage {
    * Update context last used timestamp
    * @nist ac-3 "Access enforcement"
    */
-  touchContext(
-    contextId: string,
-    userId: string,
-    userRoles: string[]
-  ): Context {
+  touchContext(contextId: string, userId: string, userRoles: string[]): Context {
     const context = this.contexts.get(contextId);
 
     if (!context) {

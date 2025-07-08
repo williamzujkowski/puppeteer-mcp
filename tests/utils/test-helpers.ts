@@ -94,7 +94,9 @@ export async function waitFor(
     if (await condition()) {
       return;
     }
-    await new Promise<void>((resolve) => { setTimeout(resolve, interval); });
+    await new Promise<void>((resolve) => {
+      setTimeout(resolve, interval);
+    });
   }
 
   throw new Error('Timeout waiting for condition');
@@ -104,7 +106,9 @@ export async function waitFor(
  * Creates a delay promise
  */
 export function delay(ms: number): Promise<void> {
-  return new Promise<void>((resolve) => { setTimeout(resolve, ms); });
+  return new Promise<void>((resolve) => {
+    setTimeout(resolve, ms);
+  });
 }
 
 /**

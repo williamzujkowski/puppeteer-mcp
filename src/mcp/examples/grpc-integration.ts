@@ -20,10 +20,10 @@ async function basicGrpcExample(): Promise<void> {
   // Create dependencies
   const logger = createLogger('info');
   const sessionStore = new InMemorySessionStore(logger);
-  
+
   // Create and initialize gRPC server
   const grpcServer = createGrpcServer(logger, sessionStore);
-  
+
   // Create gRPC adapter
   const adapter = new GrpcAdapter(grpcServer);
 
@@ -46,13 +46,13 @@ async function basicGrpcExample(): Promise<void> {
       credentials: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
     },
   });
-  
+
   // console.log('Response:', JSON.stringify(createResponse, null, 2));
   // console.log();
 
   // Example 2: Get session details
   const sessionId = JSON.parse(createResponse.content[0]?.text ?? '{}').id;
-  
+
   // console.log('2. Getting session details:');
   await adapter.executeRequest({
     operation: {
@@ -65,7 +65,7 @@ async function basicGrpcExample(): Promise<void> {
       credentials: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
     },
   });
-  
+
   // console.log('Response would be logged here');
   // console.log();
 
@@ -101,7 +101,7 @@ async function streamingGrpcExample(): Promise<void> {
       request: { name: 'Streaming Test' },
     },
   });
-  
+
   const sessionId = JSON.parse(createResponse.content[0]?.text ?? '{}').id;
 
   // Stream session events
@@ -262,7 +262,7 @@ async function contextManagementExample(): Promise<void> {
       request: { name: 'Context Test' },
     },
   });
-  
+
   const sessionId = JSON.parse(sessionResponse.content[0]?.text ?? '{}').id;
 
   // Example 1: Create a context

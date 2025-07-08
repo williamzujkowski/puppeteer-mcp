@@ -55,12 +55,12 @@ export class WSApiKeyAuthHandler {
     ws: WebSocket,
     _connectionId: string,
     messageId: string | undefined,
-    apiKey: string
+    apiKey: string,
   ): Promise<ApiKeyAuthResult> {
     try {
       // Verify API key
       const keyData = await apiKeyStore.verify(apiKey);
-      
+
       if (!keyData) {
         await logSecurityEvent(SecurityEventType.LOGIN_FAILURE, {
           reason: 'Invalid API key',
@@ -76,9 +76,10 @@ export class WSApiKeyAuthHandler {
         username: `apikey:${keyData.name}`,
         roles: keyData.roles,
         createdAt: new Date().toISOString(),
-        expiresAt: (keyData.expiresAt !== null && keyData.expiresAt !== undefined && keyData.expiresAt > 0) 
-          ? new Date(keyData.expiresAt).toISOString() 
-          : new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24 hours default
+        expiresAt:
+          keyData.expiresAt !== null && keyData.expiresAt !== undefined && keyData.expiresAt > 0
+            ? new Date(keyData.expiresAt).toISOString()
+            : new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24 hours default
         metadata: {
           authMethod: 'api_key',
           apiKeyId: keyData.id,
@@ -122,5 +123,4 @@ export class WSApiKeyAuthHandler {
       return { success: false, error: 'API key validation failed' };
     }
   }
-
 }

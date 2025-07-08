@@ -38,7 +38,7 @@ export class ExecuteInContextTool {
         // Use direct browser executor for stdio mode
         const browserExecutor = getBrowserExecutor();
         const actionResult = await browserExecutor.executeInContext(args);
-        
+
         // Convert action result to tool response
         return {
           content: [

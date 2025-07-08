@@ -21,10 +21,10 @@ const logger = createLogger('puppeteer:navigation-history');
 export async function handleGoBack(
   page: Page,
   context: ActionContext,
-  timeout?: number
+  timeout?: number,
 ): Promise<ActionResult> {
   const startTime = Date.now();
-  
+
   try {
     logger.info('Executing go back action', {
       sessionId: context.sessionId,
@@ -66,7 +66,6 @@ export async function handleGoBack(
       duration,
       timestamp: new Date(),
     };
-
   } catch (error) {
     const duration = Date.now() - startTime;
     const errorMessage = error instanceof Error ? error.message : 'Unknown go back error';
@@ -99,10 +98,10 @@ export async function handleGoBack(
 export async function handleGoForward(
   page: Page,
   context: ActionContext,
-  timeout?: number
+  timeout?: number,
 ): Promise<ActionResult> {
   const startTime = Date.now();
-  
+
   try {
     logger.info('Executing go forward action', {
       sessionId: context.sessionId,
@@ -144,7 +143,6 @@ export async function handleGoForward(
       duration,
       timestamp: new Date(),
     };
-
   } catch (error) {
     const duration = Date.now() - startTime;
     const errorMessage = error instanceof Error ? error.message : 'Unknown go forward error';
@@ -177,10 +175,10 @@ export async function handleGoForward(
 export async function handleReload(
   page: Page,
   context: ActionContext,
-  timeout?: number
+  timeout?: number,
 ): Promise<ActionResult> {
   const startTime = Date.now();
-  
+
   try {
     logger.info('Executing reload action', {
       sessionId: context.sessionId,
@@ -214,7 +212,6 @@ export async function handleReload(
       duration,
       timestamp: new Date(),
     };
-
   } catch (error) {
     const duration = Date.now() - startTime;
     const errorMessage = error instanceof Error ? error.message : 'Unknown reload error';

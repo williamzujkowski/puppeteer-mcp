@@ -28,10 +28,7 @@ import type {
   ValidateSessionRequest,
   ValidateSessionResponse,
 } from '../types/session.types.js';
-import type {
-  StreamSessionEventsRequest,
-  SessionEvent,
-} from '../types/session-stream.types.js';
+import type { StreamSessionEventsRequest, SessionEvent } from '../types/session-stream.types.js';
 
 /**
  * Session service implementation
@@ -43,10 +40,7 @@ export class SessionServiceImpl {
   private auth: SessionAuth;
   private stream: SessionStream;
 
-  constructor(
-    logger: pino.Logger,
-    sessionStore: SessionStore
-  ) {
+  constructor(logger: pino.Logger, sessionStore: SessionStore) {
     this.operations = new SessionOperations(logger, sessionStore);
     this.auth = new SessionAuth(logger, sessionStore);
     this.stream = new SessionStream(logger, sessionStore);
@@ -60,7 +54,7 @@ export class SessionServiceImpl {
    */
   createSession(
     call: grpc.ServerUnaryCall<CreateSessionRequest, CreateSessionResponse>,
-    callback: grpc.sendUnaryData<CreateSessionResponse>
+    callback: grpc.sendUnaryData<CreateSessionResponse>,
   ): void {
     this.operations.createSession(call, callback);
   }
@@ -71,7 +65,7 @@ export class SessionServiceImpl {
    */
   getSession(
     call: grpc.ServerUnaryCall<GetSessionRequest, GetSessionResponse>,
-    callback: grpc.sendUnaryData<GetSessionResponse>
+    callback: grpc.sendUnaryData<GetSessionResponse>,
   ): void {
     this.operations.getSession(call, callback);
   }
@@ -83,7 +77,7 @@ export class SessionServiceImpl {
    */
   updateSession(
     call: grpc.ServerUnaryCall<UpdateSessionRequest, UpdateSessionResponse>,
-    callback: grpc.sendUnaryData<UpdateSessionResponse>
+    callback: grpc.sendUnaryData<UpdateSessionResponse>,
   ): void {
     this.operations.updateSession(call, callback);
   }
@@ -95,7 +89,7 @@ export class SessionServiceImpl {
    */
   deleteSession(
     call: grpc.ServerUnaryCall<DeleteSessionRequest, DeleteSessionResponse>,
-    callback: grpc.sendUnaryData<DeleteSessionResponse>
+    callback: grpc.sendUnaryData<DeleteSessionResponse>,
   ): void {
     this.operations.deleteSession(call, callback);
   }
@@ -106,7 +100,7 @@ export class SessionServiceImpl {
    */
   listSessions(
     call: grpc.ServerUnaryCall<ListSessionsRequest, ListSessionsResponse>,
-    callback: grpc.sendUnaryData<ListSessionsResponse>
+    callback: grpc.sendUnaryData<ListSessionsResponse>,
   ): void {
     this.operations.listSessions(call, callback);
   }
@@ -117,7 +111,7 @@ export class SessionServiceImpl {
    */
   batchGetSessions(
     call: grpc.ServerUnaryCall<ListSessionsRequest, ListSessionsResponse>,
-    callback: grpc.sendUnaryData<ListSessionsResponse>
+    callback: grpc.sendUnaryData<ListSessionsResponse>,
   ): void {
     this.operations.batchGetSessions(call, callback);
   }
@@ -127,7 +121,7 @@ export class SessionServiceImpl {
    * @nist au-3 "Content of audit records"
    */
   streamSessionEvents(
-    call: grpc.ServerWritableStream<StreamSessionEventsRequest, SessionEvent>
+    call: grpc.ServerWritableStream<StreamSessionEventsRequest, SessionEvent>,
   ): void {
     return this.stream.streamSessionEvents(call);
   }
@@ -139,7 +133,7 @@ export class SessionServiceImpl {
    */
   refreshSession(
     call: grpc.ServerUnaryCall<RefreshSessionRequest, RefreshSessionResponse>,
-    callback: grpc.sendUnaryData<RefreshSessionResponse>
+    callback: grpc.sendUnaryData<RefreshSessionResponse>,
   ): void {
     void this.auth.refreshSession(call, callback);
   }
@@ -150,7 +144,7 @@ export class SessionServiceImpl {
    */
   validateSession(
     call: grpc.ServerUnaryCall<ValidateSessionRequest, ValidateSessionResponse>,
-    callback: grpc.sendUnaryData<ValidateSessionResponse>
+    callback: grpc.sendUnaryData<ValidateSessionResponse>,
   ): void {
     void this.auth.validateSession(call, callback);
   }

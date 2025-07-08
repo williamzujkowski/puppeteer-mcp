@@ -33,10 +33,7 @@ export class SessionOperations {
   private crud: SessionCrud;
   private list: SessionList;
 
-  constructor(
-    logger: pino.Logger,
-    sessionStore: SessionStore
-  ) {
+  constructor(logger: pino.Logger, sessionStore: SessionStore) {
     this.crud = new SessionCrud(logger, sessionStore);
     this.list = new SessionList(logger, sessionStore);
   }
@@ -49,7 +46,7 @@ export class SessionOperations {
    */
   createSession(
     call: grpc.ServerUnaryCall<CreateSessionRequest, CreateSessionResponse>,
-    callback: grpc.sendUnaryData<CreateSessionResponse>
+    callback: grpc.sendUnaryData<CreateSessionResponse>,
   ): void {
     void this.crud.createSession(call, callback);
   }
@@ -60,7 +57,7 @@ export class SessionOperations {
    */
   getSession(
     call: grpc.ServerUnaryCall<GetSessionRequest, GetSessionResponse>,
-    callback: grpc.sendUnaryData<GetSessionResponse>
+    callback: grpc.sendUnaryData<GetSessionResponse>,
   ): void {
     void this.crud.getSession(call, callback);
   }
@@ -72,7 +69,7 @@ export class SessionOperations {
    */
   updateSession(
     call: grpc.ServerUnaryCall<UpdateSessionRequest, UpdateSessionResponse>,
-    callback: grpc.sendUnaryData<UpdateSessionResponse>
+    callback: grpc.sendUnaryData<UpdateSessionResponse>,
   ): void {
     void this.crud.updateSession(call, callback);
   }
@@ -84,7 +81,7 @@ export class SessionOperations {
    */
   deleteSession(
     call: grpc.ServerUnaryCall<DeleteSessionRequest, DeleteSessionResponse>,
-    callback: grpc.sendUnaryData<DeleteSessionResponse>
+    callback: grpc.sendUnaryData<DeleteSessionResponse>,
   ): void {
     void this.crud.deleteSession(call, callback);
   }
@@ -95,7 +92,7 @@ export class SessionOperations {
    */
   listSessions(
     call: grpc.ServerUnaryCall<ListSessionsRequest, ListSessionsResponse>,
-    callback: grpc.sendUnaryData<ListSessionsResponse>
+    callback: grpc.sendUnaryData<ListSessionsResponse>,
   ): void {
     void this.list.listSessions(call, callback);
   }
@@ -106,7 +103,7 @@ export class SessionOperations {
    */
   batchGetSessions(
     call: grpc.ServerUnaryCall<ListSessionsRequest, ListSessionsResponse>,
-    callback: grpc.sendUnaryData<ListSessionsResponse>
+    callback: grpc.sendUnaryData<ListSessionsResponse>,
   ): void {
     void this.list.batchGetSessions(call, callback);
   }

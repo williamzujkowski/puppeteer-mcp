@@ -1,7 +1,7 @@
 /**
  * MCP Session Management Example
  * @module mcp/examples/session-management
- * 
+ *
  * This example demonstrates how to use the MCP session management tools
  */
 

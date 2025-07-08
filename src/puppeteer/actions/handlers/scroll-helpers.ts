@@ -9,7 +9,10 @@
  * @param distance - Distance to scroll
  * @returns Object with scrollX and scrollY values
  */
-export function calculateScrollValues(direction: string, distance: number): { scrollX: number; scrollY: number } {
+export function calculateScrollValues(
+  direction: string,
+  distance: number,
+): { scrollX: number; scrollY: number } {
   let scrollX = 0;
   let scrollY = 0;
 
@@ -45,7 +48,7 @@ export function calculateTargetPosition(
   startX: number,
   startY: number,
   direction: string,
-  distance: number
+  distance: number,
 ): { targetX: number; targetY: number } {
   let targetX = startX;
   let targetY = startY;
@@ -77,7 +80,7 @@ export function validateScrollParams(distance: number, duration?: number): void 
   if (distance < 1 || distance > 10000) {
     throw new Error('Scroll distance must be between 1 and 10000 pixels');
   }
-  
+
   if (duration !== undefined && (duration < 100 || duration > 5000)) {
     throw new Error('Duration must be between 100 and 5000 milliseconds');
   }

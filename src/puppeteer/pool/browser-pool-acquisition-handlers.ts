@@ -33,7 +33,7 @@ export interface AcquireBrowserParams {
  * @nist ac-3 "Access enforcement"
  * @nist ac-4 "Information flow enforcement"
  */
- 
+
 export async function acquireBrowser(params: AcquireBrowserParams): Promise<BrowserInstance> {
   const {
     sessionId,

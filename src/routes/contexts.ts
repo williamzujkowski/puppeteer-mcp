@@ -15,7 +15,10 @@ import type { BrowserPool } from '../puppeteer/interfaces/browser-pool.interface
  * Create context routes
  * @nist ac-3 "Access enforcement"
  */
-export const createContextRoutes = (sessionStore: SessionStore, browserPool?: BrowserPool): Router => {
+export const createContextRoutes = (
+  sessionStore: SessionStore,
+  browserPool?: BrowserPool,
+): Router => {
   const router = Router();
   const authMiddleware = createAuthMiddleware(sessionStore);
   const handlers = new ContextHandlers(browserPool);

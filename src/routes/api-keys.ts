@@ -48,9 +48,8 @@ function createApiKeyHandler(req: Request, res: Response, next: NextFunction): v
       }
 
       // Calculate expiration time if provided
-      const expiresAt = expiresIn !== undefined && expiresIn !== null
-        ? Date.now() + expiresIn 
-        : undefined;
+      const expiresAt =
+        expiresIn !== undefined && expiresIn !== null ? Date.now() + expiresIn : undefined;
 
       // Create API key
       const result = await apiKeyStore.create({
@@ -71,9 +70,10 @@ function createApiKeyHandler(req: Request, res: Response, next: NextFunction): v
           roles: result.apiKey.roles,
           scopes: result.apiKey.scopes,
           createdAt: new Date(result.apiKey.createdAt).toISOString(),
-          expiresAt: result.apiKey.expiresAt !== null && result.apiKey.expiresAt !== undefined
-            ? new Date(result.apiKey.expiresAt).toISOString() 
-            : undefined,
+          expiresAt:
+            result.apiKey.expiresAt !== null && result.apiKey.expiresAt !== undefined
+              ? new Date(result.apiKey.expiresAt).toISOString()
+              : undefined,
         },
         // Only returned on creation!
         plainTextKey: result.plainTextKey,
@@ -105,11 +105,11 @@ function listApiKeysHandler(req: Request, res: Response, next: NextFunction): vo
       // Filter by active status if requested
       if (active !== undefined) {
         const isActive = active === 'true';
-        keys = keys.filter(key => key.active === isActive);
+        keys = keys.filter((key) => key.active === isActive);
       }
 
       // Map to response format (never expose key hash)
-      const response = keys.map(key => ({
+      const response = keys.map((key) => ({
         id: key.id,
         name: key.name,
         prefix: key.prefix,
@@ -117,12 +117,14 @@ function listApiKeysHandler(req: Request, res: Response, next: NextFunction): vo
         scopes: key.scopes,
         active: key.active,
         createdAt: new Date(key.createdAt).toISOString(),
-        lastUsedAt: key.lastUsedAt !== null && key.lastUsedAt !== undefined
-          ? new Date(key.lastUsedAt).toISOString() 
-          : undefined,
-        expiresAt: key.expiresAt !== null && key.expiresAt !== undefined
-          ? new Date(key.expiresAt).toISOString() 
-          : undefined,
+        lastUsedAt:
+          key.lastUsedAt !== null && key.lastUsedAt !== undefined
+            ? new Date(key.lastUsedAt).toISOString()
+            : undefined,
+        expiresAt:
+          key.expiresAt !== null && key.expiresAt !== undefined
+            ? new Date(key.expiresAt).toISOString()
+            : undefined,
       }));
 
       res.json({ apiKeys: response });
@@ -144,7 +146,10 @@ function validateApiKeyId(id: string | undefined): asserts id is string {
 /**
  * Check if user can access API key
  */
-function checkApiKeyAccess(key: { userId: string }, user: { userId: string; roles: string[] }): void {
+function checkApiKeyAccess(
+  key: { userId: string },
+  user: { userId: string; roles: string[] },
+): void {
   if (key.userId !== user.userId && !user.roles.includes('admin')) {
     throw new AppError('Access denied', 403);
   }
@@ -166,7 +171,7 @@ function getApiKeyHandler(req: Request, res: Response, next: NextFunction): void
       }
 
       const key = await apiKeyStore.get(id);
-      
+
       if (!key) {
         throw new AppError('API key not found', 404);
       }
@@ -183,12 +188,14 @@ function getApiKeyHandler(req: Request, res: Response, next: NextFunction): void
           scopes: key.scopes,
           active: key.active,
           createdAt: new Date(key.createdAt).toISOString(),
-          lastUsedAt: key.lastUsedAt !== null && key.lastUsedAt !== undefined
-            ? new Date(key.lastUsedAt).toISOString() 
-            : undefined,
-          expiresAt: key.expiresAt !== null && key.expiresAt !== undefined
-            ? new Date(key.expiresAt).toISOString() 
-            : undefined,
+          lastUsedAt:
+            key.lastUsedAt !== null && key.lastUsedAt !== undefined
+              ? new Date(key.lastUsedAt).toISOString()
+              : undefined,
+          expiresAt:
+            key.expiresAt !== null && key.expiresAt !== undefined
+              ? new Date(key.expiresAt).toISOString()
+              : undefined,
           metadata: key.metadata,
         },
       });
@@ -215,7 +222,7 @@ function revokeApiKeyHandler(req: Request, res: Response, next: NextFunction): v
       }
 
       const key = await apiKeyStore.get(id);
-      
+
       if (!key) {
         throw new AppError('API key not found', 404);
       }
@@ -253,39 +260,23 @@ export function createApiKeyRoutes(sessionStore: SessionStore): Router {
   };
 
   // Wrapper to handle async validateRequest middleware
-  const validationWrapper = (schema: z.ZodSchema) => (req: Request, res: Response, next: NextFunction): void => {
-    void validateRequest(schema)(req, res, next);
-  };
+  const validationWrapper =
+    (schema: z.ZodSchema) =>
+    (req: Request, res: Response, next: NextFunction): void => {
+      void validateRequest(schema)(req, res, next);
+    };
 
   // Create a new API key
-  router.post(
-    '/',
-    authWrapper,
-    validationWrapper(createApiKeySchema),
-    createApiKeyHandler
-  );
+  router.post('/', authWrapper, validationWrapper(createApiKeySchema), createApiKeyHandler);
 
   // List user's API keys
-  router.get(
-    '/',
-    authWrapper,
-    validationWrapper(listApiKeysSchema),
-    listApiKeysHandler
-  );
+  router.get('/', authWrapper, validationWrapper(listApiKeysSchema), listApiKeysHandler);
 
   // Get API key details
-  router.get(
-    '/:id',
-    authWrapper,
-    getApiKeyHandler
-  );
+  router.get('/:id', authWrapper, getApiKeyHandler);
 
   // Revoke an API key
-  router.delete(
-    '/:id',
-    authWrapper,
-    revokeApiKeyHandler
-  );
+  router.delete('/:id', authWrapper, revokeApiKeyHandler);
 
   return router;
 }

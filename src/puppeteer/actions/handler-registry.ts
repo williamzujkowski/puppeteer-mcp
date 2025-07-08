@@ -4,7 +4,7 @@
  */
 
 import type { Page } from 'puppeteer';
-import type { 
+import type {
   BrowserAction,
   ActionResult,
   ActionContext,
@@ -20,7 +20,7 @@ import type {
   ScrollAction,
   EvaluateAction,
   UploadAction,
-  CookieAction
+  CookieAction,
 } from '../interfaces/action-executor.interface.js';
 import { createLogger } from '../../utils/logger.js';
 
@@ -44,7 +44,7 @@ const logger = createLogger('puppeteer:handler-registry');
 export type ActionHandler<T extends BrowserAction = BrowserAction> = (
   action: T,
   page: Page,
-  context: ActionContext
+  context: ActionContext,
 ) => Promise<ActionResult>;
 
 /**
@@ -62,10 +62,7 @@ export class ActionHandlerRegistry {
    * @param actionType - Action type identifier
    * @param handler - Action handler function
    */
-  registerHandler<T extends BrowserAction>(
-    actionType: string,
-    handler: ActionHandler<T>
-  ): void {
+  registerHandler<T extends BrowserAction>(actionType: string, handler: ActionHandler<T>): void {
     logger.info('Registering custom action handler', { actionType });
     this.handlers.set(actionType, handler as ActionHandler);
   }
@@ -110,62 +107,62 @@ export class ActionHandlerRegistry {
    */
   private registerDefaultHandlers(): void {
     // Navigation handlers
-    this.handlers.set('navigate', (action, page, context) => 
-      handleNavigate(action as NavigateAction, page, context)
+    this.handlers.set('navigate', (action, page, context) =>
+      handleNavigate(action as NavigateAction, page, context),
     );
 
     // Interaction handlers
-    this.handlers.set('click', (action, page, context) => 
-      handleClick(action as ClickAction, page, context)
+    this.handlers.set('click', (action, page, context) =>
+      handleClick(action as ClickAction, page, context),
     );
-    this.handlers.set('type', (action, page, context) => 
-      handleType(action as TypeAction, page, context)
+    this.handlers.set('type', (action, page, context) =>
+      handleType(action as TypeAction, page, context),
     );
-    this.handlers.set('select', (action, page, context) => 
-      handleSelect(action as SelectAction, page, context)
+    this.handlers.set('select', (action, page, context) =>
+      handleSelect(action as SelectAction, page, context),
     );
 
     // Keyboard handlers
-    this.handlers.set('keyboard', (action, page, context) => 
-      handleKeyboard(action as KeyboardAction, page, context)
+    this.handlers.set('keyboard', (action, page, context) =>
+      handleKeyboard(action as KeyboardAction, page, context),
     );
 
     // Mouse handlers
-    this.handlers.set('mouse', (action, page, context) => 
-      handleMouse(action as MouseAction, page, context)
+    this.handlers.set('mouse', (action, page, context) =>
+      handleMouse(action as MouseAction, page, context),
     );
 
     // Content handlers
-    this.handlers.set('screenshot', (action, page, context) => 
-      handleScreenshot(action as ScreenshotAction, page, context)
+    this.handlers.set('screenshot', (action, page, context) =>
+      handleScreenshot(action as ScreenshotAction, page, context),
     );
-    this.handlers.set('pdf', (action, page, context) => 
-      handlePdf(action as PDFAction, page, context)
+    this.handlers.set('pdf', (action, page, context) =>
+      handlePdf(action as PDFAction, page, context),
     );
 
     // Wait handlers
-    this.handlers.set('wait', (action, page, context) => 
-      handleWait(action as WaitAction, page, context)
+    this.handlers.set('wait', (action, page, context) =>
+      handleWait(action as WaitAction, page, context),
     );
 
     // Scroll handlers
-    this.handlers.set('scroll', (action, page, context) => 
-      handleScroll(action as ScrollAction, page, context)
+    this.handlers.set('scroll', (action, page, context) =>
+      handleScroll(action as ScrollAction, page, context),
     );
 
     // Evaluation handlers
-    this.handlers.set('evaluate', (action, page, context) => 
-      handleEvaluate(action as EvaluateAction, page, context)
+    this.handlers.set('evaluate', (action, page, context) =>
+      handleEvaluate(action as EvaluateAction, page, context),
     );
 
     // Upload handlers
-    this.handlers.set('upload', (action, page, context) => 
-      handleUpload(action as UploadAction, page, context)
+    this.handlers.set('upload', (action, page, context) =>
+      handleUpload(action as UploadAction, page, context),
     );
 
     // Cookie handlers
-    this.handlers.set('cookie', (action, page, context) => 
-      handleCookie(action as CookieAction, page, context)
+    this.handlers.set('cookie', (action, page, context) =>
+      handleCookie(action as CookieAction, page, context),
     );
 
     logger.info('Default action handlers registered', {

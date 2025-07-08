@@ -496,8 +496,8 @@ export async function startHTTPServer(): Promise<void> {
 
 // Start server if not in test environment and not in MCP mode
 if (
-  config.NODE_ENV !== 'test' && 
-  process.env.NODE_ENV !== 'test' && 
+  config.NODE_ENV !== 'test' &&
+  process.env.NODE_ENV !== 'test' &&
   process.env.JEST_WORKER_ID === undefined &&
   process.env.MCP_TRANSPORT === undefined
 ) {

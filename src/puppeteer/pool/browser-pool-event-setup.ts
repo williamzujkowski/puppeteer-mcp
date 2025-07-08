@@ -13,7 +13,7 @@ import type { InternalBrowserInstance } from './browser-pool-maintenance.js';
 export function setupQueueHandlers(
   emitter: EventEmitter,
   queue: BrowserQueue,
-  findIdleBrowser: () => InternalBrowserInstance | null
+  findIdleBrowser: () => InternalBrowserInstance | null,
 ): void {
   // When a browser becomes available, try to process queue
   emitter.on('browser:released', () => {

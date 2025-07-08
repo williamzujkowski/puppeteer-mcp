@@ -157,7 +157,6 @@ export class PageManager extends EventEmitter implements IPageManager {
     });
   }
 
-   
   async listPagesForSession(sessionId: string): Promise<PageInfo[]> {
     return listPagesForSession(sessionId, this.pageStore);
   }
@@ -236,7 +235,6 @@ export class PageManager extends EventEmitter implements IPageManager {
     });
   }
 
-   
   async isPageActive(pageId: string): Promise<boolean> {
     return isPageActive(pageId, this.pageStore);
   }

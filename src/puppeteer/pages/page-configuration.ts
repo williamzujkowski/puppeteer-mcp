@@ -51,10 +51,7 @@ async function configureNetworkOptions(page: Page, options: PageOptions): Promis
  * @nist ac-3 "Access enforcement"
  * @nist ac-4 "Information flow enforcement"
  */
-export async function configurePageOptions(
-  page: Page,
-  options: PageOptions
-): Promise<void> {
+export async function configurePageOptions(page: Page, options: PageOptions): Promise<void> {
   // Set viewport
   if (options.viewport !== null && options.viewport !== undefined) {
     await configureViewport(page, options.viewport);
@@ -90,8 +87,15 @@ async function configureViewport(page: Page, viewport: Viewport): Promise<void> 
  * Set cookies with validation
  */
 async function setCookies(page: Page, cookies: Cookie[]): Promise<void> {
-  const validCookies = cookies.filter(cookie => {
-    if ((cookie.name === null || cookie.name === undefined || cookie.name === '') || (cookie.value === null || cookie.value === undefined || cookie.value === '')) {
+  const validCookies = cookies.filter((cookie) => {
+    if (
+      cookie.name === null ||
+      cookie.name === undefined ||
+      cookie.name === '' ||
+      cookie.value === null ||
+      cookie.value === undefined ||
+      cookie.value === ''
+    ) {
       logger.warn({ cookie }, 'Invalid cookie - missing name or value');
       return false;
     }
@@ -102,4 +106,3 @@ async function setCookies(page: Page, cookies: Cookie[]): Promise<void> {
     await page.setCookie(...validCookies);
   }
 }
-

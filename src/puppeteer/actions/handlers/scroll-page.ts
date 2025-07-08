@@ -6,11 +6,12 @@
  */
 
 import type { Page } from 'puppeteer';
-import type { 
-  ScrollAction,
-  ActionContext 
-} from '../../interfaces/action-executor.interface.js';
-import { calculateScrollValues, calculateTargetPosition, validateScrollParams } from './scroll-helpers.js';
+import type { ScrollAction, ActionContext } from '../../interfaces/action-executor.interface.js';
+import {
+  calculateScrollValues,
+  calculateTargetPosition,
+  validateScrollParams,
+} from './scroll-helpers.js';
 import { createLogger } from '../../../utils/logger.js';
 
 const logger = createLogger('puppeteer:scroll-page');
@@ -25,8 +26,12 @@ const logger = createLogger('puppeteer:scroll-page');
 export async function handleScrollPage(
   action: ScrollAction,
   page: Page,
-  context: ActionContext
-): Promise<{ scrolledDistance: number; direction: string; pagePosition: { x: number; y: number } }> {
+  context: ActionContext,
+): Promise<{
+  scrolledDistance: number;
+  direction: string;
+  pagePosition: { x: number; y: number };
+}> {
   const direction = action.direction ?? 'down';
   const distance = action.distance ?? 100;
 
@@ -34,7 +39,7 @@ export async function handleScrollPage(
   validateScrollParams(distance);
 
   // Get current scroll position
-   
+
   const beforePosition = await page.evaluate(() => ({
     x: (globalThis as any).pageXOffset ?? 0,
     y: (globalThis as any).pageYOffset ?? 0,
@@ -44,20 +49,24 @@ export async function handleScrollPage(
   const { scrollX, scrollY } = calculateScrollValues(direction, distance);
 
   // Perform scroll
-  await page.evaluate((x: number, y: number) => {
-    (globalThis as any).scrollBy(x, y);
-  }, scrollX, scrollY);
+  await page.evaluate(
+    (x: number, y: number) => {
+      (globalThis as any).scrollBy(x, y);
+    },
+    scrollX,
+    scrollY,
+  );
 
   // Get new scroll position
-   
+
   const afterPosition = await page.evaluate(() => ({
     x: (globalThis as any).pageXOffset ?? 0,
     y: (globalThis as any).pageYOffset ?? 0,
   }));
 
   // Calculate actual scrolled distance
-  const actualDistance = Math.abs(afterPosition.x - beforePosition.x) + 
-                       Math.abs(afterPosition.y - beforePosition.y);
+  const actualDistance =
+    Math.abs(afterPosition.x - beforePosition.x) + Math.abs(afterPosition.y - beforePosition.y);
 
   logger.info('Page scrolled', {
     sessionId: context.sessionId,
@@ -88,7 +97,7 @@ export async function handleScrollToCoordinates(
   x: number,
   y: number,
   page: Page,
-  context: ActionContext
+  context: ActionContext,
 ): Promise<{ scrolledToPosition: { x: number; y: number }; scrollDistance: number }> {
   // Validate coordinates
   if (x < 0 || y < 0 || x > 100000 || y > 100000) {
@@ -102,9 +111,13 @@ export async function handleScrollToCoordinates(
   }));
 
   // Scroll to position
-  await page.evaluate((targetX: number, targetY: number) => {
-    (globalThis as any).scrollTo(targetX, targetY);
-  }, x, y);
+  await page.evaluate(
+    (targetX: number, targetY: number) => {
+      (globalThis as any).scrollTo(targetX, targetY);
+    },
+    x,
+    y,
+  );
 
   // Get new position
   const afterPosition = await page.evaluate(() => ({
@@ -113,8 +126,8 @@ export async function handleScrollToCoordinates(
   }));
 
   // Calculate distance scrolled
-  const scrollDistance = Math.abs(afterPosition.x - beforePosition.x) + 
-                        Math.abs(afterPosition.y - beforePosition.y);
+  const scrollDistance =
+    Math.abs(afterPosition.x - beforePosition.x) + Math.abs(afterPosition.y - beforePosition.y);
 
   logger.info('Scrolled to coordinates', {
     sessionId: context.sessionId,
@@ -142,7 +155,7 @@ export async function handleSmoothScroll(
   action: ScrollAction,
   page: Page,
   context: ActionContext,
-  duration: number = 500
+  duration: number = 500,
 ): Promise<{ scrolledDistance: number; duration: number }> {
   const direction = action.direction ?? 'down';
   const distance = action.distance ?? 100;
@@ -163,7 +176,7 @@ export async function handleSmoothScroll(
     startPosition.x,
     startPosition.y,
     direction,
-    distance
+    distance,
   );
 
   // Perform smooth scroll
@@ -179,11 +192,10 @@ export async function handleSmoothScroll(
         function scrollStep(currentTime: number): void {
           const elapsed = currentTime - startTime;
           const progress = Math.min(elapsed / dur, 1);
-          
+
           // Easing function for smooth animation
-          const easeProgress = progress < 0.5
-            ? 2 * progress * progress
-            : -1 + (4 - 2 * progress) * progress;
+          const easeProgress =
+            progress < 0.5 ? 2 * progress * progress : -1 + (4 - 2 * progress) * progress;
 
           const currentX = startX + distanceX * easeProgress;
           const currentY = startY + distanceY * easeProgress;
@@ -202,7 +214,7 @@ export async function handleSmoothScroll(
     },
     targetX,
     targetY,
-    duration
+    duration,
   );
 
   // Get final position
@@ -211,8 +223,8 @@ export async function handleSmoothScroll(
     y: (globalThis as any).pageYOffset ?? 0,
   }));
 
-  const actualDistance = Math.abs(endPosition.x - startPosition.x) + 
-                        Math.abs(endPosition.y - startPosition.y);
+  const actualDistance =
+    Math.abs(endPosition.x - startPosition.x) + Math.abs(endPosition.y - startPosition.y);
   const actualDuration = Date.now() - startTime;
 
   logger.info('Smooth scroll completed', {

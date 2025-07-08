@@ -103,7 +103,7 @@ export function closePage(
       sessionId: instance.sessionId,
       state: instance.state,
     });
-    
+
     // Note: The actual release should be handled by the browser pool
     // This function just updates the state. The pool's cleanup process
     // or the page manager should trigger the actual release.

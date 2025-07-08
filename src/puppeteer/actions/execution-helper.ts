@@ -5,11 +5,11 @@
  * @nist au-3 "Content of audit records"
  */
 
-import type { 
+import type {
   BrowserAction,
   ActionResult,
   ActionContext,
-  ValidationResult
+  ValidationResult,
 } from '../interfaces/action-executor.interface.js';
 import { logSecurityEvent, SecurityEventType } from '../../utils/logger.js';
 
@@ -21,10 +21,10 @@ export async function handleValidationFailure<T>(
   action: BrowserAction,
   context: ActionContext,
   validationResult: ValidationResult,
-  duration: number
+  duration: number,
 ): Promise<ActionResult<T>> {
-  const error = `Validation failed: ${validationResult.errors.map(e => e.message).join(', ')}`;
-  
+  const error = `Validation failed: ${validationResult.errors.map((e) => e.message).join(', ')}`;
+
   await logSecurityEvent(SecurityEventType.VALIDATION_FAILURE, {
     userId: context.userId,
     resource: `page:${action.pageId}`,
@@ -55,7 +55,7 @@ export async function handleExecutionError<T>(
   action: BrowserAction,
   context: ActionContext,
   error: unknown,
-  duration: number
+  duration: number,
 ): Promise<ActionResult<T>> {
   const errorMessage = error instanceof Error ? error.message : 'Unknown action execution error';
 
@@ -85,7 +85,7 @@ export async function handleExecutionError<T>(
  */
 export function createPageNotFoundResult<T>(
   action: BrowserAction,
-  duration: number
+  duration: number,
 ): ActionResult<T> {
   return {
     success: false,

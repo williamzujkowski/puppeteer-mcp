@@ -45,7 +45,9 @@ export async function executeTool(
     case 'execute-in-context':
       return tools.executeInContextTool.execute(args as ExecuteInContextArgs);
     case 'close-browser-context':
-      return tools.browserContextTool.closeBrowserContext(args as { contextId: string; sessionId: string });
+      return tools.browserContextTool.closeBrowserContext(
+        args as { contextId: string; sessionId: string },
+      );
     case 'list-browser-contexts':
       return tools.browserContextTool.listBrowserContexts(args as { sessionId: string });
     default:

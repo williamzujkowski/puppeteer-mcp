@@ -13,7 +13,7 @@ import { sanitizeSelector } from '../validation.js';
 export async function prepareElementForInteraction(
   page: Page,
   selector: string,
-  timeout?: number
+  timeout?: number,
 ): Promise<ElementHandle> {
   // Sanitize selector for security
   const sanitizedSelector = sanitizeSelector(selector);

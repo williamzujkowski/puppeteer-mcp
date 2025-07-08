@@ -9,10 +9,7 @@ import * as grpc from '@grpc/grpc-js';
 import { pino } from 'pino';
 import type { SessionStore } from '../../store/session-store.interface.js';
 import { AppError } from '../../core/errors/app-error.js';
-import type {
-  StreamSessionEventsRequest,
-  SessionEvent,
-} from '../types/session-stream.types.js';
+import type { StreamSessionEventsRequest, SessionEvent } from '../types/session-stream.types.js';
 
 /**
  * Session streaming operations
@@ -21,7 +18,7 @@ import type {
 export class SessionStream {
   constructor(
     private logger: pino.Logger,
-    _sessionStore: SessionStore
+    _sessionStore: SessionStore,
   ) {}
 
   /**
@@ -29,7 +26,7 @@ export class SessionStream {
    * @nist au-3 "Content of audit records"
    */
   streamSessionEvents(
-    call: grpc.ServerWritableStream<StreamSessionEventsRequest, SessionEvent>
+    call: grpc.ServerWritableStream<StreamSessionEventsRequest, SessionEvent>,
   ): void {
     try {
       const { user_id } = call.request;
@@ -41,7 +38,7 @@ export class SessionStream {
       const rolesValue = metadata.get('user-roles')?.[0];
       const rolesStr = typeof rolesValue === 'string' ? rolesValue : '';
       const roles = rolesStr !== '' ? rolesStr.split(',') : [];
-      
+
       if (roles.includes('admin') !== true && user_id !== userId) {
         call.emit('error', new AppError('Access denied', 403));
         return;
@@ -61,7 +58,7 @@ export class SessionStream {
       // call.on('error', () => {
       //   this.sessionStore.off('sessionEvent', eventHandler);
       // });
-      
+
       // For now, just end the stream after a delay
       setTimeout(() => {
         call.end();
@@ -71,5 +68,4 @@ export class SessionStream {
       call.emit('error', error);
     }
   }
-
 }

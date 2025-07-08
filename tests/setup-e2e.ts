@@ -8,7 +8,6 @@ const execAsync = promisify(exec);
 import type { ChildProcess } from 'child_process';
 
 declare global {
-   
   var e2eServerProcess: ChildProcess | undefined;
 }
 
@@ -81,6 +80,8 @@ export async function stopE2EServer(): Promise<void> {
     global.e2eServerProcess.kill();
     global.e2eServerProcess = undefined;
     // Wait for process to fully terminate
-    await new Promise<void>((resolve) => { setTimeout(resolve, 1000); });
+    await new Promise<void>((resolve) => {
+      setTimeout(resolve, 1000);
+    });
   }
 }

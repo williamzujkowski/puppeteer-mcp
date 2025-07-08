@@ -20,10 +20,10 @@ const logger = createLogger('page-cleanup-methods');
  */
 export async function cleanupIdlePagesWithLogging(
   idleTimeout: number,
-  pageStore: PageInfoStore
+  pageStore: PageInfoStore,
 ): Promise<number> {
   const cleanedCount = await performCleanup(idleTimeout, pageStore);
-  
+
   if (cleanedCount > 0) {
     logger.info({ cleanedCount, idleTimeout }, 'Cleaned up idle pages');
   }

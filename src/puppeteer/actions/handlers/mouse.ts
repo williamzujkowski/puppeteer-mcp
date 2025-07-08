@@ -6,10 +6,10 @@
  */
 
 import type { Page } from 'puppeteer';
-import type { 
+import type {
   MouseAction,
-  ActionResult, 
-  ActionContext 
+  ActionResult,
+  ActionContext,
 } from '../../interfaces/action-executor.interface.js';
 import { createLogger } from '../../../utils/logger.js';
 import { validateMouseCoordinates, executeMouseAction } from './mouse-helpers.js';
@@ -29,10 +29,10 @@ const logger = createLogger('puppeteer:mouse');
 export async function handleMouse(
   action: MouseAction,
   page: Page,
-  context: ActionContext
+  context: ActionContext,
 ): Promise<ActionResult> {
   const startTime = Date.now();
-  
+
   try {
     logger.info('Executing mouse action', {
       sessionId: context.sessionId,
@@ -74,7 +74,6 @@ export async function handleMouse(
       duration,
       timestamp: new Date(),
     };
-
   } catch (error) {
     const duration = Date.now() - startTime;
     const errorMessage = error instanceof Error ? error.message : 'Unknown mouse error';
@@ -137,10 +136,10 @@ function createMouseClickResult(
   success: boolean,
   params: MouseClickParams,
   duration: number,
-  error?: string
+  error?: string,
 ): ActionResult {
   const { x, y, options } = params;
-  
+
   if (success) {
     return {
       success: true,
@@ -155,7 +154,7 @@ function createMouseClickResult(
       timestamp: new Date(),
     };
   }
-  
+
   return {
     success: false,
     actionType: 'mouseClick',
@@ -182,10 +181,10 @@ function logMouseClick(
   message: string,
   params: MouseClickParams,
   context: ActionContext,
-  additional?: Record<string, unknown>
+  additional?: Record<string, unknown>,
 ): void {
   const { x, y, options } = params;
-  
+
   const logData = {
     sessionId: context.sessionId,
     contextId: context.contextId,
@@ -195,7 +194,7 @@ function logMouseClick(
     clickCount: options?.clickCount,
     ...additional,
   };
-  
+
   if (message.includes('failed')) {
     logger.error(message, logData);
   } else {
@@ -206,7 +205,7 @@ function logMouseClick(
 export async function handleMouseClick(params: MouseClickParams): Promise<ActionResult> {
   const { x, y, page, context, options } = params;
   const startTime = Date.now();
-  
+
   try {
     logMouseClick('Executing mouse click action', params, context);
 
@@ -224,14 +223,12 @@ export async function handleMouseClick(params: MouseClickParams): Promise<Action
     logMouseClick('Mouse click action completed', params, context, { duration });
 
     return createMouseClickResult(true, params, duration);
-
   } catch (error) {
     const duration = Date.now() - startTime;
     const errorMessage = error instanceof Error ? error.message : 'Unknown mouse click error';
-    
+
     logMouseClick('Mouse click action failed', params, context, { error: errorMessage, duration });
-    
+
     return createMouseClickResult(false, params, duration, errorMessage);
   }
 }
-

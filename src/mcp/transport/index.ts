@@ -20,7 +20,7 @@ export enum TransportType {
  */
 export function getTransportType(): TransportType {
   const envTransport = process.env.MCP_TRANSPORT?.toLowerCase();
-  
+
   switch (envTransport) {
     case 'http':
     case 'ws':

@@ -96,10 +96,7 @@ describe('Contexts API Integration Tests', () => {
     });
 
     it('should require authentication', async () => {
-      await request(app)
-        .post('/api/v1/contexts')
-        .send({ name: 'Test' })
-        .expect(401);
+      await request(app).post('/api/v1/contexts').send({ name: 'Test' }).expect(401);
     });
   });
 
@@ -201,7 +198,9 @@ describe('Contexts API Integration Tests', () => {
       const originalLastUsed = createResponse.body.data.lastUsedAt;
 
       // Wait a bit
-      await new Promise<void>((resolve) => { setTimeout(resolve, 100); });
+      await new Promise<void>((resolve) => {
+        setTimeout(resolve, 100);
+      });
 
       const response = await request(app)
         .get(`/api/v1/contexts/${contextId}`)

@@ -19,7 +19,7 @@ export class ApiCatalogResource {
   async getApiCatalog(): Promise<ResourceResponse> {
     // Get REST endpoints from adapter if available
     const restEndpoints: RestEndpoint[] = await this.getRestEndpoints();
-    
+
     const catalog: ApiCatalog = {
       rest: {
         baseUrl: '/api/v1',
@@ -62,7 +62,7 @@ export class ApiCatalogResource {
         ],
       },
     };
-    
+
     return {
       contents: [
         {
@@ -80,12 +80,16 @@ export class ApiCatalogResource {
   private async getRestEndpoints(): Promise<RestEndpoint[]> {
     if (this.restAdapter) {
       const endpointsResponse = await this.restAdapter.listEndpoints();
-      if (endpointsResponse.content[0]?.text !== null && endpointsResponse.content[0]?.text !== undefined && endpointsResponse.content[0]?.text !== '') {
+      if (
+        endpointsResponse.content[0]?.text !== null &&
+        endpointsResponse.content[0]?.text !== undefined &&
+        endpointsResponse.content[0]?.text !== ''
+      ) {
         const data = JSON.parse(endpointsResponse.content[0].text);
         return data.endpoints as RestEndpoint[];
       }
     }
-    
+
     // Return default endpoints if adapter not available
     return [
       {

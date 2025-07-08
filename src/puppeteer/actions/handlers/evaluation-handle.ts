@@ -32,11 +32,11 @@ interface EvaluateHandleParams {
  * @nist ac-4 "Information flow enforcement"
  */
 export async function handleEvaluateHandle(
-  params: EvaluateHandleParams
+  params: EvaluateHandleParams,
 ): Promise<ActionResult<JSHandle>> {
   const { functionString, page, context, args, timeout } = params;
   const startTime = Date.now();
-  
+
   try {
     logger.info('Executing evaluate handle action', {
       sessionId: context.sessionId,
@@ -52,7 +52,6 @@ export async function handleEvaluateHandle(
     const handle = await Promise.race([
       page.evaluateHandle(functionString, ...(args ?? [])),
       new Promise<JSHandle>((_, reject) => {
-         
         setTimeout(() => reject(new Error('Evaluation handle timeout')), timeout ?? 30000);
       }),
     ]);
@@ -76,7 +75,6 @@ export async function handleEvaluateHandle(
         argsCount: args?.length ?? 0,
       },
     };
-
   } catch (error) {
     const duration = Date.now() - startTime;
     const errorMessage = error instanceof Error ? error.message : 'Unknown evaluation handle error';
@@ -116,10 +114,10 @@ export async function handleInjectScript(
   scriptContent: string,
   page: Page,
   context: ActionContext,
-  type: 'url' | 'content' = 'content'
+  type: 'url' | 'content' = 'content',
 ): Promise<ActionResult> {
   const startTime = Date.now();
-  
+
   try {
     logger.info('Executing inject script action', {
       sessionId: context.sessionId,
@@ -131,7 +129,7 @@ export async function handleInjectScript(
     if (type === 'content') {
       // Validate script content for security
       validateJavaScriptCode(scriptContent);
-      
+
       // Inject script content
       await page.addScriptTag({ content: scriptContent });
     } else {
@@ -139,7 +137,7 @@ export async function handleInjectScript(
       if (!isValidScriptUrl(scriptContent)) {
         throw new Error('Invalid script URL');
       }
-      
+
       await page.addScriptTag({ url: scriptContent });
     }
 
@@ -162,7 +160,6 @@ export async function handleInjectScript(
       duration,
       timestamp: new Date(),
     };
-
   } catch (error) {
     const duration = Date.now() - startTime;
     const errorMessage = error instanceof Error ? error.message : 'Unknown script injection error';
@@ -197,10 +194,10 @@ export async function handleInjectCSS(
   cssContent: string,
   page: Page,
   context: ActionContext,
-  type: 'url' | 'content' = 'content'
+  type: 'url' | 'content' = 'content',
 ): Promise<ActionResult> {
   const startTime = Date.now();
-  
+
   try {
     logger.info('Executing inject CSS action', {
       sessionId: context.sessionId,
@@ -217,7 +214,7 @@ export async function handleInjectCSS(
       if (!isValidCssUrl(cssContent)) {
         throw new Error('Invalid CSS URL');
       }
-      
+
       await page.addStyleTag({ url: cssContent });
     }
 
@@ -240,7 +237,6 @@ export async function handleInjectCSS(
       duration,
       timestamp: new Date(),
     };
-
   } catch (error) {
     const duration = Date.now() - startTime;
     const errorMessage = error instanceof Error ? error.message : 'Unknown CSS injection error';

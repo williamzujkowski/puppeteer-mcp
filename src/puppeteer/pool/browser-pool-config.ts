@@ -26,7 +26,7 @@ export const DEFAULT_OPTIONS: Partial<BrowserPoolOptions> = {
  */
 export function configurePoolOptions(
   currentOptions: BrowserPoolOptions,
-  newOptions: Partial<BrowserPoolOptions>
+  newOptions: Partial<BrowserPoolOptions>,
 ): BrowserPoolOptions {
   return { ...currentOptions, ...newOptions };
 }

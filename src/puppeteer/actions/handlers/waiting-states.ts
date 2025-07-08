@@ -10,7 +10,7 @@ import type { ActionResult, ActionContext } from '../../interfaces/action-execut
 import type {
   WaitForElementStateResultParams,
   WaitForElementStateLogParams,
-  WaitForElementStateParams
+  WaitForElementStateParams,
 } from './waiting-states-types.js';
 import { sanitizeSelector } from '../validation.js';
 import { createLogger } from '../../../utils/logger.js';
@@ -29,10 +29,10 @@ export async function handleWaitForLoadState(
   loadState: 'load' | 'domcontentloaded' | 'networkidle0' | 'networkidle2',
   page: Page,
   context: ActionContext,
-  timeout?: number
+  timeout?: number,
 ): Promise<ActionResult> {
   const startTime = Date.now();
-  
+
   try {
     logger.info('Executing wait for load state action', {
       sessionId: context.sessionId,
@@ -65,10 +65,10 @@ export async function handleWaitForLoadState(
       duration,
       timestamp: new Date(),
     };
-
   } catch (error) {
     const duration = Date.now() - startTime;
-    const errorMessage = error instanceof Error ? error.message : 'Unknown wait for load state error';
+    const errorMessage =
+      error instanceof Error ? error.message : 'Unknown wait for load state error';
 
     logger.error('Wait for load state action failed', {
       sessionId: context.sessionId,
@@ -102,7 +102,7 @@ async function waitForElementByState(
   page: Page,
   sanitizedSelector: string,
   state: 'visible' | 'hidden' | 'attached' | 'detached',
-  timeout: number
+  timeout: number,
 ): Promise<void> {
   switch (state) {
     case 'visible':
@@ -129,7 +129,7 @@ async function waitForElementByState(
           timeout,
           polling: 'mutation',
         },
-        sanitizedSelector
+        sanitizedSelector,
       );
       break;
     default:
@@ -147,9 +147,7 @@ async function waitForElementByState(
  * @param error - Optional error message
  * @returns Action result
  */
-function createWaitForElementStateResult(
-  params: WaitForElementStateResultParams
-): ActionResult {
+function createWaitForElementStateResult(params: WaitForElementStateResultParams): ActionResult {
   const { success, selector, sanitizedSelector, state, duration, error } = params;
   if (success === true) {
     return {
@@ -166,7 +164,7 @@ function createWaitForElementStateResult(
       },
     };
   }
-  
+
   return {
     success: false,
     actionType: 'waitForElementState',
@@ -188,9 +186,7 @@ function createWaitForElementStateResult(
  * @param state - Element state
  * @param additional - Additional log data
  */
-function logWaitForElementState(
-  params: WaitForElementStateLogParams
-): void {
+function logWaitForElementState(params: WaitForElementStateLogParams): void {
   const { message, context, selector, state, additional } = params;
   const logData = {
     sessionId: context.sessionId,
@@ -199,7 +195,7 @@ function logWaitForElementState(
     state,
     ...additional,
   };
-  
+
   if (message.includes('failed')) {
     logger.error(message, logData);
   } else {
@@ -217,12 +213,12 @@ function logWaitForElementState(
  * @returns Action result
  */
 export async function handleWaitForElementState(
-  params: WaitForElementStateParams
+  params: WaitForElementStateParams,
 ): Promise<ActionResult> {
   const { selector, state, page, context, timeout } = params;
   const startTime = Date.now();
   const effectiveTimeout = timeout ?? 30000;
-  
+
   try {
     logWaitForElementState({
       message: 'Executing wait for element state action',
@@ -250,11 +246,11 @@ export async function handleWaitForElementState(
       state,
       duration,
     });
-
   } catch (error) {
     const duration = Date.now() - startTime;
-    const errorMessage = error instanceof Error ? error.message : 'Unknown wait for element state error';
-    
+    const errorMessage =
+      error instanceof Error ? error.message : 'Unknown wait for element state error';
+
     logWaitForElementState({
       message: 'Wait for element state action failed',
       context,
@@ -262,7 +258,7 @@ export async function handleWaitForElementState(
       state,
       additional: { error: errorMessage, duration },
     });
-    
+
     return createWaitForElementStateResult({
       success: false,
       selector,

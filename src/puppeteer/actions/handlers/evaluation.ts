@@ -7,10 +7,10 @@
  */
 
 import type { Page } from 'puppeteer';
-import type { 
+import type {
   EvaluateAction,
-  ActionResult, 
-  ActionContext 
+  ActionResult,
+  ActionContext,
 } from '../../interfaces/action-executor.interface.js';
 import { validateJavaScriptCode } from '../validation.js';
 import { createLogger } from '../../../utils/logger.js';
@@ -31,10 +31,10 @@ const logger = createLogger('puppeteer:evaluation');
 export async function handleEvaluate(
   action: EvaluateAction,
   page: Page,
-  context: ActionContext
+  context: ActionContext,
 ): Promise<ActionResult> {
   const startTime = Date.now();
-  
+
   try {
     logger.info('Executing evaluate action', {
       sessionId: context.sessionId,
@@ -51,7 +51,6 @@ export async function handleEvaluate(
     const result = await Promise.race([
       page.evaluate(action.function, ...(action.args ?? [])),
       new Promise((_, reject) => {
-         
         setTimeout(() => reject(new Error('Evaluation timeout')), action.timeout ?? 30000);
       }),
     ]);
@@ -81,7 +80,6 @@ export async function handleEvaluate(
         argsCount: action.args?.length ?? 0,
       },
     };
-
   } catch (error) {
     const duration = Date.now() - startTime;
     const errorMessage = error instanceof Error ? error.message : 'Unknown evaluation error';
@@ -107,4 +105,3 @@ export async function handleEvaluate(
     };
   }
 }
-

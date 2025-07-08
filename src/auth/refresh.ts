@@ -199,12 +199,7 @@ export const rotateRefreshToken = async (
     const newSessionId = await sessionStore.create(session.data);
 
     // Generate new token pair with new session ID
-    const newTokens = generateTokenPair(
-      payload.sub,
-      payload.username,
-      payload.roles,
-      newSessionId,
-    );
+    const newTokens = generateTokenPair(payload.sub, payload.username, payload.roles, newSessionId);
 
     // Log token rotation
     await logSecurityEvent(SecurityEventType.TOKEN_REFRESH, {

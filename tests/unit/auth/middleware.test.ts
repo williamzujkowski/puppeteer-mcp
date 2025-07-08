@@ -111,7 +111,9 @@ describe('Authentication Middleware', () => {
       authMiddleware(mockReq as AuthenticatedRequest, mockRes as Response, mockNext);
 
       // Wait for async operations to complete
-      await new Promise<void>(resolve => { setImmediate(resolve); });
+      await new Promise<void>((resolve) => {
+        setImmediate(resolve);
+      });
 
       expect(extractTokenFromHeader).toHaveBeenCalledWith(mockReq.headers?.authorization);
       expect(verifyToken).toHaveBeenCalledWith(mockToken, 'access');
@@ -133,11 +135,11 @@ describe('Authentication Middleware', () => {
 
       authMiddleware(mockReq as AuthenticatedRequest, mockRes as Response, mockNext);
 
-
       // Wait for async operations to complete
 
-      await new Promise<void>(resolve => { setImmediate(resolve); });
-
+      await new Promise<void>((resolve) => {
+        setImmediate(resolve);
+      });
 
       expect(mockNext).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -153,17 +155,15 @@ describe('Authentication Middleware', () => {
         mockReq.headers.authorization = `Bearer ${mockToken}`;
       }
       (extractTokenFromHeader as jest.Mock).mockReturnValue(mockToken);
-      (verifyToken as jest.Mock).mockRejectedValue(
-        new AppError('Invalid token', 401),
-      );
+      (verifyToken as jest.Mock).mockRejectedValue(new AppError('Invalid token', 401));
 
       authMiddleware(mockReq as AuthenticatedRequest, mockRes as Response, mockNext);
 
-
       // Wait for async operations to complete
 
-      await new Promise<void>(resolve => { setImmediate(resolve); });
-
+      await new Promise<void>((resolve) => {
+        setImmediate(resolve);
+      });
 
       expect(mockNext).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -192,11 +192,11 @@ describe('Authentication Middleware', () => {
 
       authMiddleware(mockReq as AuthenticatedRequest, mockRes as Response, mockNext);
 
-
       // Wait for async operations to complete
 
-      await new Promise<void>(resolve => { setImmediate(resolve); });
-
+      await new Promise<void>((resolve) => {
+        setImmediate(resolve);
+      });
 
       expect(mockNext).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -225,11 +225,11 @@ describe('Authentication Middleware', () => {
 
       apiKeyMiddleware(mockReq as AuthenticatedRequest, mockRes as Response, mockNext);
 
-
       // Wait for async operations to complete
 
-      await new Promise<void>(resolve => { setImmediate(resolve); });
-
+      await new Promise<void>((resolve) => {
+        setImmediate(resolve);
+      });
 
       expect(validateApiKey).toHaveBeenCalledWith(mockApiKey);
       expect(mockReq.user).toEqual({
@@ -247,11 +247,11 @@ describe('Authentication Middleware', () => {
 
       apiKeyMiddleware(mockReq as AuthenticatedRequest, mockRes as Response, mockNext);
 
-
       // Wait for async operations to complete
 
-      await new Promise<void>(resolve => { setImmediate(resolve); });
-
+      await new Promise<void>((resolve) => {
+        setImmediate(resolve);
+      });
 
       expect(mockNext).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -279,11 +279,11 @@ describe('Authentication Middleware', () => {
 
       apiKeyMiddleware(mockReq as AuthenticatedRequest, mockRes as Response, mockNext);
 
-
       // Wait for async operations to complete
 
-      await new Promise<void>(resolve => { setImmediate(resolve); });
-
+      await new Promise<void>((resolve) => {
+        setImmediate(resolve);
+      });
 
       expect(mockNext).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -306,11 +306,11 @@ describe('Authentication Middleware', () => {
       const middleware = requireRoles('admin');
       middleware(mockReq as AuthenticatedRequest, mockRes as Response, mockNext);
 
-
       // Wait for async operations to complete
 
-      await new Promise<void>(resolve => { setImmediate(resolve); });
-
+      await new Promise<void>((resolve) => {
+        setImmediate(resolve);
+      });
 
       expect(mockNext).toHaveBeenCalledWith();
     });
@@ -326,11 +326,11 @@ describe('Authentication Middleware', () => {
       const middleware = requireRoles('admin', 'moderator');
       middleware(mockReq as AuthenticatedRequest, mockRes as Response, mockNext);
 
-
       // Wait for async operations to complete
 
-      await new Promise<void>(resolve => { setImmediate(resolve); });
-
+      await new Promise<void>((resolve) => {
+        setImmediate(resolve);
+      });
 
       expect(mockNext).toHaveBeenCalledWith();
     });
@@ -346,11 +346,11 @@ describe('Authentication Middleware', () => {
       const middleware = requireRoles('admin');
       middleware(mockReq as AuthenticatedRequest, mockRes as Response, mockNext);
 
-
       // Wait for async operations to complete
 
-      await new Promise<void>(resolve => { setImmediate(resolve); });
-
+      await new Promise<void>((resolve) => {
+        setImmediate(resolve);
+      });
 
       expect(mockNext).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -364,11 +364,11 @@ describe('Authentication Middleware', () => {
       const middleware = requireRoles('admin');
       middleware(mockReq as AuthenticatedRequest, mockRes as Response, mockNext);
 
-
       // Wait for async operations to complete
 
-      await new Promise<void>(resolve => { setImmediate(resolve); });
-
+      await new Promise<void>((resolve) => {
+        setImmediate(resolve);
+      });
 
       expect(mockNext).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -391,11 +391,11 @@ describe('Authentication Middleware', () => {
       const middleware = requirePermissions('read', 'write');
       middleware(mockReq as AuthenticatedRequest, mockRes as Response, mockNext);
 
-
       // Wait for async operations to complete
 
-      await new Promise<void>(resolve => { setImmediate(resolve); });
-
+      await new Promise<void>((resolve) => {
+        setImmediate(resolve);
+      });
 
       expect(mockNext).toHaveBeenCalledWith();
     });
@@ -411,11 +411,11 @@ describe('Authentication Middleware', () => {
       const middleware = requirePermissions('read', 'write');
       middleware(mockReq as AuthenticatedRequest, mockRes as Response, mockNext);
 
-
       // Wait for async operations to complete
 
-      await new Promise<void>(resolve => { setImmediate(resolve); });
-
+      await new Promise<void>((resolve) => {
+        setImmediate(resolve);
+      });
 
       expect(mockNext).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -436,11 +436,11 @@ describe('Authentication Middleware', () => {
       const middleware = requirePermissions('read');
       middleware(mockReq as AuthenticatedRequest, mockRes as Response, mockNext);
 
-
       // Wait for async operations to complete
 
-      await new Promise<void>(resolve => { setImmediate(resolve); });
-
+      await new Promise<void>((resolve) => {
+        setImmediate(resolve);
+      });
 
       expect(mockNext).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -463,11 +463,11 @@ describe('Authentication Middleware', () => {
 
       authMiddleware(mockReq as AuthenticatedRequest, mockRes as Response, mockNext);
 
-
       // Wait for async operations to complete
 
-      await new Promise<void>(resolve => { setImmediate(resolve); });
-
+      await new Promise<void>((resolve) => {
+        setImmediate(resolve);
+      });
 
       expect(mockNext).toHaveBeenCalledWith();
       expect(mockReq.user).toBeUndefined();
@@ -503,11 +503,11 @@ describe('Authentication Middleware', () => {
 
       authMiddleware(mockReq as AuthenticatedRequest, mockRes as Response, mockNext);
 
-
       // Wait for async operations to complete
 
-      await new Promise<void>(resolve => { setImmediate(resolve); });
-
+      await new Promise<void>((resolve) => {
+        setImmediate(resolve);
+      });
 
       expect(mockReq.user).toBeDefined();
       expect(mockNext).toHaveBeenCalledWith();

@@ -14,7 +14,9 @@ const logger = createLogger('browser-utils');
 /**
  * Launch a new browser instance
  */
-export async function launchBrowser(options: BrowserPoolOptions): Promise<{ browser: Browser; instance: BrowserInstance }> {
+export async function launchBrowser(
+  options: BrowserPoolOptions,
+): Promise<{ browser: Browser; instance: BrowserInstance }> {
   const launchOptions: LaunchOptions = {
     ...options.launchOptions,
     handleSIGINT: false,
@@ -23,10 +25,10 @@ export async function launchBrowser(options: BrowserPoolOptions): Promise<{ brow
   };
 
   const browser = await puppeteer.launch(launchOptions);
-  
+
   // Verify browser is working
   const version = await browser.version();
-  
+
   const instance: BrowserInstance = {
     id: `browser-${Date.now()}-${Math.random().toString(36).substring(7)}`,
     browser,
@@ -35,23 +37,20 @@ export async function launchBrowser(options: BrowserPoolOptions): Promise<{ brow
     useCount: 0,
     pageCount: 0,
   };
-  
+
   logger.debug({ browserId: instance.id, version }, 'Browser launched successfully');
-  
+
   return { browser, instance };
 }
 
 /**
  * Check if browser has been idle too long
  */
-export function isIdleTooLong(
-  instance: InternalBrowserInstance,
-  maxIdleTimeMs: number
-): boolean {
+export function isIdleTooLong(instance: InternalBrowserInstance, maxIdleTimeMs: number): boolean {
   if (instance.state !== 'idle' || !instance.lastUsedAt) {
     return false;
   }
-  
+
   return Date.now() - instance.lastUsedAt.getTime() > maxIdleTimeMs;
 }
 
@@ -79,7 +78,7 @@ export async function closeBrowser(browser: Browser): Promise<void> {
  */
 export async function restartBrowser(
   _instance: InternalBrowserInstance,
-  options: BrowserPoolOptions
+  options: BrowserPoolOptions,
 ): Promise<Browser> {
   const { browser } = await launchBrowser(options);
   return browser;

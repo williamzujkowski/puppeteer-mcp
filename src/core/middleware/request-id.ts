@@ -26,19 +26,19 @@ export const requestIdMiddleware = (): RequestHandler => {
   return (req: Request, res: Response, next: NextFunction) => {
     // Check for existing request ID from headers
     const existingId = req.headers['x-request-id'] ?? req.headers['x-correlation-id'];
-    
+
     // Generate or use existing ID
     const requestId = typeof existingId === 'string' ? existingId : generateRequestId();
-    
+
     // Attach to request object
     req.id = requestId;
-    
+
     // Add to response headers for client correlation
     res.setHeader('X-Request-ID', requestId);
-    
+
     // Add to all log entries via the logger's request context
     // This is handled by the logger middleware
-    
+
     next();
   };
 };
@@ -49,10 +49,12 @@ export const requestIdMiddleware = (): RequestHandler => {
  * @returns Request ID or undefined
  */
 export const extractRequestId = (req: Request): string | undefined => {
-  return req.id ?? 
-         req.headers['x-request-id'] as string | undefined ?? 
-         req.headers['x-correlation-id'] as string | undefined ??
-         req.headers['x-trace-id'] as string | undefined;
+  return (
+    req.id ??
+    (req.headers['x-request-id'] as string | undefined) ??
+    (req.headers['x-correlation-id'] as string | undefined) ??
+    (req.headers['x-trace-id'] as string | undefined)
+  );
 };
 
 /**
@@ -61,10 +63,8 @@ export const extractRequestId = (req: Request): string | undefined => {
  * @returns Request ID or newly generated one
  */
 export const extractWebSocketRequestId = (headers: Record<string, string>): string => {
-  const requestId = headers['x-request-id'] ?? 
-         headers['x-correlation-id'] ??
-         headers['x-trace-id'];
-  
+  const requestId = headers['x-request-id'] ?? headers['x-correlation-id'] ?? headers['x-trace-id'];
+
   return requestId !== undefined && requestId !== '' ? requestId : generateRequestId();
 };
 
@@ -81,9 +81,10 @@ interface GrpcMetadata {
  * @returns Request ID or newly generated one
  */
 export const extractGrpcRequestId = (metadata: GrpcMetadata): string => {
-  const requestId = metadata.get('x-request-id')?.[0] ??
-                    metadata.get('x-correlation-id')?.[0] ??
-                    metadata.get('x-trace-id')?.[0];
-  
+  const requestId =
+    metadata.get('x-request-id')?.[0] ??
+    metadata.get('x-correlation-id')?.[0] ??
+    metadata.get('x-trace-id')?.[0];
+
   return requestId ?? generateRequestId();
 };

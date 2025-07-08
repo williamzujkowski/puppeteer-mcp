@@ -30,7 +30,7 @@ export function initializeBrowserPool(
   eventEmitter: EventEmitter,
   options: Partial<BrowserPoolOptions>,
   findIdleBrowser: () => InternalBrowserInstance | null,
-  performMaintenance: () => Promise<void>
+  performMaintenance: () => Promise<void>,
 ): {
   options: BrowserPoolOptions;
   browsers: Map<string, InternalBrowserInstance>;
@@ -60,11 +60,15 @@ export function initializeBrowserPool(
 export async function initializePoolWithBrowsers(
   eventEmitter: EventEmitter,
   maxBrowsers: number,
-  launchBrowser: () => Promise<{ browser: Browser; instance: InternalBrowserInstance }>
+  launchBrowser: () => Promise<{ browser: Browser; instance: InternalBrowserInstance }>,
 ): Promise<void> {
   // Note: First parameter type mismatch - initializePool expects BrowserPool but we have EventEmitter
   // Cast to unknown then to expected type to maintain compatibility
-  await initializePool(eventEmitter as unknown as Parameters<typeof initializePool>[0], maxBrowsers, launchBrowser);
+  await initializePool(
+    eventEmitter as unknown as Parameters<typeof initializePool>[0],
+    maxBrowsers,
+    launchBrowser,
+  );
 }
 
 /**
@@ -75,7 +79,7 @@ export async function shutdownBrowserPool(
   browsers: Map<string, InternalBrowserInstance>,
   healthMonitor: BrowserHealthMonitor,
   queue: BrowserQueue,
-  maintenance: BrowserPoolMaintenance
+  maintenance: BrowserPoolMaintenance,
 ): Promise<void> {
   maintenance.setShuttingDown(true);
   maintenance.stopMaintenance();
@@ -98,10 +102,10 @@ export interface CreateAndAcquireNewBrowserParams {
  * Create and acquire a new browser
  */
 export async function createAndAcquireNewBrowser(
-  params: CreateAndAcquireNewBrowserParams
+  params: CreateAndAcquireNewBrowserParams,
 ): Promise<BrowserInstance> {
   const { sessionId, options, browsers, healthMonitor, handleUnhealthyBrowser, emitEvent } = params;
-  
+
   const instance = await createAndAcquireBrowser({
     sessionId,
     options,
@@ -109,9 +113,9 @@ export async function createAndAcquireNewBrowser(
     healthMonitor,
     onHealthCheckFailed: (browserId: string) => {
       void handleUnhealthyBrowser(browserId);
-    }
+    },
   });
-  
+
   emitEvent('browser:acquired', { browserId: instance.id, sessionId });
   return instance;
 }
@@ -122,7 +126,7 @@ export async function createAndAcquireNewBrowser(
 export function queueBrowserAcquisition(
   sessionId: string,
   queue: BrowserQueue,
-  acquisitionTimeout: number
+  acquisitionTimeout: number,
 ): Promise<BrowserInstance> {
   return queueAcquisition(sessionId, queue, acquisitionTimeout);
 }
@@ -142,23 +146,17 @@ export interface LaunchBrowserParams {
  * Launch a new browser
  */
 export async function launchBrowser(
-  params: LaunchBrowserParams
+  params: LaunchBrowserParams,
 ): Promise<{ browser: Browser; instance: InternalBrowserInstance }> {
   const { options, browsers, healthMonitor, handleUnhealthyBrowser, emitEvent } = params;
-  
-  const result = await launchNewBrowser(
-    options,
-    browsers,
-    healthMonitor,
-    (browserId: string) => {
-      void handleUnhealthyBrowser(browserId);
-    }
-  );
-  
+
+  const result = await launchNewBrowser(options, browsers, healthMonitor, (browserId: string) => {
+    void handleUnhealthyBrowser(browserId);
+  });
+
   emitEvent('browser:created', { browserId: result.instance.id });
   return result;
 }
-
 
 /**
  * Create BrowserPool helper methods
@@ -166,19 +164,20 @@ export async function launchBrowser(
 export function createBrowserPoolHelpers(
   browsers: Map<string, InternalBrowserInstance>,
   options: BrowserPoolOptions,
-  emit: (event: string, data: unknown) => void
+  emit: (event: string, data: unknown) => void,
 ): {
   findIdleBrowser: () => InternalBrowserInstance | null;
-  activateBrowser: (instance: InternalBrowserInstance, sessionId: string) => InternalBrowserInstance;
+  activateBrowser: (
+    instance: InternalBrowserInstance,
+    sessionId: string,
+  ) => InternalBrowserInstance;
   canCreateNewBrowser: () => boolean;
 } {
   return {
     findIdleBrowser: () => findIdleBrowser(browsers),
     activateBrowser: (instance: InternalBrowserInstance, sessionId: string) => {
-      return activateBrowserForSession(
-        instance,
-        sessionId,
-        (browserId, sid) => emit('browser:acquired', { browserId, sessionId: sid })
+      return activateBrowserForSession(instance, sessionId, (browserId, sid) =>
+        emit('browser:acquired', { browserId, sessionId: sid }),
       );
     },
     canCreateNewBrowser: () => browsers.size < options.maxBrowsers,

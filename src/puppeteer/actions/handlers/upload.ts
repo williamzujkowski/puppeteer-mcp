@@ -6,10 +6,10 @@
  */
 
 import type { Page } from 'puppeteer';
-import type { 
+import type {
   UploadAction,
-  ActionResult, 
-  ActionContext 
+  ActionResult,
+  ActionContext,
 } from '../../interfaces/action-executor.interface.js';
 import { sanitizeSelector } from '../validation.js';
 import { validateFilePaths } from './upload-validation.js';
@@ -29,10 +29,10 @@ const logger = createLogger('puppeteer:upload');
 export async function handleUpload(
   action: UploadAction,
   page: Page,
-  context: ActionContext
+  context: ActionContext,
 ): Promise<ActionResult> {
   const startTime = Date.now();
-  
+
   try {
     logger.info('Executing upload action', {
       sessionId: context.sessionId,
@@ -68,7 +68,7 @@ export async function handleUpload(
       throw new Error(`File input element not found: ${sanitizedSelector}`);
     }
 
-    await fileInputElement.uploadFile(...validatedFiles.map(f => f.path));
+    await fileInputElement.uploadFile(...validatedFiles.map((f) => f.path));
 
     const duration = Date.now() - startTime;
 
@@ -86,7 +86,7 @@ export async function handleUpload(
       actionType: 'upload',
       data: {
         selector: sanitizedSelector,
-        uploadedFiles: validatedFiles.map(f => ({
+        uploadedFiles: validatedFiles.map((f) => ({
           name: f.name,
           size: f.size,
           type: f.type,
@@ -100,7 +100,6 @@ export async function handleUpload(
         originalFilePaths: action.filePaths,
       },
     };
-
   } catch (error) {
     const duration = Date.now() - startTime;
     const errorMessage = error instanceof Error ? error.message : 'Unknown upload error';

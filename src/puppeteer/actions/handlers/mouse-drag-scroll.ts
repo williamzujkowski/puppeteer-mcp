@@ -44,7 +44,7 @@ interface MouseScrollParams {
 export async function handleMouseDrag(params: MouseDragParams): Promise<ActionResult> {
   const { fromX, fromY, toX, toY, page, context, steps = 10 } = params;
   const startTime = Date.now();
-  
+
   try {
     logger.info('Executing mouse drag action', {
       sessionId: context.sessionId,
@@ -58,7 +58,7 @@ export async function handleMouseDrag(params: MouseDragParams): Promise<ActionRe
 
     // Validate coordinates
     const coords = [fromX, fromY, toX, toY];
-    if (coords.some(coord => coord < 0 || coord > 10000)) {
+    if (coords.some((coord) => coord < 0 || coord > 10000)) {
       throw new Error('Invalid coordinates');
     }
 
@@ -69,7 +69,7 @@ export async function handleMouseDrag(params: MouseDragParams): Promise<ActionRe
 
     // Move to start position
     await page.mouse.move(fromX, fromY);
-    
+
     // Start drag
     await page.mouse.down();
 
@@ -78,13 +78,13 @@ export async function handleMouseDrag(params: MouseDragParams): Promise<ActionRe
     const deltaY = (toY - fromY) / steps;
 
     for (let i = 1; i <= steps; i++) {
-      const currentX = fromX + (deltaX * i);
-      const currentY = fromY + (deltaY * i);
+      const currentX = fromX + deltaX * i;
+      const currentY = fromY + deltaY * i;
       await page.mouse.move(currentX, currentY);
-      
+
       // Small delay for smooth movement
       // eslint-disable-next-line no-promise-executor-return
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, 10));
     }
 
     // End drag
@@ -116,7 +116,6 @@ export async function handleMouseDrag(params: MouseDragParams): Promise<ActionRe
       duration,
       timestamp: new Date(),
     };
-
   } catch (error) {
     const duration = Date.now() - startTime;
     const errorMessage = error instanceof Error ? error.message : 'Unknown mouse drag error';
@@ -157,7 +156,7 @@ export async function handleMouseDrag(params: MouseDragParams): Promise<ActionRe
 export async function handleMouseScroll(params: MouseScrollParams): Promise<ActionResult> {
   const { x, y, deltaX, deltaY, page, context } = params;
   const startTime = Date.now();
-  
+
   try {
     logger.info('Executing mouse scroll action', {
       sessionId: context.sessionId,
@@ -206,7 +205,6 @@ export async function handleMouseScroll(params: MouseScrollParams): Promise<Acti
       duration,
       timestamp: new Date(),
     };
-
   } catch (error) {
     const duration = Date.now() - startTime;
     const errorMessage = error instanceof Error ? error.message : 'Unknown mouse scroll error';

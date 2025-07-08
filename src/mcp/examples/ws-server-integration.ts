@@ -45,24 +45,29 @@ export function createIntegratedWebSocketServer(port: number = 8080): {
   // Initialize WebSocket infrastructure
   const connectionManager = new WSConnectionManager(logger);
   const subscriptionManager = new WSSubscriptionManager(logger, connectionManager);
-  
+
   // Create WebSocket server
   const wss = new WebSocketServer({ server: httpServer });
 
   // Create session store
   const sessionStore = new InMemorySessionStore(logger);
-  
+
   // Set up authentication handlers
   const authHandler = new WSAuthHandler(logger, sessionStore);
   const apiKeyAuthHandler = new WSApiKeyAuthHandler(logger, sessionStore);
-  
-  // Create message handler  
+
+  // Create message handler
   const messageHandler = new WSMessageHandler(logger, sessionStore, connectionManager, authHandler);
-  
+
   // Set up other handlers
   const contextHandler = new WSContextHandler();
-  const requestProcessor = new WSRequestProcessor(logger, sessionStore, connectionManager, authHandler);
-  
+  const requestProcessor = new WSRequestProcessor(
+    logger,
+    sessionStore,
+    connectionManager,
+    authHandler,
+  );
+
   // Note: In a real integration, you would wire these handlers to the WebSocket server
   // This example focuses on showing the adapter integration
   void authHandler;
@@ -79,8 +84,8 @@ export function createIntegratedWebSocketServer(port: number = 8080): {
 
   // Handle WebSocket connections
   wss.on('connection', (ws, req) => {
-    const connectionId = req.headers['x-connection-id'] as string || `conn-${Date.now()}`;
-    
+    const connectionId = (req.headers['x-connection-id'] as string) || `conn-${Date.now()}`;
+
     // Add connection to manager
     connectionManager.addConnection(connectionId, ws, {
       id: connectionId,
@@ -99,7 +104,9 @@ export function createIntegratedWebSocketServer(port: number = 8080): {
       } else if (data instanceof ArrayBuffer) {
         message = Buffer.from(data).toString('utf8');
       } else if (Array.isArray(data)) {
-        message = Buffer.concat(data.map(d => Buffer.isBuffer(d) ? d : Buffer.from(d))).toString('utf8');
+        message = Buffer.concat(
+          data.map((d) => (Buffer.isBuffer(d) ? d : Buffer.from(d))),
+        ).toString('utf8');
       } else {
         message = String(data);
       }
@@ -113,11 +120,13 @@ export function createIntegratedWebSocketServer(port: number = 8080): {
     });
 
     // Send connection acknowledgment
-    ws.send(JSON.stringify({
-      type: 'connect',
-      id: connectionId,
-      timestamp: new Date().toISOString(),
-    }));
+    ws.send(
+      JSON.stringify({
+        type: 'connect',
+        id: connectionId,
+        timestamp: new Date().toISOString(),
+      }),
+    );
   });
 
   // Start HTTP server
@@ -134,12 +143,14 @@ export function createIntegratedWebSocketServer(port: number = 8080): {
 function extendAdapterForServer(
   adapter: WebSocketAdapter,
   wss: WebSocketServer, // Used in production, example simplified for clarity
-  connectionManager: WSConnectionManager
+  connectionManager: WSConnectionManager,
 ): void {
   void wss; // Would be used in production for connection management
-  
+
   // Override the createWebSocketConnection method to use existing connections
-  (adapter as unknown as Record<string, unknown>).createWebSocketConnection = function(connectionId?: string): Promise<WebSocket> {
+  (adapter as unknown as Record<string, unknown>).createWebSocketConnection = function (
+    connectionId?: string,
+  ): Promise<WebSocket> {
     return new Promise((resolve, reject) => {
       if (connectionId !== null && connectionId !== undefined && connectionId !== '') {
         // Try to get existing connection
@@ -155,18 +166,20 @@ function extendAdapterForServer(
       // 1. Return an existing idle connection from a pool
       // 2. Create a new internal connection
       // 3. Throw an error indicating that external connections are required
-      
-      reject(new Error(
-        'WebSocket connections must be established externally. ' +
-        'Use the WebSocket server directly or provide a valid connectionId.'
-      ));
+
+      reject(
+        new Error(
+          'WebSocket connections must be established externally. ' +
+            'Use the WebSocket server directly or provide a valid connectionId.',
+        ),
+      );
     });
   };
 
   // Add method to execute MCP requests for existing connections
-  (adapter as unknown as Record<string, unknown>).executeForConnection = async function(
+  (adapter as unknown as Record<string, unknown>).executeForConnection = async function (
     connectionId: string,
-    operation: unknown
+    operation: unknown,
   ): Promise<MCPResponse> {
     const connectionState = connectionManager.getConnectionState(connectionId);
     if (!connectionState) {
@@ -174,15 +187,19 @@ function extendAdapterForServer(
     }
 
     // Use 'this' with proper typing context
-    const response = await (this as { executeRequest: (params: unknown) => Promise<unknown> }).executeRequest({
+    const response = (await (
+      this as { executeRequest: (params: unknown) => Promise<unknown> }
+    ).executeRequest({
       operation,
       sessionId: connectionId,
-      auth: connectionState.authenticated ? {
-        type: 'session' as const,
-        credentials: connectionState.sessionId ?? '',
-      } : undefined,
-    }) as MCPResponse;
-    
+      auth: connectionState.authenticated
+        ? {
+            type: 'session' as const,
+            credentials: connectionState.sessionId ?? '',
+          }
+        : undefined,
+    })) as MCPResponse;
+
     return response;
   };
 }
@@ -197,17 +214,20 @@ function runExample(): void {
   connectionManager.getAllConnections().forEach(({ connectionId, state }) => {
     if (state.authenticated) {
       // Execute MCP operations for authenticated connections
-      void adapter.executeRequest({
-        operation: {
-          type: 'subscribe',
-          topic: 'system.status',
-        },
-        sessionId: connectionId,
-      }).then(response => {
-        logger.info('Subscription created for connection', { connectionId, response });
-      }).catch(error => {
-        logger.error('Failed to create subscription', { connectionId, error });
-      });
+      void adapter
+        .executeRequest({
+          operation: {
+            type: 'subscribe',
+            topic: 'system.status',
+          },
+          sessionId: connectionId,
+        })
+        .then((response) => {
+          logger.info('Subscription created for connection', { connectionId, response });
+        })
+        .catch((error) => {
+          logger.error('Failed to create subscription', { connectionId, error });
+        });
     }
   });
 

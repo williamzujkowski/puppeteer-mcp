@@ -52,7 +52,12 @@ const handleUnexpectedError = (err: Error, res: Response): void => {
  * @returns Express error handler middleware
  */
 export const errorHandler = (logger: Logger): ErrorRequestHandler => {
-  return (err: Error | AppError | ZodError, req: Request, res: Response, _next: NextFunction): void => {
+  return (
+    err: Error | AppError | ZodError,
+    req: Request,
+    res: Response,
+    _next: NextFunction,
+  ): void => {
     // Log error with context
     logger.error(
       {

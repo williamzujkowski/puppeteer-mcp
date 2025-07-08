@@ -13,7 +13,7 @@ import type { PageInfoStore } from './page-info-store.js';
  * List pages for session
  * @nist ac-3 "Access enforcement"
  */
- 
+
 export async function listPagesForSession(
   sessionId: string,
   pageStore: PageInfoStore,

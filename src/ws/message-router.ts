@@ -39,12 +39,17 @@ export class WSMessageRouter {
     logger: pino.Logger,
     sessionStore: SessionStore,
     connectionManager: WSConnectionManager,
-    authHandler: WSAuthHandler
+    authHandler: WSAuthHandler,
   ) {
     this.logger = logger.child({ module: 'ws-message-router' });
     this.connectionManager = connectionManager;
     this.authHandler = authHandler;
-    this.requestProcessor = new WSRequestProcessor(logger, sessionStore, connectionManager, authHandler);
+    this.requestProcessor = new WSRequestProcessor(
+      logger,
+      sessionStore,
+      connectionManager,
+      authHandler,
+    );
     this.subscriptionManager = new WSSubscriptionManager(logger, connectionManager);
   }
 
@@ -54,15 +59,11 @@ export class WSMessageRouter {
    * @nist au-3 "Content of audit records"
    * @evidence code, test
    */
-  async handleMessage(
-    ws: WebSocket,
-    connectionId: string,
-    rawMessage: unknown
-  ): Promise<void> {
+  async handleMessage(ws: WebSocket, connectionId: string, rawMessage: unknown): Promise<void> {
     try {
       // Validate message schema
       const message = wsMessageSchema.parse(rawMessage);
-      
+
       this.logger.debug('Handling WebSocket message', {
         connectionId,
         type: message.type,
@@ -89,7 +90,15 @@ export class WSMessageRouter {
           break;
 
         default:
-          sendError({ ws, requestId: message.id, code: 'UNKNOWN_MESSAGE_TYPE', message: `Unknown message type: ${message.type}` }, this.logger);
+          sendError(
+            {
+              ws,
+              requestId: message.id,
+              code: 'UNKNOWN_MESSAGE_TYPE',
+              message: `Unknown message type: ${message.type}`,
+            },
+            this.logger,
+          );
       }
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -97,11 +106,28 @@ export class WSMessageRouter {
           connectionId,
           errors: error.errors,
         });
-        
-        sendError({ ws, requestId: undefined, code: 'INVALID_MESSAGE', message: 'Invalid message format', details: error.errors }, this.logger);
+
+        sendError(
+          {
+            ws,
+            requestId: undefined,
+            code: 'INVALID_MESSAGE',
+            message: 'Invalid message format',
+            details: error.errors,
+          },
+          this.logger,
+        );
       } else {
         this.logger.error('Error handling message:', error);
-        sendError({ ws, requestId: undefined, code: 'INTERNAL_ERROR', message: 'Failed to process message' }, this.logger);
+        sendError(
+          {
+            ws,
+            requestId: undefined,
+            code: 'INTERNAL_ERROR',
+            message: 'Failed to process message',
+          },
+          this.logger,
+        );
       }
     }
   }
@@ -113,14 +139,26 @@ export class WSMessageRouter {
   private async handleAuthMessage(
     ws: WebSocket,
     connectionId: string,
-    message: WSMessage
+    message: WSMessage,
   ): Promise<void> {
-    const authResult = await this.authHandler.handleAuth(ws, connectionId, message as WSAuthMessage);
-    
-    if (authResult.success && authResult.userId !== undefined && authResult.userId !== null && authResult.userId.length > 0 && authResult.sessionId !== undefined && authResult.sessionId !== null && authResult.sessionId.length > 0) {
+    const authResult = await this.authHandler.handleAuth(
+      ws,
+      connectionId,
+      message as WSAuthMessage,
+    );
+
+    if (
+      authResult.success &&
+      authResult.userId !== undefined &&
+      authResult.userId !== null &&
+      authResult.userId.length > 0 &&
+      authResult.sessionId !== undefined &&
+      authResult.sessionId !== null &&
+      authResult.sessionId.length > 0
+    ) {
       // Get connection state to retrieve auth data
       // const connectionState = this.connectionManager.getConnectionState(connectionId);
-      
+
       // Update connection state with full auth data
       this.connectionManager.authenticateConnection({
         connectionId,
@@ -128,7 +166,7 @@ export class WSMessageRouter {
         sessionId: authResult.sessionId,
         roles: authResult.roles,
         permissions: authResult.permissions,
-        scopes: authResult.scopes
+        scopes: authResult.scopes,
       });
     }
   }

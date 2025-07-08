@@ -32,12 +32,9 @@ export enum GrpcStatus {
 /**
  * gRPC metadata schema
  */
-export const grpcMetadataSchema = z.record(z.union([
-  z.string(),
-  z.array(z.string()),
-  z.instanceof(Buffer),
-  z.array(z.instanceof(Buffer)),
-]));
+export const grpcMetadataSchema = z.record(
+  z.union([z.string(), z.array(z.string()), z.instanceof(Buffer), z.array(z.instanceof(Buffer))]),
+);
 
 /**
  * gRPC error details schema
@@ -45,10 +42,14 @@ export const grpcMetadataSchema = z.record(z.union([
 export const grpcErrorDetailsSchema = z.object({
   code: z.nativeEnum(GrpcStatus),
   message: z.string(),
-  details: z.array(z.object({
-    type: z.string(),
-    value: z.unknown(),
-  })).optional(),
+  details: z
+    .array(
+      z.object({
+        type: z.string(),
+        value: z.unknown(),
+      }),
+    )
+    .optional(),
 });
 
 /**
@@ -56,7 +57,7 @@ export const grpcErrorDetailsSchema = z.object({
  */
 export const grpcRequestMetadataSchema = z.object({
   'x-request-id': z.string().optional(),
-  'authorization': z.string().optional(),
+  authorization: z.string().optional(),
   'x-api-key': z.string().optional(),
   'x-user-agent': z.string().optional(),
   'x-forwarded-for': z.string().optional(),

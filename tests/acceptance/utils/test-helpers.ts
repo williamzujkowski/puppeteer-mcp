@@ -12,20 +12,20 @@ import axios, { AxiosResponse } from 'axios';
 export async function retryOperation<T>(
   operation: () => Promise<T>,
   maxRetries: number = TEST_CONFIG.retries,
-  baseDelay: number = 1000
+  baseDelay: number = 1000,
 ): Promise<T> {
   let lastError: Error;
-  
+
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
       return await operation();
     } catch (error) {
       lastError = error as Error;
-      
+
       if (attempt === maxRetries) {
         throw lastError;
       }
-      
+
       // Exponential backoff with jitter
       const delay = baseDelay * Math.pow(2, attempt) + Math.random() * 1000;
       await new Promise<void>((resolve) => {
@@ -33,9 +33,11 @@ export async function retryOperation<T>(
       });
     }
   }
-  
+
   if (!lastError) {
-    throw Object.assign(new Error('Retry operation failed without error'), { code: 'RETRY_FAILED' });
+    throw Object.assign(new Error('Retry operation failed without error'), {
+      code: 'RETRY_FAILED',
+    });
   }
   throw lastError;
 }
@@ -46,10 +48,10 @@ export async function retryOperation<T>(
 export async function waitForCondition(
   condition: () => Promise<boolean> | boolean,
   timeout: number = TEST_CONFIG.timeout,
-  interval: number = 500
+  interval: number = 500,
 ): Promise<void> {
   const startTime = Date.now();
-  
+
   while (Date.now() - startTime < timeout) {
     if (await condition()) {
       return;
@@ -58,7 +60,7 @@ export async function waitForCondition(
       setTimeout(resolve, interval);
     });
   }
-  
+
   throw new Error(`Condition not met within ${timeout}ms`);
 }
 
@@ -72,7 +74,7 @@ export async function makeRequest(
     headers?: Record<string, string>;
     data?: unknown;
     timeout?: number;
-  } = {}
+  } = {},
 ): Promise<AxiosResponse> {
   return retryOperation(async () => {
     return axios({
@@ -108,22 +110,24 @@ export async function validateUrl(url: string): Promise<boolean> {
 export const TestData = {
   randomString: (length: number = 10): string => {
     const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    return Array.from({ length }, () => chars.charAt(Math.floor(Math.random() * chars.length))).join('');
+    return Array.from({ length }, () =>
+      chars.charAt(Math.floor(Math.random() * chars.length)),
+    ).join('');
   },
-  
+
   randomEmail: (): string => {
     return `test-${TestData.randomString(8)}@example.com`;
   },
-  
+
   randomPhone: (): string => {
     return `555-${Math.floor(Math.random() * 900) + 100}-${Math.floor(Math.random() * 9000) + 1000}`;
   },
-  
+
   futureDate: (daysFromNow: number = 30): string => {
     const date = new Date();
     date.setDate(date.getDate() + daysFromNow);
     return date.toISOString().split('T')[0]; // YYYY-MM-DD format
-  }
+  },
 };
 
 /**
@@ -132,36 +136,36 @@ export const TestData = {
 export class PerformanceTracker {
   private startTime: number;
   private checkpoints: Map<string, number> = new Map();
-  
+
   constructor() {
     this.startTime = Date.now();
   }
-  
+
   checkpoint(name: string): void {
     this.checkpoints.set(name, Date.now() - this.startTime);
   }
-  
+
   getElapsed(): number {
     return Date.now() - this.startTime;
   }
-  
+
   getCheckpoint(name: string): number | undefined {
     return this.checkpoints.get(name);
   }
-  
+
   getAllCheckpoints(): Record<string, number> {
     return Object.fromEntries(this.checkpoints);
   }
-  
+
   getReport(): string {
     const total = this.getElapsed();
     const checkpoints = this.getAllCheckpoints();
-    
+
     let report = `Total time: ${total}ms\n`;
     for (const [name, time] of Object.entries(checkpoints)) {
       report += `${name}: ${time}ms\n`;
     }
-    
+
     return report;
   }
 }
@@ -174,11 +178,11 @@ export const ScreenshotHelpers = {
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     return `${prefix}-${timestamp}.png`;
   },
-  
+
   getFailureScreenshotPath: (testName: string): string => {
     const sanitized = testName.replace(/[^a-zA-Z0-9-_]/g, '-');
     return `failure-${sanitized}-${Date.now()}.png`;
-  }
+  },
 };
 
 /**
@@ -187,16 +191,20 @@ export const ScreenshotHelpers = {
 export const AssertionHelpers = {
   containsText: (content: string, expectedText: string): void => {
     if (!content.includes(expectedText)) {
-      throw new Error(`Expected content to contain "${expectedText}", but it didn't. Content: ${content.substring(0, 200)}...`);
+      throw new Error(
+        `Expected content to contain "${expectedText}", but it didn't. Content: ${content.substring(0, 200)}...`,
+      );
     }
   },
-  
+
   matchesPattern: (content: string, pattern: RegExp): void => {
     if (!pattern.test(content)) {
-      throw new Error(`Expected content to match pattern ${pattern}, but it didn't. Content: ${content.substring(0, 200)}...`);
+      throw new Error(
+        `Expected content to match pattern ${pattern}, but it didn't. Content: ${content.substring(0, 200)}...`,
+      );
     }
   },
-  
+
   isValidUrl: (url: string): void => {
     try {
       new URL(url);
@@ -204,19 +212,19 @@ export const AssertionHelpers = {
       throw new Error(`Invalid URL: ${url}`);
     }
   },
-  
+
   isValidEmail: (email: string): void => {
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailPattern.test(email)) {
       throw new Error(`Invalid email format: ${email}`);
     }
   },
-  
+
   responseCodeInRange: (code: number, min: number = 200, max: number = 299): void => {
     if (code < min || code > max) {
       throw new Error(`Expected response code to be between ${min} and ${max}, but got ${code}`);
     }
-  }
+  },
 };
 
 /**
@@ -226,13 +234,13 @@ export const EnvironmentHelpers = {
   isCI: (): boolean => {
     return Boolean(process.env.CI);
   },
-  
+
   getTestTimeout: (base: number = TEST_CONFIG.timeout): number => {
     // Increase timeout in CI environments
     return EnvironmentHelpers.isCI() ? base * 2 : base;
   },
-  
+
   shouldSkipFlaky: (): boolean => {
     return EnvironmentHelpers.isCI() && process.env.SKIP_FLAKY_TESTS === 'true';
-  }
+  },
 };

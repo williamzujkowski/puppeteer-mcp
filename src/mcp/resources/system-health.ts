@@ -30,7 +30,7 @@ export class SystemHealthResource {
       },
       timestamp: new Date().toISOString(),
     };
-    
+
     return {
       contents: [
         {

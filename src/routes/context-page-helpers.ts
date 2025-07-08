@@ -25,7 +25,7 @@ export function validatePageRequest(req: Request): void {
  */
 export function buildPageOptions(
   requestBody: Record<string, unknown>,
-  contextConfig: Record<string, unknown>
+  contextConfig: Record<string, unknown>,
 ): {
   viewport?: { width: number; height: number };
   userAgent?: string;
@@ -35,12 +35,20 @@ export function buildPageOptions(
   ignoreHTTPSErrors?: boolean;
 } {
   return {
-    viewport: (requestBody.viewport ?? contextConfig.viewport) as { width: number; height: number } | undefined,
+    viewport: (requestBody.viewport ?? contextConfig.viewport) as
+      | { width: number; height: number }
+      | undefined,
     userAgent: (requestBody.userAgent ?? contextConfig.userAgent) as string | undefined,
-    extraHeaders: (requestBody.extraHeaders ?? contextConfig.extraHTTPHeaders) as Record<string, string> | undefined,
-    javaScriptEnabled: (requestBody.javaScriptEnabled ?? contextConfig.javaScriptEnabled) as boolean | undefined,
+    extraHeaders: (requestBody.extraHeaders ?? contextConfig.extraHTTPHeaders) as
+      | Record<string, string>
+      | undefined,
+    javaScriptEnabled: (requestBody.javaScriptEnabled ?? contextConfig.javaScriptEnabled) as
+      | boolean
+      | undefined,
     bypassCSP: (requestBody.bypassCSP ?? contextConfig.bypassCSP) as boolean | undefined,
-    ignoreHTTPSErrors: (requestBody.ignoreHTTPSErrors ?? contextConfig.ignoreHTTPSErrors) as boolean | undefined,
+    ignoreHTTPSErrors: (requestBody.ignoreHTTPSErrors ?? contextConfig.ignoreHTTPSErrors) as
+      | boolean
+      | undefined,
   };
 }
 

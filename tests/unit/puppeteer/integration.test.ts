@@ -4,8 +4,6 @@
  * @nist si-4 "Information system monitoring"
  */
 
- 
-
 import { jest } from '@jest/globals';
 
 // Set environment to test

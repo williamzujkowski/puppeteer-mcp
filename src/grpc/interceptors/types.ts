@@ -43,7 +43,7 @@ export type NextFunction = (call: ExtendedCall, callback: GrpcCallback) => void;
 export type InterceptorFunction = (
   call: ExtendedCall,
   callback: GrpcCallback,
-  next: NextFunction
+  next: NextFunction,
 ) => void | Promise<void>;
 
 /**
@@ -58,7 +58,7 @@ export interface GrpcError extends Error {
 /**
  * Extended ServerUnaryCall with session context
  */
-export interface AuthenticatedServerUnaryCall<RequestType, ResponseType> 
+export interface AuthenticatedServerUnaryCall<RequestType, ResponseType>
   extends grpc.ServerUnaryCall<RequestType, ResponseType> {
   session?: Session;
   userId?: string;

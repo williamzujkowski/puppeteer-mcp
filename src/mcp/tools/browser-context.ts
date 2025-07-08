@@ -27,16 +27,16 @@ export class BrowserContextTool {
       if (!args.sessionId || args.sessionId === '') {
         return this.errorResponse('Session ID is required', 'INVALID_SESSION');
       }
-      
+
       // Authenticate using session
       const authContext = await this.authBridge.authenticate({
         type: 'session',
         credentials: args.sessionId,
       });
-      
+
       // Check permissions
       await this.authBridge.requireToolPermission(authContext, 'createContext');
-      
+
       // Create context
       const context = await contextStore.create({
         sessionId: args.sessionId,
@@ -50,14 +50,14 @@ export class BrowserContextTool {
         status: 'active',
         userId: authContext.userId,
       });
-      
+
       logger.info({
         msg: 'MCP browser context created',
         contextId: context.id,
         userId: authContext.userId,
         sessionId: args.sessionId,
       });
-      
+
       return this.successResponse({
         contextId: context.id,
         name: context.name,
@@ -71,10 +71,10 @@ export class BrowserContextTool {
         error: error instanceof Error ? error.message : 'Unknown error',
         sessionId: args.sessionId,
       });
-      
+
       return this.errorResponse(
         error instanceof Error ? error.message : 'Failed to create context',
-        'CONTEXT_CREATION_FAILED'
+        'CONTEXT_CREATION_FAILED',
       );
     }
   }
@@ -84,10 +84,12 @@ export class BrowserContextTool {
    */
   private errorResponse(error: string, code: string): ToolResponse {
     return {
-      content: [{
-        type: 'text',
-        text: JSON.stringify({ error, code }),
-      }],
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify({ error, code }),
+        },
+      ],
     };
   }
 
@@ -96,10 +98,12 @@ export class BrowserContextTool {
    */
   private successResponse(data: unknown): ToolResponse {
     return {
-      content: [{
-        type: 'text',
-        text: JSON.stringify(data),
-      }],
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(data),
+        },
+      ],
     };
   }
 
@@ -115,13 +119,13 @@ export class BrowserContextTool {
       if (!args.sessionId) {
         return this.errorResponse('Session ID is required', 'INVALID_SESSION');
       }
-      
+
       // Authenticate using session
       const authContext = await this.authBridge.authenticate({
         type: 'session',
         credentials: args.sessionId,
       });
-      
+
       // Get context to verify it exists and belongs to session
       const context = await contextStore.get(args.contextId);
       if (!context) {
@@ -130,10 +134,10 @@ export class BrowserContextTool {
       if (context.sessionId !== args.sessionId) {
         return this.errorResponse('Context does not belong to this session', 'ACCESS_DENIED');
       }
-      
+
       // Get page manager instance
       const pageManager = getPageManager(browserPool);
-      
+
       // Close all pages for this context
       await pageManager.closePagesForContext(args.contextId);
       logger.info({
@@ -141,10 +145,10 @@ export class BrowserContextTool {
         contextId: args.contextId,
         sessionId: args.sessionId,
       });
-      
+
       // Delete the context
       const deleted = await contextStore.delete(args.contextId);
-      
+
       logger.info({
         msg: 'MCP browser context closed',
         contextId: args.contextId,
@@ -152,7 +156,7 @@ export class BrowserContextTool {
         sessionId: args.sessionId,
         deleted,
       });
-      
+
       return this.successResponse({
         success: deleted,
         contextId: args.contextId,
@@ -165,10 +169,10 @@ export class BrowserContextTool {
         contextId: args.contextId,
         sessionId: args.sessionId,
       });
-      
+
       return this.errorResponse(
         error instanceof Error ? error.message : 'Failed to close context',
-        'CONTEXT_CLOSE_FAILED'
+        'CONTEXT_CLOSE_FAILED',
       );
     }
   }
@@ -182,25 +186,25 @@ export class BrowserContextTool {
       if (!args.sessionId) {
         return this.errorResponse('Session ID is required', 'INVALID_SESSION');
       }
-      
+
       // Authenticate using session
       const authContext = await this.authBridge.authenticate({
         type: 'session',
         credentials: args.sessionId,
       });
-      
+
       // Get contexts for this session
       const contexts = await contextStore.list({ sessionId: args.sessionId });
-      
+
       logger.info({
         msg: 'Listed browser contexts',
         userId: authContext.userId,
         sessionId: args.sessionId,
         count: contexts.length,
       });
-      
+
       return this.successResponse({
-        contexts: contexts.map(ctx => ({
+        contexts: contexts.map((ctx) => ({
           id: ctx.id,
           name: ctx.name,
           type: ctx.type,
@@ -216,10 +220,10 @@ export class BrowserContextTool {
         error: error instanceof Error ? error.message : 'Unknown error',
         sessionId: args.sessionId,
       });
-      
+
       return this.errorResponse(
         error instanceof Error ? error.message : 'Failed to list contexts',
-        'CONTEXT_LIST_FAILED'
+        'CONTEXT_LIST_FAILED',
       );
     }
   }

@@ -4,7 +4,13 @@
  */
 
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
-import { generateToken, generateTokenPair, verifyToken, extractTokenFromHeader, isTokenExpiringSoon } from '../../../src/auth/jwt.js';
+import {
+  generateToken,
+  generateTokenPair,
+  verifyToken,
+  extractTokenFromHeader,
+  isTokenExpiringSoon,
+} from '../../../src/auth/jwt.js';
 import { AppError } from '../../../src/core/errors/app-error.js';
 import jwt from 'jsonwebtoken';
 
@@ -61,7 +67,7 @@ describe('JWT Utilities', () => {
 
       expect(decoded.exp).toBeDefined();
       expect(decoded.iat).toBeDefined();
-      
+
       // Check expiration is approximately 2 hours from issued time
       const expiryTime = decoded.exp - decoded.iat;
       expect(expiryTime).toBe(7200); // 2 hours in seconds
@@ -185,7 +191,7 @@ describe('JWT Utilities', () => {
     it('should return true for token expiring within threshold', () => {
       // Token expiring in 4 minutes
       const token = generateToken(testPayload, '240s');
-      
+
       // Check with 5 minute threshold
       expect(isTokenExpiringSoon(token, 300)).toBe(true);
     });
@@ -193,7 +199,7 @@ describe('JWT Utilities', () => {
     it('should return false for token not expiring soon', () => {
       // Token expiring in 1 hour
       const token = generateToken(testPayload, '1h');
-      
+
       // Check with 5 minute threshold
       expect(isTokenExpiringSoon(token, 300)).toBe(false);
     });
@@ -205,7 +211,7 @@ describe('JWT Utilities', () => {
     it('should use default threshold of 5 minutes', () => {
       // Token expiring in 4 minutes
       const token = generateToken(testPayload, '240s');
-      
+
       expect(isTokenExpiringSoon(token)).toBe(true);
     });
   });

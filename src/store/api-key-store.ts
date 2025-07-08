@@ -48,7 +48,7 @@ export interface ApiKeyStore {
     expiresAt?: number;
     metadata?: Record<string, unknown>;
   }): Promise<ApiKeyCreationResult>;
-  
+
   verify(plainTextKey: string): Promise<ApiKey | null>;
   get(id: string): Promise<ApiKey | null>;
   list(userId: string): Promise<ApiKey[]>;
@@ -167,7 +167,12 @@ export class InMemoryApiKeyStore implements ApiKeyStore {
     }
 
     // Check expiration
-    if (apiKey.expiresAt !== null && apiKey.expiresAt !== undefined && apiKey.expiresAt > 0 && apiKey.expiresAt < Date.now()) {
+    if (
+      apiKey.expiresAt !== null &&
+      apiKey.expiresAt !== undefined &&
+      apiKey.expiresAt > 0 &&
+      apiKey.expiresAt < Date.now()
+    ) {
       await logSecurityEvent(SecurityEventType.INVALID_TOKEN, {
         userId: apiKey.userId,
         reason: 'API key expired',
@@ -200,8 +205,7 @@ export class InMemoryApiKeyStore implements ApiKeyStore {
    */
   list(userId: string): Promise<ApiKey[]> {
     return Promise.resolve(
-      Array.from(this.apiKeys.values())
-        .filter(key => key.userId === userId)
+      Array.from(this.apiKeys.values()).filter((key) => key.userId === userId),
     );
   }
 

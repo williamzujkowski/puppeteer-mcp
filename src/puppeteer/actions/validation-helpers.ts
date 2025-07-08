@@ -17,7 +17,7 @@ export interface ValidationError {
 export function validateEvaluateAction(
   action: BrowserAction,
   errors: ValidationError[],
-  validateJavaScriptCode: (code: string) => void
+  validateJavaScriptCode: (code: string) => void,
 ): void {
   if (action.type === 'evaluate' && action.function) {
     try {
@@ -35,11 +35,9 @@ export function validateEvaluateAction(
 /**
  * Check for suspicious timeout values
  */
-export function checkTimeoutWarnings(
-  action: BrowserAction,
-  warnings: ValidationError[]
-): void {
-  if (action.timeout !== undefined && action.timeout > 300000) { // 5 minutes
+export function checkTimeoutWarnings(action: BrowserAction, warnings: ValidationError[]): void {
+  if (action.timeout !== undefined && action.timeout > 300000) {
+    // 5 minutes
     warnings.push({
       field: 'timeout',
       message: 'Timeout value is very high, consider reducing it',

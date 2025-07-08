@@ -17,9 +17,33 @@ const logger = createLogger('puppeteer:upload-validation');
  * @nist si-10 "Information input validation"
  */
 export const ALLOWED_EXTENSIONS = [
-  '.txt', '.csv', '.json', '.xml', '.pdf', '.doc', '.docx', '.xls', '.xlsx',
-  '.ppt', '.pptx', '.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.svg',
-  '.mp3', '.mp4', '.avi', '.mov', '.wav', '.zip', '.tar', '.gz', '.rar'
+  '.txt',
+  '.csv',
+  '.json',
+  '.xml',
+  '.pdf',
+  '.doc',
+  '.docx',
+  '.xls',
+  '.xlsx',
+  '.ppt',
+  '.pptx',
+  '.jpg',
+  '.jpeg',
+  '.png',
+  '.gif',
+  '.bmp',
+  '.webp',
+  '.svg',
+  '.mp3',
+  '.mp4',
+  '.avi',
+  '.mov',
+  '.wav',
+  '.zip',
+  '.tar',
+  '.gz',
+  '.rar',
 ];
 
 /**
@@ -89,7 +113,7 @@ export function getMimeType(extension: string): string {
  */
 export async function validateFilePaths(
   filePaths: string[],
-  context: ActionContext
+  context: ActionContext,
 ): Promise<ValidatedFile[]> {
   const validatedFiles: ValidatedFile[] = [];
 
@@ -103,7 +127,7 @@ export async function validateFilePaths(
     let stats;
     try {
       // Security: File path is validated above
-       
+
       stats = await fs.stat(filePath);
     } catch {
       throw new Error(`File not found or not accessible: ${filePath}`);
@@ -148,7 +172,8 @@ export async function validateFilePaths(
 
   // Check total size
   const totalSize = validatedFiles.reduce((sum, f) => sum + f.size, 0);
-  if (totalSize > MAX_FILE_SIZE * 5) { // Max 50MB total
+  if (totalSize > MAX_FILE_SIZE * 5) {
+    // Max 50MB total
     throw new Error('Total file size too large');
   }
 

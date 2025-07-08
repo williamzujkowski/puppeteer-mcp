@@ -17,18 +17,15 @@ const logger = createLogger('page-manager-lifecycle');
 export async function performCleanup(
   pages: Map<string, Page>,
   pageStore: PageInfoStore,
-  isShuttingDown: boolean
+  isShuttingDown: boolean,
 ): Promise<number> {
   if (isShuttingDown) {
     return 0;
   }
 
   try {
-    const cleanedCount = await performPeriodicCleanup(
-      pages, 
-      pageStore
-    );
-    
+    const cleanedCount = await performPeriodicCleanup(pages, pageStore);
+
     if (cleanedCount > 0) {
       logger.info({ cleanedCount }, 'Cleaned up idle pages');
     }
@@ -45,14 +42,12 @@ export async function performCleanup(
  * @param performCleanup - Cleanup function to run periodically
  * @returns Cleanup interval timer
  */
-export function initializeCleanupInterval(
-  performCleanup: () => Promise<void>
-): NodeJS.Timeout {
+export function initializeCleanupInterval(performCleanup: () => Promise<void>): NodeJS.Timeout {
   return setInterval(
     () => {
       void performCleanup();
     },
-    5 * 60 * 1000 // 5 minutes
+    5 * 60 * 1000, // 5 minutes
   );
 }
 
@@ -63,7 +58,7 @@ export function initializeCleanupInterval(
 export async function shutdownPageManager(
   pages: Map<string, Page>,
   pageStore: PageInfoStore,
-  cleanupInterval?: NodeJS.Timeout
+  cleanupInterval?: NodeJS.Timeout,
 ): Promise<void> {
   logger.info('Shutting down page manager');
 
@@ -75,11 +70,11 @@ export async function shutdownPageManager(
   // Close all pages
   const allPages = Array.from(pages.keys());
   await Promise.allSettled(
-    allPages.map(pageId => 
-      closePage(pageId, pages, pageStore).catch(error => {
+    allPages.map((pageId) =>
+      closePage(pageId, pages, pageStore).catch((error) => {
         logger.error({ pageId, error }, 'Error closing page during shutdown');
-      })
-    )
+      }),
+    ),
   );
 
   await pageStore.clear();

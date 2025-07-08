@@ -48,18 +48,21 @@ export class BrowserQueue extends EventEmitter {
     }, request.timeout);
 
     // Insert based on priority (higher priority first)
-    const insertIndex = this.queue.findIndex(r => r.priority < request.priority);
+    const insertIndex = this.queue.findIndex((r) => r.priority < request.priority);
     if (insertIndex === -1) {
       this.queue.push(queueRequest);
     } else {
       this.queue.splice(insertIndex, 0, queueRequest);
     }
 
-    logger.debug({
-      sessionId: request.sessionId,
-      priority: request.priority,
-      queueLength: this.queue.length,
-    }, 'Request queued for browser acquisition');
+    logger.debug(
+      {
+        sessionId: request.sessionId,
+        priority: request.priority,
+        queueLength: this.queue.length,
+      },
+      'Request queued for browser acquisition',
+    );
 
     this.emit('request:queued', { sessionId: request.sessionId });
   }
@@ -88,19 +91,21 @@ export class BrowserQueue extends EventEmitter {
       // Resolve the request
       request.resolve(instance);
 
-      logger.debug({
-        sessionId: request.sessionId,
-        browserId: instance.id,
-        waitTime: Date.now() - request.timestamp.getTime(),
-      }, 'Browser acquisition request fulfilled');
+      logger.debug(
+        {
+          sessionId: request.sessionId,
+          browserId: instance.id,
+          waitTime: Date.now() - request.timestamp.getTime(),
+        },
+        'Browser acquisition request fulfilled',
+      );
 
-      this.emit('request:fulfilled', { 
+      this.emit('request:fulfilled', {
         sessionId: request.sessionId,
         browserId: instance.id,
       });
 
       return true;
-
     } finally {
       this.processing = false;
     }
@@ -123,18 +128,21 @@ export class BrowserQueue extends EventEmitter {
    * Cancel all requests for a session
    */
   cancelSession(sessionId: string): number {
-    const requests = this.queue.filter(r => r.sessionId === sessionId);
-    
+    const requests = this.queue.filter((r) => r.sessionId === sessionId);
+
     for (const request of requests) {
       this.removeRequest(request);
       request.reject(new Error('Session cancelled'));
     }
 
     if (requests.length > 0) {
-      logger.info({
-        sessionId,
-        cancelledCount: requests.length,
-      }, 'Cancelled browser acquisition requests for session');
+      logger.info(
+        {
+          sessionId,
+          cancelledCount: requests.length,
+        },
+        'Cancelled browser acquisition requests for session',
+      );
     }
 
     return requests.length;
@@ -149,9 +157,8 @@ export class BrowserQueue extends EventEmitter {
     priorityCounts: Record<number, number>;
   } {
     const now = Date.now();
-    const oldestWaitTime = this.queue.length > 0 && this.queue[0]
-      ? now - this.queue[0].timestamp.getTime()
-      : null;
+    const oldestWaitTime =
+      this.queue.length > 0 && this.queue[0] ? now - this.queue[0].timestamp.getTime() : null;
 
     const priorityCounts: Record<number, number> = {};
     for (const request of this.queue) {

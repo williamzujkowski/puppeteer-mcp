@@ -20,22 +20,19 @@ const sessionStore = new InMemorySessionStore(logger.child({ module: 'session-st
 /**
  * Handle JWT authentication
  */
-async function handleJwtAuth(
-  req: AuthenticatedRequest,
-  credentials: string
-): Promise<void> {
+async function handleJwtAuth(req: AuthenticatedRequest, credentials: string): Promise<void> {
   // Add JWT to Authorization header
   req.headers.authorization = `Bearer ${credentials}`;
-  
+
   // Verify JWT
   const payload = await verifyToken(credentials, 'access');
-  
+
   // Verify session
   const session = await sessionStore.get(payload.sessionId);
   if (!session) {
     throw new AppError('Invalid session', 401);
   }
-  
+
   req.user = {
     userId: payload.sub,
     username: payload.username,
@@ -47,19 +44,16 @@ async function handleJwtAuth(
 /**
  * Handle API key authentication
  */
-async function handleApiKeyAuth(
-  req: AuthenticatedRequest,
-  credentials: string
-): Promise<void> {
+async function handleApiKeyAuth(req: AuthenticatedRequest, credentials: string): Promise<void> {
   // Add API key to header
   req.headers['x-api-key'] = credentials;
-  
+
   // Verify API key
   const keyData = await apiKeyStore.verify(credentials);
   if (!keyData) {
     throw new AppError('Invalid API key', 401);
   }
-  
+
   req.user = {
     userId: keyData.userId,
     username: `apikey:${keyData.name}`,
@@ -74,14 +68,14 @@ async function handleApiKeyAuth(
 async function handleSessionAuth(
   req: AuthenticatedRequest,
   credentials: string,
-  sessionId?: string
+  sessionId?: string,
 ): Promise<void> {
   // Use session ID directly
   const session = await sessionStore.get(sessionId ?? credentials);
   if (!session) {
     throw new AppError('Invalid session', 401);
   }
-  
+
   req.user = {
     userId: session.data.userId,
     username: (session.data.metadata?.username as string) ?? 'unknown',
@@ -98,21 +92,21 @@ async function handleSessionAuth(
 export async function applyAuthentication(
   req: AuthenticatedRequest,
   auth: AuthParams,
-  sessionId?: string
+  sessionId?: string,
 ): Promise<void> {
   switch (auth.type) {
     case 'jwt':
       await handleJwtAuth(req, auth.credentials);
       break;
-    
+
     case 'apikey':
       await handleApiKeyAuth(req, auth.credentials);
       break;
-    
+
     case 'session':
       await handleSessionAuth(req, auth.credentials, sessionId);
       break;
-    
+
     default:
       throw new AppError('Unsupported authentication type', 400);
   }
@@ -122,13 +116,13 @@ export async function applyAuthentication(
  * Create authenticated request user from session
  */
 export async function createUserFromSession(
-  sessionId: string
+  sessionId: string,
 ): Promise<AuthenticatedRequest['user']> {
   const session = await sessionStore.get(sessionId);
   if (!session) {
     throw new AppError('Invalid session', 401);
   }
-  
+
   return {
     userId: session.data.userId,
     username: (session.data.metadata?.username as string) ?? 'unknown',

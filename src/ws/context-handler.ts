@@ -49,19 +49,25 @@ export class WSContextHandler {
     connectionState: WSConnectionState,
     _method: string,
     action: string,
-    data: unknown
+    data: unknown,
   ): Promise<unknown> {
     if (connectionState.userId === null || connectionState.userId === '') {
       throw new AppError('Authentication required', 401);
     }
 
     switch (action) {
-      case 'create': return this.createContext(connectionState, data);
-      case 'get': return this.getContext(connectionState, data);
-      case 'update': return this.updateContext(connectionState, data);
-      case 'delete': return this.deleteContext(connectionState, data);
-      case 'list': return this.listContexts(connectionState, data);
-      default: throw new AppError(`Unknown context action: ${action}`, 400);
+      case 'create':
+        return this.createContext(connectionState, data);
+      case 'get':
+        return this.getContext(connectionState, data);
+      case 'update':
+        return this.updateContext(connectionState, data);
+      case 'delete':
+        return this.deleteContext(connectionState, data);
+      case 'list':
+        return this.listContexts(connectionState, data);
+      default:
+        throw new AppError(`Unknown context action: ${action}`, 400);
     }
   }
 
@@ -71,7 +77,7 @@ export class WSContextHandler {
       roles: state.roles ?? [],
       permission: perm,
       resource: 'context',
-      scopes: state.scopes
+      scopes: state.scopes,
     });
   }
 
@@ -99,7 +105,9 @@ export class WSContextHandler {
 
   private async getAndValidate(id: string, state: WSConnectionState): Promise<Context> {
     const context = await contextStore.get(id);
-    if (!context) {throw new AppError('Context not found', 404);}
+    if (!context) {
+      throw new AppError('Context not found', 404);
+    }
     this.checkAccess(context, state);
     return context;
   }
@@ -109,14 +117,13 @@ export class WSContextHandler {
    * @nist ac-3 "Access enforcement"
    * @nist au-3 "Content of audit records"
    */
-  private async createContext(
-    state: WSConnectionState,
-    data: unknown
-  ): Promise<unknown> {
+  private async createContext(state: WSConnectionState, data: unknown): Promise<unknown> {
     await this.checkPermission(state, Permission.CONTEXT_CREATE);
 
     const input = data as CreateContextData;
-    if (!input.type) {throw new AppError('Context type is required', 400);}
+    if (!input.type) {
+      throw new AppError('Context type is required', 400);
+    }
 
     const validTypes = ['browser', 'api', 'database', 'custom'];
     if (!validTypes.includes(input.type)) {
@@ -144,14 +151,13 @@ export class WSContextHandler {
    * Get context details
    * @nist ac-3 "Access enforcement"
    */
-  private async getContext(
-    state: WSConnectionState,
-    data: unknown
-  ): Promise<unknown> {
+  private async getContext(state: WSConnectionState, data: unknown): Promise<unknown> {
     await this.checkPermission(state, Permission.CONTEXT_READ);
 
     const input = data as ContextIdData;
-    if (!input.contextId) {throw new AppError('Context ID is required', 400);}
+    if (!input.contextId) {
+      throw new AppError('Context ID is required', 400);
+    }
 
     const context = await this.getAndValidate(input.contextId, state);
     return { context: this.formatContext(context) };
@@ -162,14 +168,13 @@ export class WSContextHandler {
    * @nist ac-3 "Access enforcement"
    * @nist au-3 "Content of audit records"
    */
-  private async updateContext(
-    state: WSConnectionState,
-    data: unknown
-  ): Promise<unknown> {
+  private async updateContext(state: WSConnectionState, data: unknown): Promise<unknown> {
     await this.checkPermission(state, Permission.CONTEXT_UPDATE);
 
     const input = data as UpdateContextData;
-    if (!input.contextId) {throw new AppError('Context ID is required', 400);}
+    if (!input.contextId) {
+      throw new AppError('Context ID is required', 400);
+    }
 
     const context = await this.getAndValidate(input.contextId, state);
     const updated = await contextStore.update(input.contextId, {
@@ -185,14 +190,13 @@ export class WSContextHandler {
    * @nist ac-3 "Access enforcement"
    * @nist au-3 "Content of audit records"
    */
-  private async deleteContext(
-    state: WSConnectionState,
-    data: unknown
-  ): Promise<unknown> {
+  private async deleteContext(state: WSConnectionState, data: unknown): Promise<unknown> {
     await this.checkPermission(state, Permission.CONTEXT_DELETE);
 
     const input = data as ContextIdData;
-    if (!input.contextId) {throw new AppError('Context ID is required', 400);}
+    if (!input.contextId) {
+      throw new AppError('Context ID is required', 400);
+    }
 
     await this.getAndValidate(input.contextId, state);
     await contextStore.delete(input.contextId);
@@ -203,10 +207,7 @@ export class WSContextHandler {
    * List contexts for a session
    * @nist ac-3 "Access enforcement"
    */
-  private async listContexts(
-    state: WSConnectionState,
-    data: unknown
-  ): Promise<unknown> {
+  private async listContexts(state: WSConnectionState, data: unknown): Promise<unknown> {
     await this.checkPermission(state, Permission.CONTEXT_LIST);
 
     if (state.sessionId === null || state.sessionId === '') {
@@ -228,7 +229,7 @@ export class WSContextHandler {
    */
   private paginateContexts(
     contexts: Context[],
-    pagination?: { pageSize?: number; pageToken?: string }
+    pagination?: { pageSize?: number; pageToken?: string },
   ): {
     contexts: Record<string, unknown>[];
     nextPageToken?: string;
@@ -236,14 +237,15 @@ export class WSContextHandler {
   } {
     const pageSize = Math.min(pagination?.pageSize ?? 20, 100);
     const token = pagination?.pageToken;
-    const startIdx = (token !== null && token !== undefined && token !== '') ? parseInt(token, 10) || 0 : 0;
-    
+    const startIdx =
+      token !== null && token !== undefined && token !== '' ? parseInt(token, 10) || 0 : 0;
+
     const page = contexts.slice(startIdx, startIdx + pageSize);
-    const nextToken = startIdx + pageSize < contexts.length 
-      ? String(startIdx + pageSize) : undefined;
+    const nextToken =
+      startIdx + pageSize < contexts.length ? String(startIdx + pageSize) : undefined;
 
     return {
-      contexts: page.map(ctx => this.formatContext(ctx)),
+      contexts: page.map((ctx) => this.formatContext(ctx)),
       nextPageToken: nextToken,
       totalCount: contexts.length,
     };

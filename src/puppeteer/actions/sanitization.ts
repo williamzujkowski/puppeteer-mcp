@@ -58,10 +58,10 @@ export function validateJavaScriptCode(code: string): void {
 
   // Check for dangerous keywords
   const lowerCode = code.toLowerCase();
-  const foundDangerous = DANGEROUS_KEYWORDS.filter(keyword => 
-    lowerCode.includes(keyword.toLowerCase())
+  const foundDangerous = DANGEROUS_KEYWORDS.filter((keyword) =>
+    lowerCode.includes(keyword.toLowerCase()),
   );
-  
+
   if (foundDangerous.length > 0) {
     throw new Error(`Dangerous keywords found: ${foundDangerous.join(', ')}`);
   }
@@ -82,14 +82,9 @@ export function validateJavaScriptCode(code: string): void {
   }
 
   // Check for script injection patterns
-  const scriptPatterns = [
-    /<script[^>]*>/i,
-    /javascript:/i,
-    /data:text\/html/i,
-    /vbscript:/i,
-  ];
+  const scriptPatterns = [/<script[^>]*>/i, /javascript:/i, /data:text\/html/i, /vbscript:/i];
 
-  if (scriptPatterns.some(pattern => pattern.test(code))) {
+  if (scriptPatterns.some((pattern) => pattern.test(code))) {
     throw new Error('Script injection patterns detected');
   }
 }
@@ -103,16 +98,16 @@ export function validateJavaScriptCode(code: string): void {
 export function sanitizeUrl(url: string): string {
   try {
     const parsed = new URL(url);
-    
+
     // Only allow HTTP and HTTPS
     if (!['http:', 'https:'].includes(parsed.protocol)) {
       throw new Error('Only HTTP and HTTPS URLs are allowed');
     }
-    
+
     // Remove credentials from URL
     parsed.username = '';
     parsed.password = '';
-    
+
     return parsed.toString();
   } catch (error) {
     throw new Error(`Invalid URL: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -132,12 +127,12 @@ export function sanitizeFilePath(filePath: string): string {
     .replace(/[<>:|?*]/g, '')
     .replace(/^\//g, '')
     .replace(/^~\//g, '');
-  
+
   // Ensure path doesn't start with system directories
   const dangerousPaths = ['/etc', '/usr', '/bin', '/sbin', '/var', '/tmp'];
-  if (dangerousPaths.some(path => sanitized.startsWith(path))) {
+  if (dangerousPaths.some((path) => sanitized.startsWith(path))) {
     throw new Error('Access to system directories is not allowed');
   }
-  
+
   return sanitized;
 }

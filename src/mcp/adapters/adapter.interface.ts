@@ -47,13 +47,13 @@ export interface ProtocolAdapter {
     sessionId?: string;
     [key: string]: unknown;
   }): Promise<MCPResponse>;
-  
+
   /**
    * List available endpoints/methods for this protocol
    * @returns MCP formatted response with endpoint information
    */
   listEndpoints?(): Promise<MCPResponse>;
-  
+
   /**
    * Get protocol-specific configuration or capabilities
    * @returns Protocol configuration details

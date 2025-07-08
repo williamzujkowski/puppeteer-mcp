@@ -25,7 +25,7 @@ export class WSMessageHandler {
     logger: pino.Logger,
     sessionStore: SessionStore,
     connectionManager: WSConnectionManager,
-    authHandler: WSAuthHandler
+    authHandler: WSAuthHandler,
   ) {
     this.messageRouter = new WSMessageRouter(logger, sessionStore, connectionManager, authHandler);
   }
@@ -36,11 +36,7 @@ export class WSMessageHandler {
    * @nist au-3 "Content of audit records"
    * @evidence code, test
    */
-  handleMessage(
-    ws: WebSocket,
-    connectionId: string,
-    rawMessage: unknown
-  ): void {
+  handleMessage(ws: WebSocket, connectionId: string, rawMessage: unknown): void {
     void this.messageRouter.handleMessage(ws, connectionId, rawMessage);
   }
 

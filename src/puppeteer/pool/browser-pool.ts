@@ -91,7 +91,7 @@ export class BrowserPool extends EventEmitter implements IBrowserPool {
    */
   async initialize(): Promise<void> {
     await initializePoolWithBrowsers(this, this.options.maxBrowsers, () => this.launchNewBrowser());
-    
+
     // Start resource monitoring every 30 seconds
     this.startResourceMonitoring();
   }
@@ -184,9 +184,13 @@ export class BrowserPool extends EventEmitter implements IBrowserPool {
   private async queueAcquisition(sessionId: string): Promise<BrowserInstance> {
     const startTime = Date.now();
     this.metrics.recordQueueAdd();
-    
+
     try {
-      const browser = await queueBrowserAcquisition(sessionId, this.queue, this.options.acquisitionTimeout ?? 30000);
+      const browser = await queueBrowserAcquisition(
+        sessionId,
+        this.queue,
+        this.options.acquisitionTimeout ?? 30000,
+      );
       const waitTime = Date.now() - startTime;
       this.metrics.recordQueueRemove(waitTime);
       return browser;
@@ -202,7 +206,10 @@ export class BrowserPool extends EventEmitter implements IBrowserPool {
    * Launch a new browser
    * @private
    */
-  private async launchNewBrowser(): Promise<{ browser: Browser; instance: InternalBrowserInstance }> {
+  private async launchNewBrowser(): Promise<{
+    browser: Browser;
+    instance: InternalBrowserInstance;
+  }> {
     const startTime = Date.now();
     const result = await launchBrowser({
       options: this.options,
@@ -211,10 +218,10 @@ export class BrowserPool extends EventEmitter implements IBrowserPool {
       handleUnhealthyBrowser: (browserId) => this.handleUnhealthyBrowser(browserId),
       emitEvent: (event, data) => this.emit(event, data),
     });
-    
+
     const creationTime = Date.now() - startTime;
     this.metrics.recordBrowserCreated(result.instance.id, creationTime);
-    
+
     return result;
   }
 
@@ -224,9 +231,9 @@ export class BrowserPool extends EventEmitter implements IBrowserPool {
    */
   private async handleUnhealthyBrowser(browserId: string): Promise<void> {
     this.metrics.recordError('unhealthy_browser', browserId);
-    
+
     let success = false;
-    
+
     try {
       await handleUnhealthyBrowserDelegate({
         browserId,
@@ -272,7 +279,7 @@ export class BrowserPool extends EventEmitter implements IBrowserPool {
       const lifetime = Date.now() - browser.createdAt.getTime();
       this.metrics.recordBrowserDestroyed(browserId, lifetime);
     }
-    
+
     await removeBrowserFromPool({
       browserId,
       browsers: this.browsers,
@@ -291,34 +298,34 @@ export class BrowserPool extends EventEmitter implements IBrowserPool {
     const page = await createPage(browserId, sessionId, this.browsers);
     const duration = Date.now() - startTime;
     this.metrics.recordPageCreation(duration);
-    
+
     // Record utilization after page creation
     const utilization = (this.browsers.size / this.options.maxBrowsers) * 100;
     this.metrics.recordUtilization(utilization);
-    
+
     return page;
   }
 
   /**
    * Close a page in a browser
    */
-   
+
   async closePage(browserId: string, sessionId: string): Promise<void> {
     const startTime = Date.now();
     await closePage(browserId, sessionId, this.browsers);
     const duration = Date.now() - startTime;
     this.metrics.recordPageDestruction(duration);
-    
+
     // Check if browser should be released after page closure
     const instance = this.browsers.get(browserId);
     if (instance && instance.pageCount === 0 && instance.state === 'active') {
       // Emit event for tracking
       this.emit('browser:releasing', { browserId, sessionId, reason: 'no_pages' });
-      
+
       // Release the browser back to the pool
       await this.releaseBrowser(browserId, sessionId);
     }
-    
+
     // Record utilization after page closure
     const utilization = (this.browsers.size / this.options.maxBrowsers) * 100;
     this.metrics.recordUtilization(utilization);
@@ -328,18 +335,18 @@ export class BrowserPool extends EventEmitter implements IBrowserPool {
    * Perform health check on all browsers
    * @nist si-4 "Information system monitoring"
    */
-   
+
   async healthCheck(): Promise<Map<string, boolean>> {
     const startTime = Date.now();
     const results = new Map<string, boolean>();
-    
+
     // Perform health checks and collect resource metrics
     for (const [browserId, instance] of this.browsers) {
       try {
         const { browser } = instance;
         const health = await checkBrowserHealth(browser, instance);
         results.set(browserId, health.healthy);
-        
+
         // Update resource metrics if available
         if (health.cpuUsage !== undefined && health.memoryUsage !== undefined) {
           this.metrics.updateResourceUsage(browserId, health.cpuUsage, health.memoryUsage);
@@ -348,14 +355,14 @@ export class BrowserPool extends EventEmitter implements IBrowserPool {
         results.set(browserId, false);
       }
     }
-    
+
     const duration = Date.now() - startTime;
-    
+
     // Record health check metrics
-    const successCount = Array.from(results.values()).filter(healthy => healthy).length;
+    const successCount = Array.from(results.values()).filter((healthy) => healthy).length;
     const success = successCount === results.size;
     this.metrics.recordHealthCheck(duration, success);
-    
+
     return results;
   }
 
@@ -382,7 +389,7 @@ export class BrowserPool extends EventEmitter implements IBrowserPool {
   /**
    * Clean up idle browsers
    */
-   
+
   async cleanupIdle(): Promise<number> {
     return cleanupIdle(this.maintenance, this.browsers, this.options, (browserId) =>
       this.removeBrowser(browserId),

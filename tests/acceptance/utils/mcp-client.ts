@@ -25,7 +25,7 @@ export async function createMCPClient(): Promise<MCPTestClient> {
   // Path to the built MCP server
   // Use process.cwd() as the base since tests run from project root
   const mcpServerPath = path.resolve(process.cwd(), 'dist/mcp/start-mcp.js');
-  
+
   // Create client transport using stdio - it will spawn the server process
   const transport = new StdioClientTransport({
     command: 'node',
@@ -48,7 +48,7 @@ export async function createMCPClient(): Promise<MCPTestClient> {
       capabilities: {
         tools: {},
       },
-    }
+    },
   );
 
   await client.connect(transport);
@@ -59,7 +59,7 @@ export async function createMCPClient(): Promise<MCPTestClient> {
     } catch (error) {
       console.warn('Error closing MCP client:', error);
     }
-    
+
     // The transport should handle closing the server process
     try {
       await transport.close();
@@ -110,12 +110,12 @@ export async function createMCPSession(client: Client): Promise<MCPSessionInfo> 
   }
 
   const contextData = JSON.parse(contextResult.content[0].text);
-  
+
   // Check for error in response
   if (contextData.error) {
     throw new Error(`Failed to create browser context: ${contextData.error}`);
   }
-  
+
   const contextId = contextData.contextId;
 
   return { sessionId, contextId };
@@ -124,11 +124,7 @@ export async function createMCPSession(client: Client): Promise<MCPSessionInfo> 
 /**
  * Navigate to a URL using MCP
  */
-export async function mcpNavigate(
-  client: Client,
-  contextId: string,
-  url: string
-): Promise<void> {
+export async function mcpNavigate(client: Client, contextId: string, url: string): Promise<void> {
   const result = await client.callTool({
     name: 'execute-in-context',
     arguments: {
@@ -154,11 +150,7 @@ export async function mcpNavigate(
 /**
  * Click an element using MCP
  */
-export async function mcpClick(
-  client: Client,
-  contextId: string,
-  selector: string
-): Promise<void> {
+export async function mcpClick(client: Client, contextId: string, selector: string): Promise<void> {
   const result = await client.callTool({
     name: 'execute-in-context',
     arguments: {
@@ -188,7 +180,7 @@ export async function mcpType(
   client: Client,
   contextId: string,
   selector: string,
-  text: string
+  text: string,
 ): Promise<void> {
   const result = await client.callTool({
     name: 'execute-in-context',
@@ -219,7 +211,7 @@ export async function mcpType(
 export async function mcpGetContent(
   client: Client,
   contextId: string,
-  selector?: string
+  selector?: string,
 ): Promise<string> {
   const result = await client.callTool({
     name: 'execute-in-context',
@@ -253,7 +245,7 @@ export async function mcpWaitForSelector(
   client: Client,
   contextId: string,
   selector: string,
-  timeout?: number
+  timeout?: number,
 ): Promise<void> {
   const result = await client.callTool({
     name: 'execute-in-context',
@@ -284,7 +276,7 @@ export async function mcpWaitForSelector(
 export async function mcpScreenshot(
   client: Client,
   contextId: string,
-  filename?: string
+  filename?: string,
 ): Promise<string> {
   const result = await client.callTool({
     name: 'execute-in-context',
@@ -315,11 +307,11 @@ export async function mcpScreenshot(
  */
 export async function cleanupMCPSession(
   client: Client,
-  sessionInfo: MCPSessionInfo
+  sessionInfo: MCPSessionInfo,
 ): Promise<void> {
   // The enhanced delete-session operation now properly cleans up all associated resources
   // including contexts and pages, so we just need to delete the session
-  
+
   try {
     // Delete session - this will cascade cleanup to all contexts and pages
     const result = await client.callTool({
@@ -328,7 +320,7 @@ export async function cleanupMCPSession(
         sessionId: sessionInfo.sessionId,
       },
     });
-    
+
     if (result.content?.[0]?.text) {
       const response = JSON.parse(result.content[0].text);
       if (response.success) {

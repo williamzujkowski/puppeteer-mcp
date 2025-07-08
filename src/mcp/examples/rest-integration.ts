@@ -13,13 +13,13 @@ import { createMCPServer } from '../server.js';
 async function setupMCPWithExpress(): Promise<void> {
   // Create the Express app with all routes and middleware
   const app = createApp();
-  
+
   // Create MCP server with the Express app
   const mcpServer = createMCPServer({ app });
-  
+
   // Start MCP server
   await mcpServer.start();
-  
+
   // MCP server started with REST adapter enabled
 }
 
@@ -28,7 +28,7 @@ async function setupMCPWithExpress(): Promise<void> {
  */
 function exampleMCPRestCalls(): Record<string, unknown> {
   // These examples show the MCP tool call format
-  
+
   // Example 1: Health check (no auth required)
   const healthCheck = {
     name: 'execute-api',
@@ -40,7 +40,7 @@ function exampleMCPRestCalls(): Record<string, unknown> {
       },
     },
   };
-  
+
   // Example 2: Create session with JWT auth
   const createSession = {
     name: 'execute-api',
@@ -60,7 +60,7 @@ function exampleMCPRestCalls(): Record<string, unknown> {
       },
     },
   };
-  
+
   // Example 3: List contexts with API key auth
   const listContexts = {
     name: 'execute-api',
@@ -80,7 +80,7 @@ function exampleMCPRestCalls(): Record<string, unknown> {
       },
     },
   };
-  
+
   // Example 4: Execute command in context with session auth
   const executeCommand = {
     name: 'execute-api',
@@ -100,7 +100,7 @@ function exampleMCPRestCalls(): Record<string, unknown> {
       },
     },
   };
-  
+
   // Example 5: Delete session
   const deleteSession = {
     name: 'execute-api',
@@ -116,7 +116,7 @@ function exampleMCPRestCalls(): Record<string, unknown> {
       },
     },
   };
-  
+
   return {
     healthCheck,
     createSession,
@@ -129,7 +129,12 @@ function exampleMCPRestCalls(): Record<string, unknown> {
 /**
  * Example: Error handling scenarios
  */
-function exampleErrorScenarios(): { invalidAuth: unknown; validationError: unknown; notFound: unknown; unsupportedProtocol: unknown } {
+function exampleErrorScenarios(): {
+  invalidAuth: unknown;
+  validationError: unknown;
+  notFound: unknown;
+  unsupportedProtocol: unknown;
+} {
   // Example 1: Invalid authentication
   const invalidAuth = {
     name: 'execute-api',
@@ -146,7 +151,7 @@ function exampleErrorScenarios(): { invalidAuth: unknown; validationError: unkno
     },
   };
   // Expected response: 401 Unauthorized
-  
+
   // Example 2: Validation error
   const validationError = {
     name: 'execute-api',
@@ -159,7 +164,7 @@ function exampleErrorScenarios(): { invalidAuth: unknown; validationError: unkno
     },
   };
   // Expected response: 400 Bad Request with validation errors
-  
+
   // Example 3: Route not found
   const notFound = {
     name: 'execute-api',
@@ -172,7 +177,7 @@ function exampleErrorScenarios(): { invalidAuth: unknown; validationError: unkno
     },
   };
   // Expected response: 404 Not Found
-  
+
   // Example 4: Unsupported protocol
   const unsupportedProtocol = {
     name: 'execute-api',
@@ -184,7 +189,7 @@ function exampleErrorScenarios(): { invalidAuth: unknown; validationError: unkno
     },
   };
   // Expected response: Error - Unsupported protocol
-  
+
   return {
     invalidAuth,
     validationError,
@@ -204,20 +209,15 @@ function exampleApiCatalog(): Record<string, unknown> {
       uri: 'api://catalog',
     },
   };
-  
+
   // Expected response includes:
   // - REST endpoints with methods and descriptions
   // - gRPC services and methods
   // - WebSocket topics
   // - Authentication methods
-  
+
   return catalogRequest;
 }
 
 // Export examples
-export {
-  setupMCPWithExpress,
-  exampleMCPRestCalls,
-  exampleErrorScenarios,
-  exampleApiCatalog,
-};
+export { setupMCPWithExpress, exampleMCPRestCalls, exampleErrorScenarios, exampleApiCatalog };

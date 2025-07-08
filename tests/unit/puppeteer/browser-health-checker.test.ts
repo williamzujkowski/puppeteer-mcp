@@ -5,8 +5,6 @@
  * @nist au-6 "Audit review, analysis, and reporting"
  */
 
- 
-
 import { jest } from '@jest/globals';
 import type { Browser, Page } from 'puppeteer';
 
@@ -229,12 +227,12 @@ describe('BrowserHealthChecker', () => {
       mockBrowser.isConnected.mockReturnValue(false);
 
       const launchOptions = { headless: true };
-       
+
       const result = await healthChecker.restartBrowser(mockInstance, launchOptions);
 
       // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(mockBrowser.close).toHaveBeenCalled();
-       
+
       expect(puppeteer.launch).toHaveBeenCalledWith(launchOptions);
       expect(result).toBe(newBrowser);
     });
@@ -244,7 +242,6 @@ describe('BrowserHealthChecker', () => {
 
       const launchOptions = { headless: true };
 
-       
       await expect(healthChecker.restartBrowser(mockInstance, launchOptions)).rejects.toThrow(
         'Launch failed',
       );

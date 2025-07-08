@@ -23,7 +23,7 @@ const logger = createLogger('puppeteer:scroll-element');
 export async function handleScrollToElement(
   selector: string,
   page: Page,
-  context: ActionContext
+  context: ActionContext,
 ): Promise<{ scrolledToElement: string; elementPosition?: { x: number; y: number } }> {
   const sanitizedSelector = sanitizeSelector(selector);
 
@@ -71,7 +71,7 @@ export async function handleScrollToElement(
  * @returns Scroll result
  */
 export async function handleScrollWithinElement(
-  params: ScrollWithinElementParams
+  params: ScrollWithinElementParams,
 ): Promise<{ scrolledDistance: number; direction: string }> {
   const { selector, direction, distance, page, context } = params;
   const sanitizedSelector = sanitizeSelector(selector);
@@ -133,7 +133,7 @@ export async function handleScrollWithinElement(
     },
     sanitizedSelector,
     direction,
-    distance
+    distance,
   );
 
   logger.info('Scrolled within element', {

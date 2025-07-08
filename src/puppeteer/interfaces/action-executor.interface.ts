@@ -11,13 +11,13 @@ import type { KeyInput } from 'puppeteer';
 export interface BaseBrowserAction {
   /** Action type identifier */
   type: string;
-  
+
   /** Page ID to execute action on */
   pageId: string;
-  
+
   /** Optional timeout for action */
   timeout?: number;
-  
+
   /** Optional description */
   description?: string;
 }
@@ -100,7 +100,18 @@ export interface ScreenshotAction extends BaseBrowserAction {
  */
 export interface PDFAction extends BaseBrowserAction {
   type: 'pdf';
-  format?: 'letter' | 'legal' | 'tabloid' | 'ledger' | 'a0' | 'a1' | 'a2' | 'a3' | 'a4' | 'a5' | 'a6';
+  format?:
+    | 'letter'
+    | 'legal'
+    | 'tabloid'
+    | 'ledger'
+    | 'a0'
+    | 'a1'
+    | 'a2'
+    | 'a3'
+    | 'a4'
+    | 'a5'
+    | 'a6';
   landscape?: boolean;
   scale?: number;
   displayHeaderFooter?: boolean;
@@ -212,22 +223,22 @@ export type BrowserAction =
 export interface ActionResult<T = unknown> {
   /** Action execution success */
   success: boolean;
-  
+
   /** Action type that was executed */
   actionType: string;
-  
+
   /** Result data */
   data?: T;
-  
+
   /** Error message if failed */
   error?: string;
-  
+
   /** Execution duration in ms */
   duration: number;
-  
+
   /** Timestamp of execution */
   timestamp: Date;
-  
+
   /** Additional metadata */
   metadata?: Record<string, unknown>;
 }
@@ -238,14 +249,14 @@ export interface ActionResult<T = unknown> {
 export interface ValidationResult {
   /** Validation success */
   valid: boolean;
-  
+
   /** Validation errors */
   errors: Array<{
     field: string;
     message: string;
     code?: string;
   }>;
-  
+
   /** Validation warnings */
   warnings?: Array<{
     field: string;
@@ -260,13 +271,13 @@ export interface ValidationResult {
 export interface ActionContext {
   /** Session ID */
   sessionId: string;
-  
+
   /** Context ID */
   contextId: string;
-  
+
   /** User ID */
   userId?: string;
-  
+
   /** Execution metadata */
   metadata?: Record<string, unknown>;
 }
@@ -285,11 +296,8 @@ export interface ActionExecutor {
    * @nist ac-2 "Account management"
    * @nist au-3 "Content of audit records"
    */
-  execute<T = unknown>(
-    action: BrowserAction,
-    context: ActionContext
-  ): Promise<ActionResult<T>>;
-  
+  execute<T = unknown>(action: BrowserAction, context: ActionContext): Promise<ActionResult<T>>;
+
   /**
    * Execute multiple actions in sequence
    * @param actions - Array of browser actions
@@ -304,9 +312,9 @@ export interface ActionExecutor {
       stopOnError?: boolean;
       parallel?: boolean;
       maxConcurrency?: number;
-    }
+    },
   ): Promise<ActionResult[]>;
-  
+
   /**
    * Validate an action before execution
    * @param action - Browser action to validate
@@ -315,18 +323,15 @@ export interface ActionExecutor {
    * @nist si-10 "Information input validation"
    */
   validate(action: BrowserAction, context: ActionContext): Promise<ValidationResult>;
-  
+
   /**
    * Validate multiple actions
    * @param actions - Array of browser actions
    * @param context - Execution context
    * @returns Array of validation results
    */
-  validateBatch(
-    actions: BrowserAction[],
-    context: ActionContext
-  ): Promise<ValidationResult[]>;
-  
+  validateBatch(actions: BrowserAction[], context: ActionContext): Promise<ValidationResult[]>;
+
   /**
    * Register custom action handler
    * @param actionType - Action type identifier
@@ -334,28 +339,28 @@ export interface ActionExecutor {
    */
   registerHandler<T extends BrowserAction>(
     actionType: string,
-    handler: (action: T, context: ActionContext) => Promise<ActionResult>
+    handler: (action: T, context: ActionContext) => Promise<ActionResult>,
   ): void;
-  
+
   /**
    * Unregister action handler
    * @param actionType - Action type identifier
    */
   unregisterHandler(actionType: string): void;
-  
+
   /**
    * Get supported action types
    * @returns Array of supported action types
    */
   getSupportedActions(): string[];
-  
+
   /**
    * Check if action type is supported
    * @param actionType - Action type to check
    * @returns True if supported
    */
   isActionSupported(actionType: string): boolean;
-  
+
   /**
    * Get action execution history
    * @param context - Execution context
@@ -371,9 +376,9 @@ export interface ActionExecutor {
       actionTypes?: string[];
       startDate?: Date;
       endDate?: Date;
-    }
+    },
   ): Promise<ActionResult[]>;
-  
+
   /**
    * Clear action history
    * @param context - Execution context
@@ -381,7 +386,7 @@ export interface ActionExecutor {
    * @nist au-4 "Audit storage capacity"
    */
   clearHistory(context: ActionContext, before?: Date): Promise<void>;
-  
+
   /**
    * Get action metrics
    * @param context - Execution context

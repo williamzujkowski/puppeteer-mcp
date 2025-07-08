@@ -6,10 +6,7 @@
  */
 
 import type { Page, Cookie } from 'puppeteer';
-import type { 
-  CookieAction,
-  ActionContext 
-} from '../../interfaces/action-executor.interface.js';
+import type { CookieAction, ActionContext } from '../../interfaces/action-executor.interface.js';
 import { createLogger } from '../../../utils/logger.js';
 import { validateCookie } from './cookie-validation.js';
 
@@ -25,14 +22,14 @@ const logger = createLogger('puppeteer:cookie-operations');
 export async function handleSetCookies(
   action: CookieAction,
   page: Page,
-  context: ActionContext
+  context: ActionContext,
 ): Promise<{ setCookies: number }> {
   if (!action.cookies || action.cookies.length === 0) {
     throw new Error('No cookies provided for set operation');
   }
 
   // Validate and convert cookies
-  const validatedCookies = action.cookies.map(cookie => validateCookie(cookie, page.url()));
+  const validatedCookies = action.cookies.map((cookie) => validateCookie(cookie, page.url()));
 
   // Set cookies
   await page.setCookie(...validatedCookies);
@@ -54,7 +51,7 @@ export async function handleSetCookies(
  */
 export async function handleGetCookies(
   page: Page,
-  context: ActionContext
+  context: ActionContext,
 ): Promise<{ cookies: Cookie[] }> {
   const cookies = await page.cookies();
 
@@ -77,7 +74,7 @@ export async function handleGetCookies(
 export async function handleDeleteCookies(
   action: CookieAction,
   page: Page,
-  context: ActionContext
+  context: ActionContext,
 ): Promise<{ deletedCookies: number }> {
   if (!action.cookies || action.cookies.length === 0) {
     throw new Error('No cookies provided for delete operation');
@@ -125,7 +122,7 @@ export async function handleDeleteCookies(
  */
 export async function handleClearCookies(
   page: Page,
-  context: ActionContext
+  context: ActionContext,
 ): Promise<{ clearedCookies: number }> {
   // Get current cookies to count them
   const currentCookies = await page.cookies();

@@ -22,10 +22,10 @@ const logger = createLogger('puppeteer:keyboard-shortcuts');
 export async function handleKeyboardShortcut(
   keys: KeyInput[],
   page: Page,
-  context: ActionContext
+  context: ActionContext,
 ): Promise<ActionResult> {
   const startTime = Date.now();
-  
+
   try {
     logger.info('Executing keyboard shortcut action', {
       sessionId: context.sessionId,
@@ -72,7 +72,6 @@ export async function handleKeyboardShortcut(
       duration,
       timestamp: new Date(),
     };
-
   } catch (error) {
     const duration = Date.now() - startTime;
     const errorMessage = error instanceof Error ? error.message : 'Unknown keyboard shortcut error';
@@ -110,10 +109,10 @@ export async function handleKeyCombination(
   modifiers: Array<'Control' | 'Shift' | 'Alt' | 'Meta'>,
   key: KeyInput,
   page: Page,
-  context: ActionContext
+  context: ActionContext,
 ): Promise<ActionResult> {
   const startTime = Date.now();
-  
+
   try {
     logger.info('Executing key combination action', {
       sessionId: context.sessionId,
@@ -164,7 +163,6 @@ export async function handleKeyCombination(
       duration,
       timestamp: new Date(),
     };
-
   } catch (error) {
     const duration = Date.now() - startTime;
     const errorMessage = error instanceof Error ? error.message : 'Unknown key combination error';
@@ -204,10 +202,10 @@ export async function handleKeyboardType(
   text: string,
   page: Page,
   context: ActionContext,
-  delay?: number
+  delay?: number,
 ): Promise<ActionResult> {
   const startTime = Date.now();
-  
+
   try {
     logger.info('Executing keyboard type action', {
       sessionId: context.sessionId,
@@ -245,7 +243,6 @@ export async function handleKeyboardType(
       duration,
       timestamp: new Date(),
     };
-
   } catch (error) {
     const duration = Date.now() - startTime;
     const errorMessage = error instanceof Error ? error.message : 'Unknown keyboard type error';

@@ -6,10 +6,10 @@
  */
 
 import type { Page } from 'puppeteer';
-import type { 
+import type {
   WaitAction,
-  ActionResult, 
-  ActionContext 
+  ActionResult,
+  ActionContext,
 } from '../../interfaces/action-executor.interface.js';
 import { sanitizeSelector, validateJavaScriptCode } from '../validation.js';
 import { createLogger } from '../../../utils/logger.js';
@@ -32,10 +32,10 @@ export { handleWaitForLoadState, handleWaitForElementState } from './waiting-sta
 export async function handleWait(
   action: WaitAction,
   page: Page,
-  context: ActionContext
+  context: ActionContext,
 ): Promise<ActionResult> {
   const startTime = Date.now();
-  
+
   try {
     logger.info('Executing wait action', {
       sessionId: context.sessionId,
@@ -91,7 +91,6 @@ export async function handleWait(
         function: action.function,
       },
     };
-
   } catch (error) {
     const duration = Date.now() - startTime;
     const errorMessage = error instanceof Error ? error.message : 'Unknown wait error';
@@ -126,13 +125,16 @@ export async function handleWait(
  * @param page - Puppeteer page instance
  * @returns Element handle or null
  */
-function handleWaitForSelector(action: WaitAction, page: Page): ReturnType<Page['waitForSelector']> {
+function handleWaitForSelector(
+  action: WaitAction,
+  page: Page,
+): ReturnType<Page['waitForSelector']> {
   if (action.selector === null || action.selector === undefined || action.selector === '') {
     throw new Error('Selector is required for waitForSelector');
   }
 
   const sanitizedSelector = sanitizeSelector(action.selector);
-  
+
   return page.waitForSelector(sanitizedSelector, {
     timeout: action.timeout ?? 30000,
     visible: true,
@@ -145,7 +147,10 @@ function handleWaitForSelector(action: WaitAction, page: Page): ReturnType<Page[
  * @param page - Puppeteer page instance
  * @returns Navigation response
  */
-function handleWaitForNavigation(action: WaitAction, page: Page): Promise<import('puppeteer').HTTPResponse | null> {
+function handleWaitForNavigation(
+  action: WaitAction,
+  page: Page,
+): Promise<import('puppeteer').HTTPResponse | null> {
   return page.waitForNavigation({
     timeout: action.timeout ?? 30000,
     waitUntil: 'load',
@@ -162,11 +167,12 @@ async function handleWaitForTimeout(action: WaitAction): Promise<void> {
     throw new Error('Duration is required for waitForTimeout');
   }
 
-  if (action.duration > 300000) { // 5 minutes max
+  if (action.duration > 300000) {
+    // 5 minutes max
     throw new Error('Duration cannot exceed 5 minutes');
   }
 
-  await new Promise<void>(resolve => {
+  await new Promise<void>((resolve) => {
     setTimeout(resolve, action.duration);
   });
 }
@@ -177,7 +183,10 @@ async function handleWaitForTimeout(action: WaitAction): Promise<void> {
  * @param page - Puppeteer page instance
  * @returns Function result
  */
-function handleWaitForFunction(action: WaitAction, page: Page): ReturnType<Page['waitForFunction']> {
+function handleWaitForFunction(
+  action: WaitAction,
+  page: Page,
+): ReturnType<Page['waitForFunction']> {
   if (action.function === null || action.function === undefined || action.function === '') {
     throw new Error('Function is required for waitForFunction');
   }

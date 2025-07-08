@@ -8,12 +8,12 @@
  */
 
 import type { Page } from 'puppeteer';
-import type { 
+import type {
   ActionExecutor,
   BrowserAction,
   ActionResult,
   ActionContext,
-  ValidationResult
+  ValidationResult,
 } from '../interfaces/action-executor.interface.js';
 import type { PageManager } from '../interfaces/page-manager.interface.js';
 import { validateAction } from './validation.js';
@@ -21,10 +21,10 @@ import { createLogger, logSecurityEvent, SecurityEventType } from '../../utils/l
 import { ActionHistoryManager } from './history-manager.js';
 import { BatchActionExecutor, type BatchExecutionOptions } from './batch-executor.js';
 import { ActionHandlerRegistry } from './handler-registry.js';
-import { 
-  handleValidationFailure, 
-  handleExecutionError, 
-  createPageNotFoundResult 
+import {
+  handleValidationFailure,
+  handleExecutionError,
+  createPageNotFoundResult,
 } from './execution-helper.js';
 
 const logger = createLogger('puppeteer:action-executor');
@@ -57,10 +57,10 @@ export class BrowserActionExecutor implements ActionExecutor {
    */
   async execute<T = unknown>(
     action: BrowserAction,
-    context: ActionContext
+    context: ActionContext,
   ): Promise<ActionResult<T>> {
     const startTime = Date.now();
-    
+
     try {
       // Log security event for action execution
       await logSecurityEvent(SecurityEventType.COMMAND_EXECUTED, {
@@ -86,10 +86,10 @@ export class BrowserActionExecutor implements ActionExecutor {
       const validationResult = await this.validate(action, context);
       if (!validationResult.valid) {
         const result = await handleValidationFailure<T>(
-          action, 
-          context, 
-          validationResult, 
-          Date.now() - startTime
+          action,
+          context,
+          validationResult,
+          Date.now() - startTime,
         );
         this.historyManager.addToHistory(context, result);
         return result;
@@ -118,15 +118,9 @@ export class BrowserActionExecutor implements ActionExecutor {
       });
 
       return result as ActionResult<T>;
-
     } catch (error) {
-      const result = await handleExecutionError<T>(
-        action, 
-        context, 
-        error, 
-        Date.now() - startTime
-      );
-      
+      const result = await handleExecutionError<T>(action, context, error, Date.now() - startTime);
+
       logger.error('Browser action execution failed', {
         sessionId: context.sessionId,
         contextId: context.contextId,
@@ -150,7 +144,7 @@ export class BrowserActionExecutor implements ActionExecutor {
   executeBatch(
     actions: BrowserAction[],
     context: ActionContext,
-    options?: BatchExecutionOptions
+    options?: BatchExecutionOptions,
   ): Promise<ActionResult[]> {
     return this.batchExecutor.executeBatch(actions, context, options);
   }
@@ -175,11 +169,13 @@ export class BrowserActionExecutor implements ActionExecutor {
       if (!this.isActionSupported(action.type)) {
         return {
           valid: false,
-          errors: [{
-            field: 'type',
-            message: `Unsupported action type: ${action.type}`,
-            code: 'UNSUPPORTED_ACTION',
-          }],
+          errors: [
+            {
+              field: 'type',
+              message: `Unsupported action type: ${action.type}`,
+              code: 'UNSUPPORTED_ACTION',
+            },
+          ],
         };
       }
 
@@ -206,11 +202,13 @@ export class BrowserActionExecutor implements ActionExecutor {
 
       return {
         valid: false,
-        errors: [{
-          field: 'unknown',
-          message: error instanceof Error ? error.message : 'Unknown validation error',
-          code: 'VALIDATION_ERROR',
-        }],
+        errors: [
+          {
+            field: 'unknown',
+            message: error instanceof Error ? error.message : 'Unknown validation error',
+            code: 'VALIDATION_ERROR',
+          },
+        ],
       };
     }
   }
@@ -221,12 +219,12 @@ export class BrowserActionExecutor implements ActionExecutor {
    * @param context - Execution context
    * @returns Array of validation results
    */
-   
+
   async validateBatch(
     actions: BrowserAction[],
-    context: ActionContext
+    context: ActionContext,
   ): Promise<ValidationResult[]> {
-    return Promise.all(actions.map(action => this.validate(action, context)));
+    return Promise.all(actions.map((action) => this.validate(action, context)));
   }
 
   /**
@@ -236,7 +234,7 @@ export class BrowserActionExecutor implements ActionExecutor {
    */
   registerHandler<T extends BrowserAction>(
     actionType: string,
-    handler: (action: T, context: ActionContext) => Promise<ActionResult>
+    handler: (action: T, context: ActionContext) => Promise<ActionResult>,
   ): void {
     // Wrap the handler to include page retrieval
     this.handlerRegistry.registerHandler(actionType, (action, _page, context) => {
@@ -285,7 +283,7 @@ export class BrowserActionExecutor implements ActionExecutor {
       actionTypes?: string[];
       startDate?: Date;
       endDate?: Date;
-    }
+    },
   ): Promise<ActionResult[]> {
     return this.historyManager.getHistory(context, options);
   }
@@ -333,7 +331,7 @@ export class BrowserActionExecutor implements ActionExecutor {
     action: BrowserAction,
     page: Page,
     context: ActionContext,
-    maxRetries: number = 3
+    maxRetries: number = 3,
   ): Promise<ActionResult> {
     const handler = this.handlerRegistry.getHandler(action.type);
     if (!handler) {
@@ -341,29 +339,32 @@ export class BrowserActionExecutor implements ActionExecutor {
     }
 
     let lastError: Error | null = null;
-    
+
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
         const result = await handler(action, page, context);
-        
+
         if (result.success || attempt === maxRetries) {
           return result;
         }
-        
+
         // Wait before retry (exponential backoff)
         const delay = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
-        await new Promise<void>(resolve => { setTimeout(resolve, delay); });
-        
+        await new Promise<void>((resolve) => {
+          setTimeout(resolve, delay);
+        });
       } catch (error) {
         lastError = error instanceof Error ? error : new Error('Unknown error');
-        
+
         if (attempt === maxRetries) {
           break;
         }
-        
+
         // Wait before retry
         const delay = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
-        await new Promise<void>(resolve => { setTimeout(resolve, delay); });
+        await new Promise<void>((resolve) => {
+          setTimeout(resolve, delay);
+        });
       }
     }
 

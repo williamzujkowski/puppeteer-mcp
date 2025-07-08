@@ -28,11 +28,13 @@ export class SessionUtils {
       last_accessed_at: session.lastAccessedAt,
     };
   }
-  
+
   /**
    * Extract user info from gRPC call metadata
    */
-  static extractUserFromCall<TRequest, TResponse>(call: grpc.ServerUnaryCall<TRequest, TResponse>): { userId: string; roles: string[] } {
+  static extractUserFromCall<TRequest, TResponse>(
+    call: grpc.ServerUnaryCall<TRequest, TResponse>,
+  ): { userId: string; roles: string[] } {
     const metadata = call.metadata;
     const userIdValue = metadata.get('user-id')?.[0];
     const userId = typeof userIdValue === 'string' ? userIdValue : '';
@@ -41,7 +43,7 @@ export class SessionUtils {
     const roles = rolesStr !== '' ? rolesStr.split(',') : [];
     return { userId, roles };
   }
-  
+
   /**
    * Build session updates object
    */
@@ -49,19 +51,19 @@ export class SessionUtils {
     session: Session,
     data?: Record<string, unknown>,
     extendTtl?: boolean,
-    ttlSeconds?: number
+    ttlSeconds?: number,
   ): Partial<SessionData> {
     const updates: Partial<SessionData> = {};
-    
+
     if (data) {
       updates.metadata = { ...session.data.metadata, ...data };
     }
-    
+
     if (extendTtl === true && ttlSeconds !== null && ttlSeconds !== undefined && ttlSeconds !== 0) {
       const newExpiresAt = new Date(Date.now() + ttlSeconds * 1000);
       updates.expiresAt = newExpiresAt.toISOString();
     }
-    
+
     return updates;
   }
 }

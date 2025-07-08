@@ -38,9 +38,12 @@ function findProtoPath(): string {
       // Relative to dist directory in production
       join(process.cwd(), 'dist', '..', 'proto', 'control.proto'),
       join(process.cwd(), '..', 'proto', 'control.proto'),
-      // Global npm paths  
+      // Global npm paths
       join('/usr/local/lib/node_modules/puppeteer-mcp/proto/control.proto'),
-      join(process.env.HOME || '/home/user', '.npm/lib/node_modules/puppeteer-mcp/proto/control.proto'),
+      join(
+        process.env.HOME || '/home/user',
+        '.npm/lib/node_modules/puppeteer-mcp/proto/control.proto',
+      ),
     );
   }
 

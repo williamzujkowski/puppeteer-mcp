@@ -19,7 +19,7 @@ const logger = createLogger('browser-pool-shutdown');
 export async function shutdownPool(
   browsers: Map<string, InternalBrowserInstance>,
   healthMonitor: BrowserHealthMonitor,
-  queue: BrowserQueue
+  queue: BrowserQueue,
 ): Promise<void> {
   logger.info('Shutting down browser pool');
 
@@ -30,10 +30,10 @@ export async function shutdownPool(
   queue.clear();
 
   // Close all browsers
-  const closePromises = Array.from(browsers.values()).map(instance =>
-    closeBrowser(instance.browser).catch(error => {
+  const closePromises = Array.from(browsers.values()).map((instance) =>
+    closeBrowser(instance.browser).catch((error) => {
       logger.error({ browserId: instance.id, error }, 'Error closing browser');
-    })
+    }),
   );
 
   await Promise.allSettled(closePromises);

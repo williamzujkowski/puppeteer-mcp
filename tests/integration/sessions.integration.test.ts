@@ -77,10 +77,7 @@ describe('Sessions API Integration Tests', () => {
     });
 
     it('should reject refresh with missing token', async () => {
-      const response = await request(app)
-        .post('/api/v1/sessions/refresh')
-        .send({})
-        .expect(400);
+      const response = await request(app).post('/api/v1/sessions/refresh').send({}).expect(400);
 
       expect(response.body.success).toBe(false);
     });
@@ -144,9 +141,7 @@ describe('Sessions API Integration Tests', () => {
     });
 
     it('should reject request without token', async () => {
-      await request(app)
-        .get('/api/v1/sessions/current')
-        .expect(401);
+      await request(app).get('/api/v1/sessions/current').expect(401);
     });
 
     it('should reject request with invalid token', async () => {
@@ -211,13 +206,15 @@ describe('Sessions API Integration Tests', () => {
         .expect(200);
 
       expect(response.body.success).toBe(true);
-      expect(response.body.data).toEqual([{
-        id: newSessionId,
-        createdAt: expect.any(String),
-        expiresAt: expect.any(String),
-        lastAccessedAt: expect.any(String),
-        isCurrent: true,
-      }]);
+      expect(response.body.data).toEqual([
+        {
+          id: newSessionId,
+          createdAt: expect.any(String),
+          expiresAt: expect.any(String),
+          lastAccessedAt: expect.any(String),
+          isCurrent: true,
+        },
+      ]);
     });
   });
 
@@ -251,7 +248,7 @@ describe('Sessions API Integration Tests', () => {
       expect(currentSession).toBeTruthy();
     });
 
-    it('should not allow terminating another user\'s session', async () => {
+    it("should not allow terminating another user's session", async () => {
       // Create session for different user
       const otherUserData: SessionData = {
         userId: 'other-user',

@@ -27,17 +27,17 @@ export interface CreateAndAcquireBrowserParams {
  * Create and acquire a new browser
  */
 export async function createAndAcquireBrowser(
-  params: CreateAndAcquireBrowserParams
+  params: CreateAndAcquireBrowserParams,
 ): Promise<BrowserInstance> {
   const { sessionId, options, browsers, healthMonitor, onHealthCheckFailed } = params;
-  
+
   const { instance } = await launchNewBrowser(
     options,
     browsers,
     healthMonitor,
-    onHealthCheckFailed
+    onHealthCheckFailed,
   );
-  
+
   // Activate for session
   instance.state = 'active';
   instance.sessionId = sessionId;
@@ -52,7 +52,7 @@ export async function createAndAcquireBrowser(
 export function queueAcquisition(
   sessionId: string,
   queue: BrowserQueue,
-  acquisitionTimeout: number
+  acquisitionTimeout: number,
 ): Promise<BrowserInstance> {
   return new Promise((resolve, reject) => {
     queue.enqueue({
@@ -72,10 +72,10 @@ export async function launchNewBrowser(
   options: BrowserPoolOptions,
   browsers: Map<string, InternalBrowserInstance>,
   healthMonitor: BrowserHealthMonitor,
-  onHealthCheckFailed: (browserId: string) => void
+  onHealthCheckFailed: (browserId: string) => void,
 ): Promise<{ browser: Browser; instance: InternalBrowserInstance }> {
   const result = await launchBrowser(options);
-  
+
   // Create internal instance with additional state
   const internalInstance: InternalBrowserInstance = {
     ...result.instance,
@@ -83,7 +83,7 @@ export async function launchNewBrowser(
     sessionId: null,
     errorCount: 0,
   };
-  
+
   // Store instance
   browsers.set(internalInstance.id, internalInstance);
 
@@ -93,7 +93,7 @@ export async function launchNewBrowser(
     browser: result.browser,
     instance: internalInstance,
     onUnhealthy: () => onHealthCheckFailed(internalInstance.id),
-    intervalMs: options.healthCheckInterval
+    intervalMs: options.healthCheckInterval,
   });
 
   return { browser: result.browser, instance: internalInstance };

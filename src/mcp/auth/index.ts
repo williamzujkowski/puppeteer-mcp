@@ -11,7 +11,4 @@ export {
   type MCPAuthCredentials,
 } from './mcp-auth.js';
 
-export {
-  userService,
-  type UserData,
-} from './user-service.js';
+export { userService, type UserData } from './user-service.js';

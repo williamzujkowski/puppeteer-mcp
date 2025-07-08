@@ -5,14 +5,9 @@
  */
 
 import type { Page } from 'puppeteer';
-import type {
-  PageOptions,
-} from '../interfaces/page-manager.interface.js';
+import type { PageOptions } from '../interfaces/page-manager.interface.js';
 import type { PageInfoStore } from './page-info-store.js';
-import {
-  getPageWithAccessControl,
-  getPageInfoWithAccessControl
-} from './page-access-control.js';
+import { getPageWithAccessControl, getPageInfoWithAccessControl } from './page-access-control.js';
 import {
   navigatePage as navigatePageImpl,
   updatePageOptions as updatePageOptionsImpl,
@@ -44,14 +39,15 @@ export const delegateMethods = {
     sessionId: string;
     pages: Map<string, Page>;
     pageStore: PageInfoStore;
-  }) => updatePageOptionsImpl({
-    pageId: params.pageId,
-    options: params.options,
-    sessionId: params.sessionId,
-    pages: params.pages,
-    pageStore: params.pageStore,
-    configurePageOptions
-  }),
+  }) =>
+    updatePageOptionsImpl({
+      pageId: params.pageId,
+      options: params.options,
+      sessionId: params.sessionId,
+      pages: params.pages,
+      pageStore: params.pageStore,
+      configurePageOptions,
+    }),
   takeScreenshot: takeScreenshotImpl,
   listPagesForSession: listPagesForSessionImpl,
   listPagesForContext: listPagesForContextImpl,

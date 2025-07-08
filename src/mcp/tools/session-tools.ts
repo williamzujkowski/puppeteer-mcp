@@ -8,12 +8,12 @@ import { generateTokenPair } from '../../auth/jwt.js';
 import { userService } from '../auth/user-service.js';
 import type { InMemorySessionStore } from '../../store/in-memory-session-store.js';
 import type { SessionData } from '../../types/session.js';
-import type { 
-  CreateSessionArgs, 
-  ListSessionsArgs, 
-  DeleteSessionArgs, 
+import type {
+  CreateSessionArgs,
+  ListSessionsArgs,
+  DeleteSessionArgs,
   ToolResponse,
-  ToolErrorResponse
+  ToolErrorResponse,
 } from '../types/tool-types.js';
 import { contextStore } from '../../store/context-store.js';
 import { getPageManager } from '../../puppeteer/pages/page-manager.js';
@@ -41,11 +41,11 @@ export class SessionTools {
 
       // Authenticate user
       const user = await userService.authenticateUser(args.username, args.password);
-      
+
       // Calculate session duration (default 1 hour)
       const duration = args.duration ?? 3600;
       const expiresAt = new Date(Date.now() + duration * 1000);
-      
+
       // Create session data
       const sessionData: SessionData = {
         userId: user.id,
@@ -59,18 +59,13 @@ export class SessionTools {
         createdAt: new Date().toISOString(),
         expiresAt: expiresAt.toISOString(),
       };
-      
+
       // Create session in store
       const sessionId = await this.sessionStore.create(sessionData);
-      
+
       // Generate JWT tokens
-      const tokens = generateTokenPair(
-        user.id,
-        user.username,
-        user.roles,
-        sessionId
-      );
-      
+      const tokens = generateTokenPair(user.id, user.username, user.roles, sessionId);
+
       // Log session creation
       logger.info({
         msg: 'MCP session created',
@@ -79,7 +74,7 @@ export class SessionTools {
         sessionId,
         duration,
       });
-      
+
       return this.successResponse({
         sessionId,
         userId: user.id,
@@ -99,10 +94,10 @@ export class SessionTools {
         error: error instanceof Error ? error.message : 'Unknown error',
         username: args.username,
       });
-      
+
       return this.errorResponse(
         error instanceof Error ? error.message : 'Authentication failed',
-        'AUTH_FAILED'
+        'AUTH_FAILED',
       );
     }
   }
@@ -122,11 +117,11 @@ export class SessionTools {
         lastAccessedAt: Date;
         metadata?: Record<string, unknown>;
       }> = [];
-      
+
       if (args.userId !== null && args.userId !== undefined && args.userId !== '') {
         // Get sessions for specific user
         const userSessions = await this.sessionStore.getByUserId(args.userId);
-        sessions = userSessions.map(session => ({
+        sessions = userSessions.map((session) => ({
           id: session.id,
           userId: session.data.userId,
           username: session.data.username,
@@ -136,7 +131,7 @@ export class SessionTools {
           lastAccessedAt: new Date(session.lastAccessedAt),
           metadata: session.data.metadata,
         }));
-        
+
         logger.info({
           msg: 'Listed sessions for user',
           userId: args.userId,
@@ -150,7 +145,7 @@ export class SessionTools {
           note: 'Admin functionality required',
         });
       }
-      
+
       return this.successResponse({
         sessions,
         count: sessions.length,
@@ -161,10 +156,10 @@ export class SessionTools {
         error: error instanceof Error ? error.message : 'Unknown error',
         userId: args.userId,
       });
-      
+
       return this.errorResponse(
         error instanceof Error ? error.message : 'Failed to list sessions',
-        'LIST_FAILED'
+        'LIST_FAILED',
       );
     }
   }
@@ -178,19 +173,19 @@ export class SessionTools {
       if (!args.sessionId) {
         return this.errorResponse('Session ID is required', 'INVALID_SESSION_ID');
       }
-      
+
       // Get session to verify it exists
       const session = await this.sessionStore.get(args.sessionId);
       if (!session) {
         return this.errorResponse('Session not found', 'SESSION_NOT_FOUND');
       }
-      
+
       // Clean up browser resources before deleting session
       logger.info({
         msg: 'Cleaning up browser resources for session',
         sessionId: args.sessionId,
       });
-      
+
       try {
         // Get all contexts for this session
         const contexts = await contextStore.list({ sessionId: args.sessionId });
@@ -199,17 +194,17 @@ export class SessionTools {
           sessionId: args.sessionId,
           contextCount: contexts.length,
         });
-        
+
         // Get page manager instance
         const pageManager = getPageManager(browserPool);
-        
+
         // Close all pages for this session
         await pageManager.closePagesForSession(args.sessionId);
         logger.info({
           msg: 'Closed all pages for session',
           sessionId: args.sessionId,
         });
-        
+
         // Delete all contexts for this session
         for (const context of contexts) {
           await contextStore.delete(context.id);
@@ -227,17 +222,17 @@ export class SessionTools {
         });
         // Continue with session deletion even if cleanup fails
       }
-      
+
       // Delete the session
       const deleted = await this.sessionStore.delete(args.sessionId);
-      
+
       logger.info({
         msg: 'MCP session deleted',
         sessionId: args.sessionId,
         userId: session.data.userId,
         deleted,
       });
-      
+
       return this.successResponse({
         success: deleted,
         sessionId: args.sessionId,
@@ -249,10 +244,10 @@ export class SessionTools {
         error: error instanceof Error ? error.message : 'Unknown error',
         sessionId: args.sessionId,
       });
-      
+
       return this.errorResponse(
         error instanceof Error ? error.message : 'Failed to delete session',
-        'DELETE_FAILED'
+        'DELETE_FAILED',
       );
     }
   }
@@ -263,10 +258,12 @@ export class SessionTools {
   private errorResponse(error: string, code: string): ToolResponse {
     const errorData: ToolErrorResponse = { error, code };
     return {
-      content: [{
-        type: 'text',
-        text: JSON.stringify(errorData),
-      }],
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(errorData),
+        },
+      ],
     };
   }
 
@@ -275,10 +272,12 @@ export class SessionTools {
    */
   private successResponse(data: unknown): ToolResponse {
     return {
-      content: [{
-        type: 'text',
-        text: JSON.stringify(data),
-      }],
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(data),
+        },
+      ],
     };
   }
 }

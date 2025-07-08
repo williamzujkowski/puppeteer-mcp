@@ -18,16 +18,16 @@ const logger = createLogger('browser-health-checker');
 export interface HealthCheckOptions {
   /** Maximum memory usage in MB before considering unhealthy */
   maxMemoryMB: number;
-  
+
   /** Maximum number of pages before considering unhealthy */
   maxPageCount: number;
-  
+
   /** Timeout for responsiveness check in ms */
   responseTimeout: number;
-  
+
   /** Health check interval in ms */
   checkInterval: number;
-  
+
   /** Enable automatic recovery of unhealthy browsers */
   enableAutoRecovery?: boolean;
 }
@@ -38,22 +38,22 @@ export interface HealthCheckOptions {
 export interface HealthCheckResult {
   /** Overall health status */
   isHealthy: boolean;
-  
+
   /** Connection status */
   connectionHealthy: boolean;
-  
+
   /** Memory usage status */
   memoryHealthy: boolean;
-  
+
   /** Page count status */
   pageCountHealthy: boolean;
-  
+
   /** Responsiveness status */
   responsive: boolean;
-  
+
   /** Reason for unhealthy status */
   reason?: string;
-  
+
   /** Health metrics */
   metrics: {
     memoryUsageMB: number;
@@ -70,13 +70,13 @@ export interface HealthCheckResult {
 export interface RecoveryResult {
   /** Whether recovery was performed */
   recovered: boolean;
-  
+
   /** New browser instance if recovered */
   newBrowser?: Browser;
-  
+
   /** Health check result */
   health: HealthCheckResult;
-  
+
   /** Error if recovery failed */
   error?: Error;
 }
@@ -142,7 +142,7 @@ export class BrowserHealthChecker {
       // Check memory usage
       const memoryUsage = await this.checkMemoryUsage(instance.browser);
       result.metrics.memoryUsageMB = memoryUsage;
-      
+
       if (memoryUsage > this.config.maxMemoryMB) {
         result.memoryHealthy = false;
         result.isHealthy = false;
@@ -152,7 +152,7 @@ export class BrowserHealthChecker {
       // Check page count
       const pages = await instance.browser.pages();
       result.metrics.pageCount = pages.length;
-      
+
       if (pages.length > this.config.maxPageCount) {
         result.pageCountHealthy = false;
         result.isHealthy = false;
@@ -160,18 +160,24 @@ export class BrowserHealthChecker {
       }
 
       const duration = Date.now() - startTime;
-      logger.debug({
-        browserId: instance.id,
-        result,
-        duration,
-      }, 'Health check completed');
+      logger.debug(
+        {
+          browserId: instance.id,
+          result,
+          duration,
+        },
+        'Health check completed',
+      );
 
       return result;
     } catch (error) {
-      logger.error({
-        browserId: instance.id,
-        error,
-      }, 'Health check failed');
+      logger.error(
+        {
+          browserId: instance.id,
+          error,
+        },
+        'Health check failed',
+      );
 
       result.isHealthy = false;
       result.reason = error instanceof Error ? error.message : 'Unknown error';
@@ -195,7 +201,7 @@ export class BrowserHealthChecker {
       });
 
       const evalPromise = page?.evaluate(() => 1 + 1).then(() => true) ?? Promise.resolve(false);
-      
+
       return await Promise.race([evalPromise, timeoutPromise]);
     } catch (error) {
       logger.debug({ error }, 'Responsiveness check failed');
@@ -219,7 +225,7 @@ export class BrowserHealthChecker {
       }
       const metrics = await page.metrics();
       const memoryMB = (metrics.JSHeapUsedSize ?? 0) / (1024 * 1024);
-      
+
       return memoryMB;
     } catch (error) {
       logger.debug({ error }, 'Memory check failed');
@@ -232,32 +238,38 @@ export class BrowserHealthChecker {
    * @nist ac-12 "Session termination"
    * @nist au-6 "Audit review, analysis, and reporting"
    */
-  async restartBrowser(
-    instance: BrowserInstance,
-    launchOptions: LaunchOptions
-  ): Promise<Browser> {
-    logger.info({
-      browserId: instance.id,
-      pid: instance.pid,
-    }, 'Restarting unhealthy browser');
+  async restartBrowser(instance: BrowserInstance, launchOptions: LaunchOptions): Promise<Browser> {
+    logger.info(
+      {
+        browserId: instance.id,
+        pid: instance.pid,
+      },
+      'Restarting unhealthy browser',
+    );
 
     try {
       // Close the old browser
       await instance.browser.close();
     } catch (error) {
-      logger.error({
-        browserId: instance.id,
-        error,
-      }, 'Failed to close unhealthy browser');
+      logger.error(
+        {
+          browserId: instance.id,
+          error,
+        },
+        'Failed to close unhealthy browser',
+      );
     }
 
     // Launch new browser
     const newBrowser = await puppeteer.launch(launchOptions);
-    
-    logger.info({
-      browserId: instance.id,
-      newPid: newBrowser.process()?.pid,
-    }, 'Browser restarted successfully');
+
+    logger.info(
+      {
+        browserId: instance.id,
+        newPid: newBrowser.process()?.pid,
+      },
+      'Browser restarted successfully',
+    );
 
     return newBrowser;
   }
@@ -265,16 +277,14 @@ export class BrowserHealthChecker {
   /**
    * Check multiple browser instances
    */
-  async checkMultiple(
-    instances: BrowserInstance[]
-  ): Promise<Map<string, HealthCheckResult>> {
+  async checkMultiple(instances: BrowserInstance[]): Promise<Map<string, HealthCheckResult>> {
     const results = new Map<string, HealthCheckResult>();
-    
+
     await Promise.all(
       instances.map(async (instance) => {
         const result = await this.checkHealth(instance);
         results.set(instance.id, result);
-      })
+      }),
     );
 
     return results;
@@ -287,25 +297,28 @@ export class BrowserHealthChecker {
    */
   async checkAndRecover(
     instance: BrowserInstance,
-    launchOptions: LaunchOptions
+    launchOptions: LaunchOptions,
   ): Promise<RecoveryResult> {
     const health = await this.checkHealth(instance);
-    
+
     if (health.isHealthy === false && this.config.enableAutoRecovery === true) {
       try {
         const newBrowser = await this.restartBrowser(instance, launchOptions);
-        
+
         return {
           recovered: true,
           newBrowser,
           health,
         };
       } catch (error) {
-        logger.error({
-          browserId: instance.id,
-          error,
-        }, 'Failed to recover unhealthy browser');
-        
+        logger.error(
+          {
+            browserId: instance.id,
+            error,
+          },
+          'Failed to recover unhealthy browser',
+        );
+
         return {
           recovered: false,
           health,
@@ -327,10 +340,13 @@ export class BrowserHealthChecker {
   updateConfig(updates: Partial<HealthCheckOptions>): void {
     const newConfig = { ...this.config, ...updates };
     this.config = this.validateConfig(newConfig);
-    
-    logger.info({
-      ...updates,
-    }, 'Health checker configuration updated');
+
+    logger.info(
+      {
+        ...updates,
+      },
+      'Health checker configuration updated',
+    );
   }
 
   /**
@@ -340,15 +356,15 @@ export class BrowserHealthChecker {
     if (config.maxMemoryMB <= 0) {
       throw new Error('Invalid configuration: maxMemoryMB must be positive');
     }
-    
+
     if (config.maxPageCount <= 0) {
       throw new Error('Invalid configuration: maxPageCount must be positive');
     }
-    
+
     if (config.responseTimeout <= 0) {
       throw new Error('Invalid configuration: responseTimeout must be positive');
     }
-    
+
     if (config.checkInterval <= 0) {
       throw new Error('Invalid configuration: checkInterval must be positive');
     }
