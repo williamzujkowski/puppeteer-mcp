@@ -62,11 +62,11 @@ export class MCPServer {
     // Initialize store instances for this server
     sessionStore = new InMemorySessionStore(logger.child({ module: 'session-store' }));
     authBridge = new MCPAuthBridge(sessionStore, logger.child({ module: 'mcp-auth' }));
-    
+
     this.server = new Server(
       {
         name: 'puppeteer-mcp',
-        version: '1.0.11',
+        version: '1.0.14',
       },
       {
         capabilities: {

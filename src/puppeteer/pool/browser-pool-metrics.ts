@@ -100,33 +100,33 @@ export class BrowserPoolMetrics {
   private browsersCreated = 0;
   private browsersDestroyed = 0;
   private browserLifetimes: number[] = [];
-  
+
   // Queue metrics
   private queueWaitTimes: number[] = [];
   private totalQueued = 0;
   private totalDequeued = 0;
   private currentQueueLength = 0;
-  
+
   // Performance metrics with rolling windows
   private pageCreationTimes: MetricDataPoint[] = [];
   private pageDestructionTimes: MetricDataPoint[] = [];
   private healthCheckDurations: MetricDataPoint[] = [];
   private healthCheckResults: boolean[] = [];
-  
+
   // Error tracking
   private errorCount = 0;
   private recoverySuccesses = 0;
   private recoveryFailures = 0;
   private lastError?: { timestamp: Date; type: string; browserId?: string };
-  
+
   // Resource usage tracking
   private resourceMetrics: Map<string, ResourceMetrics> = new Map();
-  
+
   // Time series data (1-hour rolling window)
   private utilizationHistory: MetricDataPoint[] = [];
   private errorRateHistory: MetricDataPoint[] = [];
   private queueLengthHistory: MetricDataPoint[] = [];
-  
+
   // Configuration
   private readonly windowSize = 3600000; // 1 hour in ms
   private readonly maxDataPoints = 60; // Store 60 data points (1 per minute)
@@ -147,15 +147,15 @@ export class BrowserPoolMetrics {
   recordBrowserDestroyed(browserId: string, lifetime: number): void {
     this.browsersDestroyed++;
     this.browserLifetimes.push(lifetime);
-    
+
     // Keep only last 100 lifetimes for average calculation
     if (this.browserLifetimes.length > 100) {
       this.browserLifetimes.shift();
     }
-    
+
     // Clean up resource metrics for this browser
     this.resourceMetrics.delete(browserId);
-    
+
     logger.debug({ browserId, lifetime }, 'Browser destroyed');
   }
 
@@ -184,12 +184,12 @@ export class BrowserPoolMetrics {
   recordHealthCheck(duration: number, success: boolean): void {
     this.addMetricDataPoint(this.healthCheckDurations, duration);
     this.healthCheckResults.push(success);
-    
+
     // Keep only last 100 results
     if (this.healthCheckResults.length > 100) {
       this.healthCheckResults.shift();
     }
-    
+
     logger.debug({ duration, success }, 'Health check recorded');
   }
 
@@ -211,12 +211,12 @@ export class BrowserPoolMetrics {
     this.totalDequeued++;
     this.currentQueueLength = Math.max(0, this.currentQueueLength - 1);
     this.queueWaitTimes.push(waitTime);
-    
+
     // Keep only last 100 wait times
     if (this.queueWaitTimes.length > 100) {
       this.queueWaitTimes.shift();
     }
-    
+
     this.recordQueueLength();
   }
 
@@ -229,7 +229,7 @@ export class BrowserPoolMetrics {
     this.errorCount++;
     this.lastError = { timestamp: new Date(), type, browserId };
     this.recordErrorRate();
-    
+
     logger.warn({ type, browserId }, 'Error recorded');
   }
 
@@ -243,7 +243,7 @@ export class BrowserPoolMetrics {
     } else {
       this.recoveryFailures++;
     }
-    
+
     logger.info({ success, browserId }, 'Recovery attempt recorded');
   }
 
@@ -277,7 +277,7 @@ export class BrowserPoolMetrics {
     maxBrowsers: number,
   ): ExtendedPoolMetrics {
     const baseMetrics = getPoolMetrics(browsers, maxBrowsers);
-    
+
     // Calculate queue metrics
     const queueMetrics: QueueMetrics = {
       queueLength: this.currentQueueLength,
@@ -286,12 +286,13 @@ export class BrowserPoolMetrics {
       totalQueued: this.totalQueued,
       totalDequeued: this.totalDequeued,
     };
-    
+
     // Calculate error metrics
-    const errorRate = this.errorCount > 0 
-      ? (this.errorCount / (this.browsersCreated + this.browsersDestroyed)) * 100 
-      : 0;
-    
+    const errorRate =
+      this.errorCount > 0
+        ? (this.errorCount / (this.browsersCreated + this.browsersDestroyed)) * 100
+        : 0;
+
     const errorMetrics: ErrorMetrics = {
       totalErrors: this.errorCount,
       errorRate,
@@ -299,27 +300,29 @@ export class BrowserPoolMetrics {
       recoveryFailures: this.recoveryFailures,
       lastError: this.lastError,
     };
-    
+
     // Calculate performance metrics
     const avgPageCreationTime = this.calculateRecentAverage(this.pageCreationTimes);
     const avgPageDestructionTime = this.calculateRecentAverage(this.pageDestructionTimes);
-    
+
     // Calculate health check metrics
-    const successCount = this.healthCheckResults.filter(r => r).length;
+    const successCount = this.healthCheckResults.filter((r) => r).length;
     const healthCheckMetrics = {
       avgDuration: this.calculateRecentAverage(this.healthCheckDurations),
-      lastDuration: this.healthCheckDurations.length > 0 
-        ? this.healthCheckDurations[this.healthCheckDurations.length - 1]?.value ?? 0
-        : 0,
-      successRate: this.healthCheckResults.length > 0 
-        ? (successCount / this.healthCheckResults.length) * 100 
-        : 100,
+      lastDuration:
+        this.healthCheckDurations.length > 0
+          ? (this.healthCheckDurations[this.healthCheckDurations.length - 1]?.value ?? 0)
+          : 0,
+      successRate:
+        this.healthCheckResults.length > 0
+          ? (successCount / this.healthCheckResults.length) * 100
+          : 100,
       totalChecks: this.healthCheckResults.length,
     };
-    
+
     // Calculate resource metrics
     const resourceMetrics = this.calculateResourceMetrics();
-    
+
     // Update base metrics with our tracked values
     const extendedMetrics: ExtendedPoolMetrics = {
       ...baseMetrics,
@@ -338,7 +341,7 @@ export class BrowserPoolMetrics {
         queueLengthHistory: [...this.queueLengthHistory],
       },
     };
-    
+
     return extendedMetrics;
   }
 
@@ -349,7 +352,7 @@ export class BrowserPoolMetrics {
   private addMetricDataPoint(array: MetricDataPoint[], value: number): void {
     const now = new Date();
     array.push({ timestamp: now, value });
-    
+
     // Remove old data points outside the window
     const cutoff = new Date(now.getTime() - this.windowSize);
     while (array.length > 0 && array[0] && array[0].timestamp < cutoff) {
@@ -363,7 +366,7 @@ export class BrowserPoolMetrics {
    */
   private addTimeSeriesDataPoint(array: MetricDataPoint[], value: number): void {
     array.push({ timestamp: new Date(), value });
-    
+
     // Keep only last N data points
     if (array.length > this.maxDataPoints) {
       array.shift();
@@ -385,7 +388,7 @@ export class BrowserPoolMetrics {
    */
   private calculateRecentAverage(dataPoints: MetricDataPoint[]): number {
     if (dataPoints.length === 0) return 0;
-    const values = dataPoints.map(dp => dp.value);
+    const values = dataPoints.map((dp) => dp.value);
     return this.calculateAverage(values);
   }
 
@@ -393,13 +396,18 @@ export class BrowserPoolMetrics {
    * Calculate resource usage metrics
    * @private
    */
-  private calculateResourceMetrics(): { cpu: number; memory: number } {
+  private calculateResourceMetrics(): {
+    totalCpuUsage: number;
+    totalMemoryUsage: number;
+    avgCpuPerBrowser: number;
+    avgMemoryPerBrowser: number;
+  } {
     const activeMetrics = Array.from(this.resourceMetrics.values());
-    
+
     const totalCpu = activeMetrics.reduce((sum, m) => sum + m.cpuUsage, 0);
     const totalMemory = activeMetrics.reduce((sum, m) => sum + m.memoryUsage, 0);
     const count = activeMetrics.length;
-    
+
     return {
       totalCpuUsage: totalCpu,
       totalMemoryUsage: totalMemory,
@@ -421,9 +429,7 @@ export class BrowserPoolMetrics {
    * @private
    */
   private recordErrorRate(): void {
-    const rate = this.browsersCreated > 0 
-      ? (this.errorCount / this.browsersCreated) * 100 
-      : 0;
+    const rate = this.browsersCreated > 0 ? (this.errorCount / this.browsersCreated) * 100 : 0;
     this.addTimeSeriesDataPoint(this.errorRateHistory, rate);
   }
 }

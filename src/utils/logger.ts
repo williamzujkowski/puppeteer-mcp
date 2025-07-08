@@ -367,35 +367,65 @@ export const loggers = {
 };
 
 /**
+ * Helper function to safely get stream from logger instance
+ */
+const getLoggerStream = (loggerInstance: PinoLogger): unknown => {
+  const symbols = Object.getOwnPropertySymbols(loggerInstance);
+  const streamSymbol = symbols.find((s) => s.toString().includes('pino.stream'));
+
+  if (!streamSymbol) {
+    return null;
+  }
+
+  // Use bracket notation with symbol directly to avoid object injection
+  return loggerInstance[streamSymbol as keyof typeof loggerInstance];
+};
+
+/**
+ * Helper function to flush and end a stream
+ */
+const flushAndEndStream = (stream: unknown): void => {
+  if (stream === null || stream === undefined || typeof stream !== 'object') {
+    return;
+  }
+
+  const streamObj = stream as {
+    readyState?: string;
+    flushSync?: () => void;
+    end?: () => void;
+  };
+
+  // Try to flush synchronously if ready
+  if (streamObj.readyState !== 'opening' && typeof streamObj.flushSync === 'function') {
+    try {
+      streamObj.flushSync();
+    } catch {
+      // Ignore flush errors
+    }
+  }
+
+  // End the stream
+  if (typeof streamObj.end === 'function') {
+    streamObj.end();
+  }
+};
+
+/**
  * Cleanup function for tests
  */
-export const cleanupLoggers = async (): Promise<void> => {
+export const cleanupLoggers = (): void => {
   // Flush and close audit logger if it exists
-  if (auditLoggerInstance) {
-    try {
-      const symbols = Object.getOwnPropertySymbols(auditLoggerInstance);
-      const streamSymbol = symbols.find(s => s.toString().includes('pino.stream'));
-      if (streamSymbol) {
-        const stream = (auditLoggerInstance as any)[streamSymbol];
-        if (stream !== null && stream !== undefined && typeof stream === 'object') {
-          // Try to flush synchronously if ready
-          if ((stream as any).readyState !== 'opening' && typeof (stream as any).flushSync === 'function') {
-            try {
-              (stream as any).flushSync();
-            } catch {
-              // Ignore flush errors
-            }
-          }
-          // End the stream
-          if (typeof (stream as any).end === 'function') {
-            (stream as any).end();
-          }
-        }
-      }
-    } catch {
-      // Ignore cleanup errors in tests
-    }
-    auditLoggerInstance = null;
-    auditLoggerPromise = null;
+  if (!auditLoggerInstance) {
+    return;
   }
+
+  try {
+    const stream = getLoggerStream(auditLoggerInstance);
+    flushAndEndStream(stream);
+  } catch {
+    // Ignore cleanup errors in tests
+  }
+
+  auditLoggerInstance = null;
+  auditLoggerPromise = null;
 };

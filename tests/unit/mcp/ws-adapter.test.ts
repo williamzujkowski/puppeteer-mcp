@@ -261,7 +261,7 @@ describe('WebSocketAdapter', () => {
       const capabilities = await adapter.getCapabilities();
 
       expect(capabilities.protocol).toBe('websocket');
-      expect(capabilities.version).toBe('1.0.0');
+      expect(capabilities.version).toBe('1.0.14');
       expect(capabilities.features).toContain('real-time-messaging');
       expect(capabilities.features).toContain('pub-sub');
       expect(capabilities.features).toContain('authentication');

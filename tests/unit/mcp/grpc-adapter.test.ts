@@ -295,7 +295,7 @@ describe('GrpcAdapter', () => {
 
       // Assert
       expect(capabilities.protocol).toBe('grpc');
-      expect(capabilities.version).toBe('1.0.0');
+      expect(capabilities.version).toBe('1.0.14');
       expect(capabilities.features).toContain('unary-calls');
       expect(capabilities.features).toContain('server-streaming');
       expect(capabilities.features).toContain('jwt-authentication');

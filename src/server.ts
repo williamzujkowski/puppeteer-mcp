@@ -168,7 +168,7 @@ export function createApp(): Application {
   app.get('/', (_req, res) => {
     res.json({
       name: 'puppeteer-mcp',
-      version: '1.0.9',
+      version: '1.0.14',
       description: 'Production-ready AI-enabled browser automation platform',
       endpoints: {
         health: '/health',

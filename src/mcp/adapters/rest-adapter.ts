@@ -306,7 +306,7 @@ export class RestAdapter implements ProtocolAdapter {
   }> {
     return Promise.resolve({
       protocol: 'rest',
-      version: '1.0.0',
+      version: '1.0.14',
       features: [
         'http-methods',
         'query-parameters',

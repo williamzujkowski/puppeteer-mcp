@@ -47,7 +47,7 @@ export function setupProtocolHandlers(server: Server): void {
       },
       serverInfo: {
         name: 'puppeteer-mcp',
-        version: '1.0.11',
+        version: '1.0.14',
         title: 'Puppeteer MCP Server',
       },
       instructions:

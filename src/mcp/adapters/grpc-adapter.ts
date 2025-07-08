@@ -652,7 +652,7 @@ export class GrpcAdapter implements ProtocolAdapter {
       ],
       metadata: {
         protocol: 'grpc',
-        version: '1.0.0',
+        version: '1.0.14',
         timestamp: new Date().toISOString(),
       },
     });
@@ -669,7 +669,7 @@ export class GrpcAdapter implements ProtocolAdapter {
   }> {
     return Promise.resolve({
       protocol: 'grpc',
-      version: '1.0.0',
+      version: '1.0.14',
       features: [
         'unary-calls',
         'server-streaming',

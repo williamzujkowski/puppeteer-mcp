@@ -22,7 +22,7 @@ export class HealthServiceImpl {
     this.serviceStatus.set('', {
       status: 'SERVING',
       metadata: {
-        version: process.env.npm_package_version ?? '1.0.0',
+        version: process.env.npm_package_version ?? '1.0.14',
         uptime: '0s',
         startTime: new Date().toISOString(),
       },

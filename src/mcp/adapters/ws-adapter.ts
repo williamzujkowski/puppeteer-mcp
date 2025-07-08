@@ -729,7 +729,7 @@ export class WebSocketAdapter implements ProtocolAdapter {
   }> {
     return Promise.resolve({
       protocol: 'websocket',
-      version: '1.0.0',
+      version: '1.0.14',
       features: [
         'real-time-messaging',
         'pub-sub',

@@ -5,7 +5,7 @@
  */
 
 import { Router, Request, Response, NextFunction } from 'express';
-import type { SessionStore } from '../store/session-store.js';
+import type { SessionStore } from '../store/session-store.interface.js';
 import type { BrowserPool } from '../puppeteer/pool/browser-pool.js';
 import { createAuthMiddleware } from '../auth/middleware.js';
 
@@ -35,7 +35,9 @@ interface ExtendedPoolMetrics {
  * Helper function to safely get extended metrics from browser pool
  */
 function getExtendedMetrics(browserPool: BrowserPool): ExtendedPoolMetrics {
-  return (browserPool as unknown as { getExtendedMetrics(): ExtendedPoolMetrics }).getExtendedMetrics();
+  return (
+    browserPool as unknown as { getExtendedMetrics(): ExtendedPoolMetrics }
+  ).getExtendedMetrics();
 }
 
 /**
@@ -114,15 +116,15 @@ function createTimeSeriesResponse(metrics: ExtendedPoolMetrics): unknown {
     status: 'success',
     timestamp: new Date().toISOString(),
     data: {
-      utilization: metrics.utilizationHistory.map(point => ({
+      utilization: metrics.utilizationHistory.map((point) => ({
         timestamp: point.timestamp.toISOString(),
         value: point.value,
       })),
-      errorRate: metrics.errorHistory.map(point => ({
+      errorRate: metrics.errorHistory.map((point) => ({
         timestamp: point.timestamp.toISOString(),
         value: point.value,
       })),
-      queueLength: metrics.queueHistory.map(point => ({
+      queueLength: metrics.queueHistory.map((point) => ({
         timestamp: point.timestamp.toISOString(),
         value: point.value,
       })),
@@ -147,14 +149,14 @@ function createGetOnlyMiddleware() {
  * Creates detailed metrics route handler
  */
 function createDetailedMetricsHandler(browserPool: BrowserPool) {
-  return (req: Request, res: Response): void => {
+  return (_req: Request, res: Response): void => {
     try {
       const metrics = getExtendedMetrics(browserPool);
       const response = createDetailedMetricsResponse(metrics);
       res.json(response);
     } catch {
-      res.status(500).json({ 
-        status: 'error', 
+      res.status(500).json({
+        status: 'error',
         message: 'Failed to retrieve browser pool metrics',
         timestamp: new Date().toISOString(),
       });
@@ -166,14 +168,14 @@ function createDetailedMetricsHandler(browserPool: BrowserPool) {
  * Creates summary metrics route handler
  */
 function createSummaryMetricsHandler(browserPool: BrowserPool) {
-  return (req: Request, res: Response): void => {
+  return (_req: Request, res: Response): void => {
     try {
       const metrics = getExtendedMetrics(browserPool);
       const response = createSummaryMetricsResponse(metrics);
       res.json(response);
     } catch {
-      res.status(500).json({ 
-        status: 'error', 
+      res.status(500).json({
+        status: 'error',
         message: 'Failed to retrieve browser pool summary',
         timestamp: new Date().toISOString(),
       });
@@ -185,14 +187,14 @@ function createSummaryMetricsHandler(browserPool: BrowserPool) {
  * Creates time-series route handler
  */
 function createTimeSeriesHandler(browserPool: BrowserPool) {
-  return (req: Request, res: Response): void => {
+  return (_req: Request, res: Response): void => {
     try {
       const metrics = getExtendedMetrics(browserPool);
       const response = createTimeSeriesResponse(metrics);
       res.json(response);
     } catch {
-      res.status(500).json({ 
-        status: 'error', 
+      res.status(500).json({
+        status: 'error',
         message: 'Failed to retrieve time-series data',
         timestamp: new Date().toISOString(),
       });
