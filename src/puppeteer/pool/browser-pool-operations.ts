@@ -77,12 +77,11 @@ export async function createPage(
 /**
  * Close a page in a browser
  */
-// eslint-disable-next-line @typescript-eslint/require-await
-export async function closePage(
+export function closePage(
   browserId: string,
   sessionId: string,
   browsers: Map<string, InternalBrowserInstance>,
-): Promise<void> {
+): void {
   const instance = browsers.get(browserId);
   if (!instance) {
     return;
@@ -95,6 +94,20 @@ export async function closePage(
   // Decrement page count
   instance.pageCount = Math.max(0, instance.pageCount - 1);
   instance.lastUsedAt = new Date();
+
+  // If browser has no more pages, it should be released
+  if (instance.pageCount === 0 && instance.sessionId) {
+    logger.info({
+      msg: 'Browser has no active pages, marking for release',
+      browserId,
+      sessionId: instance.sessionId,
+      state: instance.state,
+    });
+    
+    // Note: The actual release should be handled by the browser pool
+    // This function just updates the state. The pool's cleanup process
+    // or the page manager should trigger the actual release.
+  }
 }
 
 /**

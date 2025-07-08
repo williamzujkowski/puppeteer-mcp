@@ -309,6 +309,16 @@ export class BrowserPool extends EventEmitter implements IBrowserPool {
     const duration = Date.now() - startTime;
     this.metrics.recordPageDestruction(duration);
     
+    // Check if browser should be released after page closure
+    const instance = this.browsers.get(browserId);
+    if (instance && instance.pageCount === 0 && instance.state === 'active') {
+      // Emit event for tracking
+      this.emit('browser:releasing', { browserId, sessionId, reason: 'no_pages' });
+      
+      // Release the browser back to the pool
+      await this.releaseBrowser(browserId, sessionId);
+    }
+    
     // Record utilization after page closure
     const utilization = (this.browsers.size / this.options.maxBrowsers) * 100;
     this.metrics.recordUtilization(utilization);

@@ -44,6 +44,10 @@ export async function executeTool(
       return tools.browserContextTool.createBrowserContext(args as CreateBrowserContextArgs);
     case 'execute-in-context':
       return tools.executeInContextTool.execute(args as ExecuteInContextArgs);
+    case 'close-browser-context':
+      return tools.browserContextTool.closeBrowserContext(args as { contextId: string; sessionId: string });
+    case 'list-browser-contexts':
+      return tools.browserContextTool.listBrowserContexts(args as { sessionId: string });
     default:
       throw new McpError(ErrorCode.MethodNotFound, `Unknown tool: ${name}`);
   }

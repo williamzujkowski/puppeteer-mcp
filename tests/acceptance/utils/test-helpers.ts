@@ -75,7 +75,7 @@ export async function makeRequest(
   } = {}
 ): Promise<AxiosResponse> {
   return retryOperation(async () => {
-    return await axios({
+    return axios({
       url,
       method: options.method ?? 'GET',
       headers: {

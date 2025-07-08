@@ -3,15 +3,10 @@
  * @module tests/acceptance/utils/mcp-client
  */
 
-import { spawn, ChildProcess } from 'child_process';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import { TEST_CONFIG } from './test-config.js';
 import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 export interface MCPTestClient {
   client: Client;
@@ -28,26 +23,19 @@ export interface MCPSessionInfo {
  */
 export async function createMCPClient(): Promise<MCPTestClient> {
   // Path to the built MCP server
-  const mcpServerPath = path.resolve(__dirname, '../../../dist/mcp/start-mcp.js');
+  // Use process.cwd() as the base since tests run from project root
+  const mcpServerPath = path.resolve(process.cwd(), 'dist/mcp/start-mcp.js');
   
-  // Start the MCP server as a child process
-  const serverProcess: ChildProcess = spawn('node', [mcpServerPath], {
-    stdio: ['pipe', 'pipe', 'pipe'],
+  // Create client transport using stdio - it will spawn the server process
+  const transport = new StdioClientTransport({
+    command: 'node',
+    args: [mcpServerPath],
     env: {
       ...process.env,
       NODE_ENV: 'test',
       LOG_LEVEL: 'silent',
+      MCP_TRANSPORT: 'stdio',
     },
-  });
-
-  if (!serverProcess.stdin || !serverProcess.stdout) {
-    throw new Error('Failed to start MCP server process');
-  }
-
-  // Create client transport using stdio
-  const transport = new StdioClientTransport({
-    stdin: serverProcess.stdin,
-    stdout: serverProcess.stdout,
   });
 
   // Create and connect client
@@ -65,30 +53,18 @@ export async function createMCPClient(): Promise<MCPTestClient> {
 
   await client.connect(transport);
 
-  const cleanup = async () => {
+  const cleanup = async (): Promise<void> => {
     try {
       await client.close();
     } catch (error) {
       console.warn('Error closing MCP client:', error);
     }
     
+    // The transport should handle closing the server process
     try {
-      serverProcess.kill('SIGTERM');
-      
-      // Give process time to exit gracefully
-      await new Promise<void>((resolve) => {
-        const timeout = setTimeout(() => {
-          serverProcess.kill('SIGKILL');
-          resolve();
-        }, 5000);
-        
-        serverProcess.on('exit', () => {
-          clearTimeout(timeout);
-          resolve();
-        });
-      });
+      await transport.close();
     } catch (error) {
-      console.warn('Error killing MCP server process:', error);
+      console.warn('Error closing MCP transport:', error);
     }
   };
 
@@ -99,12 +75,12 @@ export async function createMCPClient(): Promise<MCPTestClient> {
  * Create a browser session through MCP
  */
 export async function createMCPSession(client: Client): Promise<MCPSessionInfo> {
-  // Create session
+  // Create session using demo credentials
   const sessionResult = await client.callTool({
-    name: 'createSession',
+    name: 'create-session',
     arguments: {
-      username: 'test-user',
-      password: 'test-password',
+      username: 'demo',
+      password: 'demo123!',
       duration: 3600, // 1 hour
     },
   });
@@ -114,14 +90,13 @@ export async function createMCPSession(client: Client): Promise<MCPSessionInfo> 
   }
 
   const sessionData = JSON.parse(sessionResult.content[0].text);
-  const sessionId = sessionData.id;
+  const sessionId = sessionData.sessionId;
 
   // Create browser context
   const contextResult = await client.callTool({
-    name: 'createContext',
+    name: 'create-browser-context',
     arguments: {
       sessionId,
-      type: 'puppeteer',
       options: {
         headless: TEST_CONFIG.headless,
         viewport: TEST_CONFIG.viewport,
@@ -135,6 +110,12 @@ export async function createMCPSession(client: Client): Promise<MCPSessionInfo> 
   }
 
   const contextData = JSON.parse(contextResult.content[0].text);
+  
+  // Check for error in response
+  if (contextData.error) {
+    throw new Error(`Failed to create browser context: ${contextData.error}`);
+  }
+  
   const contextId = contextData.contextId;
 
   return { sessionId, contextId };
@@ -149,10 +130,13 @@ export async function mcpNavigate(
   url: string
 ): Promise<void> {
   const result = await client.callTool({
-    name: 'navigate',
+    name: 'execute-in-context',
     arguments: {
       contextId,
-      url,
+      command: 'navigate',
+      parameters: {
+        url,
+      },
     },
   });
 
@@ -161,8 +145,9 @@ export async function mcpNavigate(
   }
 
   const data = JSON.parse(result.content[0].text);
-  if (!data.success) {
-    throw new Error(`Navigation failed: ${data.error || 'Unknown error'}`);
+  // Check for error response format
+  if (data.error) {
+    throw new Error(`Navigation failed: ${data.error}`);
   }
 }
 
@@ -175,10 +160,13 @@ export async function mcpClick(
   selector: string
 ): Promise<void> {
   const result = await client.callTool({
-    name: 'click',
+    name: 'execute-in-context',
     arguments: {
       contextId,
-      selector,
+      command: 'click',
+      parameters: {
+        selector,
+      },
     },
   });
 
@@ -187,9 +175,9 @@ export async function mcpClick(
     throw new Error('Click failed');
   }
 
-  const data = JSON.parse(resultText) as { success: boolean; error?: string };
-  if (!data.success) {
-    throw new Error(`Click failed: ${data.error ?? 'Unknown error'}`);
+  const data = JSON.parse(resultText) as { error?: string };
+  if (data.error) {
+    throw new Error(`Click failed: ${data.error}`);
   }
 }
 
@@ -203,11 +191,14 @@ export async function mcpType(
   text: string
 ): Promise<void> {
   const result = await client.callTool({
-    name: 'type',
+    name: 'execute-in-context',
     arguments: {
       contextId,
-      selector,
-      text,
+      command: 'type',
+      parameters: {
+        selector,
+        text,
+      },
     },
   });
 
@@ -216,9 +207,9 @@ export async function mcpType(
     throw new Error('Type failed');
   }
 
-  const data = JSON.parse(resultText) as { success: boolean; error?: string };
-  if (!data.success) {
-    throw new Error(`Type failed: ${data.error ?? 'Unknown error'}`);
+  const data = JSON.parse(resultText) as { error?: string };
+  if (data.error) {
+    throw new Error(`Type failed: ${data.error}`);
   }
 }
 
@@ -231,10 +222,13 @@ export async function mcpGetContent(
   selector?: string
 ): Promise<string> {
   const result = await client.callTool({
-    name: 'getContent',
+    name: 'execute-in-context',
     arguments: {
       contextId,
-      selector,
+      command: 'getContent',
+      parameters: {
+        selector,
+      },
     },
   });
 
@@ -243,12 +237,13 @@ export async function mcpGetContent(
     throw new Error('Get content failed');
   }
 
-  const data = JSON.parse(resultText) as { success: boolean; error?: string; content: string };
-  if (!data.success) {
-    throw new Error(`Get content failed: ${data.error ?? 'Unknown error'}`);
+  const data = JSON.parse(resultText) as { error?: string; success?: boolean; data?: string };
+  if (data.error) {
+    throw new Error(`Get content failed: ${data.error}`);
   }
 
-  return data.content;
+  // The content is returned in the data field from the execute-in-context response
+  return data.data ?? '';
 }
 
 /**
@@ -261,11 +256,14 @@ export async function mcpWaitForSelector(
   timeout?: number
 ): Promise<void> {
   const result = await client.callTool({
-    name: 'waitForSelector',
+    name: 'execute-in-context',
     arguments: {
       contextId,
-      selector,
-      timeout: timeout || TEST_CONFIG.timeout,
+      command: 'waitForSelector',
+      parameters: {
+        selector,
+        timeout: timeout ?? TEST_CONFIG.timeout,
+      },
     },
   });
 
@@ -274,9 +272,9 @@ export async function mcpWaitForSelector(
     throw new Error('Wait for selector failed');
   }
 
-  const data = JSON.parse(resultText) as { success: boolean; error?: string };
-  if (!data.success) {
-    throw new Error(`Wait for selector failed: ${data.error ?? 'Unknown error'}`);
+  const data = JSON.parse(resultText) as { error?: string };
+  if (data.error) {
+    throw new Error(`Wait for selector failed: ${data.error}`);
   }
 }
 
@@ -289,10 +287,13 @@ export async function mcpScreenshot(
   filename?: string
 ): Promise<string> {
   const result = await client.callTool({
-    name: 'screenshot',
+    name: 'execute-in-context',
     arguments: {
       contextId,
-      filename,
+      command: 'screenshot',
+      parameters: {
+        filename,
+      },
     },
   });
 
@@ -301,12 +302,12 @@ export async function mcpScreenshot(
     throw new Error('Screenshot failed');
   }
 
-  const data = JSON.parse(resultText) as { success: boolean; error?: string; filename: string };
-  if (!data.success) {
-    throw new Error(`Screenshot failed: ${data.error ?? 'Unknown error'}`);
+  const data = JSON.parse(resultText) as { error?: string; filename?: string };
+  if (data.error) {
+    throw new Error(`Screenshot failed: ${data.error}`);
   }
 
-  return data.filename;
+  return data.filename ?? '';
 }
 
 /**
@@ -316,27 +317,25 @@ export async function cleanupMCPSession(
   client: Client,
   sessionInfo: MCPSessionInfo
 ): Promise<void> {
+  // The enhanced delete-session operation now properly cleans up all associated resources
+  // including contexts and pages, so we just need to delete the session
+  
   try {
-    // Close context first
-    await client.callTool({
-      name: 'closeContext',
-      arguments: {
-        contextId: sessionInfo.contextId,
-      },
-    });
-  } catch (error) {
-    console.warn('Error closing context:', error);
-  }
-
-  try {
-    // Close session
-    await client.callTool({
-      name: 'closeSession',
+    // Delete session - this will cascade cleanup to all contexts and pages
+    const result = await client.callTool({
+      name: 'delete-session',
       arguments: {
         sessionId: sessionInfo.sessionId,
       },
     });
+    
+    if (result.content?.[0]?.text) {
+      const response = JSON.parse(result.content[0].text);
+      if (response.success) {
+        console.warn(`Session ${sessionInfo.sessionId} cleaned up successfully`);
+      }
+    }
   } catch (error) {
-    console.warn('Error closing session:', error);
+    console.warn('Error deleting session:', error);
   }
 }

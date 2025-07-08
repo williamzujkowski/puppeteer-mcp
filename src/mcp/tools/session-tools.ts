@@ -15,6 +15,9 @@ import type {
   ToolResponse,
   ToolErrorResponse
 } from '../types/tool-types.js';
+import { contextStore } from '../../store/context-store.js';
+import { getPageManager } from '../../puppeteer/pages/page-manager.js';
+import { browserPool } from '../../server.js';
 
 /**
  * Session tools handler
@@ -180,6 +183,49 @@ export class SessionTools {
       const session = await this.sessionStore.get(args.sessionId);
       if (!session) {
         return this.errorResponse('Session not found', 'SESSION_NOT_FOUND');
+      }
+      
+      // Clean up browser resources before deleting session
+      logger.info({
+        msg: 'Cleaning up browser resources for session',
+        sessionId: args.sessionId,
+      });
+      
+      try {
+        // Get all contexts for this session
+        const contexts = await contextStore.list({ sessionId: args.sessionId });
+        logger.info({
+          msg: 'Found contexts for session',
+          sessionId: args.sessionId,
+          contextCount: contexts.length,
+        });
+        
+        // Get page manager instance
+        const pageManager = getPageManager(browserPool);
+        
+        // Close all pages for this session
+        await pageManager.closePagesForSession(args.sessionId);
+        logger.info({
+          msg: 'Closed all pages for session',
+          sessionId: args.sessionId,
+        });
+        
+        // Delete all contexts for this session
+        for (const context of contexts) {
+          await contextStore.delete(context.id);
+          logger.info({
+            msg: 'Deleted context',
+            contextId: context.id,
+            sessionId: args.sessionId,
+          });
+        }
+      } catch (cleanupError) {
+        logger.error({
+          msg: 'Error during browser resource cleanup',
+          error: cleanupError instanceof Error ? cleanupError.message : 'Unknown error',
+          sessionId: args.sessionId,
+        });
+        // Continue with session deletion even if cleanup fails
       }
       
       // Delete the session

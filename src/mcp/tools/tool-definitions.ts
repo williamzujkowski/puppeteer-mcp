@@ -108,4 +108,29 @@ export const TOOL_DEFINITIONS = [
       required: ['contextId', 'command'],
     },
   },
+  {
+    name: 'close-browser-context',
+    title: 'Close Browser Context',
+    description: 'Close a browser context and all its pages',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        contextId: { type: 'string', description: 'Context ID to close' },
+        sessionId: { type: 'string', description: 'Session ID that owns the context' },
+      },
+      required: ['contextId', 'sessionId'],
+    },
+  },
+  {
+    name: 'list-browser-contexts',
+    title: 'List Browser Contexts',
+    description: 'List all browser contexts for a session',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        sessionId: { type: 'string', description: 'Session ID to list contexts for' },
+      },
+      required: ['sessionId'],
+    },
+  },
 ];

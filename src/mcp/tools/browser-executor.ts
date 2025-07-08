@@ -44,12 +44,13 @@ export class BrowserExecutor {
     }
 
     try {
-      // Create browser pool with minimal configuration
+      // Create browser pool with configuration suitable for testing
       this.browserPool = new BrowserPool({
-        maxBrowsers: 2,
-        maxPagesPerBrowser: 5,
-        idleTimeout: 60000, // 1 minute
-        healthCheckInterval: 30000, // 30 seconds
+        maxBrowsers: 5, // Increased for concurrent tests
+        maxPagesPerBrowser: 10, // Increased for more pages
+        idleTimeout: 30000, // 30 seconds - reduced for faster cleanup
+        healthCheckInterval: 15000, // 15 seconds
+        acquisitionTimeout: 60000, // 60 seconds - increased timeout
         launchOptions: {
           headless: true,
           args: [
@@ -57,6 +58,7 @@ export class BrowserExecutor {
             '--disable-setuid-sandbox',
             '--disable-dev-shm-usage',
             '--disable-gpu',
+            '--disable-web-security', // For testing cross-origin requests
           ],
         },
       });
@@ -171,6 +173,9 @@ export class BrowserExecutor {
       pdf: 'pdf',
       setCookie: 'cookie',
       getCookies: 'cookie',
+      getContent: 'content',
+      content: 'content',
+      close: 'close',
     };
 
     return commandMap[command.toLowerCase()] ?? command;
@@ -277,6 +282,18 @@ export class BrowserExecutor {
   }
 
   /**
+   * Create content action
+   */
+  private createContentAction(parameters?: Record<string, unknown>): BrowserAction {
+    return {
+      type: 'content',
+      pageId: '',
+      selector: parameters?.selector as string | undefined,
+      timeout: (parameters?.timeout as number) ?? 30000,
+    };
+  }
+
+  /**
    * Parse command string into browser action
    */
   private parseCommand(command: string, parameters?: Record<string, unknown>): BrowserAction {
@@ -298,6 +315,8 @@ export class BrowserExecutor {
         return this.createEvaluateAction(parameters);
       case 'scroll':
         return this.createScrollAction(parameters);
+      case 'content':
+        return this.createContentAction(parameters);
       default:
         // Generic action with all parameters
         return {
