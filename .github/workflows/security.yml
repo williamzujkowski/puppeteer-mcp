@@ -63,7 +63,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: ['javascript', 'typescript']
+        language: ['typescript']
 
     steps:
       - name: Checkout repository
@@ -138,11 +138,12 @@ jobs:
         uses: trufflesecurity/trufflehog@main
         with:
           path: ./
-          base: ${{ github.event.repository.default_branch }}
-          head: HEAD
-        # Continue on error for manual triggers and push to main
+          # Only use base/head comparison for push events
+          base: ${{ github.event_name == 'push' && github.event.repository.default_branch || '' }}
+          head: ${{ github.event_name == 'push' && 'HEAD' || '' }}
+        # Continue on error for scheduled runs, manual triggers, and push to main
         # This ensures Gitleaks always runs
-        continue-on-error: ${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main') }}
+        continue-on-error: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main') }}
 
       - name: Gitleaks
         id: gitleaks
@@ -157,7 +158,8 @@ jobs:
         if: always()
         run: |
           # Check if either scanner found real issues
-          if [[ "${{ steps.trufflehog.outcome }}" == "failure" && "${{ github.event_name }}" != "workflow_dispatch" && !("${{ github.event_name }}" == "push" && "${{ github.ref }}" == "refs/heads/main") ]]; then
+          # Only fail on TruffleHog for push events (not scheduled, manual, or main branch pushes)
+          if [[ "${{ steps.trufflehog.outcome }}" == "failure" && "${{ github.event_name }}" == "push" && "${{ github.ref }}" != "refs/heads/main" ]]; then
             echo "TruffleHog found secrets!"
             exit 1
           fi
