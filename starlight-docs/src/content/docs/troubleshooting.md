@@ -122,6 +122,11 @@ which puppeteer-mcp
    sudo apt-get install -y chromium-browser chromium-codecs-ffmpeg
 
    # Install additional dependencies
+   # Note: On Ubuntu 24.04+, libasound2 is replaced by libasound2t64
+   sudo apt-get install -y \
+     libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 \
+     libxkbcommon0 libxcomposite1 libxdamage1 libxrandr2 \
+     libgbm1 libgtk-3-0 libasound2t64 || \
    sudo apt-get install -y \
      libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 \
      libxkbcommon0 libxcomposite1 libxdamage1 libxrandr2 \
