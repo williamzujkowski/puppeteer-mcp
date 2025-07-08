@@ -87,15 +87,15 @@ jobs:
           file: ./coverage/lcov.info
           fail_ci_if_error: false
 
-      - name: Upload test results
+      - name: Upload test results and coverage
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: test-results-node-${{ matrix.node-version }}
           path: |
-            ./test-results/
             ./coverage/
           retention-days: 7
+          if-no-files-found: warn
 
       - name: Standards compliance check
         run: npm run standards:check || node scripts/standards-check.js
