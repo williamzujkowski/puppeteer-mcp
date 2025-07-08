@@ -7,6 +7,7 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import { TEST_CONFIG } from './test-config.js';
 import path from 'path';
+import { existsSync } from 'fs';
 
 export interface MCPTestClient {
   client: Client;
@@ -25,6 +26,11 @@ export async function createMCPClient(): Promise<MCPTestClient> {
   // Path to the built MCP server
   // Use process.cwd() as the base since tests run from project root
   const mcpServerPath = path.resolve(process.cwd(), 'dist/mcp/start-mcp.js');
+
+  // Verify the server file exists
+  if (!existsSync(mcpServerPath)) {
+    throw new Error(`MCP server not found at ${mcpServerPath}. Did you run 'npm run build'?`);
+  }
 
   // Create client transport using stdio - it will spawn the server process
   const transport = new StdioClientTransport({
@@ -52,7 +58,22 @@ export async function createMCPClient(): Promise<MCPTestClient> {
     },
   );
 
-  await client.connect(transport);
+  // Add timeout to prevent hanging
+  const connectTimeout = 30000; // 30 seconds
+  const connectPromise = client.connect(transport);
+
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    setTimeout(() => {
+      reject(new Error(`Failed to connect to MCP server within ${connectTimeout}ms`));
+    }, connectTimeout);
+  });
+
+  try {
+    await Promise.race([connectPromise, timeoutPromise]);
+  } catch (error) {
+    await transport.close().catch(() => {});
+    throw error;
+  }
 
   const cleanup = async (): Promise<void> => {
     try {

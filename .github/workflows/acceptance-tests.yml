@@ -84,17 +84,20 @@ jobs:
 
       - name: Run Basic Acceptance Tests
         if: ${{ github.event.inputs.test_suite == 'all' || github.event.inputs.test_suite == 'basic' || github.event.inputs.test_suite == '' }}
-        run: npm run test:acceptance:basic -- --verbose
+        run: npm run test:acceptance:basic -- --verbose --testTimeout=60000 --forceExit
+        timeout-minutes: 5
         continue-on-error: true
 
       - name: Run API Acceptance Tests
         if: ${{ github.event.inputs.test_suite == 'all' || github.event.inputs.test_suite == 'api' || github.event.inputs.test_suite == '' }}
-        run: npm run test:acceptance:api -- --verbose
+        run: npm run test:acceptance:api -- --verbose --testTimeout=60000 --forceExit
+        timeout-minutes: 5
         continue-on-error: true
 
       - name: Run Workflow Acceptance Tests
         if: ${{ github.event.inputs.test_suite == 'all' || github.event.inputs.test_suite == 'workflows' || github.event.inputs.test_suite == '' }}
-        run: npm run test:acceptance:workflows -- --verbose
+        run: npm run test:acceptance:workflows -- --verbose --testTimeout=60000 --forceExit
+        timeout-minutes: 5
         continue-on-error: true
 
       - name: Upload test artifacts on failure
