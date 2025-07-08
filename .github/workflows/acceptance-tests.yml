@@ -63,62 +63,29 @@ jobs:
       - name: Build project
         run: npm run build
 
-      - name: Install Chrome dependencies
+      - name: Install Puppeteer with Chrome
         run: |
+          # Let Puppeteer download Chrome automatically
+          npx puppeteer browsers install chrome
+          # Install minimal system dependencies that Puppeteer needs
           sudo apt-get update
-          sudo apt-get install -y \
-            ca-certificates \
-            fonts-liberation \
-            libappindicator3-1 \
-            libasound2 \
-            libatk-bridge2.0-0 \
-            libatk1.0-0 \
-            libc6 \
-            libcairo2 \
-            libcups2 \
-            libdbus-1-3 \
-            libexpat1 \
-            libfontconfig1 \
-            libgbm1 \
-            libgcc1 \
-            libglib2.0-0 \
-            libgtk-3-0 \
-            libnspr4 \
-            libnss3 \
-            libpango-1.0-0 \
-            libpangocairo-1.0-0 \
-            libstdc++6 \
-            libx11-6 \
-            libx11-xcb1 \
-            libxcb1 \
-            libxcomposite1 \
-            libxcursor1 \
-            libxdamage1 \
-            libxext6 \
-            libxfixes3 \
-            libxi6 \
-            libxrandr2 \
-            libxrender1 \
-            libxss1 \
-            libxtst6 \
-            lsb-release \
-            wget \
-            xdg-utils
+          sudo apt-get install -y libgbm-dev libxss1 libgtk-3-0 libnss3 libasound2
+
+      - name: Create test directories
+        run: |
+          mkdir -p screenshots logs coverage/acceptance
 
       - name: Run Basic Acceptance Tests
         if: ${{ github.event.inputs.test_suite == 'all' || github.event.inputs.test_suite == 'basic' || github.event.inputs.test_suite == '' }}
         run: npm run test:acceptance:basic
-        continue-on-error: true
 
       - name: Run API Acceptance Tests
         if: ${{ github.event.inputs.test_suite == 'all' || github.event.inputs.test_suite == 'api' || github.event.inputs.test_suite == '' }}
         run: npm run test:acceptance:api
-        continue-on-error: true
 
       - name: Run Workflow Acceptance Tests
         if: ${{ github.event.inputs.test_suite == 'all' || github.event.inputs.test_suite == 'workflows' || github.event.inputs.test_suite == '' }}
         run: npm run test:acceptance:workflows
-        continue-on-error: true
 
       - name: Upload test artifacts on failure
         if: failure()

@@ -8,13 +8,11 @@
 FROM node:22-alpine AS security-scan
 WORKDIR /scan
 
-# Install security scanning tools
-RUN apk add --no-cache python3 make g++ git && \
-    npm install -g npm-audit-html @microsoft/eslint-formatter-sarif
-
 # Copy package files for scanning
 COPY package*.json ./
-RUN npm ci && \
+
+# Install dependencies and run security audit
+RUN npm ci --only=production && \
     npm audit --production --json > npm-audit.json || true && \
     npm audit --production --audit-level=high || true
 
