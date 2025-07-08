@@ -11,6 +11,7 @@
 import express, { Application } from 'express';
 import cors from 'cors';
 import compression from 'compression';
+import session from 'express-session';
 import { createServer as createHttpServer, Server as HttpServer } from 'http';
 import { createServer as createHttpsServer, Server as HttpsServer } from 'https';
 import * as https from 'https';
@@ -20,7 +21,12 @@ import { config, validateProductionConfig } from './core/config.js';
 import { errorHandler } from './core/middleware/error-handler.js';
 import { requestLogger } from './core/middleware/request-logger.js';
 import { requestIdMiddleware } from './core/middleware/request-id.js';
-import { securityHeaders } from './core/middleware/security-headers.js';
+import {
+  securityHeaders,
+  additionalSecurityHeaders,
+  createCSRFProtection,
+  createCSRFTokenEndpoint,
+} from './core/middleware/security-headers.js';
 import { createRateLimiter, RateLimitPresets } from './core/middleware/rate-limiter.js';
 import { requestContextMiddleware, logSecurityEvent, SecurityEventType } from './utils/logger.js';
 import { initializeRedis, closeRedis } from './utils/redis-client.js';
@@ -103,15 +109,39 @@ export function createApp(): Application {
 
   // Security middleware from security-headers module
   app.use(securityHeaders());
+  app.use(additionalSecurityHeaders());
 
-  // CORS configuration
+  // Session management with secure configuration
+  app.use(
+    session({
+      name: 'sessionId',
+      secret: config.SESSION_SECRET || 'default-dev-secret-change-in-production',
+      resave: false,
+      saveUninitialized: false,
+      cookie: {
+        secure: config.TLS_ENABLED === true, // HTTPS only in production
+        httpOnly: true, // Prevent XSS
+        maxAge: 24 * 60 * 60 * 1000, // 24 hours
+        sameSite: 'strict', // CSRF protection
+      },
+      rolling: true, // Reset expiry on activity
+    }),
+  );
+
+  // CORS configuration (must be after session for credentials)
   app.use(
     cors({
       origin: config.CORS_ORIGIN === '*' ? true : config.CORS_ORIGIN,
       credentials: config.CORS_CREDENTIALS,
       maxAge: config.CORS_MAX_AGE,
       methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-ID', 'X-API-Key'],
+      allowedHeaders: [
+        'Content-Type',
+        'Authorization',
+        'X-Request-ID',
+        'X-API-Key',
+        'X-CSRF-Token',
+      ],
     }),
   );
 
@@ -125,6 +155,10 @@ export function createApp(): Application {
   // Body parsing middleware with size limits
   app.use(express.json({ limit: '10mb' }));
   app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+  // CSRF Protection (after body parsing)
+  const csrfProtection = createCSRFProtection();
+  app.use(csrfProtection);
 
   // Request ID middleware
   app.use(requestIdMiddleware());
@@ -157,6 +191,9 @@ export function createApp(): Application {
 
   // API routes with versioning
   const apiRouter = express.Router();
+
+  // CSRF token endpoint (requires session but not CSRF protection)
+  apiRouter.get('/csrf-token', createCSRFTokenEndpoint());
 
   // Mount versioned routes with appropriate rate limiting
   apiRouter.use('/sessions', RateLimitPresets.auth, createSessionRoutes(sessionStore));

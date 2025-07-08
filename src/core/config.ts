@@ -57,6 +57,7 @@ const configSchema = z.object({
   JWT_REFRESH_EXPIRY: z.string().default('7d'),
   JWT_ALGORITHM: z.enum(['HS256', 'HS384', 'HS512', 'RS256', 'RS384', 'RS512']).default('HS512'),
   BCRYPT_ROUNDS: z.number().int().min(10).max(20).default(12),
+  SESSION_SECRET: z.string().min(32),
 
   // Session Configuration
   /**
@@ -234,6 +235,7 @@ const parseSecurityConfig = (): Partial<z.infer<typeof configSchema>> => ({
     ? (process.env.JWT_ALGORITHM as 'HS256' | 'HS384' | 'HS512' | 'RS256' | 'RS384' | 'RS512')
     : undefined,
   BCRYPT_ROUNDS: parseIntEnv(process.env.BCRYPT_ROUNDS),
+  SESSION_SECRET: process.env.SESSION_SECRET ?? randomBytes(32).toString('hex'),
 });
 
 // Parse session configuration

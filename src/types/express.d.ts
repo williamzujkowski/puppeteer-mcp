@@ -2,6 +2,7 @@
  * Express type extensions
  */
 import { Request } from 'express';
+import 'express-session';
 
 declare module 'express' {
   export interface Request {
@@ -13,5 +14,14 @@ declare module 'express' {
     };
     id?: string;
     startTime?: number;
+  }
+}
+
+declare module 'express-session' {
+  interface SessionData {
+    csrfSecret?: string;
+    userId?: string;
+    createdAt?: string;
+    lastActivity?: string;
   }
 }

@@ -9,6 +9,19 @@
 import helmet from 'helmet';
 import type { Request, Response, NextFunction, RequestHandler } from 'express';
 import { config } from '../config.js';
+import { logger } from '../../utils/logger.js';
+import {
+  type SessionWithCSRF,
+  type CSRFOptions,
+  csrfTokens,
+  shouldSkipCSRF,
+  initializeCSRFSecret,
+  extractCSRFToken,
+  logCSRFSecurityEvent,
+  sendCSRFError,
+  handleCSRFVerificationError,
+} from './csrf-utils.js';
+import { SecurityEventType } from '../../utils/logger.js';
 
 /**
  * Create security headers middleware
@@ -244,5 +257,128 @@ export const grpcSecurityHeaders = (): RequestHandler => {
     res.setHeader('grpc-accept-encoding', 'gzip');
 
     next();
+  };
+};
+
+/**
+ * Create CSRF secret middleware
+ */
+const createCSRFSecretMiddleware = (): RequestHandler => {
+  return (req: Request, _res: Response, next: NextFunction) => {
+    if (shouldSkipCSRF(req)) {
+      return next();
+    }
+
+    initializeCSRFSecret(req);
+    next();
+  };
+};
+
+/**
+ * Create CSRF validation middleware
+ */
+const createCSRFValidationMiddleware = (options: CSRFOptions): RequestHandler => {
+  const ignoreMethods = options.ignoreMethods ?? ['GET', 'HEAD', 'OPTIONS'];
+
+  return (req: Request, res: Response, next: NextFunction): void => {
+    if (shouldSkipCSRF(req)) {
+      return next();
+    }
+
+    // Skip validation for safe methods
+    if (ignoreMethods.includes(req.method)) {
+      return next();
+    }
+
+    // Get secret from session
+    const session = req.session as unknown as SessionWithCSRF | undefined;
+    const secret = session?.csrfSecret;
+
+    if (secret === undefined) {
+      logCSRFSecurityEvent(SecurityEventType.CSRF_TOKEN_MISSING, req);
+      sendCSRFError(res, 'CSRF_SECRET_MISSING', 'CSRF secret not found in session');
+      return;
+    }
+
+    const token = extractCSRFToken(req, options);
+
+    if (token === undefined) {
+      logCSRFSecurityEvent(SecurityEventType.CSRF_TOKEN_MISSING, req);
+      sendCSRFError(res, 'CSRF_TOKEN_MISSING', 'CSRF token is required');
+      return;
+    }
+
+    // Verify token
+    try {
+      const valid = csrfTokens.verify(secret, token);
+      if (!valid) {
+        logCSRFSecurityEvent(SecurityEventType.CSRF_TOKEN_INVALID, req, {
+          token: token.substring(0, 8) + '...', // Log partial token for debugging
+        });
+
+        sendCSRFError(res, 'CSRF_TOKEN_INVALID', 'Invalid CSRF token');
+        return;
+      }
+
+      // Token is valid, continue
+      next();
+    } catch (error) {
+      logger.error({ error, path: req.path }, 'CSRF token verification error');
+      handleCSRFVerificationError(req, res, error);
+      return;
+    }
+  };
+};
+
+/**
+ * CSRF Protection Middleware
+ * @nist si-10 "Information input validation"
+ * @nist sc-8 "Transmission confidentiality and integrity"
+ */
+export const createCSRFProtection = (options: CSRFOptions = {}): RequestHandler[] => {
+  return [createCSRFSecretMiddleware(), createCSRFValidationMiddleware(options)];
+};
+
+/**
+ * CSRF Token Generation Endpoint
+ * @nist si-10 "Information input validation"
+ */
+export const createCSRFTokenEndpoint = (): RequestHandler => {
+  return (req: Request, res: Response): void => {
+    const session = req.session as unknown as SessionWithCSRF | undefined;
+    const secret = session?.csrfSecret;
+
+    if (secret === undefined) {
+      res.status(400).json({
+        success: false,
+        error: {
+          code: 'CSRF_SECRET_MISSING',
+          message: 'CSRF secret not initialized',
+        },
+      });
+      return;
+    }
+
+    try {
+      const token = csrfTokens.create(secret);
+
+      res.json({
+        success: true,
+        data: {
+          csrfToken: token,
+          expires: Date.now() + 24 * 60 * 60 * 1000, // 24 hours
+        },
+      });
+    } catch (error) {
+      logger.error({ error }, 'Failed to create CSRF token');
+
+      res.status(500).json({
+        success: false,
+        error: {
+          code: 'CSRF_TOKEN_GENERATION_FAILED',
+          message: 'Failed to generate CSRF token',
+        },
+      });
+    }
   };
 };
