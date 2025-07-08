@@ -113,7 +113,7 @@ export function validateCookieSecurity(
     throw new Error('Invalid SameSite value');
   }
 
-  if (sameSite === 'None' && !secure) {
+  if (sameSite === 'None' && secure !== true) {
     throw new Error('SameSite=None requires Secure flag');
   }
 }

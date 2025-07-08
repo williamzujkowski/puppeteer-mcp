@@ -53,7 +53,8 @@ async function startMCPServer(): Promise<void> {
 // Run if called directly
 // Debug: log the comparison (only in non-test environments)
 if (
-  process.env.MCP_DEBUG &&
+  process.env.MCP_DEBUG !== undefined &&
+  process.env.MCP_DEBUG !== '' &&
   process.env.NODE_ENV !== 'test' &&
   process.env.JEST_WORKER_ID === undefined
 ) {

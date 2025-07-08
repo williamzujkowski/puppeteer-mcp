@@ -54,7 +54,7 @@ function executeScrollToElement(
   page: Page,
   context: ActionContext,
 ): Promise<unknown> {
-  if (!action.selector) {
+  if (action.selector === undefined || action.selector === '') {
     throw new Error('Selector is required for scroll to element');
   }
   return handleScrollToElement(action.selector, page, context);
@@ -68,7 +68,7 @@ function executeScrollWithinElement(
   page: Page,
   context: ActionContext,
 ): Promise<unknown> {
-  if (!action.selector) {
+  if (action.selector === undefined || action.selector === '') {
     throw new Error('Selector is required for scroll within element');
   }
   return handleScrollWithinElement({

@@ -52,9 +52,10 @@ export async function handleScreenshot(
     const screenshotOptions = buildScreenshotOptions(action);
 
     // Delegate to specific screenshot method
-    const result = action.selector
-      ? await captureElementScreenshot(action, page, screenshotOptions, context)
-      : await capturePageScreenshot(action, page, screenshotOptions, context);
+    const result =
+      action.selector !== undefined && action.selector !== ''
+        ? await captureElementScreenshot(action, page, screenshotOptions, context)
+        : await capturePageScreenshot(action, page, screenshotOptions, context);
 
     const duration = Date.now() - startTime;
     return {
@@ -139,7 +140,7 @@ export async function handlePdf(
         format: action.format ?? 'letter',
         landscape: action.landscape ?? false,
         size: pdf.length,
-        pageCount: action.pageRanges ? 'custom' : 'all',
+        pageCount: action.pageRanges !== undefined && action.pageRanges !== '' ? 'custom' : 'all',
       },
     };
   } catch (error) {
@@ -194,7 +195,7 @@ export async function handleContent(
     let content: string;
     let contentType: string;
 
-    if (action.selector) {
+    if (action.selector !== undefined && action.selector !== '') {
       // Get content of specific element
       const sanitizedSelector = sanitizeSelector(action.selector);
 

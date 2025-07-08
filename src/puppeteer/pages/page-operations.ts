@@ -137,17 +137,17 @@ async function clearPageDataByType(
   page: Page,
   options: ClearPageDataParams['options'],
 ): Promise<void> {
-  if (options?.cookies) {
+  if (options?.cookies === true) {
     await page.deleteCookie(...(await page.cookies()));
   }
 
   if (options?.localStorage === true || options?.sessionStorage === true) {
     await page.evaluate((opts) => {
-      if (opts?.localStorage) {
+      if (opts?.localStorage === true) {
         // @ts-expect-error - window is available in browser context
         window.localStorage.clear();
       }
-      if (opts?.sessionStorage) {
+      if (opts?.sessionStorage === true) {
         // @ts-expect-error - window is available in browser context
         window.sessionStorage.clear();
       }

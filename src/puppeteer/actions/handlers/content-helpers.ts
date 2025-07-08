@@ -82,7 +82,7 @@ function addOptionalPdfProperties(
   action: PDFAction,
 ): void {
   // Add page ranges if specified
-  if (action.pageRanges) {
+  if (action.pageRanges !== undefined && action.pageRanges !== '') {
     pdfOptions.pageRanges = action.pageRanges;
   }
 
@@ -111,7 +111,7 @@ export async function captureElementScreenshot(
   screenshotOptions: Parameters<Page['screenshot']>[0],
   context: ActionContext,
 ): Promise<Omit<ActionResult<Buffer>, 'duration' | 'timestamp'>> {
-  if (!action.selector) {
+  if (action.selector === undefined || action.selector === '') {
     throw new Error('Selector is required for element screenshot');
   }
   const sanitizedSelector = sanitizeSelector(action.selector);
@@ -176,7 +176,7 @@ export async function capturePageScreenshot(
     actionType: 'screenshot',
     data: screenshot,
     metadata: {
-      type: action.fullPage ? 'fullPage' : 'viewport',
+      type: action.fullPage === true ? 'fullPage' : 'viewport',
       format: action.format ?? 'png',
       size: screenshot.length,
       viewport: page.viewport(),
