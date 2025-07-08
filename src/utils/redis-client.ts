@@ -177,3 +177,19 @@ export async function checkRedisHealth(): Promise<{
     };
   }
 }
+
+/**
+ * Test Redis connection
+ */
+export async function testRedisConnection(): Promise<boolean> {
+  if (redisClient === null || !isConnected) {
+    return false;
+  }
+
+  try {
+    await redisClient.ping();
+    return true;
+  } catch {
+    return false;
+  }
+}

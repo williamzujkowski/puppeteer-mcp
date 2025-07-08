@@ -1,0 +1,80 @@
+/**
+ * Configuration Initialization Utilities
+ * @module cli/config-init
+ * @description Utilities for initializing configuration files
+ */
+
+import { showConfigCreated, showConfigExists, writeError } from './output.js';
+
+/**
+ * Configuration template content
+ */
+const CONFIG_TEMPLATE = `# puppeteer-mcp Configuration
+# Copy this file to .env and customize as needed
+
+# Server Configuration
+NODE_ENV=development
+PORT=8443
+HOST=0.0.0.0
+
+# Security
+TLS_ENABLED=true
+# TLS_CERT_PATH=./certs/cert.pem
+# TLS_KEY_PATH=./certs/key.pem
+JWT_SECRET=your-jwt-secret-here-min-32-chars
+SESSION_SECRET=your-session-secret-here-min-32-chars
+
+# Logging
+LOG_LEVEL=info
+LOG_FORMAT=pretty
+AUDIT_LOG_ENABLED=true
+AUDIT_LOG_PATH=./logs/audit
+
+# Rate Limiting
+RATE_LIMIT_WINDOW=900000
+RATE_LIMIT_MAX_REQUESTS=100
+
+# Redis (optional)
+# REDIS_URL=redis://localhost:6379
+# REDIS_TLS=true
+# REDIS_KEY_PREFIX=mcp:
+
+# CORS
+CORS_ORIGIN=*
+CORS_CREDENTIALS=true
+CORS_MAX_AGE=86400
+
+# Puppeteer
+PUPPETEER_HEADLESS=true
+BROWSER_POOL_MAX_SIZE=5
+BROWSER_IDLE_TIMEOUT=300000
+
+# gRPC
+GRPC_PORT=50051
+GRPC_HOST=0.0.0.0
+
+# WebSocket
+WS_PATH=/ws
+WS_HEARTBEAT_INTERVAL=30000
+`;
+
+/**
+ * Initialize configuration file
+ */
+export async function initializeConfiguration(): Promise<void> {
+  try {
+    const { existsSync, writeFileSync } = await import('fs');
+    const configPath = '.env.example';
+
+    if (existsSync(configPath)) {
+      showConfigExists(configPath);
+      return;
+    }
+
+    writeFileSync(configPath, CONFIG_TEMPLATE);
+    showConfigCreated(configPath);
+  } catch (error) {
+    writeError(`Failed to create configuration file: ${String(error)}`);
+    process.exit(1);
+  }
+}

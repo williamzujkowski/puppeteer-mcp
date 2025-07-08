@@ -6,7 +6,7 @@
   "main": "dist/server.js",
   "types": "dist/server.d.ts",
   "bin": {
-    "puppeteer-mcp": "dist/mcp/start-mcp.js"
+    "puppeteer-mcp": "dist/cli/index.js"
   },
   "files": [
     "dist/**/*",
@@ -20,7 +20,7 @@
     "node": ">=20.0.0"
   },
   "scripts": {
-    "puppeteer-mcp": "node dist/mcp/start-mcp.js",
+    "puppeteer-mcp": "node dist/cli/index.js",
     "build": "tsc",
     "dev": "nodemon --exec tsx src/server.ts",
     "start": "node dist/server.js",
