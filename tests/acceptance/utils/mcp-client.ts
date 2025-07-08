@@ -96,7 +96,10 @@ export async function createMCPClient(): Promise<MCPTestClient> {
 /**
  * Helper to extract and validate text from MCP result
  */
-function extractResultText(result: any, errorMessage: string): string {
+function extractResultText(
+  result: { content?: Array<{ text?: unknown }> },
+  errorMessage: string,
+): string {
   const text = result.content?.[0]?.text;
   if (typeof text !== 'string' || text === '') {
     throw new Error(errorMessage);
@@ -107,9 +110,10 @@ function extractResultText(result: any, errorMessage: string): string {
 /**
  * Helper to check for errors in parsed data
  */
-function checkDataError(data: any, errorPrefix: string): void {
+function checkDataError(data: { error?: unknown }, errorPrefix: string): void {
   if (data.error !== undefined && data.error !== null && data.error !== '') {
-    throw new Error(`${errorPrefix}: ${data.error}`);
+    const errorMessage = typeof data.error === 'string' ? data.error : JSON.stringify(data.error);
+    throw new Error(`${errorPrefix}: ${errorMessage}`);
   }
 }
 
