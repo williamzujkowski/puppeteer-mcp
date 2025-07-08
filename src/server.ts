@@ -358,6 +358,88 @@ async function gracefulShutdown(
 }
 
 /**
+ * Setup process signal handlers for graceful shutdown
+ */
+function setupProcessHandlers(
+  server: HttpServer | HttpsServer,
+  wss: WSServer | undefined,
+  grpcServer: GrpcServer,
+): void {
+  process.on('SIGTERM', () => void gracefulShutdown('SIGTERM', server, wss, grpcServer));
+  process.on('SIGINT', () => void gracefulShutdown('SIGINT', server, wss, grpcServer));
+  process.on('SIGHUP', () => void gracefulShutdown('SIGHUP', server, wss, grpcServer));
+}
+
+/**
+ * Setup uncaught exception and unhandled rejection handlers
+ */
+function setupErrorHandlers(): void {
+  process.on('uncaughtException', (error) => {
+    logger.fatal({ error }, 'Uncaught exception');
+    void (async () => {
+      await logSecurityEvent(SecurityEventType.ERROR, {
+        reason: 'Uncaught exception',
+        result: 'failure',
+        metadata: {
+          error: error.message,
+          stack: error.stack,
+        },
+      });
+      process.exit(1);
+    })();
+  });
+
+  process.on('unhandledRejection', (reason, promise) => {
+    logger.fatal({ reason, promise }, 'Unhandled rejection');
+    void (async () => {
+      await logSecurityEvent(SecurityEventType.ERROR, {
+        reason: 'Unhandled promise rejection',
+        result: 'failure',
+        metadata: {
+          reason: reason instanceof Error ? reason.message : String(reason),
+          stack: reason instanceof Error ? reason.stack : undefined,
+        },
+      });
+      process.exit(1);
+    })();
+  });
+}
+
+/**
+ * Setup HTTP server error handlers
+ */
+function setupServerErrorHandlers(server: HttpServer | HttpsServer, PORT: number): void {
+  server.on('error', (error: NodeJS.ErrnoException) => {
+    if (error.code === 'EADDRINUSE') {
+      logger.error(`Port ${PORT} is already in use. Please try one of the following:`);
+      logger.error(`1. Kill the process using port ${PORT}: sudo lsof -i :${PORT}`);
+      logger.error(`2. Use a different port: PORT=3000 puppeteer-mcp`);
+      logger.error(`3. Check if another instance is running: ps aux | grep puppeteer-mcp`);
+    } else if (error.code === 'EACCES') {
+      logger.error(`Permission denied to bind to port ${PORT}. Try:`);
+      logger.error(`1. Use a port number above 1024: PORT=3000 puppeteer-mcp`);
+      logger.error(`2. Run with sudo (not recommended)`);
+    } else {
+      logger.error({ error }, 'Server error');
+    }
+    process.exit(1);
+  });
+}
+
+/**
+ * Log security event with error handling
+ */
+async function logSecurityEventSafe(eventType: any, eventData: any): Promise<void> {
+  try {
+    if (SecurityEventType?.SERVICE_START && logSecurityEvent) {
+      await logSecurityEvent(eventType, eventData);
+    }
+  } catch {
+    // Ignore errors during security logging
+  }
+}
+
+/**
  * Start the HTTP/WebSocket/gRPC server
  */
 export async function startHTTPServer(): Promise<void> {
@@ -366,20 +448,14 @@ export async function startHTTPServer(): Promise<void> {
     validateProductionConfig();
 
     // Log service start
-    try {
-      if (SecurityEventType?.SERVICE_START && logSecurityEvent) {
-        await logSecurityEvent(SecurityEventType.SERVICE_START, {
-          result: 'success',
-          metadata: {
-            environment: config.NODE_ENV,
-            port: config.PORT,
-            tlsEnabled: config.TLS_ENABLED,
-          },
-        });
-      }
-    } catch {
-      // Ignore errors during security logging
-    }
+    await logSecurityEventSafe(SecurityEventType.SERVICE_START, {
+      result: 'success',
+      metadata: {
+        environment: config.NODE_ENV,
+        port: config.PORT,
+        tlsEnabled: config.TLS_ENABLED,
+      },
+    });
 
     const app = createApp();
     const server = createServer(app);
@@ -390,62 +466,16 @@ export async function startHTTPServer(): Promise<void> {
     // Initialize gRPC server
     const grpcServer = createGrpcServer(logger, sessionStore);
 
-    // Register shutdown handlers (before starting servers)
-    process.on('SIGTERM', () => void gracefulShutdown('SIGTERM', server, wss, grpcServer));
-    process.on('SIGINT', () => void gracefulShutdown('SIGINT', server, wss, grpcServer));
-    process.on('SIGHUP', () => void gracefulShutdown('SIGHUP', server, wss, grpcServer));
-
-    // Handle uncaught errors
-    process.on('uncaughtException', (error) => {
-      logger.fatal({ error }, 'Uncaught exception');
-      void (async () => {
-        await logSecurityEvent(SecurityEventType.ERROR, {
-          reason: 'Uncaught exception',
-          result: 'failure',
-          metadata: {
-            error: error.message,
-            stack: error.stack,
-          },
-        });
-        process.exit(1);
-      })();
-    });
-
-    process.on('unhandledRejection', (reason, promise) => {
-      logger.fatal({ reason, promise }, 'Unhandled rejection');
-      void (async () => {
-        await logSecurityEvent(SecurityEventType.ERROR, {
-          reason: 'Unhandled promise rejection',
-          result: 'failure',
-          metadata: {
-            reason: reason instanceof Error ? reason.message : String(reason),
-            stack: reason instanceof Error ? reason.stack : undefined,
-          },
-        });
-        process.exit(1);
-      })();
-    });
+    // Setup all handlers
+    setupProcessHandlers(server, wss, grpcServer);
+    setupErrorHandlers();
 
     // Start HTTP/WebSocket server
     const PORT = config.PORT || 8443;
     const HOST = config.HOST || '0.0.0.0';
 
-    // Add error handler for server
-    server.on('error', (error: NodeJS.ErrnoException) => {
-      if (error.code === 'EADDRINUSE') {
-        logger.error(`Port ${PORT} is already in use. Please try one of the following:`);
-        logger.error(`1. Kill the process using port ${PORT}: sudo lsof -i :${PORT}`);
-        logger.error(`2. Use a different port: PORT=3000 puppeteer-mcp`);
-        logger.error(`3. Check if another instance is running: ps aux | grep puppeteer-mcp`);
-      } else if (error.code === 'EACCES') {
-        logger.error(`Permission denied to bind to port ${PORT}. Try:`);
-        logger.error(`1. Use a port number above 1024: PORT=3000 puppeteer-mcp`);
-        logger.error(`2. Run with sudo (not recommended)`);
-      } else {
-        logger.error({ error }, 'Server error');
-      }
-      process.exit(1);
-    });
+    // Setup server error handlers
+    setupServerErrorHandlers(server, PORT);
 
     server.listen(PORT, HOST, () => {
       const protocol = shouldEnableTLS() ? 'https' : 'http';
@@ -474,18 +504,10 @@ export async function startHTTPServer(): Promise<void> {
     logger.error('Failed to start server:', error);
 
     // Try to log security event but don't wait for it on exit
-    try {
-      if (SecurityEventType?.SERVICE_START && logSecurityEvent) {
-        logSecurityEvent(SecurityEventType.SERVICE_START, {
-          result: 'failure',
-          reason: error instanceof Error ? error.message : 'Unknown error',
-        }).catch(() => {
-          // Ignore errors during shutdown
-        });
-      }
-    } catch {
-      // Ignore errors during import or security logging
-    }
+    void logSecurityEventSafe(SecurityEventType.SERVICE_START, {
+      result: 'failure',
+      reason: error instanceof Error ? error.message : 'Unknown error',
+    });
 
     // Give logger a chance to flush before exit
     setTimeout(() => {

@@ -20,8 +20,6 @@ import { HealthServiceImpl } from './services/health.service.js';
 import type { SessionStore } from '../store/session-store.interface.js';
 import type { ExtendedCall, GrpcCallback, NextFunction } from './interceptors/types.js';
 import { existsSync } from 'fs';
-import { resolve, dirname } from 'path';
-import { fileURLToPath } from 'url';
 
 // Load proto files - try multiple locations to support both local and global installs
 function findProtoPath(): string {
@@ -41,7 +39,7 @@ function findProtoPath(): string {
       // Global npm paths
       join('/usr/local/lib/node_modules/puppeteer-mcp/proto/control.proto'),
       join(
-        process.env.HOME || '/home/user',
+        process.env.HOME ?? '/home/user',
         '.npm/lib/node_modules/puppeteer-mcp/proto/control.proto',
       ),
     );
