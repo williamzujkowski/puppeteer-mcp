@@ -101,7 +101,7 @@ export async function navigateTo(params: NavigateParams): Promise<void> {
  * Parameters for navigateToWithEvents
  */
 export interface NavigateWithEventsParams extends NavigateParams {
-  emitter: { emit: (event: string, data: any) => void };
+  emitter: { emit: (event: string, data: { pageId: string; url: string }) => void };
 }
 
 /**
@@ -130,7 +130,7 @@ export interface UpdatePageOptionsParams {
   sessionId: string;
   pages: Map<string, Page>;
   pageStore: PageInfoStore;
-  configurePageOptions: (page: Page, options: any) => Promise<void>;
+  configurePageOptions: (page: Page, options: Partial<NavigationOptions>) => Promise<void>;
 }
 
 /**
