@@ -6,7 +6,6 @@ description: 'Version 1.0.13 - Development workflow guide'
 # Development Workflow
 
 **Version**: 1.0.13  
-**Last Updated**: 2025-07-08  
 **Status**: Active  
 **Category**: Development Process
 

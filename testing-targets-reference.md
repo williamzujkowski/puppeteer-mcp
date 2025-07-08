@@ -271,5 +271,3 @@ const TEST_TARGETS = {
 - Use test data only - never real user information
 - Consider setting custom User-Agent for test traffic
 - Monitor target availability and have fallbacks ready
-
-Last Updated: January 2025

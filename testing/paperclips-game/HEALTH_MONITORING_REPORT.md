@@ -1,6 +1,5 @@
 # Browser Pool Health Monitoring Test Report
 
-**Date**: 2025-07-06  
 **Test Suite**: puppeteer-mcp Browser Pool Health Monitoring  
 **Status**: ✅ PASSED
 

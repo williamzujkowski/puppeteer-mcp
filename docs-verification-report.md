@@ -1,6 +1,5 @@
 # Documentation Verification Report
 
-**Date**: 2025-07-07  
 **Site**: https://williamzujkowski.github.io/puppeteer-mcp/  
 **Status**: ✅ **ALL TESTS PASSED**
 

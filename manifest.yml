@@ -1,0 +1,319 @@
+# Puppeteer MCP Project Manifest
+# This manifest provides a comprehensive map of the project structure and purpose of each component
+
+project:
+  name: puppeteer-mcp
+  version: 1.0.14
+  description: AI-enabled browser automation platform with MCP, REST, gRPC, and WebSocket interfaces
+  status: Beta - Seeking Production Feedback
+  type: Browser Automation Platform
+  npm_package: https://www.npmjs.com/package/puppeteer-mcp
+
+# Root-level files
+root_files:
+  CLAUDE.md:
+    purpose: AI assistant router document for navigating the codebase
+    description: Provides navigation patterns and quick reference for AI assistants working on the project
+    
+  README.md:
+    purpose: Main project documentation
+    description: Installation instructions, quick start guide, and feature overview
+    
+  CONTRIBUTING.md:
+    purpose: Contribution guidelines
+    description: Guidelines for contributing to the project including code standards and PR process
+    
+  SECURITY.md:
+    purpose: Security policy and reporting
+    description: Security vulnerability reporting procedures and security practices
+    
+  CHANGELOG.md:
+    purpose: Release history and changes
+    description: Detailed log of changes, features, and fixes for each version
+    
+  LICENSE:
+    purpose: Project license
+    description: MIT license for the project
+    
+  package.json:
+    purpose: NPM package configuration
+    description: Dependencies, scripts, and project metadata for npm
+    
+  mcp.json:
+    purpose: MCP server configuration
+    description: Model Context Protocol server configuration file
+
+# Configuration files
+configuration:
+  docker-compose.yml:
+    purpose: Production Docker configuration
+    description: Docker compose setup for production deployment
+    
+  docker-compose.dev.yml:
+    purpose: Development Docker configuration
+    description: Docker compose setup for local development
+    
+  Dockerfile:
+    purpose: Container image definition
+    description: Defines the Docker image for the application
+    
+  jest.config.mjs:
+    purpose: Main Jest test configuration
+    description: Configuration for unit and integration tests
+    
+  jest.acceptance.config.mjs:
+    purpose: Acceptance test configuration
+    description: Configuration for end-to-end acceptance tests
+    
+  eslint.config.js:
+    purpose: Code linting configuration
+    description: ESLint rules and configuration for code quality
+    
+  tsconfig.json:
+    purpose: TypeScript configuration
+    description: TypeScript compiler options and settings
+    
+  nodemon.json:
+    purpose: Development server configuration
+    description: Nodemon configuration for auto-reloading during development
+
+# Source code directory
+src:
+  description: Main application source code
+  
+  server.ts:
+    purpose: Main application entry point
+    description: Express server setup with all protocol handlers
+    
+  # Authentication module
+  auth/:
+    purpose: JWT-based authentication system
+    description: Handles authentication, authorization, and session management
+    files:
+      index.ts: Main auth module exports
+      jwt.ts: JWT token generation and verification
+      middleware.ts: Authentication middleware for Express
+      permissions.ts: Role-based access control
+      refresh.ts: Token refresh logic
+      combined-middleware.ts: Combined auth middleware
+      README.md: Detailed auth module documentation
+      
+  # Core utilities and middleware
+  core/:
+    purpose: Core application utilities
+    description: Common middleware, error handling, and configuration
+    subdirectories:
+      errors/: Custom error classes and handlers
+      middleware/: Express middleware for security, logging, and validation
+    files:
+      config.ts: Application configuration management
+      errors.ts: Error definitions and utilities
+      README.md: Core module documentation
+      
+  # gRPC server implementation
+  grpc/:
+    purpose: gRPC protocol implementation
+    description: gRPC services for browser automation and session management
+    subdirectories:
+      interceptors/: gRPC interceptors for auth, logging, and errors
+      services/: gRPC service implementations
+      types/: TypeScript types for gRPC
+    files:
+      server.ts: gRPC server setup and initialization
+      
+  # Model Context Protocol implementation
+  mcp/:
+    purpose: MCP server implementation
+    description: Enables AI agents and LLMs to interact with the platform
+    subdirectories:
+      adapters/: Protocol adapters for REST, gRPC, and WebSocket
+      auth/: MCP-specific authentication
+      examples/: Integration examples
+      prompts/: MCP prompt templates
+      resources/: MCP resource definitions
+      tools/: MCP tool implementations
+      transport/: Transport layer implementations (stdio, HTTP)
+      types/: TypeScript types for MCP
+    files:
+      server.ts: Main MCP server implementation
+      start-mcp.ts: MCP server entry point
+      README.md: Comprehensive MCP documentation
+      
+  # Puppeteer browser automation
+  puppeteer/:
+    purpose: Browser automation engine
+    description: Manages browser pools, page operations, and automation actions
+    subdirectories:
+      actions/: Browser action implementations (click, type, navigate, etc.)
+      events/: Browser event handling
+      interfaces/: TypeScript interfaces for browser components
+      pages/: Page management and lifecycle
+      pool/: Browser pool management with health checking
+    files:
+      config.ts: Puppeteer configuration
+      README.md: Detailed browser automation documentation
+      
+  # REST API routes
+  routes/:
+    purpose: Express REST API endpoints
+    description: RESTful API implementation for all platform operations
+    files:
+      index.ts: Route registration
+      health.ts: Health check endpoints
+      sessions.ts: Session management endpoints
+      contexts.ts: Browser context endpoints
+      metrics.ts: Metrics and monitoring endpoints
+      api-keys.ts: API key management
+      
+  # Data storage
+  store/:
+    purpose: In-memory data stores
+    description: Session, context, and API key storage implementations
+    files:
+      session-store.interface.ts: Storage interface definition
+      in-memory-session-store.ts: In-memory session storage
+      context-store.ts: Browser context storage
+      api-key-store.ts: API key storage
+      
+  # Type definitions
+  types/:
+    purpose: TypeScript type definitions
+    description: Shared types and interfaces across the application
+    files:
+      index.d.ts: Main type exports
+      api.ts: API-related types
+      session.ts: Session types
+      user.ts: User and authentication types
+      websocket.ts: WebSocket types
+      express.d.ts: Express augmentations
+      grpc.d.ts: gRPC type definitions
+      
+  # Utilities
+  utils/:
+    purpose: Shared utility functions
+    description: Common utilities for logging, path handling, etc.
+    files:
+      logger.ts: Application-wide logger
+      path-utils.ts: Path manipulation utilities
+      
+  # WebSocket server
+  ws/:
+    purpose: WebSocket protocol implementation
+    description: Real-time bidirectional communication for browser automation
+    files:
+      server.ts: WebSocket server setup
+      connection-manager.ts: Client connection management
+      message-handler.ts: Message routing and handling
+      auth-handler.ts: WebSocket authentication
+      subscription-manager.ts: Event subscription management
+
+# Documentation
+starlight-docs/:
+  purpose: Project documentation website
+  description: Comprehensive documentation built with Astro Starlight
+  subdirectories:
+    src/content/docs/:
+      description: Documentation content organized by topic
+      subdirectories:
+        ai/: AI integration patterns and routing
+        architecture/: System architecture documentation
+        contributing/: Contribution guidelines
+        deployment/: Deployment guides for various platforms
+        development/: Development standards and workflow
+        guides/: User guides and tutorials
+        lessons/: Implementation lessons and decisions
+        project/: Project information and roadmap
+        quick-reference/: Quick reference guides and cheatsheets
+        quickstart/: Getting started guides
+        reference/: API reference documentation
+        troubleshooting/: Common issues and solutions
+    src/components/: Custom Astro components for docs
+    src/styles/: Custom styling for documentation
+    public/: Static assets for documentation
+  files:
+    README.md: Documentation site instructions
+    astro.config.mjs: Astro configuration
+    package.json: Documentation dependencies
+
+# Scripts and tools
+scripts/:
+  purpose: Build, deployment, and utility scripts
+  description: Automation scripts for various project tasks
+  files:
+    build.sh: Project build script
+    deploy.sh: Deployment automation
+    security-check.js: Security compliance checker
+    standards-check.js: Code standards verification
+    test-api.mjs: API testing script
+    verify-docs-links.mjs: Documentation link checker
+    version-manager.mjs: Version management utility
+    demo-mcp-stdio.ts: MCP demo script
+    test-global-install.sh: NPM package installation test
+    README.md: Scripts documentation
+
+# Test suites
+tests/:
+  purpose: Comprehensive test coverage
+  description: Unit, integration, and acceptance tests
+  subdirectories:
+    unit/: Unit tests for individual components
+      auth/: Authentication module tests
+      grpc/: gRPC service tests
+      mcp/: MCP server tests
+      puppeteer/: Browser automation tests
+      routes/: REST API tests
+      store/: Storage tests
+      utils/: Utility function tests
+      ws/: WebSocket tests
+    integration/: Integration tests across components
+    acceptance/: End-to-end acceptance tests
+    e2e/: End-to-end browser tests
+  files:
+    setup.ts: Global test setup
+    setup-integration.ts: Integration test setup
+    setup-e2e.ts: E2E test setup
+
+# Testing scenarios
+testing/:
+  purpose: Complex testing scenarios and reports
+  description: Real-world testing scenarios, performance tests, and security tests
+  subdirectories:
+    paperclips-game/: Browser automation demo using Universal Paperclips game
+    performance-tests/: Load and stress testing
+    security-tests/: Security vulnerability testing
+    error-handling-tests/: Error scenario testing
+  notable_files:
+    MASTER_TESTING_REPORT.md: Comprehensive testing summary
+    TESTING_METHODOLOGY.md: Testing approach and standards
+
+# Logs
+logs/:
+  purpose: Application and audit logs
+  description: Runtime logs for debugging and compliance
+  subdirectories:
+    audit/: Security audit logs with daily rotation
+    
+# Documentation archives
+docs/:
+  purpose: Additional documentation
+  description: Version management, testing guides, and archived docs
+  subdirectories:
+    archive/: Historical documentation and migration guides
+  files:
+    VERSION_MANAGEMENT.md: Version control guidelines
+    ACCEPTANCE_TESTING.md: Acceptance testing procedures
+
+# Proto definitions
+proto/:
+  purpose: Protocol buffer definitions
+  description: gRPC service definitions
+  files:
+    control.proto: Browser control service definitions
+
+# Build artifacts (typically git-ignored)
+build_artifacts:
+  dist/: TypeScript compilation output
+  node_modules/: NPM dependencies
+  coverage/: Test coverage reports
+  server.log: Application runtime log
+  *.tgz: NPM package archives

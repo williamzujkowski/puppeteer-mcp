@@ -1,7 +1,6 @@
 # Security Policy
 
 **Version:** 1.0.13  
-**Last Updated:** 2025-07-08  
 **Status:** Active
 
 ## Overview
@@ -226,9 +225,8 @@ This produces a report showing:
 
 ### Contact Information
 
-- **Security Team**: security@example.com
-- **Emergency**: +1-XXX-XXX-XXXX (critical only)
-- **PGP Key ID**: 0xXXXXXXXX
+- **Security Issues**: Please report via [GitHub Security Advisories](https://github.com/williamzujkowski/puppeteer-mcp/security/advisories/new)
+- **General Contact**: Create an issue in the [GitHub repository](https://github.com/williamzujkowski/puppeteer-mcp/issues)
 
 ## 📝 Security Updates
 
