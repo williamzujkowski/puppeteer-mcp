@@ -37,12 +37,12 @@ export function createPage(
 /**
  * Close a page in a browser
  */
-export function closePage(
+export async function closePage(
   browserId: string,
   sessionId: string,
   browsers: Map<string, InternalBrowserInstance>,
 ): Promise<void> {
-  return closeBrowserPage(browserId, sessionId, browsers);
+  closeBrowserPage(browserId, sessionId, browsers);
 }
 
 /**
