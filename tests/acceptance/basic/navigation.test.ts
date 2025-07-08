@@ -83,7 +83,9 @@ describe('Basic Navigation Tests', () => {
           await mcpNavigate(mcpClient.client, sessionInfo.contextId, url);
           
           // Wait a bit for page to load
-          await new Promise(resolve => setTimeout(resolve, 1000));
+          await new Promise<void>(resolve => {
+            setTimeout(() => resolve(), 1000);
+          });
           
           const content = await mcpGetContent(mcpClient.client, sessionInfo.contextId);
           
@@ -161,7 +163,9 @@ describe('Basic Navigation Tests', () => {
         await mcpNavigate(mcpClient.client, sessionInfo.contextId, TEST_TARGETS.testing.theInternet);
         
         // Wait for page to load
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        await new Promise<void>(resolve => {
+          setTimeout(() => resolve(), 2000);
+        });
         
         const filename = ScreenshotHelpers.getTimestampedFilename('navigation-test');
         const screenshotPath = await mcpScreenshot(mcpClient.client, sessionInfo.contextId, filename);

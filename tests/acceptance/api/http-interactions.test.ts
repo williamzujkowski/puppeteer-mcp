@@ -6,7 +6,7 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach } from '@jest/globals';
 import { createMCPClient, createMCPSession, cleanupMCPSession, mcpNavigate, mcpGetContent } from '../utils/mcp-client.js';
 import { TEST_TARGETS, TEST_CONFIG } from '../utils/test-config.js';
-import { retryOperation, makeRequest, validateUrl, AssertionHelpers, PerformanceTracker } from '../utils/test-helpers.js';
+import { retryOperation, validateUrl, AssertionHelpers, PerformanceTracker } from '../utils/test-helpers.js';
 import type { MCPTestClient, MCPSessionInfo } from '../utils/mcp-client.js';
 
 describe('API and HTTP Interaction Tests', () => {
@@ -70,7 +70,7 @@ describe('API and HTTP Interaction Tests', () => {
           if (jsonMatch) {
             jsonData = JSON.parse(jsonMatch[0]);
           }
-        } catch (error) {
+        } catch {
           // If parsing fails, content might be wrapped in HTML
           AssertionHelpers.containsText(content, 'slideshow');
           return; // Skip JSON validation but test passed
@@ -81,7 +81,7 @@ describe('API and HTTP Interaction Tests', () => {
           expect(jsonData.slideshow).toHaveProperty('title');
         }
         
-        console.log('API GET performance:', performance.getReport());
+        console.warn('API GET performance:', performance.getReport());
       });
     }, TEST_CONFIG.timeout);
 
@@ -101,7 +101,7 @@ describe('API and HTTP Interaction Tests', () => {
           // For error status codes, the response might be minimal
           if (statusCode >= 400) {
             // Error pages might be minimal or contain error indication
-            console.log(`Status ${statusCode} response length:`, content.length);
+            console.warn(`Status ${statusCode} response length:`, content.length);
           }
         });
       }
@@ -145,7 +145,7 @@ describe('API and HTTP Interaction Tests', () => {
         const elapsed = performance.getCheckpoint('delayed_response');
         expect(elapsed ?? 0).toBeGreaterThan(1800); // Allow some tolerance
         
-        console.log('Delayed response performance:', performance.getReport());
+        console.warn('Delayed response performance:', performance.getReport());
       });
     }, TEST_CONFIG.timeout);
   });
@@ -174,7 +174,7 @@ describe('API and HTTP Interaction Tests', () => {
             expect(postData).toHaveProperty('title');
             expect(postData).toHaveProperty('body');
           }
-        } catch (error) {
+        } catch {
           // If JSON parsing fails, at least verify content structure
           console.warn('Could not parse JSON, but content validation passed');
         }
@@ -298,7 +298,7 @@ describe('API and HTTP Interaction Tests', () => {
               expect(Array.isArray(data)).toBe(true);
             }
           }
-        } catch (error) {
+        } catch {
           // If JSON parsing fails, still validate basic content
           AssertionHelpers.containsText(content, 'page');
           AssertionHelpers.containsText(content, 'per_page');
