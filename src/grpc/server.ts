@@ -14,6 +14,7 @@ import { config } from '../core/config.js';
 import { authInterceptor } from './interceptors/auth.interceptor.js';
 import { loggingInterceptor } from './interceptors/logging.interceptor.js';
 import { errorInterceptor } from './interceptors/error.interceptor.js';
+import { createRateLimitInterceptor } from './interceptors/rate-limit.interceptor.js';
 import { SessionServiceImpl } from './services/session.service.js';
 import { ContextServiceImpl } from './services/context.service.js';
 import { HealthServiceImpl } from './services/health.service.js';
@@ -150,6 +151,7 @@ export class GrpcServer {
           value: (call: ExtendedCall, callback?: GrpcCallback) => {
             // Create interceptor chain
             const interceptorChain = [
+              createRateLimitInterceptor(),
               errorInterceptor(this.logger),
               loggingInterceptor(this.logger),
             ];

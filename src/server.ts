@@ -11,7 +11,6 @@
 import express, { Application } from 'express';
 import cors from 'cors';
 import compression from 'compression';
-import rateLimit from 'express-rate-limit';
 import { createServer as createHttpServer, Server as HttpServer } from 'http';
 import { createServer as createHttpsServer, Server as HttpsServer } from 'https';
 import * as https from 'https';
@@ -22,7 +21,9 @@ import { errorHandler } from './core/middleware/error-handler.js';
 import { requestLogger } from './core/middleware/request-logger.js';
 import { requestIdMiddleware } from './core/middleware/request-id.js';
 import { securityHeaders } from './core/middleware/security-headers.js';
+import { createRateLimiter, RateLimitPresets } from './core/middleware/rate-limiter.js';
 import { requestContextMiddleware, logSecurityEvent, SecurityEventType } from './utils/logger.js';
+import { initializeRedis, closeRedis } from './utils/redis-client.js';
 import { createHealthRouter } from './routes/health.js';
 import { createSessionRoutes } from './routes/sessions.js';
 import { createContextRoutes } from './routes/contexts.js';
@@ -117,38 +118,8 @@ export function createApp(): Application {
   // Compression
   app.use(compression());
 
-  // Rate limiting
-  const limiter = rateLimit({
-    windowMs: config.RATE_LIMIT_WINDOW,
-    max: config.RATE_LIMIT_MAX_REQUESTS,
-    standardHeaders: true,
-    legacyHeaders: false,
-    skipSuccessfulRequests: config.RATE_LIMIT_SKIP_SUCCESSFUL_REQUESTS,
-    skipFailedRequests: config.RATE_LIMIT_SKIP_FAILED_REQUESTS,
-    // Validate Express trust proxy setting
-    validate: {
-      trustProxy: false, // Disable the validation since we handle it properly above
-    },
-    handler: (req, res) => {
-      void logSecurityEvent(SecurityEventType.RATE_LIMIT_EXCEEDED, {
-        resource: req.path,
-        action: req.method,
-        result: 'failure',
-        metadata: {
-          ip: req.ip,
-          userAgent: req.headers['user-agent'],
-        },
-      });
-      res.status(429).json({
-        success: false,
-        error: {
-          code: 'RATE_LIMIT_EXCEEDED',
-          message: 'Too many requests, please try again later',
-        },
-      });
-    },
-  });
-
+  // Rate limiting with Redis support
+  const limiter = createRateLimiter();
   app.use(limiter);
 
   // Body parsing middleware with size limits
@@ -187,11 +158,15 @@ export function createApp(): Application {
   // API routes with versioning
   const apiRouter = express.Router();
 
-  // Mount versioned routes
-  apiRouter.use('/sessions', createSessionRoutes(sessionStore));
-  apiRouter.use('/contexts', createContextRoutes(sessionStore, browserPool));
-  apiRouter.use('/api-keys', createApiKeyRoutes(sessionStore));
-  apiRouter.use('/metrics', createMetricsRoutes(sessionStore, browserPool));
+  // Mount versioned routes with appropriate rate limiting
+  apiRouter.use('/sessions', RateLimitPresets.auth, createSessionRoutes(sessionStore));
+  apiRouter.use(
+    '/contexts',
+    RateLimitPresets.browser,
+    createContextRoutes(sessionStore, browserPool),
+  );
+  apiRouter.use('/api-keys', RateLimitPresets.api, createApiKeyRoutes(sessionStore));
+  apiRouter.use('/metrics', RateLimitPresets.api, createMetricsRoutes(sessionStore, browserPool));
 
   // Mount API router
   app.use(`${config.API_PREFIX}/${config.API_VERSION}`, apiRouter);
@@ -345,6 +320,15 @@ async function gracefulShutdown(
     logger.error({ error }, 'Error shutting down browser pool');
   }
 
+  // Close Redis connection
+  try {
+    logger.info('Closing Redis connection...');
+    await closeRedis();
+    logger.info('Redis connection closed');
+  } catch (error) {
+    logger.error({ error }, 'Error closing Redis connection');
+  }
+
   // Force exit after 30 seconds
   setTimeout(() => {
     logger.error('Could not close connections in time, forcefully shutting down');
@@ -449,6 +433,9 @@ export async function startHTTPServer(): Promise<void> {
   try {
     // Validate production configuration
     validateProductionConfig();
+
+    // Initialize Redis if configured
+    await initializeRedis();
 
     // Log service start
     await logSecurityEventSafe(SecurityEventType.SERVICE_START, {

@@ -20,6 +20,7 @@ import { WSAuthHandler } from './auth-handler.js';
 import { config } from '../core/config.js';
 import { logSecurityEvent, SecurityEventType } from '../utils/logger.js';
 import { WSMessage, WSConnectionState, WSMessageType } from '../types/websocket.js';
+import { WebSocketRateLimitPresets } from './rate-limiter.js';
 
 /**
  * WebSocket server options
@@ -44,6 +45,7 @@ export class WSServer extends EventEmitter {
   private messageHandler: WSMessageHandler;
   private authHandler: WSAuthHandler;
   private heartbeatInterval: NodeJS.Timeout | null = null;
+  private rateLimiter = WebSocketRateLimitPresets.standard;
 
   constructor(logger: pino.Logger, sessionStore: SessionStore, options: WSServerOptions) {
     super();
@@ -175,6 +177,19 @@ export class WSServer extends EventEmitter {
     const connectionId = uuidv4();
     const clientIp = req.headers['x-forwarded-for'] ?? req.socket.remoteAddress;
 
+    // Check rate limit for new connections
+    const rateLimitKey = this.rateLimiter.extractKey(ws, req);
+    const connectionAllowed = await this.rateLimiter.checkConnection(rateLimitKey);
+
+    if (!connectionAllowed) {
+      this.logger.warn(
+        { connectionId, clientIp, rateLimitKey },
+        'WebSocket connection rate limit exceeded',
+      );
+      ws.close(1008, 'Too many connections');
+      return;
+    }
+
     // Create connection state
     const connectionState: WSConnectionState = {
       id: connectionId,
@@ -208,7 +223,7 @@ export class WSServer extends EventEmitter {
     });
 
     // Set up connection handlers
-    this.setupConnectionHandlers(ws, connectionId);
+    this.setupConnectionHandlers(ws, connectionId, rateLimitKey);
 
     // Send connection acknowledgment
     this.sendMessage(ws, {
@@ -229,11 +244,30 @@ export class WSServer extends EventEmitter {
   /**
    * Set up handlers for individual WebSocket connection
    */
-  private setupConnectionHandlers(ws: WebSocket, connectionId: string): void {
+  private setupConnectionHandlers(ws: WebSocket, connectionId: string, rateLimitKey: string): void {
     // Handle incoming messages
     ws.on('message', (data: Buffer) => {
-      void (() => {
+      void (async () => {
         try {
+          // Check message rate limit
+          const messageAllowed = await this.rateLimiter.checkMessage(rateLimitKey);
+          if (!messageAllowed) {
+            this.logger.warn(
+              { connectionId, rateLimitKey },
+              'WebSocket message rate limit exceeded',
+            );
+            this.sendMessage(ws, {
+              type: WSMessageType.ERROR,
+              id: uuidv4(),
+              timestamp: new Date().toISOString(),
+              error: {
+                code: 'RATE_LIMIT_EXCEEDED',
+                message: 'Too many messages, please slow down',
+              },
+            });
+            return;
+          }
+
           // Update last activity
           const state = this.connectionManager.getConnectionState(connectionId);
           if (state) {
@@ -276,6 +310,9 @@ export class WSServer extends EventEmitter {
           code,
           reason: reason.toString(),
         });
+
+        // Decrement connection count for rate limiting
+        await this.rateLimiter.onConnectionClose(rateLimitKey);
 
         // Log disconnection
         await logSecurityEvent(SecurityEventType.CONNECTION_CLOSED, {
