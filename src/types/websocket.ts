@@ -170,6 +170,10 @@ export interface WSConnectionState {
   scopes?: string[];
   subscriptions: Set<string>;
   lastActivity: Date;
+  connectedAt: Date;
+  remoteAddress?: string;
+  userAgent?: string;
+  protocol?: string;
   metadata?: Record<string, unknown>;
 }
 

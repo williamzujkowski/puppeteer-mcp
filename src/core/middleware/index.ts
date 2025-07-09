@@ -6,4 +6,5 @@
 export * from './error-handler.js';
 export * from './request-id.js';
 export * from './request-logger.js';
+export * from './request-response-logger.js';
 export * from './security-headers.js';

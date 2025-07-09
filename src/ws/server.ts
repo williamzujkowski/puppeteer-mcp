@@ -196,6 +196,9 @@ export class WSServer extends EventEmitter {
       authenticated: false,
       subscriptions: new Set(),
       lastActivity: new Date(),
+      connectedAt: new Date(),
+      remoteAddress: clientIp,
+      userAgent: req.headers['user-agent'] as string | undefined,
       metadata: {
         clientIp,
         userAgent: req.headers['user-agent'],

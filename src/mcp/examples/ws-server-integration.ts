@@ -92,6 +92,7 @@ export function createIntegratedWebSocketServer(port: number = 8080): {
       authenticated: false,
       subscriptions: new Set(),
       lastActivity: new Date(),
+      connectedAt: new Date(),
     });
 
     // Handle messages through the message handler

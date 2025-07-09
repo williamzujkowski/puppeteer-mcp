@@ -62,16 +62,18 @@ export class BrowserActionExecutor implements ActionExecutor {
     const startTime = Date.now();
 
     try {
-      // Log security event for action execution
+      // Log security event for action execution start
       await logSecurityEvent(SecurityEventType.COMMAND_EXECUTED, {
         userId: context.userId,
         resource: `page:${action.pageId}`,
-        action: action.type,
+        action: `${action.type}_start`,
         result: 'success',
         metadata: {
           sessionId: context.sessionId,
           contextId: context.contextId,
           actionType: action.type,
+          actionId: `${action.type}-${Date.now()}`,
+          startTime: new Date().toISOString(),
         },
       });
 
@@ -117,6 +119,23 @@ export class BrowserActionExecutor implements ActionExecutor {
         duration: result.duration,
       });
 
+      // Log successful action completion
+      await logSecurityEvent(SecurityEventType.COMMAND_EXECUTED, {
+        userId: context.userId,
+        resource: `page:${action.pageId}`,
+        action: `${action.type}_complete`,
+        result: result.success ? 'success' : 'failure',
+        metadata: {
+          sessionId: context.sessionId,
+          contextId: context.contextId,
+          actionType: action.type,
+          actionId: `${action.type}-${Date.now()}`,
+          duration: result.duration,
+          success: result.success,
+          error: result.error,
+        },
+      });
+
       return result as ActionResult<T>;
     } catch (error) {
       const result = await handleExecutionError<T>(action, context, error, Date.now() - startTime);
@@ -127,6 +146,23 @@ export class BrowserActionExecutor implements ActionExecutor {
         actionType: action.type,
         error: result.error,
         duration: result.duration,
+      });
+
+      // Log action execution failure
+      await logSecurityEvent(SecurityEventType.COMMAND_EXECUTED, {
+        userId: context.userId,
+        resource: `page:${action.pageId}`,
+        action: `${action.type}_error`,
+        result: 'failure',
+        reason: error instanceof Error ? error.message : 'Unknown error',
+        metadata: {
+          sessionId: context.sessionId,
+          contextId: context.contextId,
+          actionType: action.type,
+          actionId: `${action.type}-${Date.now()}`,
+          duration: result.duration,
+          error: result.error,
+        },
       });
 
       this.historyManager.addToHistory(context, result);

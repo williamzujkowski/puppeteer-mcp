@@ -57,6 +57,22 @@ Add to your Claude Desktop configuration:
 - Windows: `%APPDATA%\Claude\claude_desktop_config.json`
 - Linux: `~/.config/claude/claude_desktop_config.json`
 
+### Configure Telemetry (Optional)
+
+Puppeteer MCP includes OpenTelemetry instrumentation for observability:
+
+```bash
+# Basic telemetry configuration
+export TELEMETRY_ENABLED=true
+export TELEMETRY_TRACE_EXPORTER=otlp
+export TELEMETRY_TRACE_OTLP_ENDPOINT=http://localhost:4318/v1/traces
+
+# Start with telemetry
+puppeteer-mcp
+```
+
+See the [Telemetry Documentation](docs/telemetry.md) for detailed configuration options.
+
 ## 🎯 Key Features
 
 - **🤖 AI-Ready**: Native MCP support for LLM browser control
@@ -65,6 +81,7 @@ Add to your Claude Desktop configuration:
 - **🎭 Full Puppeteer Integration**: 13+ browser action types
 - **📊 Production Grade**: Resource pooling, health monitoring, metrics
 - **🚀 High Performance**: Sub-100ms API response times
+- **📡 OpenTelemetry**: Distributed tracing, metrics, and observability
 
 ## 📋 Prerequisites
 

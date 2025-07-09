@@ -9,6 +9,9 @@ import type { MCPAuthBridge } from '../auth/mcp-auth.js';
 import type { CreateBrowserContextArgs, ToolResponse } from '../types/tool-types.js';
 import { getPageManager } from '../../puppeteer/pages/page-manager.js';
 import { browserPool } from '../../server.js';
+import { createProxyBrowserContext, cleanupContextProxy } from '../../puppeteer/proxy/proxy-context-integration.js';
+import { proxyManager } from '../../puppeteer/proxy/proxy-manager.js';
+import type { ContextProxyConfig } from '../../puppeteer/types/proxy.js';
 
 /**
  * Browser context tool handler
@@ -37,6 +40,27 @@ export class BrowserContextTool {
       // Check permissions
       await this.authBridge.requireToolPermission(authContext, 'createContext');
 
+      // Prepare proxy configuration if provided
+      let proxyConfig: ContextProxyConfig | undefined;
+      let proxyId: string | undefined;
+      let browserContextId: string | undefined;
+
+      if (args.options?.proxy) {
+        proxyConfig = {
+          enabled: args.options.proxy.enabled,
+          proxy: args.options.proxy.config,
+          pool: args.options.proxy.pool,
+          rotateOnError: args.options.proxy.rotateOnError ?? true,
+          rotateOnInterval: args.options.proxy.rotateOnInterval ?? false,
+          rotationInterval: args.options.proxy.rotationInterval ?? 3600000,
+        };
+
+        // Initialize proxy manager if using pool
+        if (proxyConfig.pool) {
+          await proxyManager.initialize(proxyConfig.pool);
+        }
+      }
+
       // Create context
       const context = await contextStore.create({
         sessionId: args.sessionId,
@@ -49,13 +73,43 @@ export class BrowserContextTool {
         },
         status: 'active',
         userId: authContext.userId,
+        proxyConfig: proxyConfig as Record<string, unknown> | undefined,
       });
+
+      // If proxy is configured, create actual browser context
+      if (proxyConfig) {
+        try {
+          // Get a browser instance from the pool
+          const browserInstance = await browserPool.acquireBrowser(args.sessionId);
+          
+          // Create browser context with proxy
+          const proxyContext = await createProxyBrowserContext(browserInstance.browser, {
+            proxyConfig,
+            contextId: context.id,
+          });
+
+          // Update context with browser context ID and proxy ID
+          await contextStore.update(context.id, {
+            browserContextId: proxyContext.contextId,
+            proxyId: proxyContext.proxyId,
+          });
+
+          proxyId = proxyContext.proxyId;
+          browserContextId = proxyContext.contextId;
+        } catch (error) {
+          // Clean up context on failure
+          await contextStore.delete(context.id);
+          throw error;
+        }
+      }
 
       logger.info({
         msg: 'MCP browser context created',
         contextId: context.id,
         userId: authContext.userId,
         sessionId: args.sessionId,
+        hasProxy: !!proxyId,
+        proxyId,
       });
 
       return this.successResponse({
@@ -64,6 +118,8 @@ export class BrowserContextTool {
         type: context.type,
         status: context.status,
         createdAt: context.createdAt,
+        proxyEnabled: !!proxyId,
+        proxyId,
       });
     } catch (error) {
       logger.error({
@@ -145,6 +201,11 @@ export class BrowserContextTool {
         contextId: args.contextId,
         sessionId: args.sessionId,
       });
+
+      // Clean up proxy resources if any
+      if (context.proxyId) {
+        await cleanupContextProxy(args.contextId);
+      }
 
       // Delete the context
       const deleted = await contextStore.delete(args.contextId);

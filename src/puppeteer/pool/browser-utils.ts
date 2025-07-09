@@ -8,6 +8,8 @@ import * as puppeteer from 'puppeteer';
 import type { BrowserInstance, BrowserPoolOptions } from '../interfaces/browser-pool.interface.js';
 import type { InternalBrowserInstance } from './browser-pool-maintenance.js';
 import { createLogger } from '../../utils/logger.js';
+import { instrumentBrowser } from '../../telemetry/instrumentations/puppeteer.js';
+import { isTelemetryInitialized } from '../../telemetry/index.js';
 
 const logger = createLogger('browser-utils');
 
@@ -24,7 +26,12 @@ export async function launchBrowser(
     handleSIGHUP: false,
   };
 
-  const browser = await puppeteer.launch(launchOptions);
+  let browser = await puppeteer.launch(launchOptions);
+  
+  // Instrument browser if telemetry is enabled
+  if (isTelemetryInitialized()) {
+    browser = instrumentBrowser(browser);
+  }
 
   // Verify browser is working
   const version = await browser.version();

@@ -70,6 +70,36 @@ export interface CreateBrowserContextArgs extends BaseToolArgs {
       width: number;
       height: number;
     };
+    // Proxy configuration
+    proxy?: {
+      enabled: boolean;
+      config?: {
+        protocol: 'http' | 'https' | 'socks4' | 'socks5';
+        host: string;
+        port: number;
+        auth?: {
+          username: string;
+          password: string;
+        };
+        bypass?: string[];
+      };
+      pool?: {
+        proxies: Array<{
+          protocol: 'http' | 'https' | 'socks4' | 'socks5';
+          host: string;
+          port: number;
+          auth?: {
+            username: string;
+            password: string;
+          };
+          bypass?: string[];
+        }>;
+        strategy?: 'round-robin' | 'random' | 'least-used' | 'priority' | 'health-based';
+      };
+      rotateOnError?: boolean;
+      rotateOnInterval?: boolean;
+      rotationInterval?: number;
+    };
   };
 }
 

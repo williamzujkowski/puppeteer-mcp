@@ -8,6 +8,7 @@
 import { WebSocket } from 'ws';
 import { pino } from 'pino';
 import type { WSConnectionState } from '../types/websocket.js';
+import { logSecurityEvent, SecurityEventType } from '../utils/logger.js';
 
 /**
  * Connection entry
@@ -50,6 +51,20 @@ export class WSConnectionManager {
   addConnection(connectionId: string, ws: WebSocket, state: WSConnectionState): void {
     this.connections.set(connectionId, { connectionId, ws, state });
     this.logger.debug('Connection added', { connectionId });
+    
+    // Log WebSocket connection establishment
+    void logSecurityEvent(SecurityEventType.WS_CONNECTION_ESTABLISHED, {
+      resource: 'websocket',
+      action: 'connect',
+      result: 'success',
+      metadata: {
+        connectionId,
+        remoteAddress: state.remoteAddress,
+        userAgent: state.userAgent,
+        protocol: state.protocol,
+        timestamp: new Date().toISOString(),
+      },
+    });
   }
 
   /**
@@ -99,6 +114,21 @@ export class WSConnectionManager {
 
     this.connections.delete(connectionId);
     this.logger.debug('Connection removed', { connectionId });
+    
+    // Log WebSocket connection termination
+    void logSecurityEvent(SecurityEventType.WS_CONNECTION_TERMINATED, {
+      resource: 'websocket',
+      action: 'disconnect',
+      result: 'success',
+      metadata: {
+        connectionId,
+        userId,
+        sessionId,
+        connectionDuration: connection.state.lastActivity.getTime() - connection.state.connectedAt.getTime(),
+        authenticated: connection.state.authenticated,
+        subscriptionCount: connection.state.subscriptions.size,
+      },
+    });
   }
 
   /**
@@ -172,6 +202,22 @@ export class WSConnectionManager {
         userId,
         sessionId,
       });
+      
+      // Log WebSocket authentication success
+      void logSecurityEvent(SecurityEventType.WS_CONNECTION_ESTABLISHED, {
+        resource: 'websocket',
+        action: 'authenticate',
+        result: 'success',
+        metadata: {
+          connectionId,
+          userId,
+          sessionId,
+          roles: roles ?? [],
+          permissionCount: permissions?.length ?? 0,
+          scopeCount: scopes?.length ?? 0,
+          authenticationTime: Date.now() - connection.state.connectedAt.getTime(),
+        },
+      });
     }
   }
 
@@ -224,6 +270,21 @@ export class WSConnectionManager {
     ) {
       connection.state.subscriptions.add(topic);
       this.logger.debug('Subscription added', { connectionId, topic });
+      
+      // Log subscription change
+      void logSecurityEvent(SecurityEventType.WS_SUBSCRIPTION_CHANGED, {
+        resource: 'websocket',
+        action: 'subscribe',
+        result: 'success',
+        metadata: {
+          connectionId,
+          userId: connection.state.userId,
+          sessionId: connection.state.sessionId,
+          topic,
+          totalSubscriptions: connection.state.subscriptions.size,
+        },
+      });
+      
       return true;
     }
     return false;
@@ -237,6 +298,21 @@ export class WSConnectionManager {
     if (connection) {
       connection.state.subscriptions.delete(topic);
       this.logger.debug('Subscription removed', { connectionId, topic });
+      
+      // Log subscription change
+      void logSecurityEvent(SecurityEventType.WS_SUBSCRIPTION_CHANGED, {
+        resource: 'websocket',
+        action: 'unsubscribe',
+        result: 'success',
+        metadata: {
+          connectionId,
+          userId: connection.state.userId,
+          sessionId: connection.state.sessionId,
+          topic,
+          totalSubscriptions: connection.state.subscriptions.size,
+        },
+      });
+      
       return true;
     }
     return false;
@@ -289,6 +365,23 @@ export class WSConnectionManager {
         if (connection.ws.readyState === WebSocket.OPEN) {
           connection.ws.close(1001, 'Connection timeout');
         }
+        
+        // Log stale connection cleanup
+        void logSecurityEvent(SecurityEventType.WS_CONNECTION_TERMINATED, {
+          resource: 'websocket',
+          action: 'cleanup_stale',
+          result: 'success',
+          reason: 'Connection timeout',
+          metadata: {
+            connectionId,
+            userId: connection.state.userId,
+            sessionId: connection.state.sessionId,
+            age,
+            maxAge,
+            authenticated: connection.state.authenticated,
+          },
+        });
+        
         this.removeConnection(connectionId);
         cleaned++;
       }

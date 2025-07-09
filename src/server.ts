@@ -40,6 +40,14 @@ import { createGrpcServer, GrpcServer } from './grpc/server.js';
 import { createWebSocketServer, WSServer } from './ws/server.js';
 import { BrowserPool } from './puppeteer/pool/browser-pool.js';
 import { puppeteerConfig } from './puppeteer/config.js';
+import { 
+  initializeTelemetry, 
+  shutdownTelemetry, 
+  contextPropagationMiddleware,
+  createBrowserPoolMetrics,
+} from './telemetry/index.js';
+import { telemetryHealthHandler, startTelemetryHealthMonitoring } from './telemetry/health.js';
+import { instrumentSessionStore } from './telemetry/instrumentations/session.js';
 
 // Initialize logger
 const logger = pino({
@@ -68,7 +76,7 @@ const logger = pino({
 });
 
 // Initialize session store
-const sessionStore = new InMemorySessionStore(logger.child({ module: 'session-store' }));
+let sessionStore = new InMemorySessionStore(logger.child({ module: 'session-store' }));
 
 // Initialize browser pool
 const browserPool = new BrowserPool({
@@ -82,6 +90,9 @@ const browserPool = new BrowserPool({
     args: puppeteerConfig.args,
   },
 });
+
+// Create browser pool metrics after telemetry is initialized
+let browserPoolMetrics: any;
 
 // Initialize browser pool asynchronously only in non-test environments
 if (config.NODE_ENV !== 'test') {
@@ -165,6 +176,11 @@ export function createApp(): Application {
 
   // Request context middleware (for audit logging)
   app.use(requestContextMiddleware);
+  
+  // OpenTelemetry context propagation
+  if (config.TELEMETRY_ENABLED) {
+    app.use(contextPropagationMiddleware(config));
+  }
 
   // Request logging
   app.use(requestLogger(logger));
@@ -188,6 +204,11 @@ export function createApp(): Application {
   // Health check routes (no auth required)
   app.use('/health', createHealthRouter(browserPool));
   app.use('/ready', (_req, res) => res.redirect('/health/ready'));
+  
+  // Telemetry health endpoint
+  if (config.TELEMETRY_ENABLED) {
+    app.get('/health/telemetry', telemetryHealthHandler);
+  }
 
   // API routes with versioning
   const apiRouter = express.Router();
@@ -251,24 +272,52 @@ function createHttpsOptions(): https.ServerOptions {
     throw new Error('Invalid TLS file paths');
   }
 
-  return {
-    cert: readFileSync(certPath),
+  try {
+    const cert = readFileSync(certPath);
+    const key = readFileSync(keyPath);
+    
+    // Log TLS certificate loading
+    void logSecurityEventSafe(SecurityEventType.TLS_CERTIFICATE_LOADED, {
+      result: 'success',
+      metadata: {
+        certPath: certPath.replace(/^.*\//, '***/'), // Hide sensitive path info
+        keyPath: keyPath.replace(/^.*\//, '***/'),
+        minVersion: config.TLS_MIN_VERSION,
+        hasCA: Boolean(config.TLS_CA_PATH),
+        timestamp: new Date().toISOString(),
+      },
+    });
 
-    key: readFileSync(keyPath),
-    ca:
-      config.TLS_CA_PATH !== null && config.TLS_CA_PATH !== undefined && config.TLS_CA_PATH !== ''
-        ? (() => {
-            const caPath = config.TLS_CA_PATH;
-            if (caPath.includes('..')) {
-              throw new Error('Invalid CA file path');
-            }
+    return {
+      cert,
+      key,
+      ca:
+        config.TLS_CA_PATH !== null && config.TLS_CA_PATH !== undefined && config.TLS_CA_PATH !== ''
+          ? (() => {
+              const caPath = config.TLS_CA_PATH;
+              if (caPath.includes('..')) {
+                throw new Error('Invalid CA file path');
+              }
 
-            return readFileSync(caPath);
-          })()
-        : undefined,
-    minVersion: config.TLS_MIN_VERSION,
-    ciphers: 'TLS_AES_256_GCM_SHA384:TLS_AES_128_GCM_SHA256:ECDHE-RSA-AES256-GCM-SHA384',
-  };
+              return readFileSync(caPath);
+            })()
+          : undefined,
+      minVersion: config.TLS_MIN_VERSION,
+      ciphers: 'TLS_AES_256_GCM_SHA384:TLS_AES_128_GCM_SHA256:ECDHE-RSA-AES256-GCM-SHA384',
+    };
+  } catch (error) {
+    // Log TLS certificate loading failure
+    void logSecurityEventSafe(SecurityEventType.TLS_CERTIFICATE_LOADED, {
+      result: 'failure',
+      reason: error instanceof Error ? error.message : 'Unknown error',
+      metadata: {
+        certPath: certPath.replace(/^.*\//, '***/'),
+        keyPath: keyPath.replace(/^.*\//, '***/'),
+        error: error instanceof Error ? error.message : 'Unknown error',
+      },
+    });
+    throw error;
+  }
 }
 
 /**
@@ -364,6 +413,15 @@ async function gracefulShutdown(
     logger.info('Redis connection closed');
   } catch (error) {
     logger.error({ error }, 'Error closing Redis connection');
+  }
+  
+  // Shutdown telemetry
+  try {
+    logger.info('Shutting down telemetry...');
+    await shutdownTelemetry();
+    logger.info('Telemetry shut down successfully');
+  } catch (error) {
+    logger.error({ error }, 'Error shutting down telemetry');
   }
 
   // Force exit after 30 seconds
@@ -468,19 +526,47 @@ async function logSecurityEventSafe(
  */
 export async function startHTTPServer(): Promise<void> {
   try {
+    // Initialize telemetry as early as possible
+    await initializeTelemetry();
+    
+    // Instrument session store after telemetry is initialized
+    sessionStore = instrumentSessionStore(sessionStore);
+    
+    // Create browser pool metrics
+    browserPoolMetrics = createBrowserPoolMetrics(browserPool);
+    
+    // Start telemetry health monitoring
+    if (config.TELEMETRY_ENABLED) {
+      startTelemetryHealthMonitoring(60000); // Check every minute
+    }
+    
     // Validate production configuration
     validateProductionConfig();
 
     // Initialize Redis if configured
     await initializeRedis();
 
-    // Log service start
+    // Log service start with comprehensive metadata
     await logSecurityEventSafe(SecurityEventType.SERVICE_START, {
       result: 'success',
       metadata: {
         environment: config.NODE_ENV,
         port: config.PORT,
+        grpcPort: config.GRPC_PORT,
         tlsEnabled: config.TLS_ENABLED,
+        auditEnabled: config.AUDIT_LOG_ENABLED,
+        logLevel: config.LOG_LEVEL,
+        corsOrigin: config.CORS_ORIGIN,
+        rateLimitEnabled: true,
+        rateLimitWindow: config.RATE_LIMIT_WINDOW,
+        rateLimitMaxRequests: config.RATE_LIMIT_MAX_REQUESTS,
+        redisEnabled: Boolean(config.REDIS_URL),
+        browserPoolMaxSize: config.BROWSER_POOL_MAX_SIZE,
+        nodeVersion: process.version,
+        platform: process.platform,
+        arch: process.arch,
+        processId: process.pid,
+        startTime: new Date().toISOString(),
       },
     });
 

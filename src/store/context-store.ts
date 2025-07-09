@@ -23,6 +23,10 @@ export interface Context {
   updatedAt: number;
   status: string;
   userId: string;
+  // Proxy support
+  proxyConfig?: Record<string, unknown>;
+  proxyId?: string;
+  browserContextId?: string;
 }
 
 /**

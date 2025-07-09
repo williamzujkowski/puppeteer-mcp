@@ -13,6 +13,7 @@ import { homedir } from 'os';
 import { AsyncLocalStorage } from 'async_hooks';
 import { config } from '../core/config.js';
 import type { Request, Response, NextFunction } from 'express';
+import { getCorrelationIds } from '../telemetry/context.js';
 
 // AsyncLocalStorage for request context
 const requestContext = new AsyncLocalStorage<{ requestId: string; userId?: string }>();
@@ -68,9 +69,13 @@ export enum SecurityEventType {
 
   // System events
   CONFIG_CHANGE = 'CONFIG_CHANGE',
+  CONFIG_LOADED = 'CONFIG_LOADED',
+  CONFIG_VALIDATION_FAILED = 'CONFIG_VALIDATION_FAILED',
   SERVICE_START = 'SERVICE_START',
   SERVICE_STOP = 'SERVICE_STOP',
   ERROR = 'ERROR',
+  TLS_CERTIFICATE_LOADED = 'TLS_CERTIFICATE_LOADED',
+  DATABASE_CONNECTION_ESTABLISHED = 'DATABASE_CONNECTION_ESTABLISHED',
 
   // Command execution events
   COMMAND_EXECUTED = 'COMMAND_EXECUTED',
@@ -79,6 +84,50 @@ export enum SecurityEventType {
   SESSION_CREATED = 'SESSION_CREATED',
   SESSION_UPDATED = 'SESSION_UPDATED',
   SESSION_DELETED = 'SESSION_DELETED',
+
+  // Browser security events
+  BROWSER_INSTANCE_CREATED = 'BROWSER_INSTANCE_CREATED',
+  BROWSER_INSTANCE_DESTROYED = 'BROWSER_INSTANCE_DESTROYED',
+  BROWSER_CRASH = 'BROWSER_CRASH',
+  PAGE_NAVIGATION = 'PAGE_NAVIGATION',
+  JAVASCRIPT_EXECUTION = 'JAVASCRIPT_EXECUTION',
+  FILE_UPLOAD = 'FILE_UPLOAD',
+  FILE_DOWNLOAD = 'FILE_DOWNLOAD',
+  COOKIE_MODIFICATION = 'COOKIE_MODIFICATION',
+
+  // Network security events
+  EXTERNAL_REQUEST = 'EXTERNAL_REQUEST',
+  CORS_VIOLATION = 'CORS_VIOLATION',
+  CERTIFICATE_VALIDATION = 'CERTIFICATE_VALIDATION',
+
+  // Resource management events
+  RESOURCE_EXHAUSTION = 'RESOURCE_EXHAUSTION',
+  MEMORY_THRESHOLD_EXCEEDED = 'MEMORY_THRESHOLD_EXCEEDED',
+  CPU_THRESHOLD_EXCEEDED = 'CPU_THRESHOLD_EXCEEDED',
+
+  // WebSocket events
+  WS_CONNECTION_ESTABLISHED = 'WS_CONNECTION_ESTABLISHED',
+  WS_CONNECTION_TERMINATED = 'WS_CONNECTION_TERMINATED',
+  WS_AUTHENTICATION_FAILED = 'WS_AUTHENTICATION_FAILED',
+  WS_SUBSCRIPTION_CHANGED = 'WS_SUBSCRIPTION_CHANGED',
+  WS_MESSAGE_REJECTED = 'WS_MESSAGE_REJECTED',
+
+  // Protocol events
+  GRPC_CALL_STARTED = 'GRPC_CALL_STARTED',
+  GRPC_CALL_COMPLETED = 'GRPC_CALL_COMPLETED',
+  GRPC_CALL_FAILED = 'GRPC_CALL_FAILED',
+  HTTP_REQUEST_STARTED = 'HTTP_REQUEST_STARTED',
+  HTTP_REQUEST_COMPLETED = 'HTTP_REQUEST_COMPLETED',
+
+  // Proxy security events
+  PROXY_CONFIGURED = 'PROXY_CONFIGURED',
+  PROXY_ROTATION = 'PROXY_ROTATION',
+  PROXY_HEALTH_CHECK = 'PROXY_HEALTH_CHECK',
+  PROXY_FAILOVER = 'PROXY_FAILOVER',
+  PROXY_ERROR = 'PROXY_ERROR',
+  PROXY_AUTHENTICATION_FAILED = 'PROXY_AUTHENTICATION_FAILED',
+  PROXY_CONNECTION_FAILED = 'PROXY_CONNECTION_FAILED',
+  PROXY_POOL_UNHEALTHY = 'PROXY_POOL_UNHEALTHY',
 }
 
 /**
@@ -102,10 +151,27 @@ const createLoggerOptions = (name: string, isAudit = false): pino.LoggerOptions<
       err: pino.stdSerializers.err,
     },
     timestamp: pino.stdTimeFunctions.isoTime,
-    // Add request context to all logs
+    // Add request context and trace correlation to all logs
     mixin: () => {
       const context = requestContext.getStore();
-      return context ? { requestId: context.requestId, userId: context.userId } : {};
+      const correlationIds = getCorrelationIds();
+      
+      const mixin: Record<string, string | undefined> = {};
+      
+      if (context) {
+        mixin.requestId = context.requestId;
+        mixin.userId = context.userId;
+      }
+      
+      if (correlationIds.traceId) {
+        mixin.traceId = correlationIds.traceId;
+      }
+      
+      if (correlationIds.spanId) {
+        mixin.spanId = correlationIds.spanId;
+      }
+      
+      return mixin;
     },
   };
 

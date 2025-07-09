@@ -10,6 +10,16 @@ import { AppError } from './errors/app-error.js';
 // Re-export base error classes
 export * from './errors/app-error.js';
 
+// Re-export comprehensive error system components
+export * from './errors/error-context.js';
+export * from './errors/enhanced-app-error.js';
+export * from './errors/domain-errors.js';
+export { ErrorFactory } from './errors/error-factory.js';
+export * from './errors/error-serialization.js';
+export * from './errors/error-tracking.js';
+export * from './errors/error-recovery.js';
+export * from './errors/types.js';
+
 /**
  * Error codes for consistent API responses
  */
@@ -49,7 +59,7 @@ export const ErrorCodes = {
 export type ErrorCode = (typeof ErrorCodes)[keyof typeof ErrorCodes];
 
 /**
- * Additional error classes
+ * Additional error classes for backward compatibility
  */
 export class BadRequestError extends AppError {
   constructor(message: string, details?: Record<string, unknown>) {
@@ -90,7 +100,7 @@ export class GatewayTimeoutError extends AppError {
 }
 
 /**
- * Business logic errors
+ * Business logic errors for backward compatibility
  */
 export class SessionExpiredError extends AppError {
   constructor(message: string = 'Session has expired') {
@@ -135,7 +145,7 @@ export class ExternalServiceError extends AppError {
 }
 
 /**
- * Error response format for different protocols
+ * Error response format for different protocols (backward compatibility)
  */
 export interface ErrorResponse {
   error: {
@@ -148,7 +158,7 @@ export interface ErrorResponse {
 }
 
 /**
- * Serialize error for REST API response
+ * Serialize error for REST API response (backward compatibility)
  * @nist au-10 "Non-repudiation"
  */
 export const serializeErrorForREST = (
@@ -200,7 +210,7 @@ export const serializeErrorForREST = (
 };
 
 /**
- * Serialize error for gRPC response
+ * Serialize error for gRPC response (backward compatibility)
  */
 export const serializeErrorForGRPC = (
   error: Error | AppError | ZodError,
@@ -233,7 +243,7 @@ export const serializeErrorForGRPC = (
 };
 
 /**
- * Serialize error for WebSocket response
+ * Serialize error for WebSocket response (backward compatibility)
  */
 export const serializeErrorForWebSocket = (
   error: Error | AppError | ZodError,
