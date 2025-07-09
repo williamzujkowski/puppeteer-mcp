@@ -1,0 +1,176 @@
+/**
+ * Shared types and interfaces for logging
+ * @module utils/logging/types
+ */
+
+import type { Logger as PinoLogger } from 'pino';
+import type { Request } from 'express';
+
+/**
+ * Security event types for audit logging
+ * @nist au-2 "Audit events"
+ */
+export enum SecurityEventType {
+  // Authentication events
+  LOGIN_SUCCESS = 'LOGIN_SUCCESS',
+  LOGIN_FAILURE = 'LOGIN_FAILURE',
+  LOGOUT = 'LOGOUT',
+  TOKEN_REFRESH = 'TOKEN_REFRESH',
+  TOKEN_REVOKE = 'TOKEN_REVOKE',
+  AUTH_SUCCESS = 'AUTH_SUCCESS',
+  AUTH_FAILURE = 'AUTH_FAILURE',
+  TOKEN_REFRESHED = 'TOKEN_REFRESHED',
+
+  // Authorization events
+  ACCESS_GRANTED = 'ACCESS_GRANTED',
+  ACCESS_DENIED = 'ACCESS_DENIED',
+  PERMISSION_CHANGE = 'PERMISSION_CHANGE',
+
+  // API Key events
+  API_KEY_CREATED = 'API_KEY_CREATED',
+  API_KEY_REVOKED = 'API_KEY_REVOKED',
+  API_KEY_USED = 'API_KEY_USED',
+
+  // Data access events
+  DATA_ACCESS = 'DATA_ACCESS',
+  DATA_MODIFICATION = 'DATA_MODIFICATION',
+  DATA_DELETION = 'DATA_DELETION',
+  API_ACCESS = 'API_ACCESS',
+  RESOURCE_CREATED = 'RESOURCE_CREATED',
+  RESOURCE_UPDATED = 'RESOURCE_UPDATED',
+  RESOURCE_DELETED = 'RESOURCE_DELETED',
+
+  // Security violations
+  INVALID_TOKEN = 'INVALID_TOKEN',
+  RATE_LIMIT_EXCEEDED = 'RATE_LIMIT_EXCEEDED',
+  SUSPICIOUS_ACTIVITY = 'SUSPICIOUS_ACTIVITY',
+  VALIDATION_FAILURE = 'VALIDATION_FAILURE',
+  CSRF_TOKEN_MISSING = 'CSRF_TOKEN_MISSING',
+  CSRF_TOKEN_INVALID = 'CSRF_TOKEN_INVALID',
+
+  // Connection events
+  CONNECTION_ATTEMPT = 'CONNECTION_ATTEMPT',
+  CONNECTION_ESTABLISHED = 'CONNECTION_ESTABLISHED',
+  CONNECTION_TERMINATED = 'CONNECTION_TERMINATED',
+  CONNECTION_CLOSED = 'CONNECTION_CLOSED',
+  REDIS_CONNECTION_ESTABLISHED = 'REDIS_CONNECTION_ESTABLISHED',
+
+  // System events
+  CONFIG_CHANGE = 'CONFIG_CHANGE',
+  CONFIG_LOADED = 'CONFIG_LOADED',
+  CONFIG_VALIDATION_FAILED = 'CONFIG_VALIDATION_FAILED',
+  SERVICE_START = 'SERVICE_START',
+  SERVICE_STOP = 'SERVICE_STOP',
+  ERROR = 'ERROR',
+  TLS_CERTIFICATE_LOADED = 'TLS_CERTIFICATE_LOADED',
+  DATABASE_CONNECTION_ESTABLISHED = 'DATABASE_CONNECTION_ESTABLISHED',
+
+  // Command execution events
+  COMMAND_EXECUTED = 'COMMAND_EXECUTED',
+
+  // Session events
+  SESSION_CREATED = 'SESSION_CREATED',
+  SESSION_UPDATED = 'SESSION_UPDATED',
+  SESSION_DELETED = 'SESSION_DELETED',
+
+  // Browser security events
+  BROWSER_INSTANCE_CREATED = 'BROWSER_INSTANCE_CREATED',
+  BROWSER_INSTANCE_DESTROYED = 'BROWSER_INSTANCE_DESTROYED',
+  BROWSER_CRASH = 'BROWSER_CRASH',
+  PAGE_NAVIGATION = 'PAGE_NAVIGATION',
+  JAVASCRIPT_EXECUTION = 'JAVASCRIPT_EXECUTION',
+  FILE_UPLOAD = 'FILE_UPLOAD',
+  FILE_DOWNLOAD = 'FILE_DOWNLOAD',
+  COOKIE_MODIFICATION = 'COOKIE_MODIFICATION',
+
+  // Network security events
+  EXTERNAL_REQUEST = 'EXTERNAL_REQUEST',
+  CORS_VIOLATION = 'CORS_VIOLATION',
+  CERTIFICATE_VALIDATION = 'CERTIFICATE_VALIDATION',
+
+  // Resource management events
+  RESOURCE_EXHAUSTION = 'RESOURCE_EXHAUSTION',
+  MEMORY_THRESHOLD_EXCEEDED = 'MEMORY_THRESHOLD_EXCEEDED',
+  CPU_THRESHOLD_EXCEEDED = 'CPU_THRESHOLD_EXCEEDED',
+
+  // WebSocket events
+  WS_CONNECTION_ESTABLISHED = 'WS_CONNECTION_ESTABLISHED',
+  WS_CONNECTION_TERMINATED = 'WS_CONNECTION_TERMINATED',
+  WS_AUTHENTICATION_FAILED = 'WS_AUTHENTICATION_FAILED',
+  WS_SUBSCRIPTION_CHANGED = 'WS_SUBSCRIPTION_CHANGED',
+  WS_MESSAGE_REJECTED = 'WS_MESSAGE_REJECTED',
+
+  // Protocol events
+  GRPC_CALL_STARTED = 'GRPC_CALL_STARTED',
+  GRPC_CALL_COMPLETED = 'GRPC_CALL_COMPLETED',
+  GRPC_CALL_FAILED = 'GRPC_CALL_FAILED',
+  HTTP_REQUEST_STARTED = 'HTTP_REQUEST_STARTED',
+  HTTP_REQUEST_COMPLETED = 'HTTP_REQUEST_COMPLETED',
+
+  // Proxy security events
+  PROXY_CONFIGURED = 'PROXY_CONFIGURED',
+  PROXY_ROTATION = 'PROXY_ROTATION',
+  PROXY_HEALTH_CHECK = 'PROXY_HEALTH_CHECK',
+  PROXY_FAILOVER = 'PROXY_FAILOVER',
+  PROXY_ERROR = 'PROXY_ERROR',
+  PROXY_AUTHENTICATION_FAILED = 'PROXY_AUTHENTICATION_FAILED',
+  PROXY_CONNECTION_FAILED = 'PROXY_CONNECTION_FAILED',
+  PROXY_POOL_UNHEALTHY = 'PROXY_POOL_UNHEALTHY',
+}
+
+/**
+ * Security event details
+ */
+export interface SecurityEventDetails {
+  userId?: string;
+  resource?: string;
+  action?: string;
+  result?: 'success' | 'failure';
+  reason?: string;
+  metadata?: Record<string, unknown>;
+}
+
+/**
+ * Request context
+ */
+export interface RequestContext {
+  requestId: string;
+  userId?: string;
+}
+
+/**
+ * Extended request type with user
+ */
+export interface AuthenticatedRequest extends Omit<Request, 'id'> {
+  id?: string;
+  user?: {
+    userId: string;
+    username: string;
+    roles: string[];
+    sessionId: string;
+  };
+}
+
+/**
+ * Logger instances collection
+ */
+export interface LoggerInstances {
+  http: PinoLogger;
+  grpc: PinoLogger;
+  ws: PinoLogger;
+  auth: PinoLogger;
+  session: PinoLogger;
+  db: PinoLogger;
+  redis: PinoLogger;
+  performance: PinoLogger;
+}
+
+/**
+ * Log level type
+ */
+export type LogLevel = 'silent' | 'fatal' | 'error' | 'warn' | 'info' | 'debug' | 'trace';
+
+/**
+ * Operation types for data access
+ */
+export type DataOperation = 'READ' | 'WRITE' | 'DELETE';
