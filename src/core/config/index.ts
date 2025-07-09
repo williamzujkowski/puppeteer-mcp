@@ -78,6 +78,7 @@ export type { Config } from './schemas.js';
 
 // Helper function to get configuration subset
 export function getConfigSection<K extends keyof Config>(section: K): Config[K] {
+  // eslint-disable-next-line security/detect-object-injection
   return config[section];
 }
 

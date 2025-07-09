@@ -298,9 +298,7 @@ export class ErrorContextBuilder {
    * Add recovery suggestion
    */
   addRecoverySuggestion(action: RecoveryAction): this {
-    if (!this.context.recoverySuggestions) {
-      this.context.recoverySuggestions = [];
-    }
+    this.context.recoverySuggestions ??= [];
     this.context.recoverySuggestions.push(action);
     return this;
   }
@@ -317,9 +315,7 @@ export class ErrorContextBuilder {
    * Set request context
    */
   setRequestContext(requestId: string, userId?: string, sessionId?: string): this {
-    if (!this.context.context) {
-      this.context.context = { timestamp: new Date() };
-    }
+    this.context.context ??= { timestamp: new Date() };
     this.context.context.requestId = requestId;
     this.context.context.userId = userId;
     this.context.context.sessionId = sessionId;
@@ -330,9 +326,7 @@ export class ErrorContextBuilder {
    * Set operation context
    */
   setOperationContext(operation: string, resource?: string): this {
-    if (!this.context.context) {
-      this.context.context = { timestamp: new Date() };
-    }
+    this.context.context ??= { timestamp: new Date() };
     this.context.context.operation = operation;
     this.context.context.resource = resource;
     return this;
@@ -342,12 +336,8 @@ export class ErrorContextBuilder {
    * Add correlation ID
    */
   addCorrelationId(id: string): this {
-    if (!this.context.context) {
-      this.context.context = { timestamp: new Date() };
-    }
-    if (!this.context.context.correlationIds) {
-      this.context.context.correlationIds = [];
-    }
+    this.context.context ??= { timestamp: new Date() };
+    this.context.context.correlationIds ??= [];
     this.context.context.correlationIds.push(id);
     return this;
   }
@@ -364,9 +354,8 @@ export class ErrorContextBuilder {
    * Add tag
    */
   addTag(key: string, value: string): this {
-    if (!this.context.tags) {
-      this.context.tags = {};
-    }
+    this.context.tags ??= {};
+    // eslint-disable-next-line security/detect-object-injection
     this.context.tags[key] = value;
     return this;
   }
@@ -392,7 +381,7 @@ export class ErrorContextBuilder {
    */
   build(): ErrorContext {
     // Apply default retry config if not set
-    if (!this.context.retryConfig && this.context.category) {
+    if (!this.context.retryConfig && this.context.category !== undefined) {
       const defaultConfig = DEFAULT_RETRY_CONFIGS[this.context.category];
       if (defaultConfig) {
         this.context.retryConfig = defaultConfig;
@@ -400,14 +389,12 @@ export class ErrorContextBuilder {
     }
 
     // Set default recovery suggestions based on category
-    if (this.context.recoverySuggestions?.length === 0 && this.context.category) {
+    if (this.context.recoverySuggestions?.length === 0 && this.context.category !== undefined) {
       this.context.recoverySuggestions = this.getDefaultRecoverySuggestions(this.context.category);
     }
 
     // Set default severity if not provided
-    if (!this.context.severity) {
-      this.context.severity = this.getDefaultSeverity(this.context.category);
-    }
+    this.context.severity ??= this.getDefaultSeverity(this.context.category);
 
     // Validate the context
     const validated = ErrorContextSchema.parse(this.context);
@@ -435,14 +422,15 @@ export class ErrorContextBuilder {
       [ErrorCategory.RATE_LIMIT]: [RecoveryAction.WAIT_AND_RETRY, RecoveryAction.REDUCE_LOAD],
     };
 
-    return suggestions[category] || [RecoveryAction.CONTACT_SUPPORT];
+    // eslint-disable-next-line security/detect-object-injection
+    return suggestions[category] ?? [RecoveryAction.CONTACT_SUPPORT];
   }
 
   /**
    * Get default severity for a category
    */
   private getDefaultSeverity(category?: ErrorCategory): ErrorSeverity {
-    if (!category) return ErrorSeverity.MEDIUM;
+    if (category === undefined) return ErrorSeverity.MEDIUM;
 
     const severities: Record<ErrorCategory, ErrorSeverity> = {
       [ErrorCategory.SECURITY]: ErrorSeverity.CRITICAL,
@@ -461,94 +449,17 @@ export class ErrorContextBuilder {
       [ErrorCategory.RATE_LIMIT]: ErrorSeverity.LOW,
     };
 
-    return severities[category] || ErrorSeverity.MEDIUM;
+    // eslint-disable-next-line security/detect-object-injection
+    return severities[category] ?? ErrorSeverity.MEDIUM;
   }
 }
 
+// Re-export utility functions (moved to separate file due to size)
+export { ErrorContextUtils } from './error-context-utils.js';
+
 /**
- * Utility functions for error context
+ * Create a new error context builder
  */
-export const ErrorContextUtils = {
-  /**
-   * Create a new error context builder
-   */
-  builder(): ErrorContextBuilder {
-    return new ErrorContextBuilder();
-  },
-
-  /**
-   * Check if an error is retryable
-   */
-  isRetryable(context: ErrorContext): boolean {
-    return context.retryConfig !== undefined && context.retryConfig !== null;
-  },
-
-  /**
-   * Get formatted user message with recovery suggestions
-   */
-  getFormattedUserMessage(context: ErrorContext): string {
-    let message = context.userMessage;
-    
-    if (context.recoverySuggestions && context.recoverySuggestions.length > 0) {
-      const suggestions = context.recoverySuggestions
-        .filter(action => action !== RecoveryAction.NONE)
-        .map(action => this.getRecoveryActionDescription(action))
-        .join(', ');
-      
-      if (suggestions) {
-        message += ` Suggested actions: ${suggestions}`;
-      }
-    }
-    
-    return message;
-  },
-
-  /**
-   * Get human-readable description for recovery action
-   */
-  getRecoveryActionDescription(action: RecoveryAction): string {
-    const descriptions: Record<RecoveryAction, string> = {
-      [RecoveryAction.RETRY]: 'try again',
-      [RecoveryAction.RETRY_WITH_BACKOFF]: 'retry with delay',
-      [RecoveryAction.REFRESH_TOKEN]: 'refresh authentication',
-      [RecoveryAction.CONTACT_SUPPORT]: 'contact support',
-      [RecoveryAction.CHECK_PERMISSIONS]: 'check permissions',
-      [RecoveryAction.VALIDATE_INPUT]: 'validate input',
-      [RecoveryAction.RESTART_SESSION]: 'restart session',
-      [RecoveryAction.WAIT_AND_RETRY]: 'wait and retry',
-      [RecoveryAction.UPGRADE_PLAN]: 'upgrade plan',
-      [RecoveryAction.CHECK_CONFIGURATION]: 'check configuration',
-      [RecoveryAction.CLEAR_CACHE]: 'clear cache',
-      [RecoveryAction.RELOAD_PAGE]: 'reload page',
-      [RecoveryAction.CHECK_NETWORK]: 'check network connection',
-      [RecoveryAction.REDUCE_LOAD]: 'reduce load',
-      [RecoveryAction.NONE]: 'no action available',
-    };
-
-    return descriptions[action] || 'unknown action';
-  },
-
-  /**
-   * Merge error contexts
-   */
-  merge(base: ErrorContext, override: Partial<ErrorContext>): ErrorContext {
-    return {
-      ...base,
-      ...override,
-      recoverySuggestions: override.recoverySuggestions || base.recoverySuggestions,
-      context: {
-        ...base.context,
-        ...override.context,
-        timestamp: override.context?.timestamp || base.context?.timestamp || new Date(),
-      },
-      helpLinks: {
-        ...base.helpLinks,
-        ...override.helpLinks,
-      },
-      tags: {
-        ...base.tags,
-        ...override.tags,
-      },
-    };
-  },
-};
+export function createErrorContextBuilder(): ErrorContextBuilder {
+  return new ErrorContextBuilder();
+}

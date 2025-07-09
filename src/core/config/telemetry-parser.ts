@@ -1,0 +1,76 @@
+/**
+ * Telemetry configuration parser
+ * @module core/config/telemetry-parser
+ */
+
+import { parseBoolean, parseInt, parseFloat, parseArray, parseJSON } from './parsers.js';
+
+/**
+ * Parse telemetry configuration from environment
+ */
+export function parseTelemetryConfig(): {
+  TELEMETRY_ENABLED: boolean;
+  TELEMETRY_SERVICE_NAME: string;
+  TELEMETRY_SERVICE_VERSION: string;
+  TELEMETRY_ENVIRONMENT: string;
+  TELEMETRY_DEPLOYMENT_ENVIRONMENT: string | undefined;
+  TELEMETRY_EXPORTER_TYPE: 'console' | 'otlp' | 'jaeger' | 'zipkin' | 'none';
+  TELEMETRY_EXPORTER_ENDPOINT: string | undefined;
+  TELEMETRY_EXPORTER_HEADERS: Record<string, string>;
+  TELEMETRY_EXPORTER_TIMEOUT: number;
+  TELEMETRY_EXPORTER_COMPRESSION: 'gzip' | 'none';
+  TELEMETRY_SAMPLING_RATIO: number;
+  TELEMETRY_LOG_LEVEL: 'none' | 'error' | 'warn' | 'info' | 'debug' | 'verbose' | 'all';
+  TELEMETRY_METRICS_INTERVAL: number;
+  TELEMETRY_METRICS_TIMEOUT: number;
+  TELEMETRY_RESOURCE_ATTRIBUTES: Record<string, string>;
+  TELEMETRY_TRACE_ID_RATIO_BASED: boolean;
+  TELEMETRY_TRACE_PARENT_BASED: boolean;
+  TELEMETRY_PROPAGATORS: string[];
+  TELEMETRY_INSTRUMENTATION_HTTP: boolean;
+  TELEMETRY_INSTRUMENTATION_EXPRESS: boolean;
+  TELEMETRY_INSTRUMENTATION_GRPC: boolean;
+  TELEMETRY_INSTRUMENTATION_REDIS: boolean;
+  TELEMETRY_INSTRUMENTATION_DNS: boolean;
+  TELEMETRY_INSTRUMENTATION_NET: boolean;
+  TELEMETRY_BATCH_SPAN_PROCESSOR: boolean;
+  TELEMETRY_BATCH_MAX_QUEUE_SIZE: number;
+  TELEMETRY_BATCH_MAX_EXPORT_BATCH_SIZE: number;
+  TELEMETRY_BATCH_SCHEDULED_DELAY: number;
+  TELEMETRY_BATCH_EXPORT_TIMEOUT: number;
+} {
+  return {
+    TELEMETRY_ENABLED: parseBoolean(process.env.TELEMETRY_ENABLED, false),
+    TELEMETRY_SERVICE_NAME: process.env.TELEMETRY_SERVICE_NAME ?? 'puppeteer-mcp',
+    TELEMETRY_SERVICE_VERSION: process.env.TELEMETRY_SERVICE_VERSION ?? '1.0.0',
+    TELEMETRY_ENVIRONMENT: process.env.TELEMETRY_ENVIRONMENT ?? 'production',
+    TELEMETRY_DEPLOYMENT_ENVIRONMENT: process.env.TELEMETRY_DEPLOYMENT_ENVIRONMENT,
+    TELEMETRY_EXPORTER_TYPE:
+      (process.env.TELEMETRY_EXPORTER_TYPE as 'console' | 'otlp' | 'jaeger' | 'zipkin' | 'none') ?? 'none',
+    TELEMETRY_EXPORTER_ENDPOINT: process.env.TELEMETRY_EXPORTER_ENDPOINT,
+    TELEMETRY_EXPORTER_HEADERS: parseJSON<Record<string, string>>(process.env.TELEMETRY_EXPORTER_HEADERS, {}),
+    TELEMETRY_EXPORTER_TIMEOUT: parseInt(process.env.TELEMETRY_EXPORTER_TIMEOUT, 30000),
+    TELEMETRY_EXPORTER_COMPRESSION: (process.env.TELEMETRY_EXPORTER_COMPRESSION as 'gzip' | 'none') ?? 'none',
+    TELEMETRY_SAMPLING_RATIO: parseFloat(process.env.TELEMETRY_SAMPLING_RATIO, 0.1),
+    TELEMETRY_LOG_LEVEL:
+      (process.env.TELEMETRY_LOG_LEVEL as 'none' | 'error' | 'warn' | 'info' | 'debug' | 'verbose' | 'all') ??
+      'error',
+    TELEMETRY_METRICS_INTERVAL: parseInt(process.env.TELEMETRY_METRICS_INTERVAL, 60000),
+    TELEMETRY_METRICS_TIMEOUT: parseInt(process.env.TELEMETRY_METRICS_TIMEOUT, 30000),
+    TELEMETRY_RESOURCE_ATTRIBUTES: parseJSON<Record<string, string>>(process.env.TELEMETRY_RESOURCE_ATTRIBUTES, {}),
+    TELEMETRY_TRACE_ID_RATIO_BASED: parseBoolean(process.env.TELEMETRY_TRACE_ID_RATIO_BASED, true),
+    TELEMETRY_TRACE_PARENT_BASED: parseBoolean(process.env.TELEMETRY_TRACE_PARENT_BASED, true),
+    TELEMETRY_PROPAGATORS: parseArray(process.env.TELEMETRY_PROPAGATORS, ['tracecontext', 'baggage']),
+    TELEMETRY_INSTRUMENTATION_HTTP: parseBoolean(process.env.TELEMETRY_INSTRUMENTATION_HTTP, true),
+    TELEMETRY_INSTRUMENTATION_EXPRESS: parseBoolean(process.env.TELEMETRY_INSTRUMENTATION_EXPRESS, true),
+    TELEMETRY_INSTRUMENTATION_GRPC: parseBoolean(process.env.TELEMETRY_INSTRUMENTATION_GRPC, true),
+    TELEMETRY_INSTRUMENTATION_REDIS: parseBoolean(process.env.TELEMETRY_INSTRUMENTATION_REDIS, true),
+    TELEMETRY_INSTRUMENTATION_DNS: parseBoolean(process.env.TELEMETRY_INSTRUMENTATION_DNS, true),
+    TELEMETRY_INSTRUMENTATION_NET: parseBoolean(process.env.TELEMETRY_INSTRUMENTATION_NET, true),
+    TELEMETRY_BATCH_SPAN_PROCESSOR: parseBoolean(process.env.TELEMETRY_BATCH_SPAN_PROCESSOR, true),
+    TELEMETRY_BATCH_MAX_QUEUE_SIZE: parseInt(process.env.TELEMETRY_BATCH_MAX_QUEUE_SIZE, 2048),
+    TELEMETRY_BATCH_MAX_EXPORT_BATCH_SIZE: parseInt(process.env.TELEMETRY_BATCH_MAX_EXPORT_BATCH_SIZE, 512),
+    TELEMETRY_BATCH_SCHEDULED_DELAY: parseInt(process.env.TELEMETRY_BATCH_SCHEDULED_DELAY, 5000),
+    TELEMETRY_BATCH_EXPORT_TIMEOUT: parseInt(process.env.TELEMETRY_BATCH_EXPORT_TIMEOUT, 30000),
+  };
+}
