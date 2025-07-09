@@ -59,52 +59,88 @@ export const validationErrors = {
   required: (
     field: string,
     context?: RequestContext,
-    defaultContext?: RequestContext
+    defaultContext?: RequestContext,
   ): ValidationDomainError =>
-    new ValidationDomainError(
-      `Field '${field}' is required`,
-      'VALIDATION_REQUIRED',
-      { field, constraint: 'required' },
-      context?.requestId ?? defaultContext?.requestId
-    ),
+    new ValidationDomainError({
+      message: `Field '${field}' is required`,
+      errorCode: 'VALIDATION_REQUIRED',
+      validationErrors: [{ field, message: `Field '${field}' is required`, code: 'required' }],
+      requestId: context?.requestId ?? defaultContext?.requestId,
+      userId: context?.userId ?? defaultContext?.userId,
+    }),
 
   invalidFormat: (params: FormatValidationParams): ValidationDomainError =>
-    new ValidationDomainError(
-      `Invalid format for field '${params.field}'`,
-      'VALIDATION_INVALID_FORMAT',
-      { field: params.field, value: params.value, expectedType: params.expectedFormat, constraint: 'format' },
-      params.context?.requestId ?? params.defaultContext?.requestId
-    ),
+    new ValidationDomainError({
+      message: `Invalid format for field '${params.field}'`,
+      errorCode: 'VALIDATION_INVALID_FORMAT',
+      validationErrors: [
+        {
+          field: params.field,
+          message: `Expected format: ${params.expectedFormat}`,
+          code: 'invalid_format',
+        },
+      ],
+      requestId: params.context?.requestId ?? params.defaultContext?.requestId,
+      userId: params.context?.userId ?? params.defaultContext?.userId,
+    }),
 
   outOfRange: (params: RangeValidationParams): ValidationDomainError =>
-    new ValidationDomainError(
-      `Field '${params.field}' is out of range`,
-      'VALIDATION_OUT_OF_RANGE',
-      { field: params.field, value: params.value, constraint: `${params.min}-${params.max}` },
-      params.context?.requestId ?? params.defaultContext?.requestId
-    ),
+    new ValidationDomainError({
+      message: `Field '${params.field}' is out of range`,
+      errorCode: 'VALIDATION_OUT_OF_RANGE',
+      validationErrors: [
+        {
+          field: params.field,
+          message: `Value must be between ${params.min} and ${params.max}`,
+          code: 'out_of_range',
+        },
+      ],
+      requestId: params.context?.requestId ?? params.defaultContext?.requestId,
+      userId: params.context?.userId ?? params.defaultContext?.userId,
+    }),
 
   invalidEnum: (params: EnumValidationParams): ValidationDomainError =>
-    new ValidationDomainError(
-      `Invalid value for field '${params.field}'`,
-      'VALIDATION_INVALID_ENUM',
-      { field: params.field, value: params.value, constraint: 'enum', validValues: params.validValues },
-      params.context?.requestId ?? params.defaultContext?.requestId
-    ),
+    new ValidationDomainError({
+      message: `Invalid value for field '${params.field}'`,
+      errorCode: 'VALIDATION_INVALID_ENUM',
+      validationErrors: [
+        {
+          field: params.field,
+          message: `Value must be one of: ${params.validValues.join(', ')}`,
+          code: 'invalid_enum',
+        },
+      ],
+      requestId: params.context?.requestId ?? params.defaultContext?.requestId,
+      userId: params.context?.userId ?? params.defaultContext?.userId,
+    }),
 
   tooLong: (params: LengthValidationParams): ValidationDomainError =>
-    new ValidationDomainError(
-      `Field '${params.field}' is too long`,
-      'VALIDATION_TOO_LONG',
-      { field: params.field, value: params.value.length, constraint: `max_length_${params.limit}` },
-      params.context?.requestId ?? params.defaultContext?.requestId
-    ),
+    new ValidationDomainError({
+      message: `Field '${params.field}' is too long`,
+      errorCode: 'VALIDATION_TOO_LONG',
+      validationErrors: [
+        {
+          field: params.field,
+          message: `Maximum length is ${params.limit} characters`,
+          code: 'too_long',
+        },
+      ],
+      requestId: params.context?.requestId ?? params.defaultContext?.requestId,
+      userId: params.context?.userId ?? params.defaultContext?.userId,
+    }),
 
   tooShort: (params: LengthValidationParams): ValidationDomainError =>
-    new ValidationDomainError(
-      `Field '${params.field}' is too short`,
-      'VALIDATION_TOO_SHORT',
-      { field: params.field, value: params.value.length, constraint: `min_length_${params.limit}` },
-      params.context?.requestId ?? params.defaultContext?.requestId
-    ),
+    new ValidationDomainError({
+      message: `Field '${params.field}' is too short`,
+      errorCode: 'VALIDATION_TOO_SHORT',
+      validationErrors: [
+        {
+          field: params.field,
+          message: `Minimum length is ${params.limit} characters`,
+          code: 'too_short',
+        },
+      ],
+      requestId: params.context?.requestId ?? params.defaultContext?.requestId,
+      userId: params.context?.userId ?? params.defaultContext?.userId,
+    }),
 };

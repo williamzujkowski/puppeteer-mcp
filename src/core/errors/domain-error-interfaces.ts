@@ -152,3 +152,50 @@ export interface DomainErrorOptions extends BaseErrorOptions {
     details?: Record<string, unknown>;
   };
 }
+
+/**
+ * External service error options
+ */
+export interface ExternalServiceErrorOptions extends BaseErrorOptions {
+  serviceInfo: {
+    serviceName: string;
+    responseCode?: number;
+    responseTime?: number;
+    endpoint?: string;
+  };
+}
+
+/**
+ * Performance error options
+ */
+export interface PerformanceErrorOptions extends BaseErrorOptions {
+  performanceInfo: {
+    operation: string;
+    duration?: number;
+    threshold?: number;
+    memoryUsage?: number;
+  };
+}
+
+/**
+ * System error options
+ */
+export interface SystemErrorOptions extends BaseErrorOptions {
+  systemInfo: {
+    component: string;
+    reason?: string;
+    version?: string;
+  };
+}
+
+/**
+ * Business logic error options
+ */
+export interface BusinessLogicErrorOptions extends BaseErrorOptions {
+  businessInfo: {
+    rule: string;
+    violationType: string;
+    contextData?: Record<string, unknown>;
+  };
+  userId?: string;
+}

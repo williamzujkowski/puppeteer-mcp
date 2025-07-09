@@ -65,18 +65,18 @@ export const ErrorContextUtils = {
    */
   getFormattedUserMessage(context: ErrorContext): string {
     let message = context.userMessage;
-    
+
     if (context.recoverySuggestions !== undefined && context.recoverySuggestions.length > 0) {
       const suggestions = context.recoverySuggestions
-        .filter(action => action !== RecoveryAction.NONE)
-        .map(action => this.getRecoveryActionDescription(action))
+        .filter((action) => action !== RecoveryAction.NONE)
+        .map((action) => this.getRecoveryActionDescription(action))
         .join(', ');
-      
+
       if (suggestions) {
         message += ` Suggested actions: ${suggestions}`;
       }
     }
-    
+
     return message;
   },
 
@@ -104,6 +104,10 @@ export const ErrorContextUtils = {
       [RecoveryAction.LOGIN_AGAIN]: 'login again',
       [RecoveryAction.FIX_INPUT]: 'fix input',
       [RecoveryAction.UPDATE_CONFIG]: 'update configuration',
+      [RecoveryAction.CHECK_CONFIG]: 'check configuration',
+      [RecoveryAction.OPTIMIZE]: 'optimize',
+      [RecoveryAction.CHECK_INPUT]: 'check input',
+      [RecoveryAction.CHECK_CONNECTIVITY]: 'check connectivity',
     };
 
     // eslint-disable-next-line security/detect-object-injection

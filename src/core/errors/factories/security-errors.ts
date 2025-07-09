@@ -30,41 +30,53 @@ export const securityErrors = {
     threatType: string,
     sourceIp: string,
     context?: RequestContext,
-    defaultContext?: RequestContext
+    defaultContext?: RequestContext,
   ): SecurityDomainError =>
-    new SecurityDomainError(
-      'Suspicious activity detected',
-      'SECURITY_SUSPICIOUS_ACTIVITY',
-      { threatType, sourceIp, riskLevel: 'high' },
-      context?.requestId ?? defaultContext?.requestId,
-      context?.userId ?? defaultContext?.userId
-    ),
+    new SecurityDomainError({
+      message: 'Suspicious activity detected',
+      errorCode: 'SECURITY_SUSPICIOUS_ACTIVITY',
+      securityInfo: {
+        type: threatType,
+        details: { sourceIp, riskLevel: 'high' },
+        clientIp: sourceIp,
+      },
+      requestId: context?.requestId ?? defaultContext?.requestId,
+      userId: context?.userId ?? defaultContext?.userId,
+    }),
 
   xssAttempt: (
     input: string,
     context?: RequestContext,
-    defaultContext?: RequestContext
+    defaultContext?: RequestContext,
   ): SecurityDomainError =>
-    new SecurityDomainError(
-      'XSS attempt detected',
-      'SECURITY_XSS_ATTEMPT',
-      { attackVector: 'xss', sourceIp: context?.ipAddress, input },
-      context?.requestId ?? defaultContext?.requestId,
-      context?.userId ?? defaultContext?.userId
-    ),
+    new SecurityDomainError({
+      message: 'XSS attempt detected',
+      errorCode: 'SECURITY_XSS_ATTEMPT',
+      securityInfo: {
+        type: 'xss',
+        details: { attackVector: 'xss', input },
+        clientIp: context?.ipAddress,
+      },
+      requestId: context?.requestId ?? defaultContext?.requestId,
+      userId: context?.userId ?? defaultContext?.userId,
+    }),
 
   sqlInjection: (
     input: string,
     context?: RequestContext,
-    defaultContext?: RequestContext
+    defaultContext?: RequestContext,
   ): SecurityDomainError =>
-    new SecurityDomainError(
-      'SQL injection attempt detected',
-      'SECURITY_SQL_INJECTION',
-      { attackVector: 'sql_injection', sourceIp: context?.ipAddress, input },
-      context?.requestId ?? defaultContext?.requestId,
-      context?.userId ?? defaultContext?.userId
-    ),
+    new SecurityDomainError({
+      message: 'SQL injection attempt detected',
+      errorCode: 'SECURITY_SQL_INJECTION',
+      securityInfo: {
+        type: 'sql_injection',
+        details: { attackVector: 'sql_injection', input },
+        clientIp: context?.ipAddress,
+      },
+      requestId: context?.requestId ?? defaultContext?.requestId,
+      userId: context?.userId ?? defaultContext?.userId,
+    }),
 };
 
 /**
@@ -72,25 +84,32 @@ export const securityErrors = {
  */
 export const performanceErrors = {
   slowOperation: (params: SlowOperationParams): PerformanceDomainError =>
-    new PerformanceDomainError(
-      `Operation exceeded performance threshold: ${params.operation}`,
-      'PERFORMANCE_SLOW_OPERATION',
-      { operation: params.operation, duration: params.duration, threshold: params.threshold },
-      params.context?.requestId ?? params.defaultContext?.requestId
-    ),
+    new PerformanceDomainError({
+      message: `Operation exceeded performance threshold: ${params.operation}`,
+      errorCode: 'PERFORMANCE_SLOW_OPERATION',
+      performanceInfo: {
+        operation: params.operation,
+        duration: params.duration,
+        threshold: params.threshold,
+      },
+      requestId: params.context?.requestId ?? params.defaultContext?.requestId,
+    }),
 
   memoryLeak: (
     component: string,
     memoryUsage: number,
     context?: RequestContext,
-    defaultContext?: RequestContext
+    defaultContext?: RequestContext,
   ): PerformanceDomainError =>
-    new PerformanceDomainError(
-      `Memory leak detected: ${component}`,
-      'PERFORMANCE_MEMORY_LEAK',
-      { operation: 'memory_monitoring', memoryUsage },
-      context?.requestId ?? defaultContext?.requestId
-    ),
+    new PerformanceDomainError({
+      message: `Memory leak detected: ${component}`,
+      errorCode: 'PERFORMANCE_MEMORY_LEAK',
+      performanceInfo: {
+        operation: 'memory_monitoring',
+        memoryUsage,
+      },
+      requestId: context?.requestId ?? defaultContext?.requestId,
+    }),
 };
 
 /**
@@ -101,27 +120,35 @@ export const businessLogicErrors = {
     rule: string,
     details: Record<string, unknown>,
     context?: RequestContext,
-    defaultContext?: RequestContext
+    defaultContext?: RequestContext,
   ): BusinessLogicDomainError =>
-    new BusinessLogicDomainError(
-      `Business rule violation: ${rule}`,
-      'BUSINESS_RULE_VIOLATION',
-      { rule, violationType: 'rule_violation', contextData: details },
-      context?.requestId ?? defaultContext?.requestId,
-      context?.userId ?? defaultContext?.userId
-    ),
+    new BusinessLogicDomainError({
+      message: `Business rule violation: ${rule}`,
+      errorCode: 'BUSINESS_RULE_VIOLATION',
+      businessInfo: {
+        rule,
+        violationType: 'rule_violation',
+        contextData: details,
+      },
+      requestId: context?.requestId ?? defaultContext?.requestId,
+      userId: context?.userId ?? defaultContext?.userId,
+    }),
 
   workflowError: (
     workflow: string,
     step: string,
     context?: RequestContext,
-    defaultContext?: RequestContext
+    defaultContext?: RequestContext,
   ): BusinessLogicDomainError =>
-    new BusinessLogicDomainError(
-      `Workflow error in ${workflow} at step ${step}`,
-      'BUSINESS_WORKFLOW_ERROR',
-      { rule: workflow, violationType: 'workflow_error', contextData: { step } },
-      context?.requestId ?? defaultContext?.requestId,
-      context?.userId ?? defaultContext?.userId
-    ),
+    new BusinessLogicDomainError({
+      message: `Workflow error in ${workflow} at step ${step}`,
+      errorCode: 'BUSINESS_WORKFLOW_ERROR',
+      businessInfo: {
+        rule: workflow,
+        violationType: 'workflow_error',
+        contextData: { step },
+      },
+      requestId: context?.requestId ?? defaultContext?.requestId,
+      userId: context?.userId ?? defaultContext?.userId,
+    }),
 };

@@ -11,6 +11,8 @@ export * from './network-errors.js';
 export * from './validation-errors.js';
 export * from './session-errors.js';
 export * from './resource-errors.js';
+export * from './service-domain-errors.js';
+export * from './performance-domain-errors.js';
 
 // Re-export interfaces
 export type {
@@ -27,4 +29,8 @@ export type {
   ResourceErrorOptions,
   ProxyErrorOptions,
   DomainErrorOptions,
+  ExternalServiceErrorOptions,
+  PerformanceErrorOptions,
+  SystemErrorOptions,
+  BusinessLogicErrorOptions,
 } from '../domain-error-interfaces.js';

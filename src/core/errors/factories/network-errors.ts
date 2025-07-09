@@ -14,62 +14,62 @@ export const networkErrors = {
   connectionFailed: (
     url: string,
     context?: RequestContext,
-    defaultContext?: RequestContext
+    defaultContext?: RequestContext,
   ): NetworkDomainError =>
-    new NetworkDomainError(
-      `Connection failed to: ${url}`,
-      'NETWORK_CONNECTION_FAILED',
-      { url, method: 'GET' },
-      context?.requestId ?? defaultContext?.requestId
-    ),
+    new NetworkDomainError({
+      message: `Connection failed to: ${url}`,
+      errorCode: 'NETWORK_CONNECTION_FAILED',
+      networkInfo: { url, method: 'GET' },
+      requestId: context?.requestId ?? defaultContext?.requestId,
+    }),
 
   timeout: (
     url: string,
     timeout: number,
     context?: RequestContext,
-    defaultContext?: RequestContext
+    defaultContext?: RequestContext,
   ): NetworkDomainError =>
-    new NetworkDomainError(
-      `Request timeout: ${url}`,
-      'NETWORK_TIMEOUT',
-      { url, timeout },
-      context?.requestId ?? defaultContext?.requestId
-    ),
+    new NetworkDomainError({
+      message: `Request timeout: ${url}`,
+      errorCode: 'NETWORK_TIMEOUT',
+      networkInfo: { url, timeout },
+      requestId: context?.requestId ?? defaultContext?.requestId,
+    }),
 
   dnsResolutionFailed: (
     hostname: string,
     context?: RequestContext,
-    defaultContext?: RequestContext
+    defaultContext?: RequestContext,
   ): NetworkDomainError =>
-    new NetworkDomainError(
-      `DNS resolution failed for: ${hostname}`,
-      'NETWORK_DNS_RESOLUTION_FAILED',
-      { url: hostname },
-      context?.requestId ?? defaultContext?.requestId
-    ),
+    new NetworkDomainError({
+      message: `DNS resolution failed for: ${hostname}`,
+      errorCode: 'NETWORK_DNS_RESOLUTION_FAILED',
+      networkInfo: { url: hostname },
+      requestId: context?.requestId ?? defaultContext?.requestId,
+    }),
 
   sslError: (
     url: string,
-    error: string,
+    _error: string,
     context?: RequestContext,
-    defaultContext?: RequestContext
+    defaultContext?: RequestContext,
   ): NetworkDomainError =>
-    new NetworkDomainError(
-      `SSL/TLS error for: ${url}`,
-      'NETWORK_SSL_ERROR',
-      { url, error },
-      context?.requestId ?? defaultContext?.requestId
-    ),
+    new NetworkDomainError({
+      message: `SSL/TLS error for: ${url}`,
+      errorCode: 'NETWORK_SSL_ERROR',
+      networkInfo: { url },
+      requestId: context?.requestId ?? defaultContext?.requestId,
+    }),
 
   proxyError: (
     proxyUrl: string,
     context?: RequestContext,
-    defaultContext?: RequestContext
+    defaultContext?: RequestContext,
   ): NetworkDomainError =>
-    new NetworkDomainError(
-      `Proxy connection failed: ${proxyUrl}`,
-      'NETWORK_PROXY_ERROR',
-      { url: proxyUrl },
-      context?.requestId ?? defaultContext?.requestId
-    ),
+    new NetworkDomainError({
+      message: `Proxy connection failed: ${proxyUrl}`,
+      errorCode: 'NETWORK_PROXY_ERROR',
+      networkInfo: { url: proxyUrl },
+      requestId: context?.requestId ?? defaultContext?.requestId,
+    }),
 };

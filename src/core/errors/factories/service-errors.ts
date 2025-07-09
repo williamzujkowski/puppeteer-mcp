@@ -6,10 +6,10 @@
 
 import {
   ExternalServiceDomainError,
-  RateLimitDomainError,
   ConfigurationDomainError,
   SystemDomainError,
 } from '../domain-errors.js';
+import { RateLimitDomainError } from '../domain/network-errors.js';
 import type { RequestContext } from './types.js';
 
 /**
@@ -31,27 +31,39 @@ export const rateLimitErrors = {
     limit: number,
     resetTime: Date,
     context?: RequestContext,
-    defaultContext?: RequestContext
+    defaultContext?: RequestContext,
   ): RateLimitDomainError =>
-    new RateLimitDomainError(
-      'Rate limit exceeded',
-      'RATE_LIMIT_EXCEEDED',
-      { limit, resetTime, retryAfter: Math.ceil((resetTime.getTime() - Date.now()) / 1000) },
-      context?.requestId ?? defaultContext?.requestId
-    ),
+    new RateLimitDomainError({
+      message: 'Rate limit exceeded',
+      errorCode: 'RATE_LIMIT_EXCEEDED',
+      rateLimitInfo: {
+        limit,
+        current: limit,
+        resetTime,
+        window: 'default',
+      },
+      requestId: context?.requestId ?? defaultContext?.requestId,
+      userId: context?.userId ?? defaultContext?.userId,
+    }),
 
   quotaExceeded: (
     quota: number,
     period: string,
     context?: RequestContext,
-    defaultContext?: RequestContext
+    defaultContext?: RequestContext,
   ): RateLimitDomainError =>
-    new RateLimitDomainError(
-      `Quota exceeded: ${quota} requests per ${period}`,
-      'RATE_LIMIT_QUOTA_EXCEEDED',
-      { limit: quota, resetTime: new Date(Date.now() + 3600000) }, // 1 hour from now
-      context?.requestId ?? defaultContext?.requestId
-    ),
+    new RateLimitDomainError({
+      message: `Quota exceeded: ${quota} requests per ${period}`,
+      errorCode: 'RATE_LIMIT_QUOTA_EXCEEDED',
+      rateLimitInfo: {
+        limit: quota,
+        current: quota,
+        resetTime: new Date(Date.now() + 3600000), // 1 hour from now
+        window: period,
+      },
+      requestId: context?.requestId ?? defaultContext?.requestId,
+      userId: context?.userId ?? defaultContext?.userId,
+    }),
 };
 
 /**
@@ -61,40 +73,40 @@ export const externalServiceErrors = {
   unavailable: (
     serviceName: string,
     context?: RequestContext,
-    defaultContext?: RequestContext
+    defaultContext?: RequestContext,
   ): ExternalServiceDomainError =>
-    new ExternalServiceDomainError(
-      `External service unavailable: ${serviceName}`,
-      'EXTERNAL_SERVICE_UNAVAILABLE',
-      { serviceName, responseCode: 503 },
-      context?.requestId ?? defaultContext?.requestId
-    ),
+    new ExternalServiceDomainError({
+      message: `External service unavailable: ${serviceName}`,
+      errorCode: 'EXTERNAL_SERVICE_UNAVAILABLE',
+      serviceInfo: { serviceName, responseCode: 503 },
+      requestId: context?.requestId ?? defaultContext?.requestId,
+    }),
 
   timeout: (
     serviceName: string,
     timeout: number,
     context?: RequestContext,
-    defaultContext?: RequestContext
+    defaultContext?: RequestContext,
   ): ExternalServiceDomainError =>
-    new ExternalServiceDomainError(
-      `External service timeout: ${serviceName}`,
-      'EXTERNAL_SERVICE_TIMEOUT',
-      { serviceName, responseTime: timeout },
-      context?.requestId ?? defaultContext?.requestId
-    ),
+    new ExternalServiceDomainError({
+      message: `External service timeout: ${serviceName}`,
+      errorCode: 'EXTERNAL_SERVICE_TIMEOUT',
+      serviceInfo: { serviceName, responseTime: timeout },
+      requestId: context?.requestId ?? defaultContext?.requestId,
+    }),
 
   badResponse: (
     serviceName: string,
     statusCode: number,
     context?: RequestContext,
-    defaultContext?: RequestContext
+    defaultContext?: RequestContext,
   ): ExternalServiceDomainError =>
-    new ExternalServiceDomainError(
-      `External service error: ${serviceName}`,
-      'EXTERNAL_SERVICE_BAD_RESPONSE',
-      { serviceName, responseCode: statusCode },
-      context?.requestId ?? defaultContext?.requestId
-    ),
+    new ExternalServiceDomainError({
+      message: `External service error: ${serviceName}`,
+      errorCode: 'EXTERNAL_SERVICE_BAD_RESPONSE',
+      serviceInfo: { serviceName, responseCode: statusCode },
+      requestId: context?.requestId ?? defaultContext?.requestId,
+    }),
 };
 
 /**
@@ -104,22 +116,26 @@ export const configErrors = {
   missing: (
     configKey: string,
     context?: RequestContext,
-    defaultContext?: RequestContext
+    defaultContext?: RequestContext,
   ): ConfigurationDomainError =>
-    new ConfigurationDomainError(
-      `Configuration missing: ${configKey}`,
-      'CONFIG_MISSING',
-      { configKey },
-      context?.requestId ?? defaultContext?.requestId
-    ),
+    new ConfigurationDomainError({
+      message: `Configuration missing: ${configKey}`,
+      errorCode: 'CONFIG_MISSING',
+      configurationIssue: `Missing configuration: ${configKey}`,
+      configPath: configKey,
+      requestId: context?.requestId ?? defaultContext?.requestId,
+    }),
 
   invalid: (params: InvalidConfigParams): ConfigurationDomainError =>
-    new ConfigurationDomainError(
-      `Invalid configuration: ${params.configKey}`,
-      'CONFIG_INVALID',
-      { configKey: params.configKey, configValue: params.value, expectedType: params.expectedType },
-      params.context?.requestId ?? params.defaultContext?.requestId
-    ),
+    new ConfigurationDomainError({
+      message: `Invalid configuration: ${params.configKey}`,
+      errorCode: 'CONFIG_INVALID',
+      configurationIssue: `Invalid configuration value for ${params.configKey}`,
+      configPath: params.configKey,
+      expectedValue: params.expectedType,
+      actualValue: params.value,
+      requestId: params.context?.requestId ?? params.defaultContext?.requestId,
+    }),
 };
 
 /**
@@ -129,36 +145,33 @@ export const systemErrors = {
   serviceUnavailable: (
     component: string,
     context?: RequestContext,
-    defaultContext?: RequestContext
+    defaultContext?: RequestContext,
   ): SystemDomainError =>
-    new SystemDomainError(
-      `System service unavailable: ${component}`,
-      'SYSTEM_SERVICE_UNAVAILABLE',
-      { component },
-      context?.requestId ?? defaultContext?.requestId
-    ),
+    new SystemDomainError({
+      message: `System service unavailable: ${component}`,
+      errorCode: 'SYSTEM_SERVICE_UNAVAILABLE',
+      systemInfo: { component },
+      requestId: context?.requestId ?? defaultContext?.requestId,
+    }),
 
-  maintenanceMode: (
-    context?: RequestContext,
-    defaultContext?: RequestContext
-  ): SystemDomainError =>
-    new SystemDomainError(
-      'System is in maintenance mode',
-      'SYSTEM_MAINTENANCE_MODE',
-      { component: 'system' },
-      context?.requestId ?? defaultContext?.requestId
-    ),
+  maintenanceMode: (context?: RequestContext, defaultContext?: RequestContext): SystemDomainError =>
+    new SystemDomainError({
+      message: 'System is in maintenance mode',
+      errorCode: 'SYSTEM_MAINTENANCE_MODE',
+      systemInfo: { component: 'system' },
+      requestId: context?.requestId ?? defaultContext?.requestId,
+    }),
 
   healthCheckFailed: (
     component: string,
     reason: string,
     context?: RequestContext,
-    defaultContext?: RequestContext
+    defaultContext?: RequestContext,
   ): SystemDomainError =>
-    new SystemDomainError(
-      `Health check failed: ${component}`,
-      'SYSTEM_HEALTH_CHECK_FAILED',
-      { component, reason },
-      context?.requestId ?? defaultContext?.requestId
-    ),
+    new SystemDomainError({
+      message: `Health check failed: ${component}`,
+      errorCode: 'SYSTEM_HEALTH_CHECK_FAILED',
+      systemInfo: { component, reason },
+      requestId: context?.requestId ?? defaultContext?.requestId,
+    }),
 };

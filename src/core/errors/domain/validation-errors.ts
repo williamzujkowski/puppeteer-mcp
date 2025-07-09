@@ -6,8 +6,13 @@
  */
 
 import { EnhancedAppError } from '../enhanced-app-error.js';
-import { ErrorContextBuilder, ErrorCategory, ErrorSeverity, RecoveryAction } from '../error-context.js';
-import type { ValidationErrorOptions, ConfigurationErrorOptions } from '../domain-error-interfaces.js';
+import {
+  ErrorContextBuilder,
+  ErrorCategory,
+  ErrorSeverity,
+  RecoveryAction,
+} from '../error-context.js';
+import type { ValidationErrorOptions } from '../domain-error-interfaces.js';
 
 /**
  * Validation domain errors
@@ -15,7 +20,7 @@ import type { ValidationErrorOptions, ConfigurationErrorOptions } from '../domai
 export class ValidationDomainError extends EnhancedAppError {
   constructor(options: ValidationErrorOptions) {
     const { message, errorCode, validationErrors, requestId, userId } = options;
-    
+
     const context = new ErrorContextBuilder()
       .setErrorCode(errorCode)
       .setCategory(ErrorCategory.VALIDATION)
@@ -36,42 +41,13 @@ export class ValidationDomainError extends EnhancedAppError {
       .setShouldReport(false)
       .build();
 
-    super({ message, context, statusCode: 400, isOperational: false, details: { validationErrors } });
+    super({
+      message,
+      context,
+      statusCode: 400,
+      isOperational: false,
+      details: { validationErrors },
+    });
     this.name = 'ValidationDomainError';
-  }
-}
-
-/**
- * Configuration domain errors
- */
-export class ConfigurationDomainError extends EnhancedAppError {
-  constructor(options: ConfigurationErrorOptions) {
-    const { message, errorCode, configurationIssue, configPath, expectedValue, actualValue, requestId } = options;
-    
-    const context = new ErrorContextBuilder()
-      .setErrorCode(errorCode)
-      .setCategory(ErrorCategory.CONFIGURATION)
-      .setSeverity(ErrorSeverity.HIGH)
-      .setUserMessage(message)
-      .setTechnicalDetails({
-        issue: configurationIssue,
-        configPath,
-        expectedValue,
-        actualValue,
-      })
-      .addRecoverySuggestion(RecoveryAction.UPDATE_CONFIG)
-      .addRecoverySuggestion(RecoveryAction.CONTACT_SUPPORT)
-      .setRequestContext(requestId ?? '')
-      .setHelpLinks({
-        documentation: 'https://docs.puppeteer-mcp.com/configuration',
-        troubleshooting: 'https://docs.puppeteer-mcp.com/configuration/troubleshooting',
-      })
-      .addTag('domain', 'configuration')
-      .addTag('config-path', configPath ?? 'unknown')
-      .setShouldReport(true)
-      .build();
-
-    super({ message, context, statusCode: 500, isOperational: true, details: { configurationIssue, configPath, expectedValue, actualValue } });
-    this.name = 'ConfigurationDomainError';
   }
 }
