@@ -27,7 +27,6 @@ import { StorageOperations } from './storage-operations.js';
  * Error tracking and analytics service
  */
 export class ErrorTracker extends EventEmitter {
-  private storage: ErrorTrackingStorage;
   private logger: Logger;
   private patternChecker: PatternChecker;
   private metricsProvider: MetricsProvider;
@@ -41,7 +40,6 @@ export class ErrorTracker extends EventEmitter {
     patternConfig: ErrorPatternConfig = DEFAULT_PATTERN_CONFIG,
   ) {
     super();
-    this.storage = storage;
     this.logger = logger;
     this.isEnabled = true;
 

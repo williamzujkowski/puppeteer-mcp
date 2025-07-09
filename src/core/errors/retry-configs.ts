@@ -3,7 +3,7 @@
  * @module core/errors/retry-configs
  */
 
-import { ErrorCategory, RetryConfig } from './types.js';
+import { ErrorCategory, RetryConfig } from './error-types.js';
 
 /**
  * Default retry configurations for different error categories
@@ -54,4 +54,5 @@ export const DEFAULT_RETRY_CONFIGS: Record<ErrorCategory, RetryConfig | null> = 
   [ErrorCategory.DATABASE]: null,
   [ErrorCategory.SYSTEM]: null,
   [ErrorCategory.PERFORMANCE]: null,
+  [ErrorCategory.SESSION]: null,
 };
