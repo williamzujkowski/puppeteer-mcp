@@ -45,7 +45,7 @@ export class AlertManager extends EventEmitter {
     if (!this.enableAlerting) return;
 
     const { operation, latency } = record;
-    const opMetrics = metrics.operations[operation as keyof typeof metrics.operations];
+    const opMetrics = metrics.operations[operation];
     
     // High latency alert
     if (latency > this.alertThresholds.maxLatency) {

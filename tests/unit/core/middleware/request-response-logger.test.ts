@@ -11,9 +11,9 @@ import express from 'express';
 import {
   requestResponseLogger,
   createRequestResponseLogger,
-  VerbosityLevel,
   type RequestResponseLoggerOptions,
 } from '../../../../src/core/middleware/request-response-logger.js';
+import { VerbosityLevel } from '../../../../src/core/middleware/logging/types.js';
 
 // Mock dependencies
 jest.mock('../../../../src/utils/logger.js', () => ({

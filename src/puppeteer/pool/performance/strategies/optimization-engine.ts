@@ -235,7 +235,7 @@ export class OptimizationEngine implements IOptimizationEngine {
     };
 
     const template = templates[type];
-    if (template && template.condition()) {
+    if (template?.condition()) {
       return { ...template.rec(), timestamp: new Date(), applied: false };
     }
     return null;
