@@ -1,0 +1,59 @@
+apiVersion: 1
+
+datasources:
+  # Prometheus datasource
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    editable: true
+    jsonData:
+      timeInterval: "15s"
+      queryTimeout: "60s"
+      httpMethod: POST
+
+  # Jaeger datasource for traces
+  - name: Jaeger
+    type: jaeger
+    access: proxy
+    url: http://jaeger:16686
+    editable: true
+    jsonData:
+      tracesToLogs:
+        datasourceUid: 'loki'
+        spanStartTimeShift: '-1h'
+        spanEndTimeShift: '1h'
+        tags: ['job', 'instance']
+        filterByTraceID: false
+        filterBySpanID: false
+
+  # PostgreSQL datasource
+  - name: PostgreSQL
+    type: postgres
+    url: postgres:5432
+    database: puppeteer_mcp
+    user: mcp
+    secureJsonData:
+      password: mcp-password
+    jsonData:
+      sslmode: 'disable'
+      maxOpenConns: 0
+      maxIdleConns: 2
+      connMaxLifetime: 14400
+      postgresVersion: 1600
+      timescaledb: false
+
+  # Redis datasource (requires redis-datasource plugin)
+  - name: Redis
+    type: redis-datasource
+    access: proxy
+    url: redis:6379
+    editable: true
+    secureJsonData:
+      password: redis-dev-password
+    jsonData:
+      poolSize: 10
+      timeout: 10
+      pingInterval: 0
+      pipelineWindow: 0

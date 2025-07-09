@@ -1,0 +1,147 @@
+# Development Dockerfile for Puppeteer MCP
+# Optimized for hot reloading and debugging
+# Following CN:DOCKER standards
+# @nist cm-2 "Baseline Configuration"
+# @nist cm-6 "Configuration Settings"
+
+# Development stage with all tools
+FROM node:22-alpine AS development
+WORKDIR /app
+
+# Install system dependencies for development
+RUN apk update && \
+    apk add --no-cache \
+    python3 \
+    make \
+    g++ \
+    git \
+    bash \
+    curl \
+    wget \
+    dumb-init \
+    chromium \
+    nss \
+    freetype \
+    harfbuzz \
+    ca-certificates \
+    ttf-freefont \
+    # Development tools
+    vim \
+    htop \
+    net-tools \
+    iputils \
+    bind-tools \
+    postgresql-client \
+    redis \
+    && rm -rf /var/cache/apk/* /tmp/*
+
+# Configure Puppeteer to use installed Chromium
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
+    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser \
+    RUNNING_IN_DOCKER=true
+
+# Install global npm tools for development
+RUN npm install -g \
+    nodemon \
+    tsx \
+    pino-pretty \
+    npm-check-updates \
+    snyk
+
+# Create non-root user for development
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nodejs -u 1001 -G nodejs
+
+# Set up working directory permissions
+RUN mkdir -p /app/node_modules /app/dist /app/logs && \
+    chown -R nodejs:nodejs /app
+
+# Switch to non-root user
+USER nodejs
+
+# Copy package files
+COPY --chown=nodejs:nodejs package*.json ./
+
+# Install dependencies with better caching
+RUN npm ci && \
+    npm cache clean --force
+
+# Development environment setup
+ENV NODE_ENV=development \
+    PATH="/app/node_modules/.bin:$PATH" \
+    NODE_OPTIONS="--enable-source-maps --max-old-space-size=512"
+
+# Expose ports
+EXPOSE 8443 50051 9229 9464
+
+# Health check for development
+HEALTHCHECK --interval=30s --timeout=10s --start-period=45s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:8443/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1))"
+
+# Use dumb-init to handle signals properly
+ENTRYPOINT ["dumb-init", "--"]
+
+# Default command for development
+CMD ["npm", "run", "dev"]
+
+# Debug stage - extends development with additional debugging tools
+FROM development AS debug
+
+USER root
+
+# Install additional debugging tools
+RUN apk add --no-cache \
+    strace \
+    tcpdump \
+    gdb \
+    valgrind \
+    perf-tools \
+    iperf3
+
+# Install Node.js debugging tools
+RUN npm install -g \
+    node-inspector \
+    why-is-node-running \
+    clinic \
+    0x \
+    autocannon
+
+USER nodejs
+
+# Enable core dumps for debugging
+RUN ulimit -c unlimited
+
+ENV NODE_ENV=development \
+    DEBUG=* \
+    NODE_OPTIONS="--inspect-brk=0.0.0.0:9229 --enable-source-maps --max-old-space-size=512"
+
+CMD ["npm", "run", "dev"]
+
+# Test runner stage
+FROM development AS test
+
+# Copy test files
+COPY --chown=nodejs:nodejs . .
+
+# Run tests
+CMD ["npm", "test"]
+
+# Security scanner stage
+FROM development AS security
+
+USER root
+
+# Install security scanning tools
+RUN npm install -g \
+    snyk \
+    npm-audit-resolver \
+    better-npm-audit \
+    lockfile-lint
+
+USER nodejs
+
+# Copy all files for scanning
+COPY --chown=nodejs:nodejs . .
+
+# Run security checks
+CMD ["npm", "run", "security:check"]

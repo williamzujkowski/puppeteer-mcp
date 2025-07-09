@@ -1,0 +1,101 @@
+# Prometheus configuration for puppeteer-mcp
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    monitor: 'puppeteer-mcp-monitor'
+    environment: 'development'
+
+# Alerting configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: []
+
+# Load rules files
+rule_files:
+  - "alerts.yml"
+
+# Scrape configurations
+scrape_configs:
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+        labels:
+          service: 'prometheus'
+
+  # puppeteer-mcp application metrics
+  - job_name: 'puppeteer-mcp'
+    static_configs:
+      - targets: ['app:9464']
+        labels:
+          service: 'puppeteer-mcp'
+          component: 'application'
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+
+  # Node Exporter for system metrics
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+        labels:
+          service: 'node-exporter'
+          component: 'system'
+
+  # Redis Exporter
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+        labels:
+          service: 'redis'
+          component: 'cache'
+
+  # PostgreSQL Exporter
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres-exporter:9187']
+        labels:
+          service: 'postgres'
+          component: 'database'
+
+  # Jaeger metrics
+  - job_name: 'jaeger'
+    static_configs:
+      - targets: ['jaeger:14269']
+        labels:
+          service: 'jaeger'
+          component: 'tracing'
+
+  # Grafana metrics
+  - job_name: 'grafana'
+    static_configs:
+      - targets: ['grafana:3000']
+        labels:
+          service: 'grafana'
+          component: 'visualization'
+    metrics_path: '/metrics'
+
+  # Docker daemon metrics (if exposed)
+  - job_name: 'docker'
+    static_configs:
+      - targets: ['host.docker.internal:9323']
+        labels:
+          service: 'docker'
+          component: 'container-runtime'
+    honor_labels: true
+
+# Service discovery for dynamic targets
+# Can be extended with Consul, Kubernetes, etc.
+# consul_sd_configs:
+#   - server: 'consul:8500'
+#     services: ['puppeteer-mcp']
+
+# Remote write configuration (optional)
+# remote_write:
+#   - url: 'http://remote-prometheus:9090/api/v1/write'
+#     write_relabel_configs:
+#       - source_labels: [__name__]
+#         regex: 'puppeteer_mcp_.*'
+#         action: keep

@@ -1,0 +1,23 @@
+{
+  "name": "puppeteer-mcp-basic-examples",
+  "version": "1.0.0",
+  "description": "Basic examples for Puppeteer MCP",
+  "type": "module",
+  "scripts": {
+    "example:screenshot": "tsx screenshot-capture.ts",
+    "example:form": "tsx form-automation.ts",
+    "example:extract": "tsx content-extraction.ts",
+    "example:navigation": "tsx navigation.ts",
+    "example:pdf": "tsx pdf-generation.ts",
+    "example:all": "npm run example:screenshot && npm run example:form && npm run example:extract"
+  },
+  "dependencies": {
+    "axios": "^1.10.0",
+    "puppeteer-mcp": "^1.0.14"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.0.0"
+  }
+}

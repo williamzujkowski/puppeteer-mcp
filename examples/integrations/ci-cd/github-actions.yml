@@ -1,0 +1,400 @@
+# GitHub Actions Workflow for Puppeteer MCP
+# 
+# This workflow demonstrates:
+# - Running browser automation tests in CI
+# - Visual regression testing
+# - Performance monitoring
+# - Deployment automation
+
+name: Puppeteer MCP CI/CD
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    # Run daily monitoring at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+
+env:
+  NODE_VERSION: '20.x'
+  PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: true
+  PUPPETEER_EXECUTABLE_PATH: /usr/bin/chromium-browser
+
+jobs:
+  # Job 1: Lint and Type Check
+  quality-checks:
+    name: Code Quality Checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run linter
+        run: npm run lint
+      
+      - name: Type check
+        run: npm run typecheck
+      
+      - name: Check formatting
+        run: npm run format:check
+
+  # Job 2: Unit Tests
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    needs: quality-checks
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run unit tests
+        run: npm run test:unit -- --coverage
+      
+      - name: Upload coverage
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage/lcov.info
+          flags: unit
+
+  # Job 3: Browser Automation Tests
+  browser-tests:
+    name: Browser Automation Tests
+    runs-on: ubuntu-latest
+    needs: quality-checks
+    strategy:
+      matrix:
+        browser: [chrome, firefox]
+        test-suite: [basic, advanced, api]
+    
+    services:
+      puppeteer-mcp:
+        image: puppeteer-mcp:latest
+        ports:
+          - 3000:3000
+        env:
+          NODE_ENV: test
+          API_KEY: ${{ secrets.TEST_API_KEY }}
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Install browser
+        run: |
+          if [ "${{ matrix.browser }}" = "chrome" ]; then
+            sudo apt-get update
+            sudo apt-get install -y chromium-browser
+          else
+            sudo apt-get update
+            sudo apt-get install -y firefox
+          fi
+      
+      - name: Run browser tests
+        env:
+          BROWSER: ${{ matrix.browser }}
+          API_BASE_URL: http://localhost:3000/api
+          API_KEY: ${{ secrets.TEST_API_KEY }}
+        run: |
+          npm run test:${{ matrix.test-suite }} -- --browser=${{ matrix.browser }}
+      
+      - name: Upload test artifacts
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-failures-${{ matrix.browser }}-${{ matrix.test-suite }}
+          path: |
+            test-results/
+            screenshots/
+            logs/
+
+  # Job 4: Visual Regression Testing
+  visual-regression:
+    name: Visual Regression Tests
+    runs-on: ubuntu-latest
+    needs: unit-tests
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Start Puppeteer MCP server
+        run: |
+          npm run build
+          npm start &
+          sleep 10
+        env:
+          API_KEY: ${{ secrets.TEST_API_KEY }}
+      
+      - name: Run visual regression tests
+        run: npm run test:visual
+      
+      - name: Upload visual diff artifacts
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: visual-regression-diffs
+          path: |
+            .reg/
+            visual-tests/diff/
+
+  # Job 5: Performance Testing
+  performance-tests:
+    name: Performance Tests
+    runs-on: ubuntu-latest
+    needs: browser-tests
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run performance tests
+        run: npm run test:performance
+        env:
+          API_BASE_URL: ${{ secrets.API_BASE_URL }}
+          API_KEY: ${{ secrets.API_KEY }}
+      
+      - name: Analyze performance results
+        run: |
+          node scripts/analyze-performance.js
+      
+      - name: Comment PR with performance results
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            const results = JSON.parse(fs.readFileSync('performance-results.json', 'utf8'));
+            
+            const comment = `## Performance Test Results
+            
+            | Metric | Value | Change |
+            |--------|-------|--------|
+            | Average Response Time | ${results.avgResponseTime}ms | ${results.responseTimeChange} |
+            | Memory Usage | ${results.memoryUsage}MB | ${results.memoryChange} |
+            | Success Rate | ${results.successRate}% | ${results.successRateChange} |
+            
+            <details>
+            <summary>Detailed Results</summary>
+            
+            \`\`\`json
+            ${JSON.stringify(results.detailed, null, 2)}
+            \`\`\`
+            </details>`;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+
+  # Job 6: Security Scanning
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    needs: quality-checks
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Run security audit
+        run: npm audit --production
+      
+      - name: Run OWASP dependency check
+        uses: dependency-check/Dependency-Check_Action@main
+        with:
+          project: 'puppeteer-mcp'
+          path: '.'
+          format: 'HTML'
+      
+      - name: Upload security reports
+        uses: actions/upload-artifact@v3
+        with:
+          name: security-reports
+          path: reports/
+
+  # Job 7: Build and Publish
+  build-publish:
+    name: Build and Publish
+    runs-on: ubuntu-latest
+    needs: [browser-tests, visual-regression, security-scan]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          registry-url: 'https://registry.npmjs.org'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Build package
+        run: npm run build
+      
+      - name: Run pre-publish tests
+        run: npm run test:prepublish
+      
+      - name: Publish to NPM
+        if: contains(github.event.head_commit.message, '[release]')
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      
+      - name: Create GitHub Release
+        if: contains(github.event.head_commit.message, '[release]')
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ env.PACKAGE_VERSION }}
+          release_name: Release v${{ env.PACKAGE_VERSION }}
+          draft: false
+          prerelease: false
+
+  # Job 8: Deploy Examples
+  deploy-examples:
+    name: Deploy Examples
+    runs-on: ubuntu-latest
+    needs: build-publish
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Build examples
+        run: |
+          cd examples
+          npm ci
+          npm run build
+      
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./examples/dist
+
+  # Job 9: Monitoring and Alerts
+  monitoring:
+    name: Production Monitoring
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run monitoring suite
+        run: |
+          npm run monitor:production
+        env:
+          MONITORING_API_KEY: ${{ secrets.MONITORING_API_KEY }}
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+      
+      - name: Send alerts if needed
+        if: failure()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          text: 'Production monitoring detected issues!'
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+
+  # Job 10: Cleanup
+  cleanup:
+    name: Cleanup
+    runs-on: ubuntu-latest
+    needs: [build-publish, deploy-examples]
+    if: always()
+    steps:
+      - name: Clean up test resources
+        run: |
+          echo "Cleaning up test sessions and resources..."
+          curl -X POST ${{ secrets.API_BASE_URL }}/cleanup \
+            -H "X-API-Key: ${{ secrets.CLEANUP_API_KEY }}"
+      
+      - name: Prune old artifacts
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const artifacts = await github.rest.actions.listArtifactsForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              per_page: 100
+            });
+            
+            const oneWeekAgo = new Date();
+            oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+            
+            for (const artifact of artifacts.data.artifacts) {
+              if (new Date(artifact.created_at) < oneWeekAgo) {
+                await github.rest.actions.deleteArtifact({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  artifact_id: artifact.id
+                });
+              }
+            }

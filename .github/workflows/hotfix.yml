@@ -1,0 +1,479 @@
+name: Hotfix Workflow
+
+on:
+  workflow_dispatch:
+    inputs:
+      issue-description:
+        description: 'Description of the issue requiring hotfix'
+        required: true
+        type: string
+      target-version:
+        description: 'Target version to hotfix (e.g., 1.0.14)'
+        required: true
+        type: string
+      severity:
+        description: 'Severity of the issue'
+        required: true
+        type: choice
+        options:
+          - critical
+          - high
+          - medium
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+  packages: write
+  id-token: write
+
+env:
+  NODE_ENV: production
+  FORCE_COLOR: 3
+
+jobs:
+  # Create hotfix branch
+  create-hotfix:
+    name: Create Hotfix Branch
+    runs-on: ubuntu-latest
+    outputs:
+      hotfix-branch: ${{ steps.branch.outputs.hotfix-branch }}
+      hotfix-version: ${{ steps.version.outputs.hotfix-version }}
+      
+    steps:
+      - name: Generate token
+        id: generate-token
+        uses: tibdex/github-app-token@v2
+        with:
+          app_id: ${{ secrets.APP_ID }}
+          private_key: ${{ secrets.APP_PRIVATE_KEY }}
+          
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: v${{ github.event.inputs.target-version }}
+          fetch-depth: 0
+          token: ${{ steps.generate-token.outputs.token }}
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+          
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+      - name: Create hotfix branch
+        id: branch
+        run: |
+          HOTFIX_BRANCH="hotfix/${{ github.event.inputs.target-version }}-$(date +%Y%m%d-%H%M%S)"
+          git checkout -b $HOTFIX_BRANCH
+          echo "hotfix-branch=$HOTFIX_BRANCH" >> $GITHUB_OUTPUT
+          
+      - name: Determine hotfix version
+        id: version
+        run: |
+          # Get current version
+          CURRENT_VERSION="${{ github.event.inputs.target-version }}"
+          
+          # Calculate hotfix version (increment patch)
+          IFS='.' read -ra VERSION_PARTS <<< "$CURRENT_VERSION"
+          MAJOR="${VERSION_PARTS[0]}"
+          MINOR="${VERSION_PARTS[1]}"
+          PATCH="${VERSION_PARTS[2]}"
+          
+          # Increment patch version
+          NEW_PATCH=$((PATCH + 1))
+          HOTFIX_VERSION="$MAJOR.$MINOR.$NEW_PATCH"
+          
+          echo "Hotfix version: $HOTFIX_VERSION"
+          echo "hotfix-version=$HOTFIX_VERSION" >> $GITHUB_OUTPUT
+          
+      - name: Create hotfix issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue = await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `🚨 Hotfix: ${context.payload.inputs['issue-description']}`,
+              body: `## Hotfix Details
+              
+              **Target Version:** ${{ github.event.inputs.target-version }}
+              **Hotfix Version:** ${{ steps.version.outputs.hotfix-version }}
+              **Severity:** ${{ github.event.inputs.severity }}
+              **Branch:** ${{ steps.branch.outputs.hotfix-branch }}
+              
+              ## Issue Description
+              ${{ github.event.inputs.issue-description }}
+              
+              ## Checklist
+              - [ ] Root cause identified
+              - [ ] Fix implemented
+              - [ ] Tests added/updated
+              - [ ] Security impact assessed
+              - [ ] Performance impact assessed
+              - [ ] Documentation updated
+              
+              ## Testing
+              - [ ] Unit tests pass
+              - [ ] Integration tests pass
+              - [ ] Manual testing completed
+              - [ ] Regression testing completed
+              
+              ## Rollback Plan
+              If this hotfix causes issues, rollback to v${{ github.event.inputs.target-version }}
+              `,
+              labels: ['hotfix', 'priority:${{ github.event.inputs.severity }}', 'bug'],
+              assignees: [context.actor]
+            });
+            
+            console.log(`Created issue #${issue.data.number}`);
+            core.setOutput('issue-number', issue.data.number);
+
+  # Prepare hotfix environment
+  prepare-hotfix:
+    name: Prepare Hotfix Environment
+    runs-on: ubuntu-latest
+    needs: create-hotfix
+    
+    steps:
+      - name: Checkout hotfix branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.create-hotfix.outputs.hotfix-branch }}
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit
+        
+      - name: Create test environment
+        run: |
+          # Create isolated test environment
+          mkdir -p hotfix-test-env
+          
+          # Copy necessary files
+          cp -r src hotfix-test-env/
+          cp -r tests hotfix-test-env/
+          cp package*.json hotfix-test-env/
+          cp tsconfig.json hotfix-test-env/
+          
+      - name: Run baseline tests
+        run: |
+          echo "Running baseline tests to ensure environment is stable..."
+          npm test -- --testPathPattern="critical|core" || true
+          
+      - name: Generate hotfix template
+        run: |
+          cat > HOTFIX_GUIDE.md << 'EOF'
+          # Hotfix Guide for v${{ needs.create-hotfix.outputs.hotfix-version }}
+          
+          ## Issue
+          ${{ github.event.inputs.issue-description }}
+          
+          ## Steps to Fix
+          1. Identify the root cause in the code
+          2. Implement the minimal fix required
+          3. Add tests to prevent regression
+          4. Update relevant documentation
+          
+          ## Testing Instructions
+          1. Run unit tests: `npm test`
+          2. Run integration tests: `npm run test:integration`
+          3. Test specific scenario that caused the issue
+          4. Verify no regressions in critical paths
+          
+          ## Files to Review
+          - [ ] Source files with the fix
+          - [ ] Test files for the fix
+          - [ ] Documentation updates
+          - [ ] CHANGELOG.md entry
+          
+          ## Deployment Checklist
+          - [ ] All tests pass
+          - [ ] No new vulnerabilities introduced
+          - [ ] Performance impact assessed
+          - [ ] Rollback plan documented
+          EOF
+          
+      - name: Upload preparation artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: hotfix-preparation
+          path: |
+            HOTFIX_GUIDE.md
+            hotfix-test-env/
+          retention-days: 7
+
+  # Validate hotfix
+  validate-hotfix:
+    name: Validate Hotfix
+    runs-on: ubuntu-latest
+    needs: [create-hotfix, prepare-hotfix]
+    if: github.event_name == 'pull_request' && contains(github.head_ref, 'hotfix/')
+    
+    strategy:
+      matrix:
+        node-version: ['20.x', '22.x']
+        
+    steps:
+      - name: Checkout PR
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit
+        
+      - name: Run comprehensive tests
+        run: |
+          # Run all test suites
+          npm run test:coverage
+          npm run test:integration
+          
+      - name: Security validation
+        run: |
+          # Check for new vulnerabilities
+          npm audit --production
+          
+          # Run security checks
+          npm run security:check
+          
+      - name: Performance validation
+        run: |
+          # Build the project
+          npm run build
+          
+          # Check bundle size
+          du -sh dist/
+          
+          # Run basic performance tests
+          node -e "
+            const start = Date.now();
+            require('./dist/server.js');
+            const loadTime = Date.now() - start;
+            console.log(\`Load time: \${loadTime}ms\`);
+            if (loadTime > 5000) {
+              console.error('Performance regression detected');
+              process.exit(1);
+            }
+          "
+          
+      - name: Regression testing
+        run: |
+          # Run specific regression tests
+          npm test -- --testNamePattern="critical|regression|${{ github.event.inputs.severity }}"
+
+  # Deploy hotfix
+  deploy-hotfix:
+    name: Deploy Hotfix
+    runs-on: ubuntu-latest
+    needs: [create-hotfix, validate-hotfix]
+    environment: hotfix-production
+    if: github.event_name == 'push' && contains(github.ref, 'hotfix/')
+    
+    steps:
+      - name: Generate token
+        id: generate-token
+        uses: tibdex/github-app-token@v2
+        with:
+          app_id: ${{ secrets.APP_ID }}
+          private_key: ${{ secrets.APP_PRIVATE_KEY }}
+          
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ steps.generate-token.outputs.token }}
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          registry-url: 'https://registry.npmjs.org'
+          
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit
+        
+      - name: Update version
+        run: |
+          # Update package.json version
+          npm version ${{ needs.create-hotfix.outputs.hotfix-version }} --no-git-tag-version
+          
+          # Update documentation
+          npm run update:version
+          
+      - name: Build for production
+        run: npm run build
+        
+      - name: Create hotfix tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          git add -A
+          git commit -m "chore(hotfix): v${{ needs.create-hotfix.outputs.hotfix-version }}
+
+          Fixes: ${{ github.event.inputs.issue-description }}
+          Severity: ${{ github.event.inputs.severity }}
+          "
+          
+          git tag -a v${{ needs.create-hotfix.outputs.hotfix-version }} -m "Hotfix v${{ needs.create-hotfix.outputs.hotfix-version }}"
+          git push origin v${{ needs.create-hotfix.outputs.hotfix-version }}
+          
+      - name: Publish to NPM
+        run: |
+          npm publish --tag hotfix
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ needs.create-hotfix.outputs.hotfix-version }}
+          name: Hotfix v${{ needs.create-hotfix.outputs.hotfix-version }}
+          body: |
+            ## 🚨 Hotfix Release
+            
+            **Version:** v${{ needs.create-hotfix.outputs.hotfix-version }}
+            **Base Version:** v${{ github.event.inputs.target-version }}
+            **Severity:** ${{ github.event.inputs.severity }}
+            
+            ### Issue Fixed
+            ${{ github.event.inputs.issue-description }}
+            
+            ### Installation
+            ```bash
+            npm install puppeteer-mcp@${{ needs.create-hotfix.outputs.hotfix-version }}
+            ```
+            
+            ### Rollback Instructions
+            If you experience issues with this hotfix:
+            ```bash
+            npm install puppeteer-mcp@${{ github.event.inputs.target-version }}
+            ```
+            
+            ### Testing
+            This hotfix has been tested against:
+            - ✅ Unit test suite
+            - ✅ Integration tests
+            - ✅ Security scans
+            - ✅ Performance benchmarks
+            
+            ### Next Steps
+            This fix will be included in the next regular release.
+          prerelease: false
+          draft: false
+
+  # Merge hotfix back
+  merge-hotfix:
+    name: Merge Hotfix Back
+    runs-on: ubuntu-latest
+    needs: [create-hotfix, deploy-hotfix]
+    
+    steps:
+      - name: Generate token
+        id: generate-token
+        uses: tibdex/github-app-token@v2
+        with:
+          app_id: ${{ secrets.APP_ID }}
+          private_key: ${{ secrets.APP_PRIVATE_KEY }}
+          
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ steps.generate-token.outputs.token }}
+          
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+      - name: Merge to main
+        run: |
+          git checkout main
+          git merge v${{ needs.create-hotfix.outputs.hotfix-version }} --no-ff -m "chore: merge hotfix v${{ needs.create-hotfix.outputs.hotfix-version }} to main"
+          git push origin main
+          
+      - name: Merge to develop
+        run: |
+          if git show-ref --verify --quiet refs/heads/develop; then
+            git checkout develop
+            git merge v${{ needs.create-hotfix.outputs.hotfix-version }} --no-ff -m "chore: merge hotfix v${{ needs.create-hotfix.outputs.hotfix-version }} to develop"
+            git push origin develop
+          fi
+          
+      - name: Create follow-up issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `Follow-up: Hotfix v${{ needs.create-hotfix.outputs.hotfix-version }}`,
+              body: `## Hotfix Follow-up Actions
+              
+              The hotfix v${{ needs.create-hotfix.outputs.hotfix-version }} has been deployed.
+              
+              ### Required Actions
+              - [ ] Monitor production for any issues (24-48 hours)
+              - [ ] Update test suite to prevent regression
+              - [ ] Document root cause analysis
+              - [ ] Review and improve affected code area
+              - [ ] Update monitoring/alerting for this issue type
+              
+              ### Metrics to Track
+              - Error rates
+              - Performance metrics
+              - User reports
+              
+              ### Original Issue
+              ${{ github.event.inputs.issue-description }}
+              `,
+              labels: ['follow-up', 'hotfix', 'documentation'],
+              milestone: null
+            });
+
+  # Monitor hotfix
+  monitor-hotfix:
+    name: Monitor Hotfix Deployment
+    runs-on: ubuntu-latest
+    needs: [create-hotfix, deploy-hotfix]
+    
+    steps:
+      - name: Wait for NPM propagation
+        run: sleep 120
+        
+      - name: Verify NPM deployment
+        run: |
+          # Check NPM package
+          npm view puppeteer-mcp@${{ needs.create-hotfix.outputs.hotfix-version }}
+          
+          # Test installation
+          npm install puppeteer-mcp@${{ needs.create-hotfix.outputs.hotfix-version }} --dry-run
+          
+      - name: Create monitoring dashboard
+        run: |
+          echo "## 📊 Hotfix Monitoring Dashboard" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Deployment Status" >> $GITHUB_STEP_SUMMARY
+          echo "- Version: v${{ needs.create-hotfix.outputs.hotfix-version }} ✅" >> $GITHUB_STEP_SUMMARY
+          echo "- NPM: Published ✅" >> $GITHUB_STEP_SUMMARY
+          echo "- GitHub Release: Created ✅" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Next Steps" >> $GITHUB_STEP_SUMMARY
+          echo "1. Monitor error rates for 24-48 hours" >> $GITHUB_STEP_SUMMARY
+          echo "2. Check user feedback channels" >> $GITHUB_STEP_SUMMARY
+          echo "3. Prepare comprehensive fix for next release" >> $GITHUB_STEP_SUMMARY

@@ -1,0 +1,55 @@
+{
+  "name": "puppeteer-mcp-examples",
+  "version": "1.0.0",
+  "description": "Comprehensive examples for Puppeteer MCP",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "setup": "npm run setup:all",
+    "setup:all": "npm-run-all setup:*",
+    "setup:basic": "cd basic && npm install",
+    "setup:advanced": "cd advanced && npm install",
+    "setup:api": "npm-run-all setup:api:*",
+    "setup:api:rest": "cd api/rest && npm install",
+    "setup:api:websocket": "cd api/websocket && npm install",
+    "setup:api:grpc": "cd api/grpc && npm install",
+    "setup:api:mcp": "cd api/mcp && npm install",
+    "setup:monitoring": "cd monitoring && npm install",
+    "setup:security": "cd security && npm install",
+    "setup:templates": "npm-run-all setup:templates:*",
+    "setup:templates:starter": "cd templates/starter && npm install",
+    "setup:templates:enterprise": "cd templates/enterprise && npm install",
+    "setup:utilities": "cd utilities/generators && npm install",
+    "example:basic": "cd basic && npm run example:all",
+    "example:advanced": "cd advanced && npm run example:all",
+    "example:rest": "cd api/rest && npm run example:all",
+    "example:websocket": "cd api/websocket && npm run example:all",
+    "example:mcp": "cd api/mcp && npm run example:all",
+    "test": "npm-run-all test:*",
+    "test:basic": "cd basic && npm test",
+    "test:advanced": "cd advanced && npm test",
+    "lint": "eslint . --ext .ts,.js",
+    "format": "prettier --write \"**/*.{ts,js,json,md}\"",
+    "clean": "find . -name 'node_modules' -type d -prune -exec rm -rf '{}' + && find . -name 'dist' -type d -prune -exec rm -rf '{}' +"
+  },
+  "workspaces": [
+    "basic",
+    "advanced",
+    "api/*",
+    "monitoring",
+    "security",
+    "templates/*",
+    "integrations/*",
+    "utilities/*"
+  ],
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "eslint": "^8.0.0",
+    "npm-run-all": "^4.1.5",
+    "prettier": "^3.0.0",
+    "typescript": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

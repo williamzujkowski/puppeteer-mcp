@@ -1,0 +1,168 @@
+groups:
+  - name: puppeteer-mcp-alerts
+    interval: 30s
+    rules:
+      # Application Health
+      - alert: ApplicationDown
+        expr: up{job="puppeteer-mcp"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          component: application
+        annotations:
+          summary: "puppeteer-mcp application is down"
+          description: "The puppeteer-mcp application has been down for more than 2 minutes."
+
+      # High Error Rate
+      - alert: HighErrorRate
+        expr: rate(puppeteer_mcp_http_requests_total{status=~"5.."}[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+          component: api
+        annotations:
+          summary: "High error rate detected"
+          description: "Error rate is above 10% for the last 5 minutes."
+
+      # High Response Time
+      - alert: HighResponseTime
+        expr: histogram_quantile(0.95, rate(puppeteer_mcp_http_duration_seconds_bucket[5m])) > 1
+        for: 5m
+        labels:
+          severity: warning
+          component: api
+        annotations:
+          summary: "High API response time"
+          description: "95th percentile response time is above 1 second."
+
+      # Browser Pool Exhaustion
+      - alert: BrowserPoolExhausted
+        expr: puppeteer_mcp_browser_pool_available == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: browser-pool
+        annotations:
+          summary: "Browser pool exhausted"
+          description: "No available browsers in the pool for more than 1 minute."
+
+      # High Browser Pool Usage
+      - alert: HighBrowserPoolUsage
+        expr: (puppeteer_mcp_browser_pool_size - puppeteer_mcp_browser_pool_available) / puppeteer_mcp_browser_pool_size > 0.8
+        for: 5m
+        labels:
+          severity: warning
+          component: browser-pool
+        annotations:
+          summary: "High browser pool usage"
+          description: "Browser pool usage is above 80% for 5 minutes."
+
+      # Memory Usage
+      - alert: HighMemoryUsage
+        expr: process_resident_memory_bytes{job="puppeteer-mcp"} / 1024 / 1024 / 1024 > 2
+        for: 5m
+        labels:
+          severity: warning
+          component: application
+        annotations:
+          summary: "High memory usage"
+          description: "Application memory usage is above 2GB."
+
+      # Redis Connection Issues
+      - alert: RedisDown
+        expr: up{job="redis"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          component: redis
+        annotations:
+          summary: "Redis is down"
+          description: "Redis has been down for more than 2 minutes."
+
+      # Database Connection Issues
+      - alert: PostgreSQLDown
+        expr: up{job="postgres"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          component: database
+        annotations:
+          summary: "PostgreSQL is down"
+          description: "PostgreSQL has been down for more than 2 minutes."
+
+      # High Database Connection Pool Usage
+      - alert: HighDatabaseConnectionUsage
+        expr: pg_stat_database_numbackends{datname="puppeteer_mcp"} / pg_settings_max_connections > 0.8
+        for: 5m
+        labels:
+          severity: warning
+          component: database
+        annotations:
+          summary: "High database connection usage"
+          description: "Database connection usage is above 80%."
+
+      # Session Leak Detection
+      - alert: PossibleSessionLeak
+        expr: increase(puppeteer_mcp_sessions_total[1h]) - increase(puppeteer_mcp_sessions_closed_total[1h]) > 100
+        for: 10m
+        labels:
+          severity: warning
+          component: sessions
+        annotations:
+          summary: "Possible session leak detected"
+          description: "More than 100 sessions created but not closed in the last hour."
+
+      # Rate Limiting
+      - alert: HighRateLimitHits
+        expr: rate(puppeteer_mcp_rate_limit_hits_total[5m]) > 10
+        for: 5m
+        labels:
+          severity: info
+          component: security
+        annotations:
+          summary: "High rate limit hits"
+          description: "Rate limits are being hit frequently (>10/sec)."
+
+      # Disk Space
+      - alert: LowDiskSpace
+        expr: node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"} < 0.1
+        for: 5m
+        labels:
+          severity: warning
+          component: system
+        annotations:
+          summary: "Low disk space"
+          description: "Less than 10% disk space remaining."
+
+      # CPU Usage
+      - alert: HighCPUUsage
+        expr: 100 - (avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 5m
+        labels:
+          severity: warning
+          component: system
+        annotations:
+          summary: "High CPU usage"
+          description: "CPU usage is above 80% for 5 minutes."
+
+      # WebSocket Connections
+      - alert: HighWebSocketConnections
+        expr: puppeteer_mcp_websocket_connections > 1000
+        for: 5m
+        labels:
+          severity: warning
+          component: websocket
+        annotations:
+          summary: "High number of WebSocket connections"
+          description: "More than 1000 active WebSocket connections."
+
+      # gRPC Health
+      - alert: HighGRPCErrorRate
+        expr: rate(grpc_server_handled_total{grpc_code!="OK"}[5m]) / rate(grpc_server_handled_total[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+          component: grpc
+        annotations:
+          summary: "High gRPC error rate"
+          description: "gRPC error rate is above 5%."
