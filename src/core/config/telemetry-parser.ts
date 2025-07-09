@@ -3,7 +3,7 @@
  * @module core/config/telemetry-parser
  */
 
-import { parseBoolean, parseInt, parseFloat, parseArray, parseJSON } from './parsers.js';
+import { parseBoolean, parseInt, parseFloat, parseArray, parseJSON } from './base-parsers.js';
 
 /**
  * Parse telemetry configuration from environment

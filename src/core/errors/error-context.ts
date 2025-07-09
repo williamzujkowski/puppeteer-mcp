@@ -27,6 +27,10 @@ export enum RecoveryAction {
   CHECK_NETWORK = 'check_network',
   REDUCE_LOAD = 'reduce_load',
   NONE = 'none',
+  CHECK_RESOURCE = 'check_resource',
+  LOGIN_AGAIN = 'login_again',
+  FIX_INPUT = 'fix_input',
+  UPDATE_CONFIG = 'update_config',
 }
 
 /**
@@ -57,6 +61,7 @@ export enum ErrorCategory {
   SECURITY = 'security',
   PERFORMANCE = 'performance',
   RATE_LIMIT = 'rate_limit',
+  SESSION = 'session',
 }
 
 /**
@@ -329,6 +334,16 @@ export class ErrorContextBuilder {
   }
 
   /**
+   * Set security context
+   */
+  setSecurityContext(type: string, details: Record<string, unknown>): this {
+    this.context.technicalDetails ??= {};
+    this.context.technicalDetails.securityType = type;
+    this.context.technicalDetails.securityDetails = details;
+    return this;
+  }
+
+  /**
    * Build the error context with automatic defaults
    */
   build(): ErrorContext {
@@ -372,6 +387,7 @@ export class ErrorContextBuilder {
       [ErrorCategory.SECURITY]: [RecoveryAction.CHECK_PERMISSIONS, RecoveryAction.CONTACT_SUPPORT],
       [ErrorCategory.PERFORMANCE]: [RecoveryAction.REDUCE_LOAD, RecoveryAction.WAIT_AND_RETRY],
       [ErrorCategory.RATE_LIMIT]: [RecoveryAction.WAIT_AND_RETRY, RecoveryAction.REDUCE_LOAD],
+      [ErrorCategory.SESSION]: [RecoveryAction.LOGIN_AGAIN, RecoveryAction.RESTART_SESSION],
     };
 
     // eslint-disable-next-line security/detect-object-injection
@@ -399,6 +415,7 @@ export class ErrorContextBuilder {
       [ErrorCategory.BUSINESS_LOGIC]: ErrorSeverity.LOW,
       [ErrorCategory.PERFORMANCE]: ErrorSeverity.MEDIUM,
       [ErrorCategory.RATE_LIMIT]: ErrorSeverity.LOW,
+      [ErrorCategory.SESSION]: ErrorSeverity.HIGH,
     };
 
     // eslint-disable-next-line security/detect-object-injection

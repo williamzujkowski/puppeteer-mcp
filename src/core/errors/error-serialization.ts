@@ -203,28 +203,28 @@ export class ErrorSerializer {
         isOperational: error.isOperational,
         recoverySuggestions: error.errorContext.recoverySuggestions,
         context: {
-          requestId: options.requestId || error.errorContext.context?.requestId,
-          userId: options.userId || error.errorContext.context?.userId,
+          requestId: options.requestId ?? error.errorContext.context?.requestId,
+          userId: options.userId ?? error.errorContext.context?.userId,
           sessionId: error.errorContext.context?.sessionId,
           timestamp,
-          ...(options.includeStack && { stack: error.stack }),
+          ...(Boolean(options.includeStack) && { stack: error.stack }),
           correlationIds: error.errorContext.context?.correlationIds,
           operation: error.errorContext.context?.operation,
           resource: error.errorContext.context?.resource,
           environment: error.errorContext.context?.environment,
         },
-        ...(options.includeTechnicalDetails && error.errorContext.technicalDetails && {
-          technicalDetails: options.sanitizeSensitiveData 
+        ...(Boolean(options.includeTechnicalDetails) && Boolean(error.errorContext.technicalDetails) && {
+          technicalDetails: options.sanitizeSensitiveData
             ? this.sanitizeDetails(error.errorContext.technicalDetails)
             : error.errorContext.technicalDetails,
         }),
-        ...(options.includeRetryConfig && error.errorContext.retryConfig && {
+        ...(Boolean(options.includeRetryConfig) && Boolean(error.errorContext.retryConfig) && {
           retryConfig: error.errorContext.retryConfig,
         }),
-        ...(options.includeHelpLinks && error.errorContext.helpLinks && {
+        ...(Boolean(options.includeHelpLinks) && Boolean(error.errorContext.helpLinks) && {
           helpLinks: error.errorContext.helpLinks,
         }),
-        ...(options.includeTags && error.errorContext.tags && {
+        ...(Boolean(options.includeTags) && Boolean(error.errorContext.tags) && {
           tags: error.errorContext.tags,
         }),
       };
@@ -245,9 +245,9 @@ export class ErrorSerializer {
           requestId: options.requestId,
           userId: options.userId,
           timestamp,
-          ...(options.includeStack && { stack: error.stack }),
+          ...(Boolean(options.includeStack) && { stack: error.stack }),
         },
-        ...(options.includeTechnicalDetails && {
+        ...(Boolean(options.includeTechnicalDetails) && {
           technicalDetails: {
             validationErrors: error.errors.map(e => ({
               path: e.path.join('.'),
@@ -274,7 +274,7 @@ export class ErrorSerializer {
           requestId: options.requestId,
           userId: options.userId,
           timestamp,
-          ...(options.includeStack && { stack: error.stack }),
+          ...(Boolean(options.includeStack) && { stack: error.stack }),
         },
         ...(options.includeTechnicalDetails && error.details && {
           technicalDetails: options.sanitizeSensitiveData 

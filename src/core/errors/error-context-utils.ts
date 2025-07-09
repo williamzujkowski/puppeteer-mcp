@@ -3,7 +3,7 @@
  * @module core/errors/error-context-utils
  */
 
-import { ErrorContext, RecoveryAction } from './types.js';
+import { ErrorContext, RecoveryAction, ErrorCategory, ErrorSeverity } from './error-context.js';
 
 /**
  * Utility functions for error context
@@ -14,17 +14,14 @@ export const ErrorContextUtils = {
    */
   createNetworkErrorContext(message: string, url?: string): ErrorContext {
     return {
+      errorCode: 'NETWORK_ERROR',
       userMessage: message,
-      technicalMessage: message,
-      errorId: crypto.randomUUID(),
-      timestamp: new Date(),
-      category: 'network' as const,
-      severity: 'medium' as const,
-      component: 'network',
-      recoverySuggestions: ['check_network' as const, 'retry_with_backoff' as const],
+      category: ErrorCategory.NETWORK,
+      severity: ErrorSeverity.MEDIUM,
+      recoverySuggestions: [RecoveryAction.CHECK_NETWORK, RecoveryAction.RETRY_WITH_BACKOFF],
       context: {
         timestamp: new Date(),
-        url,
+        resource: url,
       },
     };
   },
@@ -34,14 +31,11 @@ export const ErrorContextUtils = {
    */
   createAuthErrorContext(message: string, userId?: string): ErrorContext {
     return {
+      errorCode: 'AUTH_ERROR',
       userMessage: message,
-      technicalMessage: message,
-      errorId: crypto.randomUUID(),
-      timestamp: new Date(),
-      category: 'authentication' as const,
-      severity: 'high' as const,
-      component: 'auth',
-      recoverySuggestions: ['refresh_token' as const, 'contact_support' as const],
+      category: ErrorCategory.AUTHENTICATION,
+      severity: ErrorSeverity.HIGH,
+      recoverySuggestions: [RecoveryAction.REFRESH_TOKEN, RecoveryAction.CONTACT_SUPPORT],
       context: {
         timestamp: new Date(),
         userId,
@@ -54,17 +48,14 @@ export const ErrorContextUtils = {
    */
   createBrowserErrorContext(message: string, browserId?: string): ErrorContext {
     return {
+      errorCode: 'BROWSER_ERROR',
       userMessage: message,
-      technicalMessage: message,
-      errorId: crypto.randomUUID(),
-      timestamp: new Date(),
-      category: 'browser' as const,
-      severity: 'medium' as const,
-      component: 'browser',
-      recoverySuggestions: ['retry' as const, 'restart_session' as const],
+      category: ErrorCategory.BROWSER,
+      severity: ErrorSeverity.MEDIUM,
+      recoverySuggestions: [RecoveryAction.RETRY, RecoveryAction.RESTART_SESSION],
       context: {
         timestamp: new Date(),
-        browserId,
+        resource: browserId,
       },
     };
   },
@@ -109,6 +100,10 @@ export const ErrorContextUtils = {
       [RecoveryAction.CHECK_NETWORK]: 'check network connection',
       [RecoveryAction.REDUCE_LOAD]: 'reduce load',
       [RecoveryAction.NONE]: 'no action available',
+      [RecoveryAction.CHECK_RESOURCE]: 'check resource',
+      [RecoveryAction.LOGIN_AGAIN]: 'login again',
+      [RecoveryAction.FIX_INPUT]: 'fix input',
+      [RecoveryAction.UPDATE_CONFIG]: 'update configuration',
     };
 
     // eslint-disable-next-line security/detect-object-injection
@@ -123,6 +118,7 @@ export const ErrorContextUtils = {
       ...base,
       ...override,
       context: {
+        timestamp: new Date(),
         ...base.context,
         ...override.context,
       },
@@ -139,13 +135,11 @@ export const ErrorContextUtils = {
    */
   isComplete(context: Partial<ErrorContext>): context is ErrorContext {
     return (
+      context.errorCode !== undefined &&
       context.userMessage !== undefined &&
-      context.technicalMessage !== undefined &&
-      context.errorId !== undefined &&
-      context.timestamp !== undefined &&
       context.category !== undefined &&
       context.severity !== undefined &&
-      context.component !== undefined
+      context.recoverySuggestions !== undefined
     );
   },
 };

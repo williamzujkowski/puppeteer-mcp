@@ -102,7 +102,9 @@ export class WSServer extends EventEmitter {
     cb: (result: boolean, code?: number, message?: string) => void,
   ): void {
     try {
-      const clientIp = info.req.headers['x-forwarded-for'] ?? info.req.socket.remoteAddress;
+      const clientIp = Array.isArray(info.req.headers['x-forwarded-for']) 
+        ? info.req.headers['x-forwarded-for'][0] 
+        : info.req.headers['x-forwarded-for'] ?? info.req.socket.remoteAddress;
 
       // Log connection attempt
       void logSecurityEvent(SecurityEventType.CONNECTION_ATTEMPT, {
@@ -118,14 +120,12 @@ export class WSServer extends EventEmitter {
       });
 
       // Check origin if configured
-      const wsAllowedOrigins = config.WS_ALLOWED_ORIGINS;
-      if (
-        wsAllowedOrigins !== undefined &&
-        typeof wsAllowedOrigins === 'string' &&
-        wsAllowedOrigins.trim().length > 0
-      ) {
-        const allowedOrigins = wsAllowedOrigins.split(',').map((origin) => origin.trim());
-        if (!allowedOrigins.includes('*') && !allowedOrigins.includes(info.origin)) {
+      const wsAllowedOrigins = config.ALLOWED_ORIGINS;
+      if (wsAllowedOrigins !== undefined && wsAllowedOrigins.length > 0) {
+        const allowedOrigins: string[] = Array.isArray(wsAllowedOrigins) 
+          ? wsAllowedOrigins 
+          : String(wsAllowedOrigins).split(',').map((origin: string) => origin.trim());
+        if (Boolean(!allowedOrigins.includes('*')) && Boolean(!allowedOrigins.includes(info.origin))) {
           this.logger.warn('WebSocket connection rejected - invalid origin', {
             origin: info.origin,
             allowedOrigins,
@@ -140,6 +140,7 @@ export class WSServer extends EventEmitter {
     } catch (error) {
       this.logger.error('Error in verifyClient:', error);
       cb(false, 500, 'Internal server error');
+      return;
     }
   }
 
@@ -197,11 +198,15 @@ export class WSServer extends EventEmitter {
       subscriptions: new Set(),
       lastActivity: new Date(),
       connectedAt: new Date(),
-      remoteAddress: clientIp,
-      userAgent: req.headers['user-agent'] as string | undefined,
+      remoteAddress: typeof clientIp === 'string' ? clientIp : undefined,
+      userAgent: Array.isArray(req.headers['user-agent']) 
+        ? req.headers['user-agent'][0] 
+        : req.headers['user-agent'],
       metadata: {
         clientIp,
-        userAgent: req.headers['user-agent'],
+        userAgent: Array.isArray(req.headers['user-agent']) 
+          ? req.headers['user-agent'][0] 
+          : req.headers['user-agent'],
         connectedAt: new Date().toISOString(),
       },
     };
@@ -236,7 +241,7 @@ export class WSServer extends EventEmitter {
       timestamp: new Date().toISOString(),
       data: {
         connectionId,
-        heartbeatInterval: config.WS_HEARTBEAT_INTERVAL || 30000,
+        heartbeatInterval: config.WS_HEARTBEAT_INTERVAL ?? 30000,
       },
     });
 
@@ -389,7 +394,7 @@ export class WSServer extends EventEmitter {
    */
   broadcast(message: WSMessage, filter?: (state: WSConnectionState) => boolean): void {
     this.connectionManager.getAllConnections().forEach(({ ws, state }) => {
-      if (state.authenticated && (!filter || filter(state))) {
+      if (state.authenticated && (filter === undefined || filter(state))) {
         this.sendMessage(ws, message);
       }
     });

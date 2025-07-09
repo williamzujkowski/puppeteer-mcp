@@ -42,7 +42,7 @@ function getRedisOptions(): RedisOptions {
       }
 
       // Enable TLS if specified
-      if (config.REDIS_TLS) {
+      if (config.REDIS_ENABLE_TLS) {
         options.tls = {};
       }
     } catch (error) {

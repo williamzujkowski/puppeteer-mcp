@@ -136,7 +136,7 @@ export const additionalSecurityHeaders = (): RequestHandler => {
  * @nist ac-4 "Information flow enforcement"
  */
 export const createCORSMiddleware = (): RequestHandler => {
-  const allowedOrigins = config.CORS_ORIGIN.split(',').map((origin) => origin.trim());
+  const allowedOrigins = config.CORS_ORIGIN?.split(',').map((origin) => origin.trim()) ?? config.ALLOWED_ORIGINS;
 
   return (req: Request, res: Response, next: NextFunction) => {
     const origin = req.headers.origin;
@@ -294,6 +294,7 @@ const createCSRFValidationMiddleware = (options: CSRFOptions): RequestHandler =>
     const session = req.session as unknown as SessionWithCSRF | undefined;
     const secret = session?.csrfSecret;
 
+    // ESLint timing attack warning is false positive - we're only checking existence, not comparing secrets
     if (secret === undefined) {
       logCSRFSecurityEvent(SecurityEventType.CSRF_TOKEN_MISSING, req);
       sendCSRFError(res, 'CSRF_SECRET_MISSING', 'CSRF secret not found in session');
@@ -302,6 +303,7 @@ const createCSRFValidationMiddleware = (options: CSRFOptions): RequestHandler =>
 
     const token = extractCSRFToken(req, options);
 
+    // ESLint timing attack warning is false positive - we're only checking existence, not comparing tokens
     if (token === undefined) {
       logCSRFSecurityEvent(SecurityEventType.CSRF_TOKEN_MISSING, req);
       sendCSRFError(res, 'CSRF_TOKEN_MISSING', 'CSRF token is required');
@@ -348,6 +350,7 @@ export const createCSRFTokenEndpoint = (): RequestHandler => {
     const session = req.session as unknown as SessionWithCSRF | undefined;
     const secret = session?.csrfSecret;
 
+    // ESLint timing attack warning is false positive - we're only checking existence, not comparing secrets
     if (secret === undefined) {
       res.status(400).json({
         success: false,

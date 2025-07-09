@@ -44,7 +44,7 @@ export interface TokenPair {
  */
 export const generateToken = (
   payload: Omit<JWTPayload, 'iat' | 'exp'>,
-  expiresIn: StringValue | number = config.JWT_EXPIRY as StringValue,
+  expiresIn: StringValue | number = config.JWT_EXPIRES_IN as StringValue,
 ): string => {
   const signOptions: jwt.SignOptions = {
     algorithm: config.JWT_ALGORITHM as jwt.Algorithm,
@@ -71,7 +71,7 @@ export const generateTokenPair = (
       sessionId,
       type: 'access',
     },
-    config.JWT_EXPIRY as StringValue,
+    config.JWT_EXPIRES_IN as StringValue,
   );
 
   const refreshToken = generateToken(
@@ -82,7 +82,7 @@ export const generateTokenPair = (
       sessionId,
       type: 'refresh',
     },
-    config.JWT_REFRESH_EXPIRY as StringValue,
+    config.JWT_REFRESH_EXPIRES_IN as StringValue,
   );
 
   // Calculate expiry in seconds

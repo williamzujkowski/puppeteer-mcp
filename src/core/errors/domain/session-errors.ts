@@ -54,7 +54,7 @@ export class SecurityDomainError extends EnhancedAppError {
       .setTechnicalDetails(securityInfo)
       .addRecoverySuggestion(RecoveryAction.CONTACT_SUPPORT)
       .setRequestContext(requestId ?? '', userId)
-      .setSecurityContext(securityInfo.type, securityInfo.details)
+      .setSecurityContext(securityInfo.type, securityInfo.details ?? {})
       .setHelpLinks({
         documentation: 'https://docs.puppeteer-mcp.com/security',
         troubleshooting: 'https://docs.puppeteer-mcp.com/security/incident-response',
@@ -62,7 +62,6 @@ export class SecurityDomainError extends EnhancedAppError {
       .addTag('domain', 'security')
       .addTag('security-type', securityInfo.type)
       .setShouldReport(true)
-      .setShouldAlert(true)
       .build();
 
     super({ message, context, statusCode: 403, isOperational: true, details: securityInfo });

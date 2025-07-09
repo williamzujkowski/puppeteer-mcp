@@ -6,7 +6,7 @@
  */
 
 import { AppError } from './app-error.js';
-import { ErrorContext, ErrorContextBuilder, ErrorCategory, ErrorSeverity } from './error-context.js';
+import { ErrorContext, ErrorContextBuilder, ErrorCategory, ErrorSeverity, RecoveryAction, RetryConfig } from './error-context.js';
 
 /**
  * Options for EnhancedAppError constructor
@@ -188,13 +188,13 @@ export class EnhancedAppError extends AppError {
    * Create an enhanced error from a regular error
    */
   static fromError(error: Error, context: ErrorContext): EnhancedAppError {
-    const enhancedError = new EnhancedAppError(
-      error.message,
+    const enhancedError = new EnhancedAppError({
+      message: error.message,
       context,
-      context.context?.statusCode,
-      true,
-      { originalError: error.name }
-    );
+      statusCode: context.context?.statusCode,
+      isOperational: true,
+      details: { originalError: error.name }
+    });
     
     // Preserve stack trace
     if (error.stack !== undefined) {
@@ -216,13 +216,13 @@ export class EnhancedAppError extends AppError {
       .setTechnicalDetails(appError.details ?? {})
       .build();
 
-    const enhancedError = new EnhancedAppError(
-      appError.message,
+    const enhancedError = new EnhancedAppError({
+      message: appError.message,
       context,
-      appError.statusCode,
-      appError.isOperational,
-      appError.details
-    );
+      statusCode: appError.statusCode,
+      isOperational: appError.isOperational,
+      details: appError.details
+    });
 
     // Preserve stack trace
     if (appError.stack !== undefined) {

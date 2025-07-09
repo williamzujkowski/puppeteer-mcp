@@ -36,9 +36,21 @@ const generateSecureSecret = (): string => {
   return process.env.JWT_SECRET ?? randomBytes(32).toString('hex');
 };
 
+// Generate secure session secret if not provided
+const generateSecureSessionSecret = (): string => {
+  if (
+    process.env.NODE_ENV === 'production' &&
+    (process.env.SESSION_SECRET === undefined || process.env.SESSION_SECRET === '')
+  ) {
+    throw new Error('SESSION_SECRET must be set in production environment');
+  }
+  return process.env.SESSION_SECRET ?? randomBytes(32).toString('hex');
+};
+
 // Parse and validate configuration
 const parseConfig = (): Config => {
   const jwtSecret = generateSecureSecret();
+  const sessionSecret = generateSecureSessionSecret();
   const serverConfig = parseServerConfig();
   const securityConfig = parseSecurityConfig(jwtSecret);
 
@@ -47,7 +59,7 @@ const parseConfig = (): Config => {
     ...parseTLSConfig(),
     ...parseLoggingConfig(),
     ...securityConfig,
-    ...parseSessionConfig(),
+    ...parseSessionConfig(sessionSecret),
     ...parseRateLimitingConfig(),
     ...parseDatabaseConfig(),
     ...parseRedisConfig(),

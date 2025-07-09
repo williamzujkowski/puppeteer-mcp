@@ -35,6 +35,7 @@ export const securityConfigSchema = z.object({
   JWT_SECRET: z.string(),
   JWT_EXPIRES_IN: z.string().default('24h'),
   JWT_REFRESH_EXPIRES_IN: z.string().default('7d'),
+  JWT_ALGORITHM: z.string().default('HS256'),
   ALLOWED_ORIGINS: z.array(z.string()).default(['https://localhost:8443']),
   TRUSTED_PROXIES: z.array(z.string()).default([]),
   ENABLE_INTRUSION_DETECTION: z.boolean().default(true),
@@ -50,7 +51,12 @@ export const sessionConfigSchema = z.object({
   SESSION_TIMEOUT: z.number().int().positive().default(86400000),
   SESSION_CLEANUP_INTERVAL: z.number().int().positive().default(900000),
   SESSION_MAX_AGE: z.number().int().positive().default(604800000),
+  SESSION_SECRET: z.string(),
+  SESSION_RENEWAL_THRESHOLD: z.number().int().positive().default(300000),
   ENABLE_SESSION_MONITORING: z.boolean().default(true),
+  SESSION_STORE_MONITORING_ENABLED: z.boolean().default(true),
+  SESSION_STORE_REPLICATION_ENABLED: z.boolean().default(false),
+  SESSION_STORE_MIGRATION_ENABLED: z.boolean().default(false),
 });
 
 // Rate limiting configuration schema
@@ -94,6 +100,8 @@ export const redisConfigSchema = z.object({
   REDIS_ENABLE_OFFLINE_QUEUE: z.boolean().default(true),
   REDIS_LAZY_CONNECT: z.boolean().default(false),
   REDIS_FAMILY: z.enum(['IPv4', 'IPv6']).default('IPv4'),
+  REDIS_MAX_RETRIES: z.number().int().positive().default(3),
+  REDIS_RETRY_DELAY: z.number().int().positive().default(100),
 });
 
 // CORS configuration schema
@@ -106,6 +114,7 @@ export const corsConfigSchema = z.object({
     .array(z.string())
     .default(['Content-Type', 'Authorization', 'X-Request-ID', 'X-Session-ID']),
   CORS_EXPOSED_HEADERS: z.array(z.string()).default(['X-Request-ID', 'X-RateLimit-Remaining']),
+  CORS_ORIGIN: z.string().optional(),
 });
 
 // API configuration schema
@@ -154,6 +163,8 @@ export const puppeteerConfigSchema = z.object({
   PUPPETEER_DEFAULT_VIEWPORT_WIDTH: z.number().int().positive().default(1920),
   PUPPETEER_DEFAULT_VIEWPORT_HEIGHT: z.number().int().positive().default(1080),
   PUPPETEER_SLOW_MO: z.number().int().nonnegative().default(0),
+  BROWSER_POOL_MAX_SIZE: z.number().int().positive().default(5),
+  BROWSER_IDLE_TIMEOUT: z.number().int().positive().default(300000),
 });
 
 // Telemetry configuration schema
