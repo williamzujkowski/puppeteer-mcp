@@ -9,7 +9,8 @@ import { EventEmitter } from 'events';
 import { Logger } from 'pino';
 import { EnhancedAppError } from './enhanced-app-error.js';
 import { ErrorCategory, ErrorSeverity } from './error-context.js';
-import { SerializedError, ErrorSerializer } from './error-serialization.js';
+import { ErrorSerializer } from './error-serialization.js';
+import { SerializedError } from './serialization-interfaces.js';
 import {
   ErrorTrackingEvent,
   ErrorTrackingStorage,

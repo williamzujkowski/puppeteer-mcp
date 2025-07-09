@@ -5,7 +5,7 @@
  */
 
 import { ErrorCategory, ErrorSeverity } from './error-context.js';
-import { SerializedError } from './error-serialization.js';
+import { SerializedError } from './serialization-interfaces.js';
 
 /**
  * Error tracking event types

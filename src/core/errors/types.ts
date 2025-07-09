@@ -16,7 +16,7 @@ import {
   GrpcErrorResponse, 
   WebSocketErrorResponse, 
   McpErrorResponse 
-} from './error-serialization.js';
+} from './serialization-interfaces.js';
 import { 
   ErrorTrackingEntry
 } from './error-tracking.js';
