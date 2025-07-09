@@ -5,32 +5,41 @@
  * @nist au-3 "Content of Audit Records"
  */
 
-import { 
+import type { RequestContext } from './factories/types.js';
+
+/**
+ * Parameters for range validation in ErrorFactory
+ */
+interface RangeValidationInput {
+  field: string;
+  value: unknown;
+  min: number;
+  max: number;
+  context?: RequestContext;
+}
+import { authErrors, authorizationErrors } from './factories/auth-errors.js';
+import { browserErrors } from './factories/browser-errors.js';
+import { networkErrors } from './factories/network-errors.js';
+import { resourceErrors } from './factories/resource-errors.js';
+import { validationErrors } from './factories/validation-errors.js';
+import {
+  rateLimitErrors,
+  externalServiceErrors,
+  configErrors,
+  systemErrors,
+} from './factories/service-errors.js';
+import {
+  securityErrors,
+  performanceErrors,
+  businessLogicErrors,
+} from './factories/security-errors.js';
+import type {
   AuthenticationDomainError,
-  AuthorizationDomainError,
-  BrowserDomainError,
-  NetworkDomainError,
-  ResourceDomainError,
-  ValidationDomainError,
   ExternalServiceDomainError,
-  RateLimitDomainError,
-  ConfigurationDomainError,
-  SecurityDomainError,
   PerformanceDomainError,
   SystemDomainError,
   BusinessLogicDomainError,
 } from './domain-errors.js';
-
-/**
- * Request context for error creation
- */
-interface RequestContext {
-  requestId?: string;
-  userId?: string;
-  sessionId?: string;
-  ipAddress?: string;
-  userAgent?: string;
-}
 
 /**
  * Error factory class for consistent error creation
@@ -63,499 +72,266 @@ export class ErrorFactory {
    * Authentication errors
    */
   static auth = {
-    invalidCredentials: (context?: RequestContext) => 
-      new AuthenticationDomainError(
-        'Invalid credentials provided',
-        'AUTH_INVALID_CREDENTIALS',
-        { reason: 'credentials_mismatch' },
-        context?.requestId || this.defaultContext.requestId,
-        context?.userId || this.defaultContext.userId
-      ),
+    invalidCredentials: (context?: RequestContext): AuthenticationDomainError =>
+      authErrors.invalidCredentials(context, this.defaultContext),
 
-    tokenExpired: (context?: RequestContext) => 
-      new AuthenticationDomainError(
-        'Authentication token has expired',
-        'AUTH_TOKEN_EXPIRED',
-        { reason: 'token_expired' },
-        context?.requestId || this.defaultContext.requestId,
-        context?.userId || this.defaultContext.userId
-      ),
+    tokenExpired: (context?: RequestContext): AuthenticationDomainError =>
+      authErrors.tokenExpired(context, this.defaultContext),
 
-    tokenInvalid: (context?: RequestContext) => 
-      new AuthenticationDomainError(
-        'Invalid authentication token',
-        'AUTH_TOKEN_INVALID',
-        { reason: 'token_invalid' },
-        context?.requestId || this.defaultContext.requestId,
-        context?.userId || this.defaultContext.userId
-      ),
+    tokenInvalid: (context?: RequestContext): AuthenticationDomainError =>
+      authErrors.tokenInvalid(context, this.defaultContext),
 
-    missingToken: (context?: RequestContext) => 
-      new AuthenticationDomainError(
-        'Authentication token is required',
-        'AUTH_TOKEN_MISSING',
-        { reason: 'token_missing' },
-        context?.requestId || this.defaultContext.requestId,
-        context?.userId || this.defaultContext.userId
-      ),
+    missingToken: (context?: RequestContext): AuthenticationDomainError =>
+      authErrors.missingToken(context, this.defaultContext),
 
-    accountLocked: (context?: RequestContext) => 
-      new AuthenticationDomainError(
-        'Account is locked due to too many failed attempts',
-        'AUTH_ACCOUNT_LOCKED',
-        { reason: 'account_locked' },
-        context?.requestId || this.defaultContext.requestId,
-        context?.userId || this.defaultContext.userId
-      ),
+    accountLocked: (context?: RequestContext): AuthenticationDomainError =>
+      authErrors.accountLocked(context, this.defaultContext),
 
-    accountDisabled: (context?: RequestContext) => 
-      new AuthenticationDomainError(
-        'Account is disabled',
-        'AUTH_ACCOUNT_DISABLED',
-        { reason: 'account_disabled' },
-        context?.requestId || this.defaultContext.requestId,
-        context?.userId || this.defaultContext.userId
-      ),
+    accountDisabled: (context?: RequestContext): AuthenticationDomainError =>
+      authErrors.accountDisabled(context, this.defaultContext),
   };
 
   /**
    * Authorization errors
    */
   static authorization = {
-    insufficientPermissions: (requiredPermissions: string[], userPermissions: string[], context?: RequestContext) => 
-      new AuthorizationDomainError(
-        'Insufficient permissions to perform this action',
-        'AUTH_INSUFFICIENT_PERMISSIONS',
+    insufficientPermissions: (
+      requiredPermissions: string[],
+      userPermissions: string[],
+      context?: RequestContext
+    ) =>
+      authorizationErrors.insufficientPermissions(
         requiredPermissions,
         userPermissions,
-        context?.requestId || this.defaultContext.requestId,
-        context?.userId || this.defaultContext.userId
+        context,
+        this.defaultContext
       ),
 
-    roleRequired: (requiredRole: string, userRole: string, context?: RequestContext) => 
-      new AuthorizationDomainError(
-        `Role '${requiredRole}' is required for this action`,
-        'AUTH_ROLE_REQUIRED',
-        [requiredRole],
-        [userRole],
-        context?.requestId || this.defaultContext.requestId,
-        context?.userId || this.defaultContext.userId
-      ),
+    roleRequired: (requiredRole: string, userRole: string, context?: RequestContext) =>
+      authorizationErrors.roleRequired(requiredRole, userRole, context, this.defaultContext),
 
-    resourceAccessDenied: (resource: string, context?: RequestContext) => 
-      new AuthorizationDomainError(
-        `Access denied to resource: ${resource}`,
-        'AUTH_RESOURCE_ACCESS_DENIED',
-        ['resource_access'],
-        [],
-        context?.requestId || this.defaultContext.requestId,
-        context?.userId || this.defaultContext.userId
-      ),
+    resourceAccessDenied: (resource: string, context?: RequestContext) =>
+      authorizationErrors.resourceAccessDenied(resource, context, this.defaultContext),
 
-    operationForbidden: (operation: string, context?: RequestContext) => 
-      new AuthorizationDomainError(
-        `Operation '${operation}' is forbidden`,
-        'AUTH_OPERATION_FORBIDDEN',
-        [operation],
-        [],
-        context?.requestId || this.defaultContext.requestId,
-        context?.userId || this.defaultContext.userId
-      ),
+    operationForbidden: (operation: string, context?: RequestContext) =>
+      authorizationErrors.operationForbidden(operation, context, this.defaultContext),
   };
 
   /**
    * Browser automation errors
    */
   static browser = {
-    pageNotFound: (pageId: string, context?: RequestContext) => 
-      new BrowserDomainError(
-        `Browser page not found: ${pageId}`,
-        'BROWSER_PAGE_NOT_FOUND',
-        { pageId, action: 'page_lookup' },
-        context?.requestId || this.defaultContext.requestId,
-        context?.sessionId || this.defaultContext.sessionId
-      ),
+    pageNotFound: (pageId: string, context?: RequestContext) =>
+      browserErrors.pageNotFound(pageId, context, this.defaultContext),
 
-    elementNotFound: (selector: string, pageId: string, context?: RequestContext) => 
-      new BrowserDomainError(
-        `Element not found: ${selector}`,
-        'BROWSER_ELEMENT_NOT_FOUND',
-        { selector, pageId, action: 'element_lookup' },
-        context?.requestId || this.defaultContext.requestId,
-        context?.sessionId || this.defaultContext.sessionId
-      ),
+    elementNotFound: (selector: string, pageId: string, context?: RequestContext) =>
+      browserErrors.elementNotFound(selector, pageId, context, this.defaultContext),
 
-    navigationFailed: (url: string, _error: string, context?: RequestContext) => 
-      new BrowserDomainError(
-        `Navigation failed to: ${url}`,
-        'BROWSER_NAVIGATION_FAILED',
-        { url, action: 'navigation' },
-        context?.requestId || this.defaultContext.requestId,
-        context?.sessionId || this.defaultContext.sessionId
-      ),
+    navigationFailed: (url: string, error: string, context?: RequestContext) =>
+      browserErrors.navigationFailed(url, error, context, this.defaultContext),
 
-    actionTimeout: (action: string, selector: string, _timeout: number, context?: RequestContext) => 
-      new BrowserDomainError(
-        `Browser action timed out: ${action} on ${selector}`,
-        'BROWSER_ACTION_TIMEOUT',
-        { action, selector },
-        context?.requestId || this.defaultContext.requestId,
-        context?.sessionId || this.defaultContext.sessionId
-      ),
+    actionTimeout: (action: string, selector: string, timeout: number, context?: RequestContext) =>
+      browserErrors.actionTimeout({ action, selector, timeout, context, defaultContext: this.defaultContext }),
 
-    poolExhausted: (_poolSize: number, _activeConnections: number, context?: RequestContext) => 
-      new BrowserDomainError(
-        'Browser pool exhausted - no available browsers',
-        'BROWSER_POOL_EXHAUSTED',
-        { action: 'pool_allocation' },
-        context?.requestId || this.defaultContext.requestId,
-        context?.sessionId || this.defaultContext.sessionId
-      ),
+    poolExhausted: (poolSize: number, activeConnections: number, context?: RequestContext) =>
+      browserErrors.poolExhausted(poolSize, activeConnections, context, this.defaultContext),
 
-    browserCrashed: (browserId: string, context?: RequestContext) => 
-      new BrowserDomainError(
-        'Browser instance crashed unexpectedly',
-        'BROWSER_CRASHED',
-        { browserId, action: 'browser_operation' },
-        context?.requestId || this.defaultContext.requestId,
-        context?.sessionId || this.defaultContext.sessionId
-      ),
+    browserCrashed: (browserId: string, context?: RequestContext) =>
+      browserErrors.browserCrashed(browserId, context, this.defaultContext),
 
-    evaluationFailed: (_script: string, _error: string, context?: RequestContext) => 
-      new BrowserDomainError(
-        'JavaScript evaluation failed',
-        'BROWSER_EVALUATION_FAILED',
-        { action: 'evaluation' },
-        context?.requestId || this.defaultContext.requestId,
-        context?.sessionId || this.defaultContext.sessionId
-      ),
+    evaluationFailed: (script: string, error: string, context?: RequestContext) =>
+      browserErrors.evaluationFailed(script, error, context, this.defaultContext),
   };
 
   /**
    * Network errors
    */
   static network = {
-    connectionFailed: (url: string, context?: RequestContext) => 
-      new NetworkDomainError(
-        `Connection failed to: ${url}`,
-        'NETWORK_CONNECTION_FAILED',
-        { url, method: 'GET' },
-        context?.requestId || this.defaultContext.requestId
-      ),
+    connectionFailed: (url: string, context?: RequestContext) =>
+      networkErrors.connectionFailed(url, context, this.defaultContext),
 
-    timeout: (url: string, timeout: number, context?: RequestContext) => 
-      new NetworkDomainError(
-        `Request timeout: ${url}`,
-        'NETWORK_TIMEOUT',
-        { url, timeout },
-        context?.requestId || this.defaultContext.requestId
-      ),
+    timeout: (url: string, timeout: number, context?: RequestContext) =>
+      networkErrors.timeout(url, timeout, context, this.defaultContext),
 
-    dnsResolutionFailed: (hostname: string, context?: RequestContext) => 
-      new NetworkDomainError(
-        `DNS resolution failed for: ${hostname}`,
-        'NETWORK_DNS_RESOLUTION_FAILED',
-        { url: hostname },
-        context?.requestId || this.defaultContext.requestId
-      ),
+    dnsResolutionFailed: (hostname: string, context?: RequestContext) =>
+      networkErrors.dnsResolutionFailed(hostname, context, this.defaultContext),
 
-    sslError: (url: string, _error: string, context?: RequestContext) => 
-      new NetworkDomainError(
-        `SSL/TLS error for: ${url}`,
-        'NETWORK_SSL_ERROR',
-        { url },
-        context?.requestId || this.defaultContext.requestId
-      ),
+    sslError: (url: string, error: string, context?: RequestContext) =>
+      networkErrors.sslError(url, error, context, this.defaultContext),
 
-    proxyError: (proxyUrl: string, context?: RequestContext) => 
-      new NetworkDomainError(
-        `Proxy connection failed: ${proxyUrl}`,
-        'NETWORK_PROXY_ERROR',
-        { url: proxyUrl },
-        context?.requestId || this.defaultContext.requestId
-      ),
+    proxyError: (proxyUrl: string, context?: RequestContext) =>
+      networkErrors.proxyError(proxyUrl, context, this.defaultContext),
   };
 
   /**
    * Resource errors
    */
   static resource = {
-    memoryExhausted: (currentUsage: number, maxLimit: number, context?: RequestContext) => 
-      new ResourceDomainError(
-        'Memory limit exceeded',
-        'RESOURCE_MEMORY_EXHAUSTED',
-        { resourceType: 'memory', currentUsage, maxLimit, unit: 'MB' },
-        context?.requestId || this.defaultContext.requestId
+    memoryExhausted: (currentUsage: number, maxLimit: number, context?: RequestContext) =>
+      resourceErrors.memoryExhausted(currentUsage, maxLimit, context, this.defaultContext),
+
+    cpuExhausted: (currentUsage: number, maxLimit: number, context?: RequestContext) =>
+      resourceErrors.cpuExhausted(currentUsage, maxLimit, context, this.defaultContext),
+
+    connectionPoolExhausted: (
+      poolSize: number,
+      activeConnections: number,
+      context?: RequestContext
+    ) =>
+      resourceErrors.connectionPoolExhausted(
+        poolSize,
+        activeConnections,
+        context,
+        this.defaultContext
       ),
 
-    cpuExhausted: (currentUsage: number, maxLimit: number, context?: RequestContext) => 
-      new ResourceDomainError(
-        'CPU limit exceeded',
-        'RESOURCE_CPU_EXHAUSTED',
-        { resourceType: 'cpu', currentUsage, maxLimit, unit: 'percent' },
-        context?.requestId || this.defaultContext.requestId
-      ),
+    diskSpaceExhausted: (available: number, required: number, context?: RequestContext) =>
+      resourceErrors.diskSpaceExhausted(available, required, context, this.defaultContext),
 
-    connectionPoolExhausted: (poolSize: number, activeConnections: number, context?: RequestContext) => 
-      new ResourceDomainError(
-        'Connection pool exhausted',
-        'RESOURCE_CONNECTION_POOL_EXHAUSTED',
-        { resourceType: 'connection_pool', poolSize, activeConnections },
-        context?.requestId || this.defaultContext.requestId
-      ),
-
-    diskSpaceExhausted: (available: number, required: number, context?: RequestContext) => 
-      new ResourceDomainError(
-        'Insufficient disk space',
-        'RESOURCE_DISK_SPACE_EXHAUSTED',
-        { resourceType: 'disk', currentUsage: available, maxLimit: required, unit: 'GB' },
-        context?.requestId || this.defaultContext.requestId
-      ),
-
-    fileHandleExhausted: (currentUsage: number, maxLimit: number, context?: RequestContext) => 
-      new ResourceDomainError(
-        'File handle limit exceeded',
-        'RESOURCE_FILE_HANDLE_EXHAUSTED',
-        { resourceType: 'file_handles', currentUsage, maxLimit },
-        context?.requestId || this.defaultContext.requestId
-      ),
+    fileHandleExhausted: (currentUsage: number, maxLimit: number, context?: RequestContext) =>
+      resourceErrors.fileHandleExhausted(currentUsage, maxLimit, context, this.defaultContext),
   };
 
   /**
    * Validation errors
    */
   static validation = {
-    required: (field: string, context?: RequestContext) => 
-      new ValidationDomainError(
-        `Field '${field}' is required`,
-        'VALIDATION_REQUIRED',
-        { field, constraint: 'required' },
-        context?.requestId || this.defaultContext.requestId
-      ),
+    required: (field: string, context?: RequestContext) =>
+      validationErrors.required(field, context, this.defaultContext),
 
-    invalidFormat: (field: string, value: unknown, expectedFormat: string, context?: RequestContext) => 
-      new ValidationDomainError(
-        `Invalid format for field '${field}'`,
-        'VALIDATION_INVALID_FORMAT',
-        { field, value, expectedType: expectedFormat, constraint: 'format' },
-        context?.requestId || this.defaultContext.requestId
-      ),
+    invalidFormat: (
+      field: string,
+      value: unknown,
+      expectedFormat: string,
+      context?: RequestContext
+    ) =>
+      validationErrors.invalidFormat({ field, value, expectedFormat, context, defaultContext: this.defaultContext }),
 
-    outOfRange: (field: string, value: unknown, min: number, max: number, context?: RequestContext) => 
-      new ValidationDomainError(
-        `Field '${field}' is out of range`,
-        'VALIDATION_OUT_OF_RANGE',
-        { field, value, constraint: `${min}-${max}` },
-        context?.requestId || this.defaultContext.requestId
-      ),
+    outOfRange: (params: RangeValidationInput) => {
+      return validationErrors.outOfRange({ 
+        field: params.field, 
+        value: params.value, 
+        min: params.min, 
+        max: params.max, 
+        context: params.context, 
+        defaultContext: this.defaultContext 
+      });
+    },
 
-    invalidEnum: (field: string, value: unknown, _validValues: unknown[], context?: RequestContext) => 
-      new ValidationDomainError(
-        `Invalid value for field '${field}'`,
-        'VALIDATION_INVALID_ENUM',
-        { field, value, constraint: 'enum' },
-        context?.requestId || this.defaultContext.requestId
-      ),
+    invalidEnum: (field: string, value: unknown, validValues: unknown[], context?: RequestContext) =>
+      validationErrors.invalidEnum({ field, value, validValues, context, defaultContext: this.defaultContext }),
 
-    tooLong: (field: string, value: string, maxLength: number, context?: RequestContext) => 
-      new ValidationDomainError(
-        `Field '${field}' is too long`,
-        'VALIDATION_TOO_LONG',
-        { field, value: value.length, constraint: `max_length_${maxLength}` },
-        context?.requestId || this.defaultContext.requestId
-      ),
+    tooLong: (field: string, value: string, maxLength: number, context?: RequestContext) =>
+      validationErrors.tooLong({ field, value, limit: maxLength, context, defaultContext: this.defaultContext }),
 
-    tooShort: (field: string, value: string, minLength: number, context?: RequestContext) => 
-      new ValidationDomainError(
-        `Field '${field}' is too short`,
-        'VALIDATION_TOO_SHORT',
-        { field, value: value.length, constraint: `min_length_${minLength}` },
-        context?.requestId || this.defaultContext.requestId
-      ),
+    tooShort: (field: string, value: string, minLength: number, context?: RequestContext) =>
+      validationErrors.tooShort({ field, value, limit: minLength, context, defaultContext: this.defaultContext }),
   };
 
   /**
    * Rate limiting errors
    */
   static rateLimit = {
-    exceeded: (limit: number, resetTime: Date, context?: RequestContext) => 
-      new RateLimitDomainError(
-        'Rate limit exceeded',
-        'RATE_LIMIT_EXCEEDED',
-        { limit, resetTime, retryAfter: Math.ceil((resetTime.getTime() - Date.now()) / 1000) },
-        context?.requestId || this.defaultContext.requestId
-      ),
+    exceeded: (limit: number, resetTime: Date, context?: RequestContext) =>
+      rateLimitErrors.exceeded(limit, resetTime, context, this.defaultContext),
 
-    quotaExceeded: (quota: number, period: string, context?: RequestContext) => 
-      new RateLimitDomainError(
-        `Quota exceeded: ${quota} requests per ${period}`,
-        'RATE_LIMIT_QUOTA_EXCEEDED',
-        { limit: quota, resetTime: new Date(Date.now() + 3600000) }, // 1 hour from now
-        context?.requestId || this.defaultContext.requestId
-      ),
+    quotaExceeded: (quota: number, period: string, context?: RequestContext) =>
+      rateLimitErrors.quotaExceeded(quota, period, context, this.defaultContext),
   };
 
   /**
    * External service errors
    */
   static externalService = {
-    unavailable: (serviceName: string, context?: RequestContext) => 
-      new ExternalServiceDomainError(
-        `External service unavailable: ${serviceName}`,
-        'EXTERNAL_SERVICE_UNAVAILABLE',
-        { serviceName, responseCode: 503 },
-        context?.requestId || this.defaultContext.requestId
-      ),
+    unavailable: (serviceName: string, context?: RequestContext): ExternalServiceDomainError =>
+      externalServiceErrors.unavailable(serviceName, context, this.defaultContext),
 
-    timeout: (serviceName: string, timeout: number, context?: RequestContext) => 
-      new ExternalServiceDomainError(
-        `External service timeout: ${serviceName}`,
-        'EXTERNAL_SERVICE_TIMEOUT',
-        { serviceName, responseTime: timeout },
-        context?.requestId || this.defaultContext.requestId
-      ),
+    timeout: (serviceName: string, timeout: number, context?: RequestContext): ExternalServiceDomainError =>
+      externalServiceErrors.timeout(serviceName, timeout, context, this.defaultContext),
 
-    badResponse: (serviceName: string, statusCode: number, context?: RequestContext) => 
-      new ExternalServiceDomainError(
-        `External service error: ${serviceName}`,
-        'EXTERNAL_SERVICE_BAD_RESPONSE',
-        { serviceName, responseCode: statusCode },
-        context?.requestId || this.defaultContext.requestId
-      ),
+    badResponse: (serviceName: string, statusCode: number, context?: RequestContext): ExternalServiceDomainError =>
+      externalServiceErrors.badResponse(serviceName, statusCode, context, this.defaultContext),
   };
 
   /**
    * Configuration errors
    */
   static config = {
-    missing: (configKey: string, context?: RequestContext) => 
-      new ConfigurationDomainError(
-        `Configuration missing: ${configKey}`,
-        'CONFIG_MISSING',
-        { configKey },
-        context?.requestId || this.defaultContext.requestId
-      ),
+    missing: (configKey: string, context?: RequestContext) =>
+      configErrors.missing(configKey, context, this.defaultContext),
 
-    invalid: (configKey: string, value: unknown, expectedType: string, context?: RequestContext) => 
-      new ConfigurationDomainError(
-        `Invalid configuration: ${configKey}`,
-        'CONFIG_INVALID',
-        { configKey, configValue: value, expectedType },
-        context?.requestId || this.defaultContext.requestId
-      ),
+    invalid: (configKey: string, value: unknown, expectedType: string, context?: RequestContext) =>
+      configErrors.invalid({ configKey, value, expectedType, context, defaultContext: this.defaultContext }),
   };
 
   /**
    * Security errors
    */
   static security = {
-    suspiciousActivity: (threatType: string, sourceIp: string, context?: RequestContext) => 
-      new SecurityDomainError(
-        'Suspicious activity detected',
-        'SECURITY_SUSPICIOUS_ACTIVITY',
-        { threatType, sourceIp, riskLevel: 'high' },
-        context?.requestId || this.defaultContext.requestId,
-        context?.userId || this.defaultContext.userId
-      ),
+    suspiciousActivity: (threatType: string, sourceIp: string, context?: RequestContext) =>
+      securityErrors.suspiciousActivity(threatType, sourceIp, context, this.defaultContext),
 
-    xssAttempt: (_input: string, context?: RequestContext) => 
-      new SecurityDomainError(
-        'XSS attempt detected',
-        'SECURITY_XSS_ATTEMPT',
-        { attackVector: 'xss', sourceIp: context?.ipAddress },
-        context?.requestId || this.defaultContext.requestId,
-        context?.userId || this.defaultContext.userId
-      ),
+    xssAttempt: (input: string, context?: RequestContext) =>
+      securityErrors.xssAttempt(input, context, this.defaultContext),
 
-    sqlInjection: (_input: string, context?: RequestContext) => 
-      new SecurityDomainError(
-        'SQL injection attempt detected',
-        'SECURITY_SQL_INJECTION',
-        { attackVector: 'sql_injection', sourceIp: context?.ipAddress },
-        context?.requestId || this.defaultContext.requestId,
-        context?.userId || this.defaultContext.userId
-      ),
+    sqlInjection: (input: string, context?: RequestContext) =>
+      securityErrors.sqlInjection(input, context, this.defaultContext),
   };
 
   /**
    * Performance errors
    */
   static performance = {
-    slowOperation: (operation: string, duration: number, threshold: number, context?: RequestContext) => 
-      new PerformanceDomainError(
-        `Operation exceeded performance threshold: ${operation}`,
-        'PERFORMANCE_SLOW_OPERATION',
-        { operation, duration, threshold },
-        context?.requestId || this.defaultContext.requestId
-      ),
+    slowOperation: (
+      operation: string,
+      duration: number,
+      threshold: number,
+      context?: RequestContext
+    ): PerformanceDomainError =>
+      performanceErrors.slowOperation({ operation, duration, threshold, context, defaultContext: this.defaultContext }),
 
-    memoryLeak: (component: string, memoryUsage: number, context?: RequestContext) => 
-      new PerformanceDomainError(
-        `Memory leak detected: ${component}`,
-        'PERFORMANCE_MEMORY_LEAK',
-        { operation: 'memory_monitoring', memoryUsage },
-        context?.requestId || this.defaultContext.requestId
-      ),
+    memoryLeak: (component: string, memoryUsage: number, context?: RequestContext): PerformanceDomainError =>
+      performanceErrors.memoryLeak(component, memoryUsage, context, this.defaultContext),
   };
 
   /**
    * System errors
    */
   static system = {
-    serviceUnavailable: (component: string, context?: RequestContext) => 
-      new SystemDomainError(
-        `System service unavailable: ${component}`,
-        'SYSTEM_SERVICE_UNAVAILABLE',
-        { component },
-        context?.requestId || this.defaultContext.requestId
-      ),
+    serviceUnavailable: (component: string, context?: RequestContext): SystemDomainError =>
+      systemErrors.serviceUnavailable(component, context, this.defaultContext),
 
-    maintenanceMode: (context?: RequestContext) => 
-      new SystemDomainError(
-        'System is in maintenance mode',
-        'SYSTEM_MAINTENANCE_MODE',
-        { component: 'system' },
-        context?.requestId || this.defaultContext.requestId
-      ),
+    maintenanceMode: (context?: RequestContext): SystemDomainError =>
+      systemErrors.maintenanceMode(context, this.defaultContext),
 
-    healthCheckFailed: (component: string, _reason: string, context?: RequestContext) => 
-      new SystemDomainError(
-        `Health check failed: ${component}`,
-        'SYSTEM_HEALTH_CHECK_FAILED',
-        { component },
-        context?.requestId || this.defaultContext.requestId
-      ),
+    healthCheckFailed: (component: string, reason: string, context?: RequestContext): SystemDomainError =>
+      systemErrors.healthCheckFailed(component, reason, context, this.defaultContext),
   };
 
   /**
    * Business logic errors
    */
   static businessLogic = {
-    ruleViolation: (rule: string, details: Record<string, unknown>, context?: RequestContext) => 
-      new BusinessLogicDomainError(
-        `Business rule violation: ${rule}`,
-        'BUSINESS_RULE_VIOLATION',
-        { rule, violationType: 'rule_violation', contextData: details },
-        context?.requestId || this.defaultContext.requestId,
-        context?.userId || this.defaultContext.userId
-      ),
+    ruleViolation: (rule: string, details: Record<string, unknown>, context?: RequestContext): BusinessLogicDomainError =>
+      businessLogicErrors.ruleViolation(rule, details, context, this.defaultContext),
 
-    workflowError: (workflow: string, step: string, context?: RequestContext) => 
-      new BusinessLogicDomainError(
-        `Workflow error in ${workflow} at step ${step}`,
-        'BUSINESS_WORKFLOW_ERROR',
-        { rule: workflow, violationType: 'workflow_error', contextData: { step } },
-        context?.requestId || this.defaultContext.requestId,
-        context?.userId || this.defaultContext.userId
-      ),
+    workflowError: (workflow: string, step: string, context?: RequestContext): BusinessLogicDomainError =>
+      businessLogicErrors.workflowError(workflow, step, context, this.defaultContext),
   };
 
   /**
    * Create a custom error using the enhanced error system
    */
   static custom = {
-    create: (errorClass: new (...args: any[]) => any, ...args: any[]) => {
-      return new errorClass(...args);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    create: <T extends new (...args: any[]) => any>(
+      errorClass: T,
+      ...args: ConstructorParameters<T>
+    ): InstanceType<T> => {
+      // Type assertion is necessary here because TypeScript cannot infer
+      // the exact type when using generic constructors
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+      return new errorClass(...args) as InstanceType<T>;
     },
   };
 }
