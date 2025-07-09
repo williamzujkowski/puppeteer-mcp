@@ -59,7 +59,7 @@ export class EnhancedAppError extends AppError {
   /**
    * Get recovery suggestions
    */
-  getRecoverySuggestions() {
+  getRecoverySuggestions(): RecoveryAction[] | undefined {
     return this.errorContext.recoverySuggestions;
   }
 
@@ -73,7 +73,7 @@ export class EnhancedAppError extends AppError {
   /**
    * Get retry configuration
    */
-  getRetryConfig() {
+  getRetryConfig(): RetryConfig | null | undefined {
     return this.errorContext.retryConfig;
   }
 
@@ -94,7 +94,7 @@ export class EnhancedAppError extends AppError {
   /**
    * Get help links
    */
-  getHelpLinks() {
+  getHelpLinks(): ErrorContext['helpLinks'] | undefined {
     return this.errorContext.helpLinks;
   }
 
@@ -197,7 +197,7 @@ export class EnhancedAppError extends AppError {
     );
     
     // Preserve stack trace
-    if (error.stack) {
+    if (error.stack !== undefined) {
       enhancedError.stack = error.stack;
     }
     
@@ -225,7 +225,7 @@ export class EnhancedAppError extends AppError {
     );
 
     // Preserve stack trace
-    if (appError.stack) {
+    if (appError.stack !== undefined) {
       enhancedError.stack = appError.stack;
     }
 

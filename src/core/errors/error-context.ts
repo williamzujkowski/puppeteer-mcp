@@ -6,6 +6,7 @@
  */
 
 import { z } from 'zod';
+import { DEFAULT_RETRY_CONFIGS } from './retry-configs.js';
 
 /**
  * Recovery action types that can be suggested to users
@@ -192,56 +193,7 @@ export const ErrorContextSchema = z.object({
   containsSensitiveData: z.boolean().optional(),
 });
 
-/**
- * Default retry configurations for different error categories
- */
-export const DEFAULT_RETRY_CONFIGS: Record<ErrorCategory, RetryConfig | null> = {
-  [ErrorCategory.NETWORK]: {
-    maxAttempts: 3,
-    initialDelay: 1000,
-    backoffMultiplier: 2,
-    maxDelay: 10000,
-    jitter: 0.1,
-  },
-  [ErrorCategory.EXTERNAL_SERVICE]: {
-    maxAttempts: 3,
-    initialDelay: 2000,
-    backoffMultiplier: 2,
-    maxDelay: 30000,
-    jitter: 0.2,
-  },
-  [ErrorCategory.RESOURCE]: {
-    maxAttempts: 2,
-    initialDelay: 5000,
-    backoffMultiplier: 2,
-    maxDelay: 30000,
-    jitter: 0.1,
-  },
-  [ErrorCategory.BROWSER]: {
-    maxAttempts: 2,
-    initialDelay: 3000,
-    backoffMultiplier: 2,
-    maxDelay: 15000,
-    jitter: 0.1,
-  },
-  [ErrorCategory.RATE_LIMIT]: {
-    maxAttempts: 3,
-    initialDelay: 60000,
-    backoffMultiplier: 2,
-    maxDelay: 300000,
-    jitter: 0.3,
-  },
-  // Non-retryable categories
-  [ErrorCategory.AUTHENTICATION]: null,
-  [ErrorCategory.AUTHORIZATION]: null,
-  [ErrorCategory.VALIDATION]: null,
-  [ErrorCategory.SECURITY]: null,
-  [ErrorCategory.BUSINESS_LOGIC]: null,
-  [ErrorCategory.CONFIGURATION]: null,
-  [ErrorCategory.DATABASE]: null,
-  [ErrorCategory.SYSTEM]: null,
-  [ErrorCategory.PERFORMANCE]: null,
-};
+// DEFAULT_RETRY_CONFIGS moved to retry-configs.ts
 
 /**
  * Error context builder for fluent API
