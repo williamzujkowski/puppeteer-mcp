@@ -26,101 +26,19 @@ export class BrowserContextTool {
    */
   async createBrowserContext(args: CreateBrowserContextArgs): Promise<ToolResponse> {
     try {
-      // Validate session
-      if (args.sessionId === undefined || args.sessionId === null || args.sessionId === '') {
-        return this.errorResponse('Session ID is required', 'INVALID_SESSION');
+      const authContext = await this.validateAndAuthenticate(args.sessionId);
+      const proxyConfig = this.prepareProxyConfiguration(args.options?.proxy);
+      
+      if (proxyConfig?.pool) {
+        await proxyManager.initialize(proxyConfig.pool);
       }
 
-      // Authenticate using session
-      const authContext = await this.authBridge.authenticate({
-        type: 'session',
-        credentials: args.sessionId,
-      });
+      const context = await this.createContextRecord(args, authContext, proxyConfig);
+      const { proxyId } = await this.setupBrowserContextWithProxy(context, proxyConfig, args.sessionId);
 
-      // Check permissions
-      await this.authBridge.requireToolPermission(authContext, 'createContext');
+      this.logContextCreation(context.id, authContext.userId, args.sessionId, proxyId);
 
-      // Prepare proxy configuration if provided
-      let proxyConfig: ContextProxyConfig | undefined;
-      let proxyId: string | undefined;
-      let browserContextId: string | undefined;
-
-      if (args.options?.proxy) {
-        proxyConfig = {
-          enabled: args.options.proxy.enabled,
-          proxy: args.options.proxy.config,
-          pool: args.options.proxy.pool,
-          rotateOnError: args.options.proxy.rotateOnError ?? true,
-          rotateOnInterval: args.options.proxy.rotateOnInterval ?? false,
-          rotationInterval: args.options.proxy.rotationInterval ?? 3600000,
-        };
-
-        // Initialize proxy manager if using pool
-        if (proxyConfig.pool) {
-          await proxyManager.initialize(proxyConfig.pool);
-        }
-      }
-
-      // Create context
-      const context = await contextStore.create({
-        sessionId: args.sessionId,
-        name: args.name ?? 'browser-context',
-        type: 'puppeteer',
-        config: args.options ?? {},
-        metadata: {
-          createdBy: 'mcp',
-          username: authContext.username,
-        },
-        status: 'active',
-        userId: authContext.userId,
-        proxyConfig: proxyConfig as Record<string, unknown> | undefined,
-      });
-
-      // If proxy is configured, create actual browser context
-      if (proxyConfig) {
-        try {
-          // Get a browser instance from the pool
-          const browserInstance = await browserPool.acquireBrowser(args.sessionId);
-          
-          // Create browser context with proxy
-          const proxyContext = await createProxyBrowserContext(browserInstance.browser, {
-            proxyConfig,
-            contextId: context.id,
-          });
-
-          // Update context with browser context ID and proxy ID
-          await contextStore.update(context.id, {
-            browserContextId: proxyContext.contextId,
-            proxyId: proxyContext.proxyId,
-          });
-
-          proxyId = proxyContext.proxyId;
-          browserContextId = proxyContext.contextId;
-        } catch (error) {
-          // Clean up context on failure
-          await contextStore.delete(context.id);
-          throw error;
-        }
-      }
-
-      logger.info({
-        msg: 'MCP browser context created',
-        contextId: context.id,
-        userId: authContext.userId,
-        sessionId: args.sessionId,
-        hasProxy: !!proxyId,
-        proxyId,
-      });
-
-      return this.successResponse({
-        contextId: context.id,
-        name: context.name,
-        type: context.type,
-        status: context.status,
-        createdAt: context.createdAt,
-        proxyEnabled: !!proxyId,
-        proxyId,
-      });
+      return this.buildContextResponse(context, proxyId);
     } catch (error) {
       logger.error({
         msg: 'MCP browser context creation failed',
@@ -133,6 +51,135 @@ export class BrowserContextTool {
         'CONTEXT_CREATION_FAILED',
       );
     }
+  }
+
+  /**
+   * Validate session ID and authenticate user
+   */
+  private async validateAndAuthenticate(sessionId: string | undefined | null): Promise<{ username: string; userId: string }> {
+    if (sessionId === undefined || sessionId === null || sessionId === '') {
+      throw new Error('Session ID is required');
+    }
+
+    const authContext = await this.authBridge.authenticate({
+      type: 'session',
+      credentials: sessionId,
+    });
+
+    await this.authBridge.requireToolPermission(authContext, 'createContext');
+    return authContext;
+  }
+
+  /**
+   * Prepare proxy configuration from options
+   */
+  private prepareProxyConfiguration(proxyOptions?: unknown): ContextProxyConfig | undefined {
+    if (proxyOptions === null || proxyOptions === undefined || typeof proxyOptions !== 'object') {
+      return undefined;
+    }
+
+    const options = proxyOptions as Record<string, unknown>;
+    return {
+      enabled: options.enabled as boolean,
+      proxy: options.config,
+      pool: options.pool,
+      rotateOnError: (options.rotateOnError as boolean) ?? true,
+      rotateOnInterval: (options.rotateOnInterval as boolean) ?? false,
+      rotationInterval: (options.rotationInterval as number) ?? 3600000,
+    };
+  }
+
+  /**
+   * Create context record in store
+   */
+  private async createContextRecord(
+    args: CreateBrowserContextArgs, 
+    authContext: { username: string; userId: string }, 
+    proxyConfig?: ContextProxyConfig
+  ): Promise<{ id: string; name: string; type: string; status: string; createdAt: string }> {
+    return contextStore.create({
+      sessionId: args.sessionId,
+      name: args.name ?? 'browser-context',
+      type: 'puppeteer',
+      config: args.options ?? {},
+      metadata: {
+        createdBy: 'mcp',
+        username: authContext.username,
+      },
+      status: 'active',
+      userId: authContext.userId,
+      proxyConfig: proxyConfig as Record<string, unknown> | undefined,
+    });
+  }
+
+  /**
+   * Setup browser context with proxy if configured
+   */
+  private async setupBrowserContextWithProxy(
+    context: { id: string }, 
+    proxyConfig?: ContextProxyConfig, 
+    sessionId?: string
+  ): Promise<{ proxyId?: string; browserContextId?: string }> {
+    if (!proxyConfig) {
+      return {};
+    }
+
+    if (sessionId === null || sessionId === undefined || sessionId.trim() === '') {
+      throw new Error('Session ID is required for proxy setup');
+    }
+
+    try {
+      const browserInstance = await browserPool.acquireBrowser(sessionId);
+      const proxyContext = await createProxyBrowserContext(browserInstance.browser, {
+        proxyConfig,
+        contextId: context.id,
+      });
+
+      await contextStore.update(context.id, {
+        browserContextId: proxyContext.contextId,
+        proxyId: proxyContext.proxyId,
+      });
+
+      return {
+        proxyId: proxyContext.proxyId,
+        browserContextId: proxyContext.contextId,
+      };
+    } catch (error) {
+      await contextStore.delete(context.id);
+      throw error;
+    }
+  }
+
+  /**
+   * Log context creation success
+   */
+  private logContextCreation(contextId: string, userId: string, sessionId: string, proxyId?: string): void {
+    logger.info({
+      msg: 'MCP browser context created',
+      contextId,
+      userId,
+      sessionId,
+      hasProxy: Boolean(proxyId),
+      proxyId,
+    });
+  }
+
+  /**
+   * Build successful context creation response
+   */
+  private buildContextResponse(
+    context: { id: string; name: string; type: string; status: string; createdAt: string }, 
+    proxyId?: string
+  ): ToolResponse {
+    return this.successResponse({
+      contextId: context.id,
+      name: context.name,
+      type: context.type,
+      status: context.status,
+      createdAt: context.createdAt,
+      proxyEnabled: Boolean(proxyId),
+      proxyId,
+    });
   }
 
   /**
@@ -168,55 +215,22 @@ export class BrowserContextTool {
    */
   async closeBrowserContext(args: { contextId: string; sessionId: string }): Promise<ToolResponse> {
     try {
-      // Validate inputs
-      if (!args.contextId) {
-        return this.errorResponse('Context ID is required', 'INVALID_CONTEXT_ID');
-      }
-      if (!args.sessionId) {
-        return this.errorResponse('Session ID is required', 'INVALID_SESSION');
-      }
+      const validationError = this.validateCloseContextArgs(args);
+      if (validationError) return validationError;
 
-      // Authenticate using session
       const authContext = await this.authBridge.authenticate({
         type: 'session',
         credentials: args.sessionId,
       });
 
-      // Get context to verify it exists and belongs to session
-      const context = await contextStore.get(args.contextId);
-      if (!context) {
-        return this.errorResponse('Context not found', 'CONTEXT_NOT_FOUND');
-      }
-      if (context.sessionId !== args.sessionId) {
-        return this.errorResponse('Context does not belong to this session', 'ACCESS_DENIED');
-      }
+      const context = await this.validateContextAccess(args);
+      if ('error' in context) return context;
 
-      // Get page manager instance
-      const pageManager = getPageManager(browserPool);
+      await this.closeContextResources(args.contextId, args.sessionId);
+      await this.cleanupContextProxy(context, args.contextId);
 
-      // Close all pages for this context
-      await pageManager.closePagesForContext(args.contextId);
-      logger.info({
-        msg: 'Closed all pages for context',
-        contextId: args.contextId,
-        sessionId: args.sessionId,
-      });
-
-      // Clean up proxy resources if any
-      if (context.proxyId) {
-        await cleanupContextProxy(args.contextId);
-      }
-
-      // Delete the context
       const deleted = await contextStore.delete(args.contextId);
-
-      logger.info({
-        msg: 'MCP browser context closed',
-        contextId: args.contextId,
-        userId: authContext.userId,
-        sessionId: args.sessionId,
-        deleted,
-      });
+      this.logContextClosure(args.contextId, authContext.userId, args.sessionId, deleted);
 
       return this.successResponse({
         success: deleted,
@@ -239,12 +253,74 @@ export class BrowserContextTool {
   }
 
   /**
+   * Validate close context arguments
+   */
+  private validateCloseContextArgs(args: { contextId: string; sessionId: string }): ToolResponse | null {
+    if (!args.contextId || args.contextId.trim() === '') {
+      return this.errorResponse('Context ID is required', 'INVALID_CONTEXT_ID');
+    }
+    if (!args.sessionId || args.sessionId.trim() === '') {
+      return this.errorResponse('Session ID is required', 'INVALID_SESSION');
+    }
+    return null;
+  }
+
+  /**
+   * Validate context access permissions
+   */
+  private async validateContextAccess(args: { contextId: string; sessionId: string }): Promise<{ proxyId?: string; sessionId: string } | ToolResponse> {
+    const context = await contextStore.get(args.contextId);
+    if (!context) {
+      return this.errorResponse('Context not found', 'CONTEXT_NOT_FOUND');
+    }
+    if (context.sessionId !== args.sessionId) {
+      return this.errorResponse('Context does not belong to this session', 'ACCESS_DENIED');
+    }
+    return context;
+  }
+
+  /**
+   * Close context resources (pages)
+   */
+  private async closeContextResources(contextId: string, sessionId: string): Promise<void> {
+    const pageManager = getPageManager(browserPool);
+    await pageManager.closePagesForContext(contextId);
+    logger.info({
+      msg: 'Closed all pages for context',
+      contextId,
+      sessionId,
+    });
+  }
+
+  /**
+   * Clean up proxy resources if any
+   */
+  private async cleanupContextProxy(context: { proxyId?: string }, contextId: string): Promise<void> {
+    if (context.proxyId !== null && context.proxyId !== undefined && context.proxyId.trim() !== '') {
+      await cleanupContextProxy(contextId);
+    }
+  }
+
+  /**
+   * Log context closure completion
+   */
+  private logContextClosure(contextId: string, userId: string, sessionId: string, deleted: boolean): void {
+    logger.info({
+      msg: 'MCP browser context closed',
+      contextId,
+      userId,
+      sessionId,
+      deleted,
+    });
+  }
+
+  /**
    * List browser contexts for a session
    */
   async listBrowserContexts(args: { sessionId: string }): Promise<ToolResponse> {
     try {
       // Validate session
-      if (!args.sessionId) {
+      if (args.sessionId === null || args.sessionId === undefined || args.sessionId.trim() === '') {
         return this.errorResponse('Session ID is required', 'INVALID_SESSION');
       }
 
