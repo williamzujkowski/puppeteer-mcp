@@ -47,8 +47,8 @@ export function instrumentDelete(ctx: InstrumentationContext): void {
 
         // Record session duration and metrics
         recordSessionDuration(session);
-        appMetrics.sessionDestroyed.add(1, { user_id: session.data.userId });
-        appMetrics.sessionActiveSessions.add(-1);
+        appMetrics.session.sessionDestroyed.add(1, { user_id: session.data.userId });
+        appMetrics.session.sessionActiveSessions.add(-1);
       }
 
       span.setStatus({ code: SpanStatusCode.OK });

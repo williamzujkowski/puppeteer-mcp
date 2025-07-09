@@ -66,12 +66,12 @@ export function recordSecurityEvent(attributes: SecurityEventAttributes): void {
   switch (attributes.eventType) {
     case SecurityEventType.LOGIN_SUCCESS:
     case SecurityEventType.LOGIN_FAILURE:
-      appMetrics.authAttemptsTotal.add(1, {
+      appMetrics.security.authAttemptsTotal.add(1, {
         method: 'login',
         success: (attributes.result === 'success').toString(),
       });
       if (attributes.result === 'failure') {
-        appMetrics.authFailuresTotal.add(1, {
+        appMetrics.security.authFailuresTotal.add(1, {
           method: 'login',
           reason: attributes.reason || 'unknown',
         });
@@ -80,21 +80,21 @@ export function recordSecurityEvent(attributes: SecurityEventAttributes): void {
       
     case SecurityEventType.TOKEN_REFRESH:
     case SecurityEventType.TOKEN_REFRESHED:
-      appMetrics.authTokensIssued.add(1, { type: 'refresh' });
+      appMetrics.security.authTokensIssued.add(1, { type: 'refresh' });
       break;
       
     case SecurityEventType.TOKEN_REVOKE:
-      appMetrics.authTokensRevoked.add(1);
+      appMetrics.security.authTokensRevoked.add(1);
       break;
       
     case SecurityEventType.RATE_LIMIT_EXCEEDED:
-      appMetrics.apiRateLimitHits.add(1, {
+      appMetrics.puppeteer.apiRateLimitHits.add(1, {
         endpoint: attributes.resource || 'unknown',
       });
       break;
       
     case SecurityEventType.VALIDATION_FAILURE:
-      appMetrics.validationErrors.add(1, {
+      appMetrics.puppeteer.validationErrors.add(1, {
         resource: attributes.resource || 'unknown',
       });
       break;
@@ -134,7 +134,7 @@ export function wrapAuthentication<T extends (...args: any[]) => Promise<any>>(
       span.setAttribute('auth.duration', duration);
       
       // Record success metrics
-      appMetrics.authAttemptsTotal.add(1, {
+      appMetrics.security.authAttemptsTotal.add(1, {
         method,
         success: 'true',
       });
@@ -152,11 +152,11 @@ export function wrapAuthentication<T extends (...args: any[]) => Promise<any>>(
       span.setAttribute('auth.duration', duration);
       
       // Record failure metrics
-      appMetrics.authAttemptsTotal.add(1, {
+      appMetrics.security.authAttemptsTotal.add(1, {
         method,
         success: 'false',
       });
-      appMetrics.authFailuresTotal.add(1, {
+      appMetrics.security.authFailuresTotal.add(1, {
         method,
         reason: error instanceof Error ? error.message : 'unknown',
       });

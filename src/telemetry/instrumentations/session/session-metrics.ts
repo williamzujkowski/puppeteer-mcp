@@ -20,7 +20,7 @@ export function recordSessionDuration(session: Session): void {
     user_id: session.data.userId,
   };
   
-  appMetrics.sessionDuration.record(duration, labels);
+  appMetrics.session.sessionDuration.record(duration, labels);
 }
 
 /**
@@ -40,8 +40,8 @@ export function recordSessionCreated(userId: string): void {
     user_id: userId,
   };
   
-  appMetrics.sessionCreated.add(1, labels);
-  appMetrics.sessionActiveSessions.add(1);
+  appMetrics.session.sessionCreated.add(1, labels);
+  appMetrics.session.sessionActiveSessions.add(1);
 }
 
 /**
@@ -53,8 +53,8 @@ export function recordSessionDestroyed(userId: string, reason = 'manual'): void 
     reason,
   };
   
-  appMetrics.sessionDestroyed.add(1, labels);
-  appMetrics.sessionActiveSessions.add(-1);
+  appMetrics.session.sessionDestroyed.add(1, labels);
+  appMetrics.session.sessionActiveSessions.add(-1);
 }
 
 /**
@@ -65,8 +65,8 @@ export function recordBulkSessionDestroyed(count: number, reason = 'cleanup'): v
     reason,
   };
   
-  appMetrics.sessionDestroyed.add(count, labels);
-  appMetrics.sessionActiveSessions.add(-count);
+  appMetrics.session.sessionDestroyed.add(count, labels);
+  appMetrics.session.sessionActiveSessions.add(-count);
 }
 
 /**

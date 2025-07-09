@@ -41,8 +41,8 @@ export function instrumentCreate(ctx: InstrumentationContext): void {
       span.setStatus({ code: SpanStatusCode.OK });
 
       // Record metrics
-      appMetrics.sessionCreated.add(1, { user_id: data.userId });
-      appMetrics.sessionActiveSessions.add(1);
+      appMetrics.session.sessionCreated.add(1, { user_id: data.userId });
+      appMetrics.session.sessionActiveSessions.add(1);
 
       return sessionId;
     } catch (error) {

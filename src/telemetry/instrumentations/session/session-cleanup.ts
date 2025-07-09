@@ -37,8 +37,8 @@ export function instrumentDeleteExpired(ctx: InstrumentationContext): void {
 
       // Record metrics for expired session cleanup
       if (count > 0) {
-        appMetrics.sessionDestroyed.add(count, { reason: 'cleanup' });
-        appMetrics.sessionActiveSessions.add(-count);
+        appMetrics.session.sessionDestroyed.add(count, { reason: 'cleanup' });
+        appMetrics.session.sessionActiveSessions.add(-count);
       }
 
       span.setStatus({ code: SpanStatusCode.OK });
