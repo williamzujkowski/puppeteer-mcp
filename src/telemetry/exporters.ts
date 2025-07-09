@@ -6,7 +6,7 @@
  */
 
 import { SpanExporter } from '@opentelemetry/sdk-trace-node';
-import { MetricExporter, PushMetricExporter } from '@opentelemetry/sdk-metrics';
+import { PushMetricExporter } from '@opentelemetry/sdk-metrics';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
 import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-http';
 import { JaegerExporter } from '@opentelemetry/exporter-jaeger';
@@ -167,6 +167,249 @@ export function createMultiMetricExporter(config: TelemetryConfig): Array<PushMe
 }
 
 /**
+ * Health check result interface
+ */
+interface HealthCheckResult {
+  healthy: boolean;
+  errors: string[];
+}
+
+/**
+ * Health check strategy interface
+ */
+interface HealthCheckStrategy {
+  getEndpoint(config: TelemetryConfig): string | null;
+  requiresConnectivityCheck(): boolean;
+  getConfigurationErrorPrefix(): string;
+}
+
+/**
+ * Health check command interface
+ */
+interface HealthCheckCommand {
+  execute(): Promise<HealthCheckResult>;
+}
+
+/**
+ * OTLP health check strategy
+ */
+class OTLPHealthCheckStrategy implements HealthCheckStrategy {
+  getEndpoint(config: TelemetryConfig): string | null {
+    return config.tracing.endpoints.otlp || config.metrics.endpoints.otlp;
+  }
+
+  requiresConnectivityCheck(): boolean {
+    return true;
+  }
+
+  getConfigurationErrorPrefix(): string {
+    return 'Invalid OTLP exporter configuration';
+  }
+}
+
+/**
+ * Jaeger health check strategy
+ */
+class JaegerHealthCheckStrategy implements HealthCheckStrategy {
+  getEndpoint(config: TelemetryConfig): string | null {
+    return config.tracing.endpoints.jaeger;
+  }
+
+  requiresConnectivityCheck(): boolean {
+    return true;
+  }
+
+  getConfigurationErrorPrefix(): string {
+    return 'Invalid Jaeger exporter configuration';
+  }
+}
+
+/**
+ * Zipkin health check strategy
+ */
+class ZipkinHealthCheckStrategy implements HealthCheckStrategy {
+  getEndpoint(config: TelemetryConfig): string | null {
+    return config.tracing.endpoints.zipkin;
+  }
+
+  requiresConnectivityCheck(): boolean {
+    return true;
+  }
+
+  getConfigurationErrorPrefix(): string {
+    return 'Invalid Zipkin exporter configuration';
+  }
+}
+
+/**
+ * Console health check strategy
+ */
+class ConsoleHealthCheckStrategy implements HealthCheckStrategy {
+  getEndpoint(): string | null {
+    return null;
+  }
+
+  requiresConnectivityCheck(): boolean {
+    return false;
+  }
+
+  getConfigurationErrorPrefix(): string {
+    return 'Invalid console exporter configuration';
+  }
+}
+
+/**
+ * None health check strategy
+ */
+class NoneHealthCheckStrategy implements HealthCheckStrategy {
+  getEndpoint(): string | null {
+    return null;
+  }
+
+  requiresConnectivityCheck(): boolean {
+    return false;
+  }
+
+  getConfigurationErrorPrefix(): string {
+    return 'Invalid none exporter configuration';
+  }
+}
+
+/**
+ * Connectivity checker utility
+ */
+class ConnectivityChecker {
+  private static readonly TIMEOUT_MS = 5000;
+
+  static async checkEndpoint(endpoint: string, errorPrefix: string): Promise<HealthCheckResult> {
+    try {
+      const url = new URL(endpoint);
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), this.TIMEOUT_MS);
+
+      try {
+        const response = await fetch(url.origin, {
+          signal: controller.signal,
+          method: 'HEAD',
+        });
+        
+        const healthy = response.ok || response.status === 405; // Method not allowed is ok
+        return { healthy, errors: [] };
+      } catch (error) {
+        const errorMessage = error instanceof Error && error.name === 'AbortError'
+          ? `${errorPrefix} endpoint timeout: ${endpoint}`
+          : `${errorPrefix} endpoint unreachable: ${endpoint}`;
+        
+        return { healthy: false, errors: [errorMessage] };
+      } finally {
+        clearTimeout(timeout);
+      }
+    } catch (error) {
+      return {
+        healthy: false,
+        errors: [`Invalid ${errorPrefix.toLowerCase()} configuration: ${String(error)}`]
+      };
+    }
+  }
+}
+
+/**
+ * Health check strategy factory
+ */
+class HealthCheckStrategyFactory {
+  static createStrategy(exporterType: string): HealthCheckStrategy {
+    switch (exporterType) {
+      case 'otlp':
+        return new OTLPHealthCheckStrategy();
+      case 'jaeger':
+        return new JaegerHealthCheckStrategy();
+      case 'zipkin':
+        return new ZipkinHealthCheckStrategy();
+      case 'console':
+        return new ConsoleHealthCheckStrategy();
+      case 'none':
+        return new NoneHealthCheckStrategy();
+      default:
+        return new ConsoleHealthCheckStrategy(); // Default fallback
+    }
+  }
+}
+
+/**
+ * Trace health check command
+ */
+class TraceHealthCheckCommand implements HealthCheckCommand {
+  constructor(private config: TelemetryConfig) {}
+
+  async execute(): Promise<HealthCheckResult> {
+    if (!this.config.tracing.enabled) {
+      return { healthy: true, errors: [] };
+    }
+
+    const strategy = HealthCheckStrategyFactory.createStrategy(this.config.tracing.exporter);
+    
+    if (!strategy.requiresConnectivityCheck()) {
+      return { healthy: true, errors: [] };
+    }
+
+    const endpoint = strategy.getEndpoint(this.config);
+    if (!endpoint || endpoint.trim() === '') {
+      return { healthy: true, errors: [] };
+    }
+
+    return ConnectivityChecker.checkEndpoint(endpoint, 'Trace exporter');
+  }
+}
+
+/**
+ * Metric health check command
+ */
+class MetricHealthCheckCommand implements HealthCheckCommand {
+  constructor(private config: TelemetryConfig) {}
+
+  async execute(): Promise<HealthCheckResult> {
+    if (!this.config.metrics.enabled || this.config.metrics.exporter !== 'otlp') {
+      return { healthy: true, errors: [] };
+    }
+
+    const strategy = HealthCheckStrategyFactory.createStrategy(this.config.metrics.exporter);
+    const endpoint = strategy.getEndpoint(this.config);
+    
+    if (!endpoint || endpoint.trim() === '') {
+      return { healthy: true, errors: [] };
+    }
+
+    return ConnectivityChecker.checkEndpoint(endpoint, 'Metric exporter');
+  }
+}
+
+/**
+ * Health check result builder
+ */
+class HealthCheckResultBuilder {
+  private traceResult: HealthCheckResult = { healthy: true, errors: [] };
+  private metricResult: HealthCheckResult = { healthy: true, errors: [] };
+
+  withTraceResult(result: HealthCheckResult): this {
+    this.traceResult = result;
+    return this;
+  }
+
+  withMetricResult(result: HealthCheckResult): this {
+    this.metricResult = result;
+    return this;
+  }
+
+  build(): { traces: boolean; metrics: boolean; errors: string[] } {
+    return {
+      traces: this.traceResult.healthy,
+      metrics: this.metricResult.healthy,
+      errors: [...this.traceResult.errors, ...this.metricResult.errors],
+    };
+  }
+}
+
+/**
  * Exporter health check
  */
 export async function checkExporterHealth(config: TelemetryConfig): Promise<{
@@ -174,91 +417,16 @@ export async function checkExporterHealth(config: TelemetryConfig): Promise<{
   metrics: boolean;
   errors: string[];
 }> {
-  const errors: string[] = [];
-  let tracesHealthy = false;
-  let metricsHealthy = false;
-  
-  // Check trace exporter endpoint
-  if (config.tracing.enabled && config.tracing.exporter !== 'none' && config.tracing.exporter !== 'console') {
-    try {
-      let endpoint: string;
-      switch (config.tracing.exporter) {
-        case 'otlp':
-          endpoint = config.tracing.endpoints.otlp;
-          break;
-        case 'jaeger':
-          endpoint = config.tracing.endpoints.jaeger;
-          break;
-        case 'zipkin':
-          endpoint = config.tracing.endpoints.zipkin;
-          break;
-        default:
-          endpoint = '';
-      }
-      
-      if (endpoint) {
-        const url = new URL(endpoint);
-        // Simple connectivity check
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 5000);
-        
-        try {
-          const response = await fetch(url.origin, { 
-            signal: controller.signal,
-            method: 'HEAD',
-          });
-          tracesHealthy = response.ok || response.status === 405; // Method not allowed is ok
-        } catch (error) {
-          if (error instanceof Error && error.name === 'AbortError') {
-            errors.push(`Trace exporter endpoint timeout: ${endpoint}`);
-          } else {
-            errors.push(`Trace exporter endpoint unreachable: ${endpoint}`);
-          }
-        } finally {
-          clearTimeout(timeout);
-        }
-      }
-    } catch (error) {
-      errors.push(`Invalid trace exporter configuration: ${error}`);
-    }
-  } else {
-    tracesHealthy = true; // If disabled or console, consider healthy
-  }
-  
-  // Check metric exporter endpoint
-  if (config.metrics.enabled && config.metrics.exporter === 'otlp') {
-    try {
-      const endpoint = config.metrics.endpoints.otlp;
-      const url = new URL(endpoint);
-      
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 5000);
-      
-      try {
-        const response = await fetch(url.origin, { 
-          signal: controller.signal,
-          method: 'HEAD',
-        });
-        metricsHealthy = response.ok || response.status === 405;
-      } catch (error) {
-        if (error instanceof Error && error.name === 'AbortError') {
-          errors.push(`Metric exporter endpoint timeout: ${endpoint}`);
-        } else {
-          errors.push(`Metric exporter endpoint unreachable: ${endpoint}`);
-        }
-      } finally {
-        clearTimeout(timeout);
-      }
-    } catch (error) {
-      errors.push(`Invalid metric exporter configuration: ${error}`);
-    }
-  } else {
-    metricsHealthy = true; // If disabled, prometheus, or console, consider healthy
-  }
-  
-  return {
-    traces: tracesHealthy,
-    metrics: metricsHealthy,
-    errors,
-  };
+  const traceCommand = new TraceHealthCheckCommand(config);
+  const metricCommand = new MetricHealthCheckCommand(config);
+
+  const [traceResult, metricResult] = await Promise.all([
+    traceCommand.execute(),
+    metricCommand.execute(),
+  ]);
+
+  return new HealthCheckResultBuilder()
+    .withTraceResult(traceResult)
+    .withMetricResult(metricResult)
+    .build();
 }

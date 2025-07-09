@@ -61,6 +61,53 @@ export interface MigrationOptions {
 }
 
 /**
+ * Restore options
+ */
+export interface RestoreOptions {
+  overwrite?: boolean;
+  skipExpired?: boolean;
+  onProgress?: (processed: number, total: number) => void;
+}
+
+/**
+ * Restore statistics
+ */
+export interface RestoreStats {
+  restored: number;
+  skipped: number;
+  failed: number;
+  errors: Array<{ sessionId: string; error: string }>;
+}
+
+/**
+ * Session validation result
+ */
+interface SessionValidationResult {
+  isValid: boolean;
+  isExpired: boolean;
+  exists: boolean;
+  shouldSkip: boolean;
+  reason?: string;
+}
+
+/**
+ * Restore operation command
+ */
+interface RestoreCommand {
+  session: Session;
+  operation: 'create' | 'update' | 'skip';
+  reason?: string;
+}
+
+/**
+ * Restore strategy interface
+ */
+interface RestoreStrategy {
+  validate(session: Session, store: SessionStore, options: RestoreOptions): Promise<SessionValidationResult>;
+  execute(command: RestoreCommand, store: SessionStore): Promise<void>;
+}
+
+/**
  * Session migration utility class
  */
 export class SessionMigration {
@@ -386,91 +433,222 @@ export class SessionMigration {
   }
 
   /**
-   * Restore sessions from a backup
+   * Restore sessions from a backup using advanced patterns
    */
   async restore(
     store: SessionStore,
     sessions: Session[],
-    options: {
-      overwrite?: boolean;
-      skipExpired?: boolean;
-      onProgress?: (processed: number, total: number) => void;
-    } = {}
-  ): Promise<{
-    restored: number;
-    skipped: number;
-    failed: number;
-    errors: Array<{ sessionId: string; error: string }>;
-  }> {
-    const { overwrite = false, skipExpired = true, onProgress } = options;
-    
+    options: RestoreOptions = {}
+  ): Promise<RestoreStats> {
     this.logger.info({ sessionCount: sessions.length }, 'Restoring sessions from backup');
 
-    const stats = {
+    const restoreConfig = this.buildRestoreConfiguration(options);
+    const stats = this.initializeRestoreStats();
+    const strategy = new StandardRestoreStrategy(this.logger);
+
+    await this.processSessionsForRestore(sessions, store, restoreConfig, strategy, stats);
+    await this.logRestoreCompletion(store, stats);
+
+    return stats;
+  }
+
+  /**
+   * Build restore configuration with defaults
+   */
+  private buildRestoreConfiguration(options: RestoreOptions): Required<RestoreOptions> {
+    return {
+      overwrite: options.overwrite ?? false,
+      skipExpired: options.skipExpired ?? true,
+      onProgress: options.onProgress ?? (() => {})
+    };
+  }
+
+  /**
+   * Initialize restore statistics
+   */
+  private initializeRestoreStats(): RestoreStats {
+    return {
       restored: 0,
       skipped: 0,
       failed: 0,
-      errors: [] as Array<{ sessionId: string; error: string }>
+      errors: []
     };
+  }
 
+  /**
+   * Process all sessions for restore operation
+   */
+  private async processSessionsForRestore(
+    sessions: Session[],
+    store: SessionStore,
+    config: Required<RestoreOptions>,
+    strategy: RestoreStrategy,
+    stats: RestoreStats
+  ): Promise<void> {
     for (let i = 0; i < sessions.length; i++) {
-      const session = sessions[i];
-      
-      try {
-        // Skip expired sessions if requested
-        if (skipExpired && session?.data?.expiresAt && new Date(session.data.expiresAt) < new Date()) {
-          stats.skipped++;
-          continue;
-        }
-
-        // Check if session exists
-        const exists = session?.id ? await store.exists(session.id) : false;
-        
-        if (exists && !overwrite) {
-          stats.skipped++;
-          continue;
-        }
-
-        // Restore session
-        if (session?.id && session?.data) {
-          if (exists) {
-            await store.update(session.id, session.data);
-          } else {
-            await store.create(session.data);
-          }
-        }
-        
-        stats.restored++;
-      } catch (error) {
-        stats.failed++;
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-        
-        stats.errors.push({
-          sessionId: session.id,
-          error: errorMessage
-        });
-
-        this.logger.error({ 
-          sessionId: session.id, 
-          error: errorMessage 
-        }, 'Failed to restore session');
-      }
-
-      // Report progress
-      if (onProgress) {
-        onProgress(i + 1, sessions.length);
-      }
+      await this.processSingleSessionRestore(sessions[i], store, config, strategy, stats);
+      config.onProgress(i + 1, sessions.length);
     }
+  }
 
+  /**
+   * Process a single session restore operation
+   */
+  private async processSingleSessionRestore(
+    session: Session,
+    store: SessionStore,
+    config: Required<RestoreOptions>,
+    strategy: RestoreStrategy,
+    stats: RestoreStats
+  ): Promise<void> {
+    try {
+      const validation = await strategy.validate(session, store, config);
+      
+      if (validation.shouldSkip) {
+        stats.skipped++;
+        return;
+      }
+
+      const command = this.createRestoreCommand(session, validation);
+      await strategy.execute(command, store);
+      stats.restored++;
+    } catch (error) {
+      this.handleRestoreError(session, error, stats);
+    }
+  }
+
+  /**
+   * Create restore command based on validation result
+   */
+  private createRestoreCommand(session: Session, validation: SessionValidationResult): RestoreCommand {
+    return {
+      session,
+      operation: validation.exists ? 'update' : 'create',
+      reason: validation.reason
+    };
+  }
+
+  /**
+   * Handle restore error and update statistics
+   */
+  private handleRestoreError(session: Session, error: unknown, stats: RestoreStats): void {
+    stats.failed++;
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    
+    stats.errors.push({
+      sessionId: session.id,
+      error: errorMessage
+    });
+
+    this.logger.error({ 
+      sessionId: session.id, 
+      error: errorMessage 
+    }, 'Failed to restore session');
+  }
+
+  /**
+   * Log restore completion and audit trail
+   */
+  private async logRestoreCompletion(store: SessionStore, stats: RestoreStats): Promise<void> {
     this.logger.info(stats, 'Session restore completed');
 
-    // Audit log
     await logDataAccess('WRITE', 'session/restore', {
       action: 'restore',
       targetStore: store.constructor.name,
       stats
     });
+  }
+}
 
-    return stats;
+/**
+ * Standard restore strategy implementation
+ */
+class StandardRestoreStrategy implements RestoreStrategy {
+  constructor(private logger: pino.Logger) {}
+
+  /**
+   * Validate session for restore operation
+   */
+  async validate(
+    session: Session, 
+    store: SessionStore, 
+    options: Required<RestoreOptions>
+  ): Promise<SessionValidationResult> {
+    // Validate session structure
+    if (!this.isValidSessionStructure(session)) {
+      return {
+        isValid: false,
+        isExpired: false,
+        exists: false,
+        shouldSkip: true,
+        reason: 'Invalid session structure'
+      };
+    }
+
+    // Check if session is expired
+    const isExpired = this.isSessionExpired(session);
+    if (options.skipExpired && isExpired) {
+      return {
+        isValid: true,
+        isExpired: true,
+        exists: false,
+        shouldSkip: true,
+        reason: 'Session expired'
+      };
+    }
+
+    // Check if session exists in store
+    const exists = await store.exists(session.id);
+    if (exists && !options.overwrite) {
+      return {
+        isValid: true,
+        isExpired,
+        exists: true,
+        shouldSkip: true,
+        reason: 'Session exists and overwrite disabled'
+      };
+    }
+
+    return {
+      isValid: true,
+      isExpired,
+      exists,
+      shouldSkip: false
+    };
+  }
+
+  /**
+   * Execute restore command
+   */
+  async execute(command: RestoreCommand, store: SessionStore): Promise<void> {
+    const { session, operation } = command;
+
+    switch (operation) {
+      case 'create':
+        await store.create(session.data);
+        break;
+      case 'update':
+        await store.update(session.id, session.data);
+        break;
+      case 'skip':
+        // No operation needed for skip
+        break;
+      default:
+        throw new Error(`Unknown restore operation: ${operation}`);
+    }
+  }
+
+  /**
+   * Validate session structure
+   */
+  private isValidSessionStructure(session: Session): boolean {
+    return !!(session?.id && session?.data);
+  }
+
+  /**
+   * Check if session is expired
+   */
+  private isSessionExpired(session: Session): boolean {
+    return !!(session?.data?.expiresAt && new Date(session.data.expiresAt) < new Date());
   }
 }
