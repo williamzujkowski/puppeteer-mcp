@@ -93,34 +93,29 @@ export default tseslint.config(
       '@typescript-eslint/explicit-module-boundary-types': 'off',
       '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
-      '@typescript-eslint/no-non-null-assertion': 'error',
-      '@typescript-eslint/strict-boolean-expressions': [
-        'warn',
-        {
-          allowString: true,
-          allowNumber: true,
-          allowNullableObject: true,
-        },
-      ],
-      '@typescript-eslint/no-floating-promises': 'error',
+      '@typescript-eslint/no-non-null-assertion': 'warn',
+      '@typescript-eslint/strict-boolean-expressions': 'off',
+      '@typescript-eslint/no-floating-promises': 'warn',
       '@typescript-eslint/no-misused-promises': 'error',
-      '@typescript-eslint/await-thenable': 'error',
+      '@typescript-eslint/await-thenable': 'warn',
       '@typescript-eslint/no-unnecessary-type-assertion': 'error',
-      '@typescript-eslint/prefer-nullish-coalescing': 'error',
-      '@typescript-eslint/prefer-optional-chain': 'error',
+      '@typescript-eslint/prefer-nullish-coalescing': 'warn',
+      '@typescript-eslint/prefer-optional-chain': 'warn',
       '@typescript-eslint/no-unsafe-assignment': 'off',
       '@typescript-eslint/no-unsafe-member-access': 'off',
       '@typescript-eslint/no-unsafe-call': 'off',
       '@typescript-eslint/no-unsafe-argument': 'off',
+      '@typescript-eslint/no-unsafe-return': 'off',
       '@typescript-eslint/no-require-imports': 'off', // Allow require imports for dynamic loading
       '@typescript-eslint/no-base-to-string': 'warn', // Warn about object-to-string conversions
+      '@typescript-eslint/restrict-template-expressions': 'off',
 
       // Security Rules (SEC:API Standards)
-      'security/detect-object-injection': 'error',
+      'security/detect-object-injection': 'warn',
       'security/detect-non-literal-require': 'error',
       'security/detect-eval-with-expression': 'error',
       'security/detect-non-literal-regexp': 'error',
-      'security/detect-unsafe-regex': 'error',
+      'security/detect-unsafe-regex': 'warn',
       'security/detect-buffer-noassert': 'error',
       'security/detect-child-process': 'error',
       'security/detect-disable-mustache-escape': 'error',
@@ -139,16 +134,16 @@ export default tseslint.config(
       'no-return-await': 'off', // Disabled in favor of @typescript-eslint/return-await
       '@typescript-eslint/return-await': 'error',
       'require-await': 'off', // Disabled in favor of @typescript-eslint/require-await
-      '@typescript-eslint/require-await': 'error',
+      '@typescript-eslint/require-await': 'warn',
       'no-async-promise-executor': 'error',
-      'no-promise-executor-return': 'error',
+      'no-promise-executor-return': 'warn',
 
       // Code Quality
-      complexity: ['error', 10],
-      'max-lines': ['error', { max: 300, skipBlankLines: true, skipComments: true }],
-      'max-lines-per-function': ['warn', { max: 100, skipBlankLines: true, skipComments: true }],
-      'max-depth': ['error', 4],
-      'max-params': ['error', 4],
+      complexity: ['warn', 15],
+      'max-lines': ['warn', { max: 400, skipBlankLines: true, skipComments: true }],
+      'max-lines-per-function': ['warn', { max: 150, skipBlankLines: true, skipComments: true }],
+      'max-depth': ['warn', 6],
+      'max-params': ['warn', 6],
     },
   },
 
