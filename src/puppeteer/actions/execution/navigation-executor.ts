@@ -1,8 +1,9 @@
 /**
- * Navigation-related actions executor
+ * Navigation-related actions executor (backward compatibility wrapper)
  * @module puppeteer/actions/execution/navigation-executor
  * @nist ac-3 "Access enforcement"
  * @nist au-3 "Content of audit records"
+ * @deprecated Use the modular navigation system from './navigation/' instead
  */
 
 import type { Page } from 'puppeteer';
@@ -12,102 +13,50 @@ import type {
   ActionContext,
   NavigateAction,
 } from '../../interfaces/action-executor.interface.js';
-import type { NavigationWaitOptions } from './types.js';
-import { DEFAULT_CONFIG } from './types.js';
 import { createLogger } from '../../../utils/logger.js';
+import {
+  NavigationExecutor as ModularNavigationExecutor,
+  createNavigationExecutor,
+  type NavigationExecutorConfig,
+} from './navigation/index.js';
 
-const logger = createLogger('puppeteer:navigation-executor');
+const logger = createLogger('puppeteer:navigation-executor:compat');
 
 /**
- * Navigation action executor
+ * Navigation action executor (backward compatibility wrapper)
+ * @deprecated Use NavigationExecutor from './navigation/' instead
  * @nist ac-3 "Access enforcement"
  */
 export class NavigationExecutor {
+  private readonly executor: ModularNavigationExecutor;
+
+  constructor(config?: NavigationExecutorConfig) {
+    logger.warn('Using deprecated NavigationExecutor. Consider migrating to the modular navigation system.');
+    
+    this.executor = createNavigationExecutor({
+      enablePerformanceMonitoring: true,
+      enableUrlValidation: true,
+      enableRequestLogging: true,
+      enableExecutionMetrics: true,
+      maxConcurrentNavigations: 5,
+      ...config,
+    });
+  }
+
   /**
    * Execute navigation action
    * @param action - Navigation action to execute
    * @param page - Page instance
    * @param context - Execution context
    * @returns Action result
+   * @deprecated Use executor.execute() instead
    */
   async executeNavigate(
     action: NavigateAction,
     page: Page,
     context: ActionContext,
   ): Promise<ActionResult> {
-    const startTime = Date.now();
-
-    try {
-      logger.debug('Executing navigate action', {
-        sessionId: context.sessionId,
-        contextId: context.contextId,
-        url: action.url,
-        waitUntil: action.waitUntil,
-        timeout: action.timeout,
-      });
-
-      const options: NavigationWaitOptions = {
-        waitUntil: action.waitUntil || 'load',
-        timeout: action.timeout || DEFAULT_CONFIG.TIMEOUT.navigation,
-      };
-
-      // Navigate to URL
-      const response = await page.goto(action.url, options);
-
-      const duration = Date.now() - startTime;
-      const statusCode = response?.status();
-      const finalUrl = page.url();
-
-      logger.info('Navigation completed', {
-        sessionId: context.sessionId,
-        contextId: context.contextId,
-        url: action.url,
-        finalUrl,
-        statusCode,
-        duration,
-      });
-
-      return {
-        success: true,
-        actionType: 'navigate',
-        data: {
-          url: finalUrl,
-          statusCode,
-          title: await page.title().catch(() => ''),
-        },
-        duration,
-        timestamp: new Date(),
-        metadata: {
-          originalUrl: action.url,
-          finalUrl,
-          statusCode,
-          waitUntil: options.waitUntil,
-        },
-      };
-    } catch (error) {
-      const duration = Date.now() - startTime;
-      const errorMessage = error instanceof Error ? error.message : 'Navigation failed';
-
-      logger.error('Navigation failed', {
-        sessionId: context.sessionId,
-        contextId: context.contextId,
-        url: action.url,
-        error: errorMessage,
-        duration,
-      });
-
-      return {
-        success: false,
-        actionType: 'navigate',
-        error: errorMessage,
-        duration,
-        timestamp: new Date(),
-        metadata: {
-          url: action.url,
-          currentUrl: page.url(),
-        },
-      };
-    }
+    return this.executor.executeNavigate(action, page, context);
   }
 
   /**
@@ -116,73 +65,14 @@ export class NavigationExecutor {
    * @param context - Execution context
    * @param timeout - Navigation timeout
    * @returns Action result
+   * @deprecated Use executor.execute() instead
    */
   async executeGoBack(
     page: Page,
     context: ActionContext,
-    timeout: number = DEFAULT_CONFIG.TIMEOUT.navigation,
+    timeout?: number,
   ): Promise<ActionResult> {
-    const startTime = Date.now();
-
-    try {
-      logger.debug('Executing go back action', {
-        sessionId: context.sessionId,
-        contextId: context.contextId,
-        timeout,
-      });
-
-      const response = await page.goBack({ 
-        waitUntil: 'load',
-        timeout,
-      });
-
-      const duration = Date.now() - startTime;
-      const finalUrl = page.url();
-
-      logger.info('Go back completed', {
-        sessionId: context.sessionId,
-        contextId: context.contextId,
-        finalUrl,
-        duration,
-      });
-
-      return {
-        success: true,
-        actionType: 'goBack',
-        data: {
-          url: finalUrl,
-          canGoBack: await this.canGoBack(page),
-          canGoForward: await this.canGoForward(page),
-        },
-        duration,
-        timestamp: new Date(),
-        metadata: {
-          finalUrl,
-          statusCode: response?.status(),
-        },
-      };
-    } catch (error) {
-      const duration = Date.now() - startTime;
-      const errorMessage = error instanceof Error ? error.message : 'Go back failed';
-
-      logger.error('Go back failed', {
-        sessionId: context.sessionId,
-        contextId: context.contextId,
-        error: errorMessage,
-        duration,
-      });
-
-      return {
-        success: false,
-        actionType: 'goBack',
-        error: errorMessage,
-        duration,
-        timestamp: new Date(),
-        metadata: {
-          currentUrl: page.url(),
-        },
-      };
-    }
+    return this.executor.executeGoBack(page, context, timeout);
   }
 
   /**
@@ -191,73 +81,14 @@ export class NavigationExecutor {
    * @param context - Execution context
    * @param timeout - Navigation timeout
    * @returns Action result
+   * @deprecated Use executor.execute() instead
    */
   async executeGoForward(
     page: Page,
     context: ActionContext,
-    timeout: number = DEFAULT_CONFIG.TIMEOUT.navigation,
+    timeout?: number,
   ): Promise<ActionResult> {
-    const startTime = Date.now();
-
-    try {
-      logger.debug('Executing go forward action', {
-        sessionId: context.sessionId,
-        contextId: context.contextId,
-        timeout,
-      });
-
-      const response = await page.goForward({ 
-        waitUntil: 'load',
-        timeout,
-      });
-
-      const duration = Date.now() - startTime;
-      const finalUrl = page.url();
-
-      logger.info('Go forward completed', {
-        sessionId: context.sessionId,
-        contextId: context.contextId,
-        finalUrl,
-        duration,
-      });
-
-      return {
-        success: true,
-        actionType: 'goForward',
-        data: {
-          url: finalUrl,
-          canGoBack: await this.canGoBack(page),
-          canGoForward: await this.canGoForward(page),
-        },
-        duration,
-        timestamp: new Date(),
-        metadata: {
-          finalUrl,
-          statusCode: response?.status(),
-        },
-      };
-    } catch (error) {
-      const duration = Date.now() - startTime;
-      const errorMessage = error instanceof Error ? error.message : 'Go forward failed';
-
-      logger.error('Go forward failed', {
-        sessionId: context.sessionId,
-        contextId: context.contextId,
-        error: errorMessage,
-        duration,
-      });
-
-      return {
-        success: false,
-        actionType: 'goForward',
-        error: errorMessage,
-        duration,
-        timestamp: new Date(),
-        metadata: {
-          currentUrl: page.url(),
-        },
-      };
-    }
+    return this.executor.executeGoForward(page, context, timeout);
   }
 
   /**
@@ -266,73 +97,14 @@ export class NavigationExecutor {
    * @param context - Execution context
    * @param timeout - Navigation timeout
    * @returns Action result
+   * @deprecated Use executor.execute() instead
    */
   async executeRefresh(
     page: Page,
     context: ActionContext,
-    timeout: number = DEFAULT_CONFIG.TIMEOUT.navigation,
+    timeout?: number,
   ): Promise<ActionResult> {
-    const startTime = Date.now();
-
-    try {
-      logger.debug('Executing refresh action', {
-        sessionId: context.sessionId,
-        contextId: context.contextId,
-        timeout,
-      });
-
-      const response = await page.reload({ 
-        waitUntil: 'load',
-        timeout,
-      });
-
-      const duration = Date.now() - startTime;
-      const finalUrl = page.url();
-
-      logger.info('Refresh completed', {
-        sessionId: context.sessionId,
-        contextId: context.contextId,
-        finalUrl,
-        duration,
-      });
-
-      return {
-        success: true,
-        actionType: 'refresh',
-        data: {
-          url: finalUrl,
-          title: await page.title().catch(() => ''),
-          statusCode: response?.status(),
-        },
-        duration,
-        timestamp: new Date(),
-        metadata: {
-          finalUrl,
-          statusCode: response?.status(),
-        },
-      };
-    } catch (error) {
-      const duration = Date.now() - startTime;
-      const errorMessage = error instanceof Error ? error.message : 'Refresh failed';
-
-      logger.error('Refresh failed', {
-        sessionId: context.sessionId,
-        contextId: context.contextId,
-        error: errorMessage,
-        duration,
-      });
-
-      return {
-        success: false,
-        actionType: 'refresh',
-        error: errorMessage,
-        duration,
-        timestamp: new Date(),
-        metadata: {
-          currentUrl: page.url(),
-        },
-      };
-    }
+    return this.executor.executeRefresh(page, context, timeout);
   }
 
   /**
@@ -343,80 +115,16 @@ export class NavigationExecutor {
    * @param height - Viewport height
    * @param deviceScaleFactor - Device scale factor
    * @returns Action result
+   * @deprecated Use executor.execute() instead
    */
   async executeSetViewport(
     page: Page,
     context: ActionContext,
     width: number,
     height: number,
-    deviceScaleFactor: number = 1,
+    deviceScaleFactor = 1,
   ): Promise<ActionResult> {
-    const startTime = Date.now();
-
-    try {
-      logger.debug('Executing set viewport action', {
-        sessionId: context.sessionId,
-        contextId: context.contextId,
-        width,
-        height,
-        deviceScaleFactor,
-      });
-
-      await page.setViewport({
-        width,
-        height,
-        deviceScaleFactor,
-      });
-
-      const duration = Date.now() - startTime;
-      const viewport = page.viewport();
-
-      logger.info('Set viewport completed', {
-        sessionId: context.sessionId,
-        contextId: context.contextId,
-        viewport,
-        duration,
-      });
-
-      return {
-        success: true,
-        actionType: 'setViewport',
-        data: {
-          viewport,
-        },
-        duration,
-        timestamp: new Date(),
-        metadata: {
-          requestedWidth: width,
-          requestedHeight: height,
-          requestedScale: deviceScaleFactor,
-          actualViewport: viewport,
-        },
-      };
-    } catch (error) {
-      const duration = Date.now() - startTime;
-      const errorMessage = error instanceof Error ? error.message : 'Set viewport failed';
-
-      logger.error('Set viewport failed', {
-        sessionId: context.sessionId,
-        contextId: context.contextId,
-        error: errorMessage,
-        duration,
-      });
-
-      return {
-        success: false,
-        actionType: 'setViewport',
-        error: errorMessage,
-        duration,
-        timestamp: new Date(),
-        metadata: {
-          requestedWidth: width,
-          requestedHeight: height,
-          requestedScale: deviceScaleFactor,
-        },
-      };
-    }
+    return this.executor.executeSetViewport(page, context, width, height, deviceScaleFactor);
   }
 
   /**
@@ -425,30 +133,21 @@ export class NavigationExecutor {
    * @param page - Page instance  
    * @param context - Execution context
    * @returns Action result
+   * @deprecated Use executor.execute() instead
    */
   async execute(
     action: BrowserAction,
     page: Page,
     context: ActionContext,
   ): Promise<ActionResult> {
-    switch (action.type) {
-      case 'navigate':
-        return this.executeNavigate(action as NavigateAction, page, context);
-      case 'goBack':
-        return this.executeGoBack(page, context, action.timeout);
-      case 'goForward':
-        return this.executeGoForward(page, context, action.timeout);
-      case 'refresh':
-        return this.executeRefresh(page, context, action.timeout);
-      default:
-        throw new Error(`Unsupported navigation action: ${action.type}`);
-    }
+    return this.executor.execute(action, page, context);
   }
 
   /**
    * Check if page can go back
    * @param page - Page instance
    * @returns True if can go back
+   * @deprecated Use HistoryNavigator.getHistoryCapability() instead
    */
   private async canGoBack(page: Page): Promise<boolean> {
     try {
@@ -462,6 +161,7 @@ export class NavigationExecutor {
    * Check if page can go forward
    * @param page - Page instance
    * @returns True if can go forward
+   * @deprecated Use HistoryNavigator.getHistoryCapability() instead
    */
   private async canGoForward(page: Page): Promise<boolean> {
     try {
@@ -485,6 +185,14 @@ export class NavigationExecutor {
    * @returns Array of supported action types
    */
   getSupportedActions(): string[] {
-    return ['navigate', 'goBack', 'goForward', 'refresh', 'setViewport'];
+    return this.executor.getSupportedActions();
+  }
+
+  /**
+   * Get the underlying modular executor
+   * @returns Modular navigation executor
+   */
+  getModularExecutor(): ModularNavigationExecutor {
+    return this.executor;
   }
 }
