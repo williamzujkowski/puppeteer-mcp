@@ -6,6 +6,7 @@
  */
 
 import type { Logger } from 'pino';
+import type { Response } from 'express';
 import type { RequestResponseLoggerOptions, ExtendedRequest } from './types.js';
 import { shouldLogContentType } from './log-sanitizer.js';
 import { formatRequestLogData, generateRequestLogMessage, formatHeaders } from './log-formatter.js';
@@ -37,7 +38,7 @@ const handleStructuredData = (
  * Handle text content types
  */
 const handleTextData = (body: unknown, maxSize: number): string => {
-  const bodyStr = String(body ?? '');
+  const bodyStr = typeof body === 'string' ? body : JSON.stringify(body ?? '');
   return bodyStr.length > maxSize ? `[TEXT TOO LARGE: ${bodyStr.length} chars]` : bodyStr;
 };
 
@@ -101,7 +102,7 @@ export const logRequest = (
   logger: Logger,
 ): void => {
   // Extract custom metadata
-  const customMetadata = config.metadataExtractor?.(req, {} as any) ?? {};
+  const customMetadata = config.metadataExtractor?.(req, {} as Response) ?? {};
   
   // Prepare request log data
   const requestLogData = formatRequestLogData(req, requestId, customMetadata);

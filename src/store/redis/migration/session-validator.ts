@@ -146,7 +146,7 @@ export class SessionValidator {
         continue;
       }
 
-      const backupSession = session as BackupSession;
+      const backupSession = session;
       if (!this.validateSessionData(backupSession.data)) {
         result.invalidCount++;
         result.errors.push(`Invalid session data for key: ${backupSession.key}`);

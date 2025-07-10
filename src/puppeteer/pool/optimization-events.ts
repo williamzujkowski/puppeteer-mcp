@@ -5,7 +5,7 @@
  */
 
 import { EventEmitter } from 'events';
-import type { BrowserPoolScaler } from './browser-pool-scaling.js';
+import type { BrowserPoolScaling } from './browser-pool-scaling.js';
 import type { BrowserPoolResourceManager } from './browser-pool-resource-manager.js';
 import type { BrowserPoolRecycler } from './browser-pool-recycler.js';
 import type { BrowserPoolPerformanceMonitor } from './browser-pool-performance-monitor.js';
@@ -15,7 +15,7 @@ import type { BrowserPoolPerformanceMonitor } from './browser-pool-performance-m
  */
 export class OptimizationEvents extends EventEmitter {
   constructor(
-    private scaler: BrowserPoolScaler,
+    private scaler: BrowserPoolScaling,
     private resourceManager: BrowserPoolResourceManager,
     private recycler: BrowserPoolRecycler,
     private performanceMonitor: BrowserPoolPerformanceMonitor
@@ -29,7 +29,7 @@ export class OptimizationEvents extends EventEmitter {
    */
   private setupOptimizationEventHandlers(): void {
     // Scaler events
-    this.scaler.on('scaling-action', (event) => {
+    this.scaler.on('scaling-action', (event: any) => {
       this.emit('optimization-scaling-action', event);
     });
 

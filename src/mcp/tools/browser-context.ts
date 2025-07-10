@@ -66,7 +66,7 @@ export class BrowserContextTool {
 
     await this.authBridge.requireToolPermission(authContext, 'createContext');
     
-    if (!authContext.username) {
+    if (authContext.username === null || authContext.username === undefined || authContext.username === '') {
       throw new Error('Username is required in authentication context');
     }
     
@@ -87,8 +87,8 @@ export class BrowserContextTool {
     const options = proxyOptions as Record<string, unknown>;
     return {
       enabled: options.enabled as boolean,
-      proxy: options.config as any,
-      pool: options.pool as any,
+      proxy: options.config as Record<string, unknown>,
+      pool: options.pool as Record<string, unknown>,
       rotateOnError: (options.rotateOnError as boolean) ?? true,
       rotateOnInterval: (options.rotateOnInterval as boolean) ?? false,
       rotationInterval: (options.rotationInterval as number) ?? 3600000,

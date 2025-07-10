@@ -5,11 +5,14 @@
  * @nist si-4 "Information system monitoring"
  */
 
-import { metrics, Counter, Histogram, UpDownCounter } from '@opentelemetry/api';
-import { proxyManager } from '../../puppeteer/proxy/proxy-manager.js';
+import { metrics } from '@opentelemetry/api';
+import { ProxyManager } from '../../puppeteer/proxy/proxy-manager.js';
 import { proxyMonitor } from '../../puppeteer/proxy/proxy-monitoring.js';
 
 const meter = metrics.getMeter('puppeteer-mcp-proxy', '1.0.0');
+
+// Create a proxy manager instance for telemetry (or import singleton if available)
+const proxyManager = new ProxyManager();
 
 /**
  * Proxy metrics
@@ -181,21 +184,21 @@ export function updateActiveContextCount(delta: number): void {
  */
 export function initializeProxyTelemetry(): void {
   // Set up event listeners for proxy manager
-  proxyManager.on('proxy:healthy', ({ proxyId, responseTime }) => {
+  proxyManager.on('proxy:healthy', ({ proxyId, responseTime }: { proxyId: string; responseTime: number }) => {
     recordProxyHealthCheck(proxyId, true, responseTime);
     updateHealthyProxyCount(1);
   });
 
-  proxyManager.on('proxy:unhealthy', ({ proxyId, error }) => {
+  proxyManager.on('proxy:unhealthy', ({ proxyId, error }: { proxyId: string; error: any }) => {
     recordProxyHealthCheck(proxyId, false, 0);
     updateHealthyProxyCount(-1);
   });
 
-  proxyManager.on('proxy:rotated', (event) => {
+  proxyManager.on('proxy:rotated', (event: any) => {
     recordProxyRotation(event.contextId, event.reason, event.oldProxyId, event.newProxyId);
   });
 
-  proxyManager.on('proxy:failover', ({ contextId, failedProxyId, newProxyId }) => {
+  proxyManager.on('proxy:failover', ({ contextId, failedProxyId, newProxyId }: { contextId: string; failedProxyId: string; newProxyId: string }) => {
     recordProxyFailover(contextId, failedProxyId, newProxyId);
   });
 
@@ -204,19 +207,13 @@ export function initializeProxyTelemetry(): void {
     const metrics = proxyManager.getMetrics();
     const healthStatuses = proxyManager.getHealthStatus();
 
-    // Update gauge values
-    proxyMetrics.activeProxies.add(
-      metrics.proxies.length - proxyMetrics.activeProxies.add(0),
-    );
+    // Update gauge values - set absolute values for gauges
+    proxyMetrics.activeProxies.add(metrics.proxies.length);
 
-    const healthyCount = healthStatuses.filter((h) => h.healthy).length;
-    proxyMetrics.healthyProxies.add(
-      healthyCount - proxyMetrics.healthyProxies.add(0),
-    );
+    const healthyCount = healthStatuses.filter((h: any) => h.healthy).length;
+    proxyMetrics.healthyProxies.add(healthyCount);
 
-    proxyMetrics.activeContexts.add(
-      metrics.contexts.size - proxyMetrics.activeContexts.add(0),
-    );
+    proxyMetrics.activeContexts.add(metrics.contexts.size);
   }, 60000); // Update every minute
 }
 

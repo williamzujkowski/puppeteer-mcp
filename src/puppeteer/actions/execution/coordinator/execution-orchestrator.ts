@@ -92,7 +92,7 @@ export class ExecutionOrchestrator {
 
       return result;
     } catch (error) {
-      return await this.handleExecutionError<T>(
+      return this.handleExecutionError<T>(
         action,
         context,
         error,
@@ -141,7 +141,7 @@ export class ExecutionOrchestrator {
     }
 
     // Perform detailed validation
-    return await this.validator.validate(action, context);
+    return this.validator.validate(action, context);
   }
 
   /**

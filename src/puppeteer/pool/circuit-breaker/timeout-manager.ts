@@ -37,7 +37,7 @@ export class TimeoutManager extends EventEmitter {
 
   constructor(
     private name: string,
-    private config: CircuitBreakerConfig,
+    protected config: CircuitBreakerConfig,
     private onTimeout: () => void
   ) {
     super();
@@ -48,7 +48,7 @@ export class TimeoutManager extends EventEmitter {
   /**
    * Create timeout strategy based on configuration
    */
-  private createStrategy(): ITimeoutStrategy {
+  protected createStrategy(): ITimeoutStrategy {
     if (!this.config.exponentialBackoff) {
       return new FixedTimeoutStrategy();
     }
@@ -257,7 +257,7 @@ export class AdaptiveTimeoutManager extends TimeoutManager {
   /**
    * Create adaptive timeout strategy
    */
-  protected createStrategy(): ITimeoutStrategy {
+  protected override createStrategy(): ITimeoutStrategy {
     if (!this.config.exponentialBackoff) {
       return new FixedTimeoutStrategy();
     }

@@ -174,7 +174,7 @@ export class BrowserPoolMetrics {
     const errorMetrics = this.aggregator.getCollectors().errors.collect();
     const utilizationHistory = this.aggregator.getCollectors().resources.getUtilizationHistory();
     const currentUtilization = utilizationHistory.length > 0 
-      ? utilizationHistory[utilizationHistory.length - 1].value 
+      ? utilizationHistory[utilizationHistory.length - 1]?.value || 0
       : 0;
     
     return {

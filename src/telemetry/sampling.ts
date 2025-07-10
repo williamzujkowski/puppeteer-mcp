@@ -55,7 +55,6 @@ export class AdaptiveSampler implements Sampler {
       spanName,
       spanKind,
       attributes,
-      links,
     );
     
     this.traceCount++;
@@ -125,13 +124,13 @@ export class AttributeBasedSampler implements Sampler {
           
         if (matches) {
           const sampler = new TraceIdRatioBasedSampler(rule.samplingRate);
-          return sampler.shouldSample(context, traceId, spanName, spanKind, attributes, links);
+          return sampler.shouldSample(context, traceId, spanName, spanKind, attributes);
         }
       }
     }
     
     // Fall back to base sampler
-    return this.baseSampler.shouldSample(context, traceId, spanName, spanKind, attributes, links);
+    return this.baseSampler.shouldSample(context, traceId, spanName, spanKind, attributes);
   }
 
   toString(): string {
@@ -218,7 +217,7 @@ export class PriorityBasedSampler implements Sampler {
       return {
         decision: SamplingDecision.RECORD_AND_SAMPLED,
         attributes,
-        traceState: context.getValue('traceState'),
+        traceState: undefined,
       };
     }
     
@@ -227,12 +226,12 @@ export class PriorityBasedSampler implements Sampler {
       return {
         decision: SamplingDecision.NOT_RECORD,
         attributes,
-        traceState: context.getValue('traceState'),
+        traceState: undefined,
       };
     }
     
     // Use base sampler for normal priority
-    return this.baseSampler.shouldSample(context, traceId, spanName, spanKind, attributes, links);
+    return this.baseSampler.shouldSample(context, traceId, spanName, spanKind, attributes);
   }
 
   toString(): string {

@@ -136,7 +136,7 @@ export class SecurityValidator extends BaseValidator {
 
     // Validate URL safety
     if ('url' in action && action.url) {
-      this.validateUrlSafety(action.url as string, errors, warnings);
+      this.validateUrlSafety(action.url, errors, warnings);
     }
 
     // Check for sensitive data exposure
@@ -184,7 +184,7 @@ export class SecurityValidator extends BaseValidator {
     // Check domain restrictions
     if (context.allowedDomains && 'url' in action && action.url) {
       try {
-        const url = new URL(action.url as string);
+        const url = new URL(action.url);
         const allowed = context.allowedDomains.some(domain => 
           url.hostname === domain || url.hostname.endsWith(`.${domain}`)
         );

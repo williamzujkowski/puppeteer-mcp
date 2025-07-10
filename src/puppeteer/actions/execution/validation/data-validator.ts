@@ -57,10 +57,10 @@ export class DataValidator extends BaseValidator {
 
     switch (action.type) {
       case 'upload':
-        await this.validateUploadAction(action as UploadAction, context, errors, warnings);
+        await this.validateUploadAction(action, context, errors, warnings);
         break;
       case 'cookie':
-        this.validateCookieAction(action as CookieAction, errors, warnings);
+        this.validateCookieAction(action, errors, warnings);
         break;
     }
 
@@ -193,7 +193,7 @@ export class DataValidator extends BaseValidator {
       return;
     }
 
-    action.cookies!.forEach((cookie, index) => {
+    action.cookies.forEach((cookie, index) => {
       // Validate required fields
       if (!cookie.name) {
         this.addError(

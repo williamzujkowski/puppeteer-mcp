@@ -87,7 +87,7 @@ export class OpenStateHandler extends BaseStateHandler {
     return null;
   }
 
-  enter(context?: StateTransitionContext): void {
+  override enter(context?: StateTransitionContext): void {
     super.enter(context);
     logger.warn({
       circuitBreaker: this.name,

@@ -8,11 +8,17 @@
  * This file re-exports the browser pool scaling functionality from the modular structure
  */
 
-export {
-  BrowserPoolScaling,
+export { BrowserPoolScaling } from './scaling/index.js';
+export type {
   BrowserPoolScalingStrategy,
   ScalingEvent,
   ScalingDecision,
   ScalingMetrics,
-  DEFAULT_STRATEGIES,
 } from './scaling/index.js';
+
+// Import and re-export DEFAULT_STRATEGIES
+import { DEFAULT_STRATEGIES } from './scaling/types.js';
+export { DEFAULT_STRATEGIES };
+
+// Export a default scaling strategy
+export const DEFAULT_SCALING_STRATEGY = DEFAULT_STRATEGIES.balanced;

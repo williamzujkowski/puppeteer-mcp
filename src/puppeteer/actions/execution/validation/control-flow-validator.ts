@@ -72,13 +72,13 @@ export class ControlFlowValidator extends BaseValidator {
 
     switch (action.type) {
       case 'wait':
-        this.validateWaitAction(action as WaitAction, errors);
+        this.validateWaitAction(action, errors);
         break;
       case 'scroll':
-        this.validateScrollAction(action as ScrollAction, errors, warnings);
+        this.validateScrollAction(action, errors, warnings);
         break;
       case 'evaluate':
-        await this.validateEvaluateAction(action as EvaluateAction, context, errors, warnings);
+        await this.validateEvaluateAction(action, context, errors, warnings);
         break;
     }
 

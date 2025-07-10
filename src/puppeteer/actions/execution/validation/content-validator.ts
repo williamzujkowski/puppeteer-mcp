@@ -47,11 +47,11 @@ export class ContentValidator extends BaseValidator {
 
     switch (action.type) {
       case 'screenshot':
-        return this.screenshotValidator.validate(action as ScreenshotAction, context);
+        return this.screenshotValidator.validate(action, context);
       case 'pdf':
-        return this.pdfValidator.validate(action as PDFAction, context);
+        return this.pdfValidator.validate(action, context);
       case 'content':
-        return this.contentExtractionValidator.validate(action as ContentAction, context);
+        return this.contentExtractionValidator.validate(action, context);
       default:
         return this.createResult([{
           field: 'type',

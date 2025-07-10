@@ -42,16 +42,16 @@ export class MetricsFactory {
 
     switch (type) {
       case MetricCollectorType.PERFORMANCE:
-        return new PerformanceMetricsCollector(config) as MetricCollector<T>;
+        return new PerformanceMetricsCollector(config) as unknown as MetricCollector<T>;
 
       case MetricCollectorType.QUEUE:
-        return new QueueMetricsCollector(config) as MetricCollector<T>;
+        return new QueueMetricsCollector(config) as unknown as MetricCollector<T>;
 
       case MetricCollectorType.ERROR:
-        return new ErrorMetricsCollector(config) as MetricCollector<T>;
+        return new ErrorMetricsCollector(config) as unknown as MetricCollector<T>;
 
       case MetricCollectorType.RESOURCE:
-        return new ResourceMetricsCollector(config) as MetricCollector<T>;
+        return new ResourceMetricsCollector(config) as unknown as MetricCollector<T>;
 
       default:
         throw new Error(`Unknown metric collector type: ${type as string}`);

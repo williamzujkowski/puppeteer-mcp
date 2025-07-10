@@ -8,14 +8,22 @@
 import { createLogger } from '../../../utils/logger.js';
 import { BrowserPool } from '../browser-pool.js';
 import { OptimizedBrowserPool } from '../browser-pool-optimized.js';
-import type { BrowserPoolOptions } from '../../interfaces/browser-pool.interface.js';
+import type { BrowserPoolOptions, BrowserInstance } from '../../interfaces/browser-pool.interface.js';
 import type { OptimizationConfig } from '../browser-pool-optimized.js';
+import type { Page } from 'puppeteer';
 import { MigrationExecutor } from './migration-executor.js';
 import { CompatibilityChecker } from './compatibility-checker.js';
 import { MigrationPlanner } from './migration-planner.js';
 import { VersionDetector } from './version-detector.js';
 import { CompatibilityUtils } from './compatibility-utils.js';
-import type { CompatibilityConfig, UsageStatistics, ExtendedMigrationMetrics } from './types.js';
+import type { 
+  CompatibilityConfig, 
+  UsageStatistics, 
+  ExtendedMigrationMetrics,
+  CompatibilityAnalysis,
+  MigrationPlan,
+  CompatibilityCheckResult 
+} from './types.js';
 import { DEFAULT_COMPATIBILITY_CONFIG } from './types.js';
 
 const logger = createLogger('browser-pool-compatibility');
@@ -187,7 +195,7 @@ class CompatibilityWrapper extends OptimizedBrowserPool {
    * Initialize with compatibility handling
    * @nist ac-3 "Access enforcement"
    */
-  async initialize(): Promise<void> {
+  override async initialize(): Promise<void> {
     await this.migrationExecutor.initialize();
   }
 
@@ -195,15 +203,15 @@ class CompatibilityWrapper extends OptimizedBrowserPool {
    * Enhanced browser acquisition with fallback
    * @nist ac-3 "Access enforcement"
    */
-  async acquireBrowser(sessionId: string): Promise<unknown> {
-    return this.migrationExecutor.acquireBrowser(sessionId);
+  override async acquireBrowser(sessionId: string): Promise<BrowserInstance> {
+    return this.migrationExecutor.acquireBrowser(sessionId) as Promise<BrowserInstance>;
   }
 
   /**
    * Enhanced browser release with fallback
    * @nist ac-12 "Session termination"
    */
-  async releaseBrowser(browserId: string, sessionId: string): Promise<void> {
+  override async releaseBrowser(browserId: string, sessionId: string): Promise<void> {
     return this.migrationExecutor.releaseBrowser(browserId, sessionId);
   }
 
@@ -211,8 +219,8 @@ class CompatibilityWrapper extends OptimizedBrowserPool {
    * Enhanced page creation with fallback
    * @nist ac-4 "Information flow enforcement"
    */
-  override async createPage(browserId: string, sessionId: string): Promise<unknown> {
-    return this.migrationExecutor.createPage(browserId, sessionId);
+  override async createPage(browserId: string, sessionId: string): Promise<Page> {
+    return this.migrationExecutor.createPage(browserId, sessionId) as Promise<Page>;
   }
 
   /**

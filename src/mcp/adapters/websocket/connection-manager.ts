@@ -149,7 +149,7 @@ export class WebSocketConnectionManager implements ConnectionManagerInterface {
       } catch (error) {
         this.errorHandler.handleParseError(
           connectionId,
-          data instanceof Buffer ? data.toString() : String(data),
+          data instanceof Buffer ? data.toString() : typeof data === 'string' ? data : JSON.stringify(data),
           error as Error,
         );
       }

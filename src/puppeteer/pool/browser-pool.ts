@@ -313,16 +313,6 @@ export class BrowserPool extends EventEmitter implements IBrowserPool {
     return this.lifecycleHandler.performMaintenance();
   }
 
-  private launchNewBrowser(): Promise<{
-    browser: import('puppeteer').Browser;
-    instance: InternalBrowserInstance;
-  }> {
-    return this.lifecycleHandler.launchNewBrowser();
-  }
-
-  private createAndAcquireBrowser(sessionId: string): Promise<BrowserInstance> {
-    return this.lifecycleHandler.createAndAcquireBrowser(sessionId);
-  }
 
   private queueAcquisition(sessionId: string): Promise<BrowserInstance> {
     return this.lifecycleHandler.queueAcquisition(sessionId);

@@ -8,11 +8,13 @@ export { BrowserPool } from './browser-pool.js';
 export { OptimizedBrowserPool } from './browser-pool-optimized.js';
 
 // Optimization component exports
-export { BrowserPoolScaler, ScalingDecision, DEFAULT_SCALING_STRATEGY } from './browser-pool-scaling.js';
+export { BrowserPoolScaling, DEFAULT_SCALING_STRATEGY } from './browser-pool-scaling.js';
+export type { ScalingDecision } from './browser-pool-scaling.js';
 export { BrowserPoolResourceManager, DEFAULT_RESOURCE_CONFIG } from './browser-pool-resource-manager.js';
 export { BrowserPoolRecycler, RecyclingStrategy, DEFAULT_RECYCLING_CONFIG } from './browser-pool-recycler.js';
 export { CircuitBreaker, CircuitBreakerRegistry, CircuitBreakerState, DEFAULT_CIRCUIT_BREAKER_CONFIG } from './browser-pool-circuit-breaker.js';
-export { BrowserPoolPerformanceMonitor, PerformanceMetricType, DEFAULT_PERFORMANCE_CONFIG } from './browser-pool-performance-monitor.js';
+export { BrowserPoolPerformanceMonitor, DEFAULT_PERFORMANCE_CONFIG } from './browser-pool-performance-monitor.js';
+export type { PerformanceMetricType } from './browser-pool-performance-monitor.js';
 
 // Compatibility exports
 export { BrowserPoolFactory, MigrationUtils } from './browser-pool-compatibility.js';
@@ -34,7 +36,7 @@ export type { HealthCheckResult } from './browser-health.js';
 export type { BrowserInstance, BrowserPoolOptions, PoolMetrics } from '../interfaces/browser-pool.interface.js';
 
 // Type exports for optimization
-export type { ScalingStrategy } from './browser-pool-scaling.js';
+export type { BrowserPoolScalingStrategy } from './browser-pool-scaling.js';
 export type { ResourceMonitoringConfig, ResourceThresholds } from './browser-pool-resource-manager.js';
 export type { RecyclingConfig } from './browser-pool-recycler.js';
 export type { CircuitBreakerConfig } from './browser-pool-circuit-breaker.js';
@@ -43,4 +45,4 @@ export type { OptimizationConfig } from './browser-pool-optimized.js';
 export type { CompatibilityConfig } from './browser-pool-compatibility.js';
 
 // Default export for backward compatibility
-export default BrowserPoolFactory;
+export { BrowserPoolFactory as default } from './browser-pool-compatibility.js';

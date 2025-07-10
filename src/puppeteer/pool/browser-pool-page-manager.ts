@@ -25,11 +25,13 @@ export type BrowserReleaseCallback = (browserId: string, sessionId: string) => P
 export class BrowserPoolPageManager {
   constructor(
     private browsers: Map<string, InternalBrowserInstance>,
-    private options: BrowserPoolOptions,
+    _options: BrowserPoolOptions,
     private eventLogger: BrowserPoolEventLogger,
     private metricsHandler: BrowserPoolMetricsHandler,
     private releaseBrowserCallback: BrowserReleaseCallback,
-  ) {}
+  ) {
+    // Initialize
+  }
 
   /**
    * Create a new page in a browser

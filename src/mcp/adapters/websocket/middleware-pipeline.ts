@@ -9,7 +9,6 @@
 import type { Logger } from 'pino';
 import type { WSMessage } from './types.js';
 import type { MCPWebSocketConnection } from './types.js';
-import { WSMessageType } from '../../../types/websocket.js';
 
 /**
  * Middleware function type
@@ -105,7 +104,8 @@ export class WebSocketMiddlewarePipeline {
   static createValidationMiddleware(logger: Logger): MiddlewareFunction {
     return async (message, _connection, next): Promise<void> => {
       // Validate message structure
-      if (!message.type || !message.id || !message.timestamp) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
+      if (typeof message.type !== 'string' || message.type === '' || (message.id !== undefined && (typeof message.id !== 'string' || message.id === '')) || typeof message.timestamp !== 'string') {
         logger.error('Invalid message structure', { message });
         throw new Error('Invalid message structure');
       }
@@ -120,7 +120,8 @@ export class WebSocketMiddlewarePipeline {
   static createAuthMiddleware(logger: Logger): MiddlewareFunction {
     return async (message, connection, next): Promise<void> => {
       // Skip auth check for auth messages
-      if (message.type === WSMessageType.AUTH) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
+      if (message.type === 'auth') {
         await next();
         return;
       }

@@ -7,13 +7,13 @@
 import { createLogger } from '../../utils/logger.js';
 import type { BrowserPoolOptions } from '../interfaces/browser-pool.interface.js';
 import type { InternalBrowserInstance } from './browser-pool-maintenance.js';
-import type { BrowserPoolScaler } from './browser-pool-scaling.js';
+import type { BrowserPoolScaling } from './browser-pool-scaling.js';
 import type { BrowserPoolResourceManager } from './browser-pool-resource-manager.js';
 import type { BrowserPoolRecycler } from './browser-pool-recycler.js';
 import type { BrowserPoolPerformanceMonitor } from './browser-pool-performance-monitor.js';
 import type { ExtendedPoolMetrics } from './browser-pool-metrics.js';
 import type { OptimizationConfig } from './optimization-config.js';
-import { PerformanceMetricType } from './browser-pool-performance-monitor.js';
+import { PerformanceMetricType } from './performance/types/performance-monitor.types.js';
 
 const logger = createLogger('optimization-checks');
 
@@ -23,13 +23,13 @@ const logger = createLogger('optimization-checks');
 export class OptimizationChecks {
   constructor(
     private optimizationConfig: OptimizationConfig,
-    private scaler: BrowserPoolScaler,
+    private scaler: BrowserPoolScaling,
     private resourceManager: BrowserPoolResourceManager,
     private recycler: BrowserPoolRecycler,
     private performanceMonitor: BrowserPoolPerformanceMonitor,
     private optimizationEnabled: boolean,
-    private lastOptimizationCheck: Date,
-    private optimizationActions: { value: number }
+    _lastOptimizationCheck: Date,
+    _optimizationActions: { value: number }
   ) {}
 
   /**
@@ -49,7 +49,7 @@ export class OptimizationChecks {
     try {
       const browsers = getBrowsersInternal();
       const metrics = getExtendedMetrics();
-      const resourceUsage = this.resourceManager.getBrowserResources();
+      const resourceUsage = this.resourceManager.getBrowserResources() || new Map();
 
       // Check for scaling opportunities
       if (this.optimizationConfig.scaling.enabled) {
@@ -86,7 +86,7 @@ export class OptimizationChecks {
       this.performanceMonitor.recordMetric(
         PerformanceMetricType.ERROR_RATE,
         1,
-        { operation: 'optimization_check', error: error.message }
+        { operation: 'optimization_check', error: error instanceof Error ? error.message : String(error) }
       );
     }
   }

@@ -4,7 +4,7 @@
  * @nist cm-7 "Least functionality"
  */
 
-import type { ScalingStrategy } from './browser-pool-scaling.js';
+import type { BrowserPoolScalingStrategy } from './browser-pool-scaling.js';
 import type { ResourceMonitoringConfig } from './browser-pool-resource-manager.js';
 import type { RecyclingConfig } from './browser-pool-recycler.js';
 import type { CircuitBreakerConfig } from './browser-pool-circuit-breaker.js';
@@ -24,7 +24,7 @@ export interface OptimizationConfig {
   /** Enable optimization features */
   enabled: boolean;
   /** Scaling configuration */
-  scaling: Partial<ScalingStrategy>;
+  scaling: Partial<BrowserPoolScalingStrategy>;
   /** Resource monitoring configuration */
   resourceMonitoring: Partial<ResourceMonitoringConfig>;
   /** Recycling configuration */

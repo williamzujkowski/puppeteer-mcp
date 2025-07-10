@@ -8,7 +8,7 @@
 import { EventEmitter } from 'events';
 import { createLogger } from '../../utils/logger.js';
 import type { InternalBrowserInstance } from './browser-pool-maintenance.js';
-import type { BrowserPoolScaler } from './browser-pool-scaling.js';
+import type { BrowserPoolScaling } from './browser-pool-scaling.js';
 import type { BrowserPoolResourceManager } from './browser-pool-resource-manager.js';
 import type { BrowserPoolRecycler } from './browser-pool-recycler.js';
 import type { CircuitBreakerRegistry } from './browser-pool-circuit-breaker.js';
@@ -30,20 +30,20 @@ export class OptimizationEngine extends EventEmitter {
 
   constructor(
     private optimizationConfig: OptimizationConfig,
-    private scaler: BrowserPoolScaler,
+    private scaler: BrowserPoolScaling,
     private resourceManager: BrowserPoolResourceManager,
     private recycler: BrowserPoolRecycler,
     private circuitBreakers: CircuitBreakerRegistry,
     private performanceMonitor: BrowserPoolPerformanceMonitor,
-    private optimizationEnabled: boolean,
-    private lastOptimizationCheck: Date,
-    private optimizationActions: { value: number }
+    _optimizationEnabled: boolean,
+    _lastOptimizationCheck: Date,
+    _optimizationActions: { value: number }
   ) {
     super();
     
     this.checks = new OptimizationChecks(
       optimizationConfig, scaler, resourceManager, recycler, 
-      performanceMonitor, optimizationEnabled, lastOptimizationCheck, optimizationActions
+      performanceMonitor, _optimizationEnabled, _lastOptimizationCheck, _optimizationActions
     );
     
     this.events = new OptimizationEvents(scaler, resourceManager, recycler, performanceMonitor);

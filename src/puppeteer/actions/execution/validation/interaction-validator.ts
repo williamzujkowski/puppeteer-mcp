@@ -60,19 +60,19 @@ export class InteractionValidator extends BaseValidator {
 
     switch (action.type) {
       case 'click':
-        this.validateClickAction(action as ClickAction, errors);
+        this.validateClickAction(action, errors);
         break;
       case 'type':
-        this.validateTypeAction(action as TypeAction, errors, warnings);
+        this.validateTypeAction(action, errors, warnings);
         break;
       case 'select':
-        this.validateSelectAction(action as SelectAction, errors);
+        this.validateSelectAction(action, errors);
         break;
       case 'keyboard':
-        this.validateKeyboardAction(action as KeyboardAction, errors);
+        this.validateKeyboardAction(action, errors);
         break;
       case 'mouse':
-        this.validateMouseAction(action as MouseAction, errors);
+        this.validateMouseAction(action, errors);
         break;
     }
 

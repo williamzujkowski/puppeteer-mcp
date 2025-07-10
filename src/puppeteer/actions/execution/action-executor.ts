@@ -83,7 +83,7 @@ export class ModularBrowserActionExecutor implements ActionExecutor {
     }
 
     // Delegate to orchestrator
-    return await this.components.orchestrator.orchestrateExecution<T>(action, context);
+    return this.components.orchestrator.orchestrateExecution<T>(action, context);
   }
 
   /**
@@ -141,7 +141,7 @@ export class ModularBrowserActionExecutor implements ActionExecutor {
       }
 
       // Perform detailed validation
-      return await this.components.validator.validate(action, context);
+      return this.components.validator.validate(action, context);
     } catch (error) {
       logger.error('Action validation failed', {
         sessionId: context.sessionId,

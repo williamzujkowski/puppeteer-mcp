@@ -256,7 +256,7 @@ export class HandleExecutionStrategy implements BaseEvaluationStrategy {
       let elementTag: string | undefined;
       if (isElement) {
         elementTag = await handle.evaluate((el: unknown) => {
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+           
           return el instanceof Element ? el.tagName.toLowerCase() : undefined;
         }).catch(() => undefined);
       }

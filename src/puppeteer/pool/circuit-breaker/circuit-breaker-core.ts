@@ -25,10 +25,7 @@ import { TimeoutManager } from './timeout-manager.js';
 import { ExecutionHandler } from './execution-handler.js';
 import { createLogger } from '../../../utils/logger.js';
 import {
-  setupEventHandling,
-  startMonitoring,
   handleStateTransition,
-  initializeComponents,
 } from './circuit-breaker-setup.js';
 
 const logger = createLogger('circuit-breaker-core');

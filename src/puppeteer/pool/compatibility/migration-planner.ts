@@ -149,16 +149,16 @@ export class MigrationPlanner {
     const minWeeks = phases.reduce((sum, phase) => {
       // eslint-disable-next-line security/detect-unsafe-regex
       const match = phase.duration.match(/^(\d{1,2})(?:-(\d{1,2}))?\s*weeks?$/);
-      return sum + (match ? parseInt(match[1], 10) : 1);
+      return sum + (match?.[1] ? parseInt(match[1], 10) : 1);
     }, 0);
 
     const maxWeeks = phases.reduce((sum, phase) => {
       const match = phase.duration.match(/^(\d{1,2})-(\d{1,2})\s*weeks?$/);
       if (match) {
-        return sum + parseInt(match[2], 10);
+        return sum + parseInt(match[2] || '0', 10);
       }
       const singleMatch = phase.duration.match(/^(\d{1,2})\s*weeks?$/);
-      return sum + (singleMatch ? parseInt(singleMatch[1], 10) : 1);
+      return sum + (singleMatch?.[1] ? parseInt(singleMatch[1], 10) : 1);
     }, 0);
 
     return minWeeks === maxWeeks ? `${minWeeks} weeks` : `${minWeeks}-${maxWeeks} weeks`;

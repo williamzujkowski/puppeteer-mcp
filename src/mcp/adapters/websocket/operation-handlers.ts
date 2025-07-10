@@ -62,7 +62,7 @@ export class WebSocketOperationHandlers {
     connection: MCPWebSocketConnection,
     operation: WebSocketOperation,
   ): Promise<MCPResponse> {
-    if (!operation.topic) {
+    if (operation.topic === null || operation.topic === undefined || operation.topic === '') {
       throw new AppError('Topic is required for subscription', 400);
     }
 
@@ -99,7 +99,7 @@ export class WebSocketOperationHandlers {
     this.wsConnectionManager.addSubscription(connection.connectionId, operation.topic);
 
     // Set up auto-cleanup if duration specified
-    if (operation.duration) {
+    if (operation.duration !== null && operation.duration !== undefined && operation.duration > 0) {
       setTimeout(() => {
         void this.cleanupSubscription(connection, subscriptionId);
       }, operation.duration);
@@ -129,7 +129,7 @@ export class WebSocketOperationHandlers {
     connection: MCPWebSocketConnection,
     operation: WebSocketOperation,
   ): Promise<MCPResponse> {
-    if (!operation.topic) {
+    if (operation.topic === null || operation.topic === undefined || operation.topic === '') {
       throw new AppError('Topic is required for unsubscription', 400);
     }
 
@@ -142,7 +142,7 @@ export class WebSocketOperationHandlers {
       }
     }
 
-    if (!subscriptionId) {
+    if (subscriptionId === null || subscriptionId === undefined || subscriptionId === '') {
       throw new AppError('Subscription not found', 404);
     }
 
@@ -201,7 +201,7 @@ export class WebSocketOperationHandlers {
     _connection: MCPWebSocketConnection,
     operation: WebSocketOperation,
   ): Promise<MCPResponse> {
-    if (!operation.topic || !operation.event) {
+    if (operation.topic === null || operation.topic === undefined || operation.topic === '' || operation.event === null || operation.event === undefined || operation.event === '') {
       throw new AppError('Topic and event are required for broadcast', 400);
     }
 

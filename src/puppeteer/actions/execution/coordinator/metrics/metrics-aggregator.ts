@@ -29,7 +29,7 @@ export class MetricsAggregator {
 
     const durations = metrics
       .filter(m => m.duration !== undefined)
-      .map(m => m.duration!) as number[];
+      .map(m => m.duration!);
 
     const averageDuration = durations.length > 0
       ? durations.reduce((sum, d) => sum + d, 0) / durations.length

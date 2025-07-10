@@ -258,7 +258,7 @@ export class EvaluationExecutor {
   ): Promise<ActionResult> {
     switch (action.type) {
       case 'evaluate':
-        return this.executeEvaluate(action as EvaluateAction, page, context);
+        return this.executeEvaluate(action, page, context);
       default:
         throw new Error(`Unsupported evaluation action: ${action.type}`);
     }

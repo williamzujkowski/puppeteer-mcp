@@ -43,7 +43,7 @@ export const securityHeaders = (): RequestHandler => {
         objectSrc: ["'none'"],
         mediaSrc: ["'self'"],
         frameSrc: ["'none'"],
-        ...(parseCSPDirectives(String(config.CSP_DIRECTIVES || ''))),
+        ...(parseCSPDirectives(typeof config.CSP_DIRECTIVES === 'string' ? config.CSP_DIRECTIVES : '')),
       },
     },
 
@@ -295,6 +295,7 @@ const createCSRFValidationMiddleware = (options: CSRFOptions): RequestHandler =>
     const secret = session?.csrfSecret;
 
     // ESLint timing attack warning is false positive - we're only checking existence, not comparing secrets
+    // eslint-disable-next-line security/detect-possible-timing-attacks
     if (secret === undefined) {
       logCSRFSecurityEvent(SecurityEventType.CSRF_TOKEN_MISSING, req);
       sendCSRFError(res, 'CSRF_SECRET_MISSING', 'CSRF secret not found in session');
@@ -304,6 +305,7 @@ const createCSRFValidationMiddleware = (options: CSRFOptions): RequestHandler =>
     const token = extractCSRFToken(req, options);
 
     // ESLint timing attack warning is false positive - we're only checking existence, not comparing tokens
+    // eslint-disable-next-line security/detect-possible-timing-attacks
     if (token === undefined) {
       logCSRFSecurityEvent(SecurityEventType.CSRF_TOKEN_MISSING, req);
       sendCSRFError(res, 'CSRF_TOKEN_MISSING', 'CSRF token is required');
@@ -351,6 +353,7 @@ export const createCSRFTokenEndpoint = (): RequestHandler => {
     const secret = session?.csrfSecret;
 
     // ESLint timing attack warning is false positive - we're only checking existence, not comparing secrets
+    // eslint-disable-next-line security/detect-possible-timing-attacks
     if (secret === undefined) {
       res.status(400).json({
         success: false,

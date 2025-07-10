@@ -167,9 +167,9 @@ export class UploadExecutor implements FileOperationExecutor {
     // Check if multiple files are allowed
     if (config.multiple === true) {
       const allowsMultiple = await page.$eval(config.selector, (element) => {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+         
         return element instanceof HTMLInputElement && element.hasAttribute('multiple');
-      }) as boolean;
+      });
 
       if (!allowsMultiple && config.filePaths.length > 1) {
         throw new Error('File input does not allow multiple files');

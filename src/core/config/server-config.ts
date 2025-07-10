@@ -22,9 +22,9 @@ export function parseServerConfig(): {
     parsedTrustProxy = true;
   } else if (trustProxy === 'false') {
     parsedTrustProxy = false;
-  } else if (trustProxy && !isNaN(Number(trustProxy))) {
+  } else if (trustProxy !== null && trustProxy !== '' && !isNaN(Number(trustProxy))) {
     parsedTrustProxy = Number(trustProxy);
-  } else if (trustProxy) {
+  } else if (trustProxy !== null && trustProxy !== '') {
     parsedTrustProxy = trustProxy;
   }
   

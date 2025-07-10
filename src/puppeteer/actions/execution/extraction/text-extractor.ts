@@ -42,10 +42,10 @@ export class TextExtractor {
     const getText = (element: Element): string => {
       if (element instanceof HTMLInputElement || 
           element instanceof HTMLTextAreaElement) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+         
         return element.value;
       }
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+       
       return (element as HTMLElement).textContent?.trim() ?? '';
     };
     

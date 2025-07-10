@@ -242,6 +242,6 @@ export class ValidationService {
       throw new Error(`Invalid backup file: ${backupPath}`);
     }
     
-    return backupData as BackupData;
+    return backupData;
   }
 }

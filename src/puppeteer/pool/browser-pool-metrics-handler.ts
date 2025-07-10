@@ -85,7 +85,7 @@ export class BrowserPoolMetricsHandler {
    * Record recovery attempts
    */
   recordRecovery(success: boolean, browserId?: string): void {
-    this.metrics.recordRecovery(success, browserId);
+    this.metrics.recordRecovery(success, browserId || '');
   }
 
   /**

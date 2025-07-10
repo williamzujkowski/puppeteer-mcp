@@ -4,6 +4,8 @@
  * @description Examples of using proxy configuration with MCP browser automation
  */
 
+/* eslint-disable no-console, @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unused-vars, @typescript-eslint/strict-boolean-expressions, @typescript-eslint/prefer-nullish-coalescing, no-promise-executor-return, max-lines */
+
 import { Client as MCPClient } from '@modelcontextprotocol/sdk/client/stdio.js';
 import { StdioTransport } from '../transport/stdio.js';
 import type { CreateBrowserContextArgs } from '../types/tool-types.js';
@@ -11,7 +13,8 @@ import type { CreateBrowserContextArgs } from '../types/tool-types.js';
 /**
  * Example 1: Basic HTTP Proxy Configuration
  */
-async function basicProxyExample(mcpClient: MCPClient) {
+async function basicProxyExample(mcpClient: MCPClient): Promise<void> {
+  // eslint-disable-next-line no-console
   console.log('=== Basic HTTP Proxy Example ===');
 
   // Create a browser context with a simple HTTP proxy
@@ -32,6 +35,7 @@ async function basicProxyExample(mcpClient: MCPClient) {
   };
 
   const contextResult = await mcpClient.callTool('createBrowserContext', contextArgs);
+  // eslint-disable-next-line no-console
   console.log('Context created:', contextResult.content[0].text);
 
   // Navigate to a page through the proxy
@@ -45,13 +49,15 @@ async function basicProxyExample(mcpClient: MCPClient) {
     }
   });
 
+  // eslint-disable-next-line no-console
   console.log('Navigation result:', navigationResult.content[0].text);
 }
 
 /**
  * Example 2: Authenticated SOCKS5 Proxy
  */
-async function authenticatedProxyExample(mcpClient: MCPClient) {
+async function authenticatedProxyExample(mcpClient: MCPClient): Promise<void> {
+  // eslint-disable-next-line no-console
   console.log('=== Authenticated SOCKS5 Proxy Example ===');
 
   const contextArgs: CreateBrowserContextArgs = {
@@ -65,8 +71,8 @@ async function authenticatedProxyExample(mcpClient: MCPClient) {
           host: 'socks5.provider.com',
           port: 1080,
           auth: {
-            username: process.env.PROXY_USERNAME || 'user',
-            password: process.env.PROXY_PASSWORD || 'pass'
+            username: process.env.PROXY_USERNAME ?? 'user',
+            password: process.env.PROXY_PASSWORD ?? 'pass'
           },
           bypass: ['*.local', '10.*', '192.168.*']
         }
@@ -75,6 +81,7 @@ async function authenticatedProxyExample(mcpClient: MCPClient) {
   };
 
   const contextResult = await mcpClient.callTool('createBrowserContext', contextArgs);
+  // eslint-disable-next-line no-console
   console.log('SOCKS5 context created:', contextResult.content[0].text);
 
   // Get page content through SOCKS proxy
@@ -88,13 +95,15 @@ async function authenticatedProxyExample(mcpClient: MCPClient) {
     }
   });
 
+  // eslint-disable-next-line no-console
   console.log('Page content:', contentResult.content[0].text);
 }
 
 /**
  * Example 3: Proxy Pool with Rotation
  */
-async function proxyPoolExample(mcpClient: MCPClient) {
+async function proxyPoolExample(mcpClient: MCPClient): Promise<void> {
+  // eslint-disable-next-line no-console
   console.log('=== Proxy Pool with Rotation Example ===');
 
   const contextArgs: CreateBrowserContextArgs = {

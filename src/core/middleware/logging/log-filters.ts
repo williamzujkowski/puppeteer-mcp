@@ -15,12 +15,12 @@ export const shouldSkipRequest = (
   config: RequestResponseLoggerOptions,
 ): boolean => {
   // Skip logging for specified paths
-  if (config.skipPaths?.some((path) => req.path.includes(path))) {
+  if (config.skipPaths?.some((path) => req.path.includes(path)) === true) {
     return true;
   }
 
   // Skip logging for specified methods
-  if (config.skipMethods?.some((method) => req.method === method)) {
+  if (config.skipMethods?.some((method) => req.method === method) === true) {
     return true;
   }
 

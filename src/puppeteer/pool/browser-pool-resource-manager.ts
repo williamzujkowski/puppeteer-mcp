@@ -136,7 +136,7 @@ export class BrowserPoolResourceManager extends EventEmitter {
     if (browserId) {
       return this.components.browserMonitor.getBrowserUsage(browserId);
     }
-    return this.components.browserMonitor.getResources();
+    return this.components.browserMonitor.getResources() || undefined;
   }
 
   /**

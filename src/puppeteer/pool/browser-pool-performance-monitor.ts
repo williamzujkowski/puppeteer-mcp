@@ -223,7 +223,7 @@ export class BrowserPoolPerformanceMonitor extends EventEmitter {
       if (dataPoints.length > 0) {
         const values = dataPoints.map(dp => dp.value);
         const stats = this.performanceCalculations.calculateStatistics(values);
-        metrics[type] = { current: values[values.length - 1], ...stats, trend: this.trendAnalyzer.determineTrend(type) };
+        metrics[type] = { current: values[values.length - 1] || 0, ...stats, trend: this.trendAnalyzer.determineTrend(type) };
       }
     }
     return metrics;

@@ -61,24 +61,24 @@ export class MessageRouter {
       // Route based on message type
       switch (message.type) {
         case 'auth':
-          await this.handleAuthMessage(ws, connectionId, message as WSAuthMessage, connectionManager, authHandler);
+          await this.handleAuthMessage(ws, connectionId, message, connectionManager, authHandler);
           break;
 
         case 'request':
-          await this.handleRequestMessage(ws, connectionId, message as WSRequestMessage, connectionManager, authHandler);
+          await this.handleRequestMessage(ws, connectionId, message, connectionManager, authHandler);
           break;
 
         case 'subscribe':
         case 'unsubscribe':
-          await this.handleSubscriptionMessage(ws, connectionId, message as WSSubscriptionMessage, connectionManager, eventHandler, authHandler);
+          await this.handleSubscriptionMessage(ws, connectionId, message, connectionManager, eventHandler, authHandler);
           break;
 
         case 'ping':
-          await this.handlePingMessage(ws, connectionId, message as WSPingPongMessage);
+          await this.handlePingMessage(ws, connectionId, message);
           break;
 
         case 'pong':
-          await this.handlePongMessage(connectionId, message as WSPingPongMessage);
+          await this.handlePongMessage(connectionId, message);
           break;
 
         default:
@@ -145,7 +145,7 @@ export class MessageRouter {
     connectionId: string,
     message: WSRequestMessage,
     connectionManager: ConnectionManager,
-    authHandler: AuthenticationHandler,
+    _authHandler: AuthenticationHandler,
   ): Promise<void> {
     // Check authentication
     const state = connectionManager.getConnectionState(connectionId);
@@ -195,7 +195,7 @@ export class MessageRouter {
     message: WSSubscriptionMessage,
     connectionManager: ConnectionManager,
     eventHandler: EventHandler,
-    authHandler: AuthenticationHandler,
+    _authHandler: AuthenticationHandler,
   ): Promise<void> {
     // Check authentication
     const state = connectionManager.getConnectionState(connectionId);

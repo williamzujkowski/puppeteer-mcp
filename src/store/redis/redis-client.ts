@@ -90,7 +90,7 @@ export class RedisClientManager {
       // If Redis operation failed, try fallback
       if (redis) {
         this.logger.warn('Falling back to in-memory store');
-        return await fallbackOperation(this.fallbackStore);
+        return fallbackOperation(this.fallbackStore);
       }
       
       throw error;

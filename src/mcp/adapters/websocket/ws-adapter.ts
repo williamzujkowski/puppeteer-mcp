@@ -136,7 +136,7 @@ export class WebSocketAdapter implements ProtocolAdapter {
     } catch (error) {
       // Handle operation error
       await this.errorHandler.handleOperationError(
-        params.operation ? String((params.operation as { type?: string }).type) : 'unknown',
+        params.operation !== null && params.operation !== undefined ? String((params.operation as { type?: string }).type) : 'unknown',
         error as Error,
         params.sessionId,
         { operation: params.operation },

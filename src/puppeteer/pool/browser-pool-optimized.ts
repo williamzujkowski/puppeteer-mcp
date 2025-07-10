@@ -19,7 +19,7 @@ import type { InternalBrowserInstance } from './browser-pool-maintenance.js';
 import { BrowserPool } from './browser-pool.js';
 
 // Import optimization components
-import { BrowserPoolScaler } from './browser-pool-scaling.js';
+import { BrowserPoolScaling } from './browser-pool-scaling.js';
 import { BrowserPoolResourceManager } from './browser-pool-resource-manager.js';
 import { BrowserPoolRecycler } from './browser-pool-recycler.js';
 import { CircuitBreakerRegistry } from './browser-pool-circuit-breaker.js';
@@ -28,12 +28,10 @@ import type { ExtendedPoolMetrics } from './browser-pool-metrics.js';
 
 // Import optimization modules
 import {
-  type OptimizationConfig,
-  type OptimizationStatus,
-  DEFAULT_OPTIMIZATION_CONFIG,
   mergeOptimizationConfig,
   updateOptimizationConfig,
 } from './optimization-config.js';
+import type { OptimizationConfig, OptimizationStatus } from './optimization-config.js';
 import { OptimizationOperations } from './optimization-operations.js';
 import { OptimizationMonitoring } from './optimization-monitoring.js';
 import { OptimizationEngine } from './optimization-engine.js';
@@ -47,14 +45,14 @@ const logger = createLogger('browser-pool-optimized');
  */
 export class OptimizedBrowserPool extends BrowserPool implements IBrowserPool {
   private optimizationConfig: OptimizationConfig;
-  private scaler: BrowserPoolScaler;
-  private resourceManager: BrowserPoolResourceManager;
-  private recycler: BrowserPoolRecycler;
-  private circuitBreakers: CircuitBreakerRegistry;
-  private performanceMonitor: BrowserPoolPerformanceMonitor;
-  private operations: OptimizationOperations;
-  private monitoring: OptimizationMonitoring;
-  private engine: OptimizationEngine;
+  private scaler!: BrowserPoolScaling;
+  private resourceManager!: BrowserPoolResourceManager;
+  private recycler!: BrowserPoolRecycler;
+  private circuitBreakers!: CircuitBreakerRegistry;
+  private performanceMonitor!: BrowserPoolPerformanceMonitor;
+  private operations!: OptimizationOperations;
+  private monitoring!: OptimizationMonitoring;
+  private engine!: OptimizationEngine;
   private lastOptimizationCheck = new Date(0);
   private optimizationActions = { value: 0 };
   private readonly optimizationEnabled: boolean;
@@ -77,10 +75,10 @@ export class OptimizedBrowserPool extends BrowserPool implements IBrowserPool {
    */
   private initializeComponents(): void {
     // Initialize optimization components
-    this.scaler = new BrowserPoolScaler(this.optimizationConfig.scaling);
+    this.scaler = new BrowserPoolScaling('balanced');
     this.resourceManager = new BrowserPoolResourceManager(this.optimizationConfig.resourceMonitoring);
     this.recycler = new BrowserPoolRecycler(this.optimizationConfig.recycling);
-    this.circuitBreakers = new CircuitBreakerRegistry(this.optimizationConfig.circuitBreaker);
+    this.circuitBreakers = new CircuitBreakerRegistry({ globalConfig: this.optimizationConfig.circuitBreaker });
     this.performanceMonitor = new BrowserPoolPerformanceMonitor(this.optimizationConfig.performanceMonitoring);
 
     // Initialize optimization modules
@@ -104,7 +102,7 @@ export class OptimizedBrowserPool extends BrowserPool implements IBrowserPool {
   /**
    * Initialize the optimized pool
    */
-  async initialize(): Promise<void> {
+  override async initialize(): Promise<void> {
     await super.initialize();
 
     if (!this.optimizationEnabled) {
@@ -127,7 +125,7 @@ export class OptimizedBrowserPool extends BrowserPool implements IBrowserPool {
     }
   }
 
-  async acquireBrowser(sessionId: string): Promise<BrowserInstance> {
+  override async acquireBrowser(sessionId: string): Promise<BrowserInstance> {
     return this.operations.acquireBrowser(
       sessionId,
       (sessionId) => super.acquireBrowser(sessionId),
@@ -135,14 +133,14 @@ export class OptimizedBrowserPool extends BrowserPool implements IBrowserPool {
     );
   }
 
-  async releaseBrowser(browserId: string, sessionId: string): Promise<void> {
+  override async releaseBrowser(browserId: string, sessionId: string): Promise<void> {
     return this.operations.releaseBrowser(
       browserId, sessionId,
       (browserId, sessionId) => super.releaseBrowser(browserId, sessionId)
     );
   }
 
-  async createPage(browserId: string, sessionId: string): Promise<Page> {
+  override async createPage(browserId: string, sessionId: string): Promise<Page> {
     return this.operations.createPage(
       browserId, sessionId,
       (browserId, sessionId) => super.createPage(browserId, sessionId),
@@ -150,11 +148,11 @@ export class OptimizedBrowserPool extends BrowserPool implements IBrowserPool {
     );
   }
 
-  async healthCheck(): Promise<Map<string, boolean>> {
+  override async healthCheck(): Promise<Map<string, boolean>> {
     return this.monitoring.healthCheck(() => super.healthCheck());
   }
 
-  getExtendedMetrics(): ExtendedPoolMetrics {
+  override getExtendedMetrics(): ExtendedPoolMetrics {
     return this.monitoring.getExtendedMetrics(super.getExtendedMetrics());
   }
 
@@ -185,7 +183,7 @@ export class OptimizedBrowserPool extends BrowserPool implements IBrowserPool {
     await this.performOptimizationCheck();
   }
 
-  async shutdown(): Promise<void> {
+  override async shutdown(): Promise<void> {
     if (this.optimizationEnabled) {
       this.engine.stopOptimizationMonitoring();
       await this.engine.stopOptimizationComponents();
@@ -207,7 +205,7 @@ export class OptimizedBrowserPool extends BrowserPool implements IBrowserPool {
       action: 'initialize',
       result: 'success',
       metadata: {
-        scalingEnabled: this.optimizationConfig.scaling.enabled,
+        scalingEnabled: true,
         resourceMonitoringEnabled: this.optimizationConfig.resourceMonitoring.enabled,
         recyclingEnabled: this.optimizationConfig.recycling.enabled,
         circuitBreakerEnabled: this.optimizationConfig.circuitBreaker.enabled,
@@ -240,3 +238,4 @@ export class OptimizedBrowserPool extends BrowserPool implements IBrowserPool {
 }
 
 export { DEFAULT_OPTIMIZATION_CONFIG } from './optimization-config.js';
+export type { OptimizationConfig, OptimizationStatus };

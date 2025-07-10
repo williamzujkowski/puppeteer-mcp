@@ -203,7 +203,7 @@ export function wrapAuthorization<T extends (...args: any[]) => Promise<boolean>
         result: authorized ? 'success' : 'failure',
       });
       
-      return authorized;
+      return authorized as ReturnType<T>;
     } catch (error) {
       span.recordException(error as Error);
       span.setStatus({

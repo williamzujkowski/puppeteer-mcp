@@ -77,7 +77,7 @@ class PageNavigationStrategy implements NavigationStrategy {
     if (action.type !== 'navigate') {
       throw new Error(`Page navigation strategy does not support action type: ${action.type}`);
     }
-    return this.navigator.navigate(action as NavigateAction, page, context);
+    return this.navigator.navigate(action, page, context);
   }
 }
 
@@ -430,7 +430,7 @@ export class NavigationFactory {
 
       // URL validation for navigate actions
       if (action.type === 'navigate' && this.config.enableUrlValidation) {
-        const navigateAction = action as NavigateAction;
+        const navigateAction = action;
         const urlValidation = await this.urlValidator.validateUrl(navigateAction.url);
         
         if (!urlValidation.isValid) {

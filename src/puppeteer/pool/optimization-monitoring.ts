@@ -6,7 +6,7 @@
  */
 
 import { createLogger } from '../../utils/logger.js';
-import type { BrowserPoolScaler } from './browser-pool-scaling.js';
+import type { BrowserPoolScaling } from './browser-pool-scaling.js';
 import type { BrowserPoolResourceManager } from './browser-pool-resource-manager.js';
 import type { BrowserPoolRecycler } from './browser-pool-recycler.js';
 import type { CircuitBreakerRegistry } from './browser-pool-circuit-breaker.js';
@@ -23,7 +23,7 @@ const logger = createLogger('optimization-monitoring');
 export class OptimizationMonitoring {
   constructor(
     private optimizationConfig: OptimizationConfig,
-    private scaler: BrowserPoolScaler,
+    private scaler: BrowserPoolScaling,
     private resourceManager: BrowserPoolResourceManager,
     private recycler: BrowserPoolRecycler,
     private circuitBreakers: CircuitBreakerRegistry,

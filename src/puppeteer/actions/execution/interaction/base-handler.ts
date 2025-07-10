@@ -100,7 +100,7 @@ export abstract class BaseInteractionHandler<T> implements InteractionHandler<T>
             el instanceof HTMLButtonElement || 
             el instanceof HTMLSelectElement || 
             el instanceof HTMLTextAreaElement) {
-          return el.disabled as boolean;
+          return el.disabled;
         }
         return false;
       });

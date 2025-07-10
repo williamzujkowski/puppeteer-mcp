@@ -202,7 +202,7 @@ export class InjectionExecutionStrategy implements BaseEvaluationStrategy {
       // Try to get the URL if available
       let url: string | undefined;
       try {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+         
         url = await scriptHandle.evaluate((el: HTMLScriptElement) => el.src ?? undefined);
       } catch {
         // URL might not be available for inline scripts
@@ -242,7 +242,7 @@ export class InjectionExecutionStrategy implements BaseEvaluationStrategy {
       let url: string | undefined;
       try {
         url = await styleHandle.evaluate((el: Element) => {
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+           
           return el instanceof HTMLLinkElement ? el.href : undefined;
         });
       } catch {

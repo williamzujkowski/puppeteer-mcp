@@ -121,7 +121,7 @@ export class DecorrelatedJitterStrategy implements ITimeoutStrategy {
 
   constructor(
     private maxTimeout: number = 300000, // 5 minutes
-    private baseTimeout: number = 1000 // 1 second
+    _baseTimeout: number = 1000 // 1 second
   ) {}
 
   calculateTimeout(attempt: number, baseTimeout: number): number {

@@ -400,7 +400,7 @@ export class NavigationExecutor {
 
     // Add non-sensitive action-specific fields
     if (action.type === 'navigate') {
-      const navigateAction = action as NavigateAction;
+      const navigateAction = action;
       (sanitized as any).url = navigateAction.url;
       (sanitized as any).waitUntil = navigateAction.waitUntil;
     }

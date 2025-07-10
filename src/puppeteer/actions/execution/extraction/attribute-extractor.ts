@@ -42,7 +42,7 @@ export class AttributeExtractor {
 
     // Use typed evaluation to ensure safe return
     const getValue = (el: Element, attr: string): string | null => {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+       
       return el.getAttribute(attr);
     };
     

@@ -192,7 +192,7 @@ export class WebSocketProtocolHandler implements ProtocolHandlerInterface {
    * Create MCP response from WebSocket message
    */
   createMCPResponse(message: WSMessage, metadata?: Record<string, unknown>): MCPResponse {
-    const content = 'data' in message && message.data
+    const content = 'data' in message && message.data !== null && message.data !== undefined
       ? [
           {
             type: 'text' as const,
@@ -216,7 +216,7 @@ export class WebSocketProtocolHandler implements ProtocolHandlerInterface {
    * Validate message structure
    */
   validateMessage(message: unknown): message is WSMessage {
-    if (!message || typeof message !== 'object') {
+    if (message === null || message === undefined || typeof message !== 'object') {
       return false;
     }
 

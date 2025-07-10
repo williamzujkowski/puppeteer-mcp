@@ -7,9 +7,7 @@
  * @deprecated Use the modular WebSocket server from './websocket/' instead
  */
 
-import type { pino } from 'pino';
-import type { Server as HttpServer } from 'http';
-import type { SessionStore } from '../store/session-store.interface.js';
+// Types were previously imported but are not used in this re-export file
 
 // Re-export from the new modular structure
 export { WSServer, createWebSocketServer } from './websocket/index.js';

@@ -10,12 +10,6 @@ import { CircuitBreakerConfig, CircuitBreakerState } from './types.js';
 import { DEFAULT_CIRCUIT_BREAKER_CONFIG } from './config.js';
 import { createLogger } from '../../../utils/logger.js';
 import {
-  findByState,
-  findUnhealthy,
-  calculateAggregatedMetrics,
-  exportRegistryState,
-  applyConfigToAll,
-  resetAll,
   evictCircuitBreaker,
   setupEventForwarding,
 } from './registry-utils.js';
@@ -308,7 +302,7 @@ export class CircuitBreakerRegistry {
   } {
     const circuitBreakers = Array.from(this.circuitBreakers.entries()).map(([name, cb]) => ({
       name,
-      config: cb.getStatus().metrics,
+      config: this.globalConfig,
       state: cb.getStatus().state,
       metrics: cb.getMetrics(),
     }));
