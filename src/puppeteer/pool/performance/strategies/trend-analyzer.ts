@@ -6,7 +6,7 @@
  */
 
 import type { EventEmitter } from 'events';
-import type {
+import {
   PerformanceMetricType,
   PerformanceDataPoint,
   PerformanceTrend,
@@ -40,19 +40,19 @@ export class TrendAnalyzer implements ITrendAnalyzer {
     const window = this.config.trendAnalysisWindow;
     const cutoff = new Date(Date.now() - window);
 
-    for (const [type, allPoints] of dataPoints) {
+    dataPoints.forEach((allPoints, type) => {
       const recentPoints = allPoints.filter(dp => dp.timestamp >= cutoff);
       
       // Need minimum data points for reliable trend analysis
       if (recentPoints.length < 10) {
-        continue;
+        return;
       }
 
       const trend = this.calculateTrend(recentPoints);
       this.trends.set(type, trend);
       
       this.monitor.emit('trend-analyzed', { type, trend });
-    }
+    });
   }
 
   /**
@@ -95,8 +95,13 @@ export class TrendAnalyzer implements ITrendAnalyzer {
     const values = dataPoints.map(dp => dp.value);
     const n = values.length;
     
+    const firstPoint = dataPoints[0];
+    if (!firstPoint) {
+      throw new Error('Cannot calculate trend: no data points provided');
+    }
+    
     if (n < 2) {
-      return this.createDefaultTrend(dataPoints[0]);
+      return this.createDefaultTrend(firstPoint);
     }
     
     // Linear regression for trend calculation
@@ -118,10 +123,15 @@ export class TrendAnalyzer implements ITrendAnalyzer {
     const ssTot = values.reduce((sum, val) => sum + Math.pow(val - avgY, 2), 0);
     const confidence = ssTot > 0 ? Math.max(0, 1 - ssRes / ssTot) : 0;
 
-    const timespan = dataPoints[n - 1].timestamp.getTime() - dataPoints[0].timestamp.getTime();
+    const lastPoint = dataPoints[n - 1];
+    if (!lastPoint) {
+      throw new Error('Cannot calculate timespan: no last data point');
+    }
+    
+    const timespan = lastPoint.timestamp.getTime() - firstPoint.timestamp.getTime();
 
     const trend: PerformanceTrend = {
-      type: dataPoints[0].type,
+      type: firstPoint.type,
       direction,
       slope,
       confidence,
@@ -158,11 +168,11 @@ export class TrendAnalyzer implements ITrendAnalyzer {
   getDeterioratingMetrics(): PerformanceMetricType[] {
     const deteriorating: PerformanceMetricType[] = [];
     
-    for (const [type, trend] of this.trends) {
+    this.trends.forEach((trend, type) => {
       if (this.determineTrend(type) === 'degrading' && trend.confidence > 0.6) {
         deteriorating.push(type);
       }
-    }
+    });
     
     return deteriorating;
   }
@@ -183,7 +193,7 @@ export class TrendAnalyzer implements ITrendAnalyzer {
     let stable = 0;
     let highConfidence = 0;
 
-    for (const [type, trend] of this.trends) {
+    this.trends.forEach((trend, type) => {
       const trendDirection = this.determineTrend(type);
       
       switch (trendDirection) {
@@ -201,7 +211,7 @@ export class TrendAnalyzer implements ITrendAnalyzer {
       if (trend.confidence > 0.8) {
         highConfidence++;
       }
-    }
+    });
 
     return {
       totalMetrics,
@@ -216,13 +226,17 @@ export class TrendAnalyzer implements ITrendAnalyzer {
    * Generate forecast based on trend
    * @private
    */
-  private generateForecast(values: number[], slope: number, avgY: number): {
+  private generateForecast(values: number[], slope: number, _avgY: number): {
     shortTerm: number;
     mediumTerm: number;
     longTerm: number;
   } {
     const n = values.length;
     const currentPoint = values[n - 1];
+    
+    if (currentPoint === undefined) {
+      throw new Error('Cannot generate forecast: no current data point');
+    }
     
     // Project forward based on slope and current trend
     const shortTermSteps = 5; // ~5 data points ahead
