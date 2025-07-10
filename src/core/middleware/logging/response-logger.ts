@@ -7,7 +7,7 @@
 
 import type { Response } from 'express';
 import type { Logger } from 'pino';
-import type { RequestResponseLoggerOptions, RequestTiming, ExtendedRequest } from './types.js';
+import type { RequestResponseLoggerOptions, RequestTiming, ExtendedRequest, ResponseLogData } from './types.js';
 import { redactSensitiveData } from './log-sanitizer.js';
 import { 
   formatResponseLogData, 
@@ -32,7 +32,7 @@ export const extractResponseBody = (
   sensitiveFields: string[],
 ): unknown => {
   try {
-    const contentType = res.get('content-type') || '';
+    const contentType = res.get('content-type') ?? '';
     
     if (typeof body === 'string') {
       const bodySize = Buffer.byteLength(body, 'utf8');
@@ -76,12 +76,12 @@ export const setupResponseBodyCapture = (
   }
 
   // Store original methods
-  const originalSend = res.send;
-  const originalJson = res.json;
-  const originalEnd = res.end;
+  const originalSend = res.send.bind(res);
+  const originalJson = res.json.bind(res);
+  const originalEnd = res.end.bind(res);
 
   // Override send method
-  res.send = function(body: unknown) {
+  res.send = function(this: Response, body: unknown) {
     responseBody = body;
     return originalSend.call(this, body);
   };
@@ -93,12 +93,12 @@ export const setupResponseBodyCapture = (
   };
 
   // Override end method
-  res.end = function(...args: unknown[]) {
+  res.end = function(this: Response, ...args: unknown[]) {
     const [chunk] = args;
-    if (chunk && !responseBody) {
+    if (chunk !== null && chunk !== undefined && (responseBody === null || responseBody === undefined)) {
       responseBody = chunk;
     }
-    return (originalEnd as any).apply(this, args);
+    return (originalEnd as (this: Response, ...args: unknown[]) => Response).apply(this, args);
   };
 
   return {
@@ -109,32 +109,74 @@ export const setupResponseBodyCapture = (
 /**
  * Log response
  */
-export const logResponse = (
-  req: ExtendedRequest,
+interface LogResponseOptions {
+  req: ExtendedRequest;
+  res: Response;
+  requestId: string;
+  startTime: number;
+  timing: RequestTiming;
+  responseBody: unknown;
+  config: RequestResponseLoggerOptions;
+  logger: Logger;
+}
+
+/**
+ * Add headers to response log data if configured
+ */
+const addHeadersIfConfigured = (
+  responseLogData: ResponseLogData,
   res: Response,
-  requestId: string,
-  startTime: number,
-  timing: RequestTiming,
+  config: RequestResponseLoggerOptions,
+): void => {
+  if (config.includeResponseHeaders === true) {
+    const headers = formatHeaders(
+      res.getHeaders() as Record<string, string | string[]>,
+      config.sensitiveHeaders ?? DEFAULT_SENSITIVE_HEADERS,
+    );
+    addHeadersToLogData(responseLogData, headers);
+  }
+};
+
+/**
+ * Add response body to log data if configured
+ */
+const addResponseBodyIfConfigured = (
+  responseLogData: ResponseLogData,
+  res: Response,
   responseBody: unknown,
   config: RequestResponseLoggerOptions,
-  logger: Logger,
 ): void => {
+  if (config.includeResponseBody === true && responseBody !== null && responseBody !== undefined) {
+    const maxBodySize = config.maxBodySize ?? 8192;
+    const sensitiveBodyFields = config.sensitiveBodyFields ?? DEFAULT_SENSITIVE_BODY_FIELDS;
+    const sanitizedBody = extractResponseBody(
+      res,
+      responseBody,
+      maxBodySize,
+      sensitiveBodyFields,
+    );
+    addBodyToLogData(responseLogData, sanitizedBody);
+  }
+};
+
+export const logResponse = (options: LogResponseOptions): void => {
+  const { req, res, requestId, startTime, timing, responseBody, config, logger } = options;
   // Calculate duration and performance metrics
   const duration = calculateDuration(startTime, timing);
   const slowRequest = isSlowRequest(duration, config.slowRequestThreshold);
   
   // Extract custom metadata
-  const customMetadata = config.metadataExtractor?.(req, res) || {};
+  const customMetadata = config.metadataExtractor?.(req, res) ?? {};
   
   // Prepare response log data
-  let responseLogData = formatResponseLogData(
+  let responseLogData = formatResponseLogData({
     req,
     res,
     requestId,
     duration,
-    slowRequest,
+    isSlowRequest: slowRequest,
     customMetadata,
-  );
+  });
 
   // Add timing details for high precision
   if (config.highPrecisionTiming === true) {
@@ -142,47 +184,37 @@ export const logResponse = (
   }
 
   // Add response headers if configured
-  if (config.includeResponseHeaders === true) {
-    const headers = formatHeaders(
-      res.getHeaders() as Record<string, string | string[]>,
-      config.sensitiveHeaders || DEFAULT_SENSITIVE_HEADERS,
-    );
-    addHeadersToLogData(responseLogData, headers);
-  }
+  addHeadersIfConfigured(responseLogData, res, config);
 
   // Add response body if configured
-  if (config.includeResponseBody === true && responseBody) {
-    const sanitizedBody = extractResponseBody(
-      res,
-      responseBody,
-      config.maxBodySize || 8192,
-      config.sensitiveBodyFields || DEFAULT_SENSITIVE_BODY_FIELDS,
-    );
-    addBodyToLogData(responseLogData, sanitizedBody);
-  }
+  addResponseBodyIfConfigured(responseLogData, res, responseBody, config);
 
   // Determine log level and log response
   const logLevel = getLogLevel(res.statusCode, slowRequest);
   const message = generateResponseLogMessage(req, res, duration);
   
+  // eslint-disable-next-line security/detect-object-injection
   logger[logLevel](responseLogData, message);
 };
+
+interface SetupResponseLoggingOptions {
+  req: ExtendedRequest;
+  res: Response;
+  requestId: string;
+  startTime: number;
+  timing: RequestTiming;
+  responseBody: unknown;
+  config: RequestResponseLoggerOptions;
+  logger: Logger;
+}
 
 /**
  * Setup response logging handlers
  */
-export const setupResponseLogging = (
-  req: ExtendedRequest,
-  res: Response,
-  requestId: string,
-  startTime: number,
-  timing: RequestTiming,
-  responseBody: unknown,
-  config: RequestResponseLoggerOptions,
-  logger: Logger,
-): void => {
-  const logResponseHandler = () => {
-    logResponse(req, res, requestId, startTime, timing, responseBody, config, logger);
+export const setupResponseLogging = (options: SetupResponseLoggingOptions): void => {
+  const { req, res, requestId, startTime, timing, responseBody, config, logger } = options;
+  const logResponseHandler = (): void => {
+    logResponse({ req, res, requestId, startTime, timing, responseBody, config, logger });
   };
 
   // Handle both 'finish' and 'close' events

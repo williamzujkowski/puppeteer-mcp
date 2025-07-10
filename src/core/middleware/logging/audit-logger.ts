@@ -30,13 +30,13 @@ export const logAuditEvent = async (
   }
 
   const auditResult = getAuditResult(res.statusCode);
-  const metadata = formatAuditMetadata(
+  const metadata = formatAuditMetadata({
     req,
     res,
-    auditData.requestId,
-    auditData.duration,
-    auditData.isSlowRequest
-  );
+    requestId: auditData.requestId,
+    duration: auditData.duration,
+    isSlowRequest: auditData.isSlowRequest,
+  });
   
   await logSecurityEvent(SecurityEventType.HTTP_REQUEST_COMPLETED, {
     userId: req.user?.userId,

@@ -39,8 +39,10 @@ export const redactSensitiveData = (
       );
 
       if (shouldRedact) {
+        // eslint-disable-next-line security/detect-object-injection
         result[key] = '[REDACTED]';
       } else {
+        // eslint-disable-next-line security/detect-object-injection
         result[key] = redactRecursive(value, [...path, key]);
       }
     }
@@ -68,8 +70,10 @@ export const redactSensitiveHeaders = (
     );
 
     if (shouldRedact) {
+      // eslint-disable-next-line security/detect-object-injection
       redacted[key] = '[REDACTED]';
     } else {
+      // eslint-disable-next-line security/detect-object-injection
       redacted[key] = value ?? '';
     }
   }
@@ -81,7 +85,7 @@ export const redactSensitiveHeaders = (
  * Check if content type should be logged
  */
 export const shouldLogContentType = (contentType: string | undefined, loggedTypes: string[]): boolean => {
-  if (contentType == null || contentType === '') return false;
+  if (contentType === undefined || contentType === null || contentType === '') return false;
   const type = contentType.toLowerCase().split(';')[0] ?? '';
   return loggedTypes.some((loggedType) => type.includes(loggedType));
 };

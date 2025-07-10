@@ -16,33 +16,71 @@ import { DEFAULT_SENSITIVE_HEADERS, DEFAULT_SENSITIVE_BODY_FIELDS } from './log-
  * @nist au-3 "Content of audit records"
  * @nist si-10 "Information input validation"
  */
+/**
+ * Check if body is too large
+ */
+const isBodyTooLarge = (contentLength: number, maxSize: number): boolean => {
+  return contentLength > maxSize;
+};
+
+/**
+ * Handle JSON and form data content types
+ */
+const handleStructuredData = (
+  body: unknown,
+  sensitiveFields: string[],
+): unknown => {
+  return redactSensitiveData(body as Record<string, unknown>, sensitiveFields);
+};
+
+/**
+ * Handle text content types
+ */
+const handleTextData = (body: unknown, maxSize: number): string => {
+  const bodyStr = String(body ?? '');
+  return bodyStr.length > maxSize ? `[TEXT TOO LARGE: ${bodyStr.length} chars]` : bodyStr;
+};
+
+/**
+ * Parse request body based on content type
+ */
+const parseBodyByContentType = (
+  contentType: string,
+  body: unknown,
+  maxSize: number,
+  sensitiveFields: string[],
+): unknown => {
+  if (contentType.includes('application/json') || 
+      contentType.includes('application/x-www-form-urlencoded')) {
+    return handleStructuredData(body, sensitiveFields);
+  }
+  
+  if (contentType.includes('multipart/form-data')) {
+    return '[MULTIPART DATA]';
+  }
+  
+  if (contentType.includes('text/')) {
+    return handleTextData(body, maxSize);
+  }
+  
+  return `[BINARY DATA: ${contentType}]`;
+};
+
 export const parseRequestBody = (
   req: ExtendedRequest,
   maxSize: number,
   sensitiveFields: string[],
 ): unknown => {
   try {
-    const contentType = req.get('content-type') || '';
-    const contentLength = parseInt(req.get('content-length') || '0', 10);
+    const contentType = req.get('content-type') ?? '';
+    const contentLength = parseInt(req.get('content-length') ?? '0', 10);
     
     // Skip if body is too large
-    if (contentLength > maxSize) {
+    if (isBodyTooLarge(contentLength, maxSize)) {
       return `[BODY TOO LARGE: ${contentLength} bytes]`;
     }
 
-    // Handle different content types
-    if (contentType.includes('application/json')) {
-      return redactSensitiveData(req.body as Record<string, unknown>, sensitiveFields);
-    } else if (contentType.includes('application/x-www-form-urlencoded')) {
-      return redactSensitiveData(req.body as Record<string, unknown>, sensitiveFields);
-    } else if (contentType.includes('multipart/form-data')) {
-      return '[MULTIPART DATA]';
-    } else if (contentType.includes('text/')) {
-      const bodyStr = String(req.body || '');
-      return bodyStr.length > maxSize ? `[TEXT TOO LARGE: ${bodyStr.length} chars]` : bodyStr;
-    } else {
-      return `[BINARY DATA: ${contentType}]`;
-    }
+    return parseBodyByContentType(contentType, req.body, maxSize, sensitiveFields);
   } catch (error) {
     return `[PARSE ERROR: ${error instanceof Error ? error.message : 'Unknown error'}]`;
   }
@@ -63,7 +101,7 @@ export const logRequest = (
   logger: Logger,
 ): void => {
   // Extract custom metadata
-  const customMetadata = config.metadataExtractor?.(req, {} as any) || {};
+  const customMetadata = config.metadataExtractor?.(req, {} as any) ?? {};
   
   // Prepare request log data
   const requestLogData = formatRequestLogData(req, requestId, customMetadata);
@@ -72,7 +110,7 @@ export const logRequest = (
   if (config.includeHeaders === true) {
     const headers = formatHeaders(
       req.headers as Record<string, string | string[]>,
-      config.sensitiveHeaders || DEFAULT_SENSITIVE_HEADERS,
+      config.sensitiveHeaders ?? DEFAULT_SENSITIVE_HEADERS,
     );
     requestLogData.headers = headers;
   }
@@ -80,12 +118,12 @@ export const logRequest = (
   // Add request body if configured
   if (
     config.includeRequestBody === true &&
-    shouldLogContentType(req.get('content-type'), config.loggedContentTypes || [])
+    shouldLogContentType(req.get('content-type'), config.loggedContentTypes ?? [])
   ) {
     requestLogData.body = parseRequestBody(
       req,
-      config.maxBodySize || 8192,
-      config.sensitiveBodyFields || DEFAULT_SENSITIVE_BODY_FIELDS,
+      config.maxBodySize ?? 8192,
+      config.sensitiveBodyFields ?? DEFAULT_SENSITIVE_BODY_FIELDS,
     );
   }
 

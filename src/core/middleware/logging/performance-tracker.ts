@@ -23,9 +23,7 @@ export const createTiming = (highPrecision: boolean = false): RequestTiming => {
  * @nist au-8 "Time stamps"
  */
 export const calculateTiming = (timing: RequestTiming): RequestTiming => {
-  if (!timing.endTime) {
-    timing.endTime = hrtime();
-  }
+  timing.endTime ??= hrtime();
   
   const diff = hrtime(timing.startTime);
   timing.duration = diff[0] * 1000 + diff[1] / 1000000; // Convert to milliseconds
@@ -91,7 +89,7 @@ export class PerformanceTracker {
    */
   getAverage(key: string): number | null {
     const values = this.metrics.get(key);
-    if (values == null || values.length === 0) return null;
+    if (values === undefined || values === null || values.length === 0) return null;
     
     return values.reduce((sum, val) => sum + val, 0) / values.length;
   }
@@ -101,10 +99,11 @@ export class PerformanceTracker {
    */
   getPercentile(key: string, percentile: number): number | null {
     const values = this.metrics.get(key);
-    if (values == null || values.length === 0) return null;
+    if (values === undefined || values === null || values.length === 0) return null;
     
     const sorted = [...values].sort((a, b) => a - b);
     const index = Math.ceil((percentile / 100) * sorted.length) - 1;
+    // eslint-disable-next-line security/detect-object-injection
     return sorted[index] ?? null;
   }
   
@@ -121,7 +120,7 @@ export class PerformanceTracker {
     p99: number;
   } | null {
     const values = this.metrics.get(key);
-    if (values == null || values.length === 0) return null;
+    if (values === undefined || values === null || values.length === 0) return null;
     
     const sorted = [...values].sort((a, b) => a - b);
     const count = sorted.length;

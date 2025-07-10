@@ -30,17 +30,17 @@ import { logAuditEvent } from './audit-logger.js';
 export const requestResponseLogger = (
   options: RequestResponseLoggerOptions = {},
 ): ((req: ExtendedRequest, res: Response, next: NextFunction) => void) => {
-  const verbosity = options.verbosity || VerbosityLevel.STANDARD;
+  const verbosity = options.verbosity ?? VerbosityLevel.STANDARD;
   const config = { ...getDefaultConfig(verbosity), ...options };
-  const logger = options.logger || createLogger('request-response-logger');
+  const logger = options.logger ?? createLogger('request-response-logger');
   
   return (req: ExtendedRequest, res: Response, next: NextFunction): void => {
     const startTime = Date.now();
     const timing = createTiming(config.highPrecisionTiming);
 
     // Generate or extract request ID
-    const requestId = req.id || 
-      (config.requestIdHeader ? req.get(config.requestIdHeader) : undefined) ||
+    const requestId = req.id ??
+      (config.requestIdHeader !== null && config.requestIdHeader !== undefined && config.requestIdHeader !== '' ? req.get(config.requestIdHeader) : undefined) ??
       randomUUID();
     
     // Attach request logging data
@@ -58,7 +58,7 @@ export const requestResponseLogger = (
     const { getResponseBody } = setupResponseBodyCapture(res, config);
 
     // Setup response logging
-    const logResponseHandler = async () => {
+    const logResponseHandler = async (): Promise<void> => {
       // Skip response logging if configured
       if (shouldSkipResponse(req, res, config)) {
         return;
@@ -69,16 +69,16 @@ export const requestResponseLogger = (
       const responseBody = getResponseBody();
       
       // Log response
-      setupResponseLogging(req, res, requestId, startTime, endTiming, responseBody, config, logger);
+      setupResponseLogging({ req, res, requestId, startTime, timing: endTiming, responseBody, config, logger });
       
       // Log audit event
-      const duration = endTiming.duration || (Date.now() - startTime);
-      const isSlowRequest = duration > (config.slowRequestThreshold || 1000);
+      const duration = endTiming.duration ?? (Date.now() - startTime);
+      const isSlowRequestValue = config.slowRequestThreshold !== null && config.slowRequestThreshold !== undefined ? duration > config.slowRequestThreshold : duration > 1000;
       
       await logAuditEvent(req, res, {
         requestId,
         duration,
-        isSlowRequest,
+        isSlowRequest: isSlowRequestValue,
         config,
       });
     };
@@ -87,10 +87,12 @@ export const requestResponseLogger = (
     setupErrorLogging(req, res, requestId, logger);
 
     // Handle response logging
-    res.on('finish', logResponseHandler);
+    res.on('finish', () => {
+      void logResponseHandler();
+    });
     res.on('close', () => {
       if (!res.headersSent) {
-        logResponseHandler();
+        void logResponseHandler();
       }
     });
 

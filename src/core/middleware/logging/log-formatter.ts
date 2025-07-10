@@ -42,14 +42,17 @@ export const formatRequestLogData = (
 /**
  * Format response log data
  */
-export const formatResponseLogData = (
-  req: ExtendedRequest,
-  res: Response,
-  requestId: string,
-  duration: number,
-  isSlowRequest: boolean,
-  customMetadata: Record<string, unknown> = {},
-): ResponseLogData => {
+interface ResponseLogOptions {
+  req: ExtendedRequest;
+  res: Response;
+  requestId: string;
+  duration: number;
+  isSlowRequest: boolean;
+  customMetadata?: Record<string, unknown>;
+}
+
+export const formatResponseLogData = (options: ResponseLogOptions): ResponseLogData => {
+  const { req, res, requestId, duration, isSlowRequest, customMetadata = {} } = options;
   return {
     type: 'HTTP_RESPONSE',
     eventType: SecurityEventType.HTTP_REQUEST_COMPLETED,
@@ -133,13 +136,16 @@ export const formatErrorLogData = (
 /**
  * Format audit metadata
  */
-export const formatAuditMetadata = (
-  req: ExtendedRequest,
-  res: Response,
-  requestId: string,
-  duration: number,
-  isSlowRequest: boolean,
-): Record<string, unknown> => {
+interface AuditMetadataOptions {
+  req: ExtendedRequest;
+  res: Response;
+  requestId: string;
+  duration: number;
+  isSlowRequest: boolean;
+}
+
+export const formatAuditMetadata = (options: AuditMetadataOptions): Record<string, unknown> => {
+  const { req, res, requestId, duration, isSlowRequest } = options;
   return {
     requestId,
     statusCode: res.statusCode,
@@ -191,10 +197,10 @@ export const formatHeaders = (
  * Format content length for display
  */
 export const formatContentLength = (contentLength: string | undefined): string => {
-  if (!contentLength) return 'unknown';
+  if (contentLength === null || contentLength === undefined || contentLength === '') return 'unknown';
   
   const bytes = parseInt(contentLength, 10);
-  if (isNaN(bytes)) return contentLength;
+  if (Number.isNaN(bytes)) return contentLength;
   
   if (bytes < 1024) return `${bytes}B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)}KB`;
