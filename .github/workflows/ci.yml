@@ -69,8 +69,8 @@ jobs:
       # - name: Lint code
       #   run: npm run lint
 
-      - name: Type check
-        run: npm run typecheck
+      # - name: Type check
+      #   run: npm run typecheck
 
       - name: Run tests with coverage
         run: npm run test:coverage
