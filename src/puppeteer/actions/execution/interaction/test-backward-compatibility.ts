@@ -4,18 +4,13 @@
  */
 
 import { InteractionExecutor } from '../interaction-executor.js';
-import type { ActionContext } from '../../../interfaces/action-executor.interface.js';
 
 // Test function to verify all methods still exist and work
 async function testBackwardCompatibility() {
   // Create executor instance
   const executor = new InteractionExecutor();
   
-  // Mock context
-  const _mockContext: ActionContext = {
-    sessionId: 'test-session',
-    contextId: 'test-context',
-  };
+  // Mock context would be created here if needed for tests
 
   // Test that all methods exist
   console.warn('Testing method existence...');

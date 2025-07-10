@@ -8,7 +8,6 @@
 import type { Page } from 'puppeteer';
 import type {
   BrowserAction,
-  NavigateAction as _NavigateAction,
   ActionResult,
   ActionContext,
 } from '../../../interfaces/action-executor.interface.js';

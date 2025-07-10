@@ -28,7 +28,7 @@ async function basicValidation() {
   };
   
   const result = await orchestrator.validate(action, context);
-  console.log('Validation result:', result);
+  console.warn('Validation result:', result);
 }
 
 /**
@@ -54,7 +54,7 @@ async function parallelValidation() {
     timeout: 2000, // 2 second timeout
   });
   
-  console.log('Parallel validation completed:', result);
+  console.warn('Parallel validation completed:', result);
 }
 
 /**
@@ -78,7 +78,7 @@ async function specificValidators() {
   };
   
   const result = await navValidator.validate(action, context);
-  console.log('Navigation validation:', result);
+  console.warn('Navigation validation:', result);
 }
 
 /**
@@ -143,7 +143,7 @@ async function batchValidation() {
   const results = await orchestrator.validateBatch(actions, context);
   
   results.forEach((result, index) => {
-    console.log(`Action ${index + 1} validation:`, result);
+    console.warn(`Action ${index + 1} validation:`, result);
   });
 }
 
@@ -168,7 +168,7 @@ async function securityValidation() {
   };
   
   const result = await orchestrator.validate(action, context);
-  console.log('Security validation result:', result);
+  console.warn('Security validation result:', result);
 }
 
 /**
@@ -194,7 +194,7 @@ async function selectiveValidation() {
     skipValidators: ['SecurityValidator'],
   });
   
-  console.log('Validation without security checks:', result);
+  console.warn('Validation without security checks:', result);
 }
 
 // Export examples for documentation
