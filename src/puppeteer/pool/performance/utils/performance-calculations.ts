@@ -4,7 +4,7 @@
  * @nist au-6 "Audit review, analysis, and reporting"
  */
 
-import type {
+import {
   PerformanceMetricType,
   AlertLevel,
 } from '../types/performance-monitor.types.js';
@@ -75,8 +75,8 @@ export class PerformanceCalculations implements IPerformanceCalculations {
 
     return {
       average: sum / values.length,
-      min: sorted[0],
-      max: sorted[sorted.length - 1],
+      min: sorted[0] ?? 0,
+      max: sorted[sorted.length - 1] ?? 0,
       percentile95: this.calculatePercentile(sorted, 95),
       percentile99: this.calculatePercentile(sorted, 99),
     };
@@ -103,7 +103,7 @@ export class PerformanceCalculations implements IPerformanceCalculations {
     // Calculate correlation coefficient
     const sumX = x.reduce((sum, val) => sum + val, 0);
     const sumY = y.reduce((sum, val) => sum + val, 0);
-    const sumXY = x.reduce((sum, val, i) => sum + val * y[i], 0);
+    const sumXY = x.reduce((sum, val, i) => sum + val * (y[i] ?? 0), 0);
     const sumXX = x.reduce((sum, val) => sum + val * val, 0);
     const sumYY = y.reduce((sum, val) => sum + val * val, 0);
 
@@ -221,10 +221,12 @@ export class PerformanceCalculations implements IPerformanceCalculations {
     const upper = Math.ceil(index);
     
     if (lower === upper) {
-      return sortedValues[lower];
+      return sortedValues[lower] ?? 0;
     }
     
     const weight = index - lower;
-    return sortedValues[lower] * (1 - weight) + sortedValues[upper] * weight;
+    const lowerValue = sortedValues[lower] ?? 0;
+    const upperValue = sortedValues[upper] ?? 0;
+    return lowerValue * (1 - weight) + upperValue * weight;
   }
 }
