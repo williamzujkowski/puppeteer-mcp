@@ -1,5 +1,5 @@
 /**
- * Main action executor coordinator using modular components
+ * Main action executor coordinator facade
  * @module puppeteer/actions/execution/action-executor
  * @nist ac-3 "Access enforcement"
  * @nist ac-4 "Information flow enforcement"
@@ -7,7 +7,6 @@
  * @nist si-10 "Information input validation"
  */
 
-import type { Page } from 'puppeteer';
 import type {
   ActionExecutor,
   BrowserAction,
@@ -17,40 +16,49 @@ import type {
 } from '../../interfaces/action-executor.interface.js';
 import type { PageManager } from '../../interfaces/page-manager.interface.js';
 import type { BatchExecutionOptions } from '../batch-executor.js';
-import { ActionValidator } from './action-validator.js';
-import { ActionContextManager } from './context-manager.js';
-import { ActionErrorHandler } from './error-handler.js';
-import { ActionDispatcher } from './action-dispatcher.js';
-import { ActionHistoryManager } from '../history-manager.js';
+import type { ExecutionConfig } from './coordinator/configuration-manager.js';
+import type { ActionMetrics, AggregatedMetrics } from './coordinator/metrics-collector.js';
+import type { PerformanceHints } from './coordinator/performance-optimizer.js';
 import { BatchActionExecutor } from '../batch-executor.js';
-import { createLogger, logSecurityEvent, SecurityEventType } from '../../../utils/logger.js';
+import { CoordinatorFactory } from './coordinator/coordinator-factory.js';
+import type { CoordinatorComponents } from './coordinator/coordinator-factory.js';
+import { createLogger } from '../../../utils/logger.js';
 
 const logger = createLogger('puppeteer:modular-action-executor');
 
 /**
- * Modular browser action executor implementation
+ * Modular browser action executor implementation (Facade Pattern)
  * @nist ac-3 "Access enforcement"
  * @nist au-3 "Content of audit records"
  */
 export class ModularBrowserActionExecutor implements ActionExecutor {
-  private readonly validator: ActionValidator;
-  private readonly contextManager: ActionContextManager;
-  private readonly errorHandler: ActionErrorHandler;
-  private readonly dispatcher: ActionDispatcher;
-  private readonly historyManager: ActionHistoryManager;
+  private readonly components: CoordinatorComponents;
   private readonly batchExecutor: BatchActionExecutor;
 
-  constructor(pageManager?: PageManager) {
-    this.validator = new ActionValidator();
-    this.contextManager = new ActionContextManager(pageManager);
-    this.errorHandler = new ActionErrorHandler();
-    this.dispatcher = new ActionDispatcher();
-    this.historyManager = new ActionHistoryManager();
+  constructor(pageManager?: PageManager, config?: Partial<ExecutionConfig>) {
+    // Create all coordinator components using factory
+    this.components = CoordinatorFactory.createComponents({
+      pageManager,
+      config,
+      enableMetrics: config?.performance?.enableMetrics ?? true,
+      enableSecurityBatching: false,
+      enablePerformanceOptimization: true,
+    });
+
+    // Create batch executor with reference to this facade
     this.batchExecutor = new BatchActionExecutor(this);
+    
+    // Wire up the batch executor in components
+    this.components.batchExecutor = this.batchExecutor;
+
+    logger.info('Modular action executor initialized', {
+      hasPageManager: !!pageManager,
+      componentsCount: Object.keys(this.components).length,
+    });
   }
 
   /**
-   * Execute a browser action
+   * Execute a browser action using orchestrated components
    * @param action - Browser action to execute
    * @param context - Execution context
    * @returns Action result
@@ -61,146 +69,20 @@ export class ModularBrowserActionExecutor implements ActionExecutor {
     action: BrowserAction,
     context: ActionContext,
   ): Promise<ActionResult<T>> {
-    const startTime = Date.now();
-
-    try {
-      // Log security event for action execution start
-      await logSecurityEvent(SecurityEventType.COMMAND_EXECUTED, {
-        userId: context.userId,
-        resource: `page:${action.pageId}`,
-        action: `${action.type}_start`,
-        result: 'success',
-        metadata: {
-          sessionId: context.sessionId,
-          contextId: context.contextId,
-          actionType: action.type,
-          actionId: `${action.type}-${Date.now()}`,
-          startTime: new Date().toISOString(),
-        },
-      });
-
-      logger.info('Executing browser action with modular components', {
-        sessionId: context.sessionId,
-        contextId: context.contextId,
+    // Get performance hints
+    const hints = this.components.performanceOptimizer.getPerformanceHints(action, context);
+    
+    // Log performance hints if significant
+    if (hints.estimatedDuration > 5000 || hints.blockResources.length > 0) {
+      logger.debug('Performance hints generated', {
         actionType: action.type,
-        pageId: action.pageId,
+        estimatedDuration: hints.estimatedDuration,
+        resourceBlocking: hints.blockResources.length,
       });
-
-      // Phase 1: Validation
-      const validationResult = await this.validate(action, context);
-      if (!validationResult.valid) {
-        const result = await this.errorHandler.handleValidationFailure<T>(
-          action,
-          context,
-          validationResult,
-          Date.now() - startTime,
-        );
-        this.historyManager.addToHistory(context, result);
-        return result;
-      }
-
-      // Phase 2: Context and Page Management
-      const page = await this.contextManager.getPage(action.pageId, context);
-      if (!page) {
-        const result = this.errorHandler.createPageNotFoundResult<T>(
-          action,
-          Date.now() - startTime,
-        );
-        this.historyManager.addToHistory(context, result);
-        return result;
-      }
-
-      // Validate page readiness
-      const isPageReady = await this.contextManager.validatePageReady(page, context);
-      if (!isPageReady) {
-        const result = await this.errorHandler.handleExecutionError<T>(
-          action,
-          context,
-          new Error('Page is not ready for action execution'),
-          Date.now() - startTime,
-        );
-        this.historyManager.addToHistory(context, result);
-        return result;
-      }
-
-      // Setup page for action
-      await this.contextManager.setupPageForAction(page, context, action.timeout);
-
-      // Phase 3: Action Execution with Error Handling
-      const result = await this.errorHandler.executeWithRetry(
-        (actionToExecute, pageInstance, executionContext) => 
-          this.dispatcher.dispatch(actionToExecute, pageInstance, executionContext),
-        action,
-        page,
-        context,
-      );
-
-      // Phase 4: Cleanup and History
-      await this.contextManager.cleanupAfterAction(page, context, true);
-      this.historyManager.addToHistory(context, result);
-
-      logger.info('Browser action executed successfully with modular components', {
-        sessionId: context.sessionId,
-        contextId: context.contextId,
-        actionType: action.type,
-        success: result.success,
-        duration: result.duration,
-      });
-
-      // Log successful action completion
-      await logSecurityEvent(SecurityEventType.COMMAND_EXECUTED, {
-        userId: context.userId,
-        resource: `page:${action.pageId}`,
-        action: `${action.type}_complete`,
-        result: result.success ? 'success' : 'failure',
-        metadata: {
-          sessionId: context.sessionId,
-          contextId: context.contextId,
-          actionType: action.type,
-          actionId: `${action.type}-${Date.now()}`,
-          duration: result.duration,
-          success: result.success,
-          error: result.error,
-        },
-      });
-
-      return result as ActionResult<T>;
-    } catch (error) {
-      const result = await this.errorHandler.handleExecutionError<T>(
-        action,
-        context,
-        error,
-        Date.now() - startTime,
-      );
-
-      logger.error('Browser action execution failed with modular components', {
-        sessionId: context.sessionId,
-        contextId: context.contextId,
-        actionType: action.type,
-        error: result.error,
-        duration: result.duration,
-      });
-
-      // Log action execution failure
-      await logSecurityEvent(SecurityEventType.COMMAND_EXECUTED, {
-        userId: context.userId,
-        resource: `page:${action.pageId}`,
-        action: `${action.type}_error`,
-        result: 'failure',
-        reason: error instanceof Error ? error.message : 'Unknown error',
-        metadata: {
-          sessionId: context.sessionId,
-          contextId: context.contextId,
-          actionType: action.type,
-          actionId: `${action.type}-${Date.now()}`,
-          duration: result.duration,
-          error: result.error,
-        },
-      });
-
-      this.historyManager.addToHistory(context, result);
-      return result;
     }
+
+    // Delegate to orchestrator
+    return await this.components.orchestrator.orchestrateExecution<T>(action, context);
   }
 
   /**
@@ -227,44 +109,40 @@ export class ModularBrowserActionExecutor implements ActionExecutor {
    */
   async validate(action: BrowserAction, context: ActionContext): Promise<ValidationResult> {
     try {
-      logger.debug('Validating browser action with modular validator', {
+      logger.debug('Validating browser action', {
         sessionId: context.sessionId,
         contextId: context.contextId,
         actionType: action.type,
       });
 
-      // Check if action type is supported by dispatcher
-      if (!this.dispatcher.isActionSupported(action.type)) {
+      // Check if action type is supported
+      if (!this.components.dispatcher.isActionSupported(action.type)) {
         return {
           valid: false,
-          errors: [
-            {
-              field: 'type',
-              message: `Unsupported action type: ${action.type}`,
-              code: 'UNSUPPORTED_ACTION',
-            },
-          ],
+          errors: [{
+            field: 'type',
+            message: `Unsupported action type: ${action.type}`,
+            code: 'UNSUPPORTED_ACTION',
+          }],
         };
       }
 
-      // Validate dispatcher action compatibility
-      if (!this.dispatcher.validateActionForDispatch(action)) {
+      // Validate dispatcher compatibility
+      if (!this.components.dispatcher.validateActionForDispatch(action)) {
         return {
           valid: false,
-          errors: [
-            {
-              field: 'action',
-              message: 'Action is not valid for dispatch',
-              code: 'INVALID_ACTION_FOR_DISPATCH',
-            },
-          ],
+          errors: [{
+            field: 'action',
+            message: 'Action is not valid for dispatch',
+            code: 'INVALID_ACTION_FOR_DISPATCH',
+          }],
         };
       }
 
       // Perform detailed validation
-      return await this.validator.validate(action, context);
+      return await this.components.validator.validate(action, context);
     } catch (error) {
-      logger.error('Action validation failed with modular validator', {
+      logger.error('Action validation failed', {
         sessionId: context.sessionId,
         contextId: context.contextId,
         actionType: action.type,
@@ -273,13 +151,11 @@ export class ModularBrowserActionExecutor implements ActionExecutor {
 
       return {
         valid: false,
-        errors: [
-          {
-            field: 'unknown',
-            message: error instanceof Error ? error.message : 'Unknown validation error',
-            code: 'VALIDATION_ERROR',
-          },
-        ],
+        errors: [{
+          field: 'unknown',
+          message: error instanceof Error ? error.message : 'Unknown validation error',
+          code: 'VALIDATION_ERROR',
+        }],
       };
     }
   }
@@ -294,7 +170,7 @@ export class ModularBrowserActionExecutor implements ActionExecutor {
     actions: BrowserAction[],
     context: ActionContext,
   ): Promise<ValidationResult[]> {
-    return this.validator.validateBatch(actions, context);
+    return this.components.validator.validateBatch(actions, context);
   }
 
   /**
@@ -306,8 +182,8 @@ export class ModularBrowserActionExecutor implements ActionExecutor {
     actionType: string,
     handler: (action: T, context: ActionContext) => Promise<ActionResult>,
   ): void {
-    // Wrap the handler to include page retrieval
-    this.dispatcher.registerHandler(actionType, async (action, page, context) => {
+    // Wrap handler to include page retrieval
+    this.components.dispatcher.registerHandler(actionType, async (action, _page, context) => {
       return handler(action as T, context);
     });
   }
@@ -317,7 +193,7 @@ export class ModularBrowserActionExecutor implements ActionExecutor {
    * @param actionType - Action type identifier
    */
   unregisterHandler(actionType: string): void {
-    this.dispatcher.unregisterHandler(actionType);
+    this.components.dispatcher.unregisterHandler(actionType);
   }
 
   /**
@@ -325,7 +201,7 @@ export class ModularBrowserActionExecutor implements ActionExecutor {
    * @returns Array of supported action types
    */
   getSupportedActions(): string[] {
-    return this.dispatcher.getSupportedActions();
+    return this.components.dispatcher.getSupportedActions();
   }
 
   /**
@@ -334,7 +210,7 @@ export class ModularBrowserActionExecutor implements ActionExecutor {
    * @returns True if supported
    */
   isActionSupported(actionType: string): boolean {
-    return this.dispatcher.isActionSupported(actionType);
+    return this.components.dispatcher.isActionSupported(actionType);
   }
 
   /**
@@ -354,7 +230,7 @@ export class ModularBrowserActionExecutor implements ActionExecutor {
       endDate?: Date;
     },
   ): Promise<ActionResult[]> {
-    return this.historyManager.getHistory(context, options);
+    return this.components.historyManager.getHistory(context, options);
   }
 
   /**
@@ -364,7 +240,7 @@ export class ModularBrowserActionExecutor implements ActionExecutor {
    * @nist au-4 "Audit storage capacity"
    */
   async clearHistory(context: ActionContext, before?: Date): Promise<void> {
-    this.historyManager.clearHistory(context, before);
+    this.components.historyManager.clearHistory(context, before);
   }
 
   /**
@@ -380,33 +256,104 @@ export class ModularBrowserActionExecutor implements ActionExecutor {
     averageDuration: number;
     actionTypeBreakdown: Record<string, number>;
   }> {
-    return this.historyManager.getMetrics(context);
+    return this.components.historyManager.getMetrics(context);
   }
 
   /**
-   * Get modular executor statistics
+   * Get aggregated performance metrics
+   * @param context - Optional context filter
+   * @param options - Query options
+   * @returns Aggregated metrics
+   */
+  getAggregatedMetrics(
+    context?: ActionContext,
+    options?: {
+      startDate?: Date;
+      endDate?: Date;
+      actionTypes?: string[];
+    },
+  ): AggregatedMetrics {
+    return this.components.metricsCollector.getAggregatedMetrics(context, options);
+  }
+
+  /**
+   * Get session metrics
+   * @param sessionId - Session identifier
+   * @returns Session metrics
+   */
+  getSessionMetrics(sessionId: string): ActionMetrics[] {
+    return this.components.metricsCollector.getSessionMetrics(sessionId);
+  }
+
+  /**
+   * Get performance hints for action
+   * @param action - Browser action
+   * @param context - Execution context
+   * @returns Performance hints
+   */
+  getPerformanceHints(action: BrowserAction, context: ActionContext): PerformanceHints {
+    return this.components.performanceOptimizer.getPerformanceHints(action, context);
+  }
+
+  /**
+   * Get current configuration
+   * @returns Execution configuration
+   */
+  getConfiguration(): Readonly<ExecutionConfig> {
+    return this.components.configManager.getConfig();
+  }
+
+  /**
+   * Update configuration
+   * @param updates - Configuration updates
+   * @param reason - Reason for update
+   */
+  updateConfiguration(updates: Partial<ExecutionConfig>, reason?: string): void {
+    this.components.configManager.updateConfig(updates, reason);
+  }
+
+  /**
+   * Get configuration history
+   * @param limit - Maximum entries to return
+   * @returns Configuration history
+   */
+  getConfigurationHistory(limit = 100): Array<{
+    timestamp: number;
+    changes: Partial<ExecutionConfig>;
+    reason?: string;
+  }> {
+    return this.components.configManager.getConfigHistory(limit);
+  }
+
+  /**
+   * Get executor statistics
    * @returns Executor component statistics
    */
   getExecutorStats(): {
     components: string[];
-    dispatcher: ReturnType<ActionDispatcher['getDispatcherStats']>;
-    contextManager: ReturnType<ActionContextManager['getCacheStats']>;
-    errorHandler: ReturnType<ActionErrorHandler['getRetryConfig']>;
-    hasPageManager: boolean;
+    dispatcher: ReturnType<typeof this.components.dispatcher.getDispatcherStats>;
+    contextManager: ReturnType<typeof this.components.contextManager.getCacheStats>;
+    errorHandler: ReturnType<typeof this.components.errorHandler.getRetryConfig>;
+    performanceOptimizer: ReturnType<typeof this.components.performanceOptimizer.getOptimizationStats>;
+    configuration: {
+      hasPageManager: boolean;
+      metricsEnabled: boolean;
+      securityEventsEnabled: boolean;
+    };
   } {
+    const config = this.components.configManager.getConfig();
+    
     return {
-      components: [
-        'ActionValidator',
-        'ActionContextManager',
-        'ActionErrorHandler',
-        'ActionDispatcher',
-        'ActionHistoryManager',
-        'BatchActionExecutor',
-      ],
-      dispatcher: this.dispatcher.getDispatcherStats(),
-      contextManager: this.contextManager.getCacheStats(),
-      errorHandler: this.errorHandler.getRetryConfig(),
-      hasPageManager: this.contextManager.hasPageManager(),
+      components: Object.keys(this.components),
+      dispatcher: this.components.dispatcher.getDispatcherStats(),
+      contextManager: this.components.contextManager.getCacheStats(),
+      errorHandler: this.components.errorHandler.getRetryConfig(),
+      performanceOptimizer: this.components.performanceOptimizer.getOptimizationStats(),
+      configuration: {
+        hasPageManager: this.components.contextManager.hasPageManager(),
+        metricsEnabled: config.performance.enableMetrics,
+        securityEventsEnabled: config.security.enableSecurityEvents,
+      },
     };
   }
 
@@ -415,7 +362,7 @@ export class ModularBrowserActionExecutor implements ActionExecutor {
    * @returns Map of categories to action types
    */
   getActionCategories(): Map<string, string[]> {
-    return this.dispatcher.getActionCategories();
+    return this.components.dispatcher.getActionCategories();
   }
 
   /**
@@ -423,44 +370,42 @@ export class ModularBrowserActionExecutor implements ActionExecutor {
    * @param actionType - Action type
    * @returns Execution recommendation
    */
-  getExecutionRecommendation(actionType: string): ReturnType<ActionDispatcher['getExecutorRecommendation']> {
-    return this.dispatcher.getExecutorRecommendation(actionType);
+  getExecutionRecommendation(actionType: string): ReturnType<typeof this.components.dispatcher.getExecutorRecommendation> {
+    return this.components.dispatcher.getExecutorRecommendation(actionType);
   }
 
   /**
    * Update retry configuration
    * @param config - Partial retry configuration
    */
-  updateRetryConfig(config: Parameters<ActionErrorHandler['updateRetryConfig']>[0]): void {
-    this.errorHandler.updateRetryConfig(config);
+  updateRetryConfig(config: Parameters<typeof this.components.errorHandler.updateRetryConfig>[0]): void {
+    this.components.errorHandler.updateRetryConfig(config);
   }
 
   /**
    * Clear page cache
    */
   clearPageCache(): void {
-    this.contextManager.clearCache();
+    this.components.contextManager.clearCache();
+  }
+
+  /**
+   * Stop all background processes
+   */
+  stop(): void {
+    // Stop security event coordinator if it has background processes
+    if ('stop' in this.components.securityCoordinator) {
+      this.components.securityCoordinator.stop();
+    }
+    
+    logger.info('Modular action executor stopped');
   }
 
   /**
    * Get internal components for testing purposes
    * @internal
    */
-  getInternalComponents(): {
-    validator: ActionValidator;
-    contextManager: ActionContextManager;
-    errorHandler: ActionErrorHandler;
-    dispatcher: ActionDispatcher;
-    historyManager: ActionHistoryManager;
-    batchExecutor: BatchActionExecutor;
-  } {
-    return {
-      validator: this.validator,
-      contextManager: this.contextManager,
-      errorHandler: this.errorHandler,
-      dispatcher: this.dispatcher,
-      historyManager: this.historyManager,
-      batchExecutor: this.batchExecutor,
-    };
+  getInternalComponents(): CoordinatorComponents {
+    return this.components;
   }
 }
