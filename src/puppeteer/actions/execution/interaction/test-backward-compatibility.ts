@@ -4,54 +4,45 @@
  */
 
 import { InteractionExecutor } from '../interaction-executor.js';
-import type { Page } from 'puppeteer';
-import type {
-  ClickAction,
-  TypeAction,
-  SelectAction,
-  KeyboardAction,
-  MouseAction,
-  ActionContext,
-} from '../../../interfaces/action-executor.interface.js';
+import type { ActionContext } from '../../../interfaces/action-executor.interface.js';
 
 // Test function to verify all methods still exist and work
 async function testBackwardCompatibility() {
   // Create executor instance
   const executor = new InteractionExecutor();
   
-  // Mock page and context
-  const mockPage = {} as Page;
-  const mockContext: ActionContext = {
+  // Mock context
+  const _mockContext: ActionContext = {
     sessionId: 'test-session',
     contextId: 'test-context',
   };
 
   // Test that all methods exist
-  console.log('Testing method existence...');
-  console.assert(typeof executor.executeClick === 'function', 'executeClick method exists');
-  console.assert(typeof executor.executeType === 'function', 'executeType method exists');
-  console.assert(typeof executor.executeSelect === 'function', 'executeSelect method exists');
-  console.assert(typeof executor.executeKeyboard === 'function', 'executeKeyboard method exists');
-  console.assert(typeof executor.executeMouse === 'function', 'executeMouse method exists');
-  console.assert(typeof executor.executeHover === 'function', 'executeHover method exists');
-  console.assert(typeof executor.execute === 'function', 'execute method exists');
-  console.assert(typeof executor.getSupportedActions === 'function', 'getSupportedActions method exists');
+  console.warn('Testing method existence...');
+  if (typeof executor.executeClick !== 'function') throw new Error('executeClick method missing');
+  if (typeof executor.executeType !== 'function') throw new Error('executeType method missing');
+  if (typeof executor.executeSelect !== 'function') throw new Error('executeSelect method missing');
+  if (typeof executor.executeKeyboard !== 'function') throw new Error('executeKeyboard method missing');
+  if (typeof executor.executeMouse !== 'function') throw new Error('executeMouse method missing');
+  if (typeof executor.executeHover !== 'function') throw new Error('executeHover method missing');
+  if (typeof executor.execute !== 'function') throw new Error('execute method missing');
+  if (typeof executor.getSupportedActions !== 'function') throw new Error('getSupportedActions method missing');
 
   // Test new methods
-  console.assert(typeof executor.registerHandler === 'function', 'registerHandler method exists');
-  console.assert(typeof executor.unregisterHandler === 'function', 'unregisterHandler method exists');
+  if (typeof executor.registerHandler !== 'function') throw new Error('registerHandler method missing');
+  if (typeof executor.unregisterHandler !== 'function') throw new Error('unregisterHandler method missing');
 
   // Test getSupportedActions
   const supportedActions = executor.getSupportedActions();
-  console.log('Supported actions:', supportedActions);
-  console.assert(supportedActions.includes('click'), 'click action supported');
-  console.assert(supportedActions.includes('type'), 'type action supported');
-  console.assert(supportedActions.includes('select'), 'select action supported');
-  console.assert(supportedActions.includes('keyboard'), 'keyboard action supported');
-  console.assert(supportedActions.includes('mouse'), 'mouse action supported');
-  console.assert(supportedActions.includes('hover'), 'hover action supported');
+  console.warn('Supported actions:', supportedActions);
+  if (!supportedActions.includes('click')) throw new Error('click action not supported');
+  if (!supportedActions.includes('type')) throw new Error('type action not supported');
+  if (!supportedActions.includes('select')) throw new Error('select action not supported');
+  if (!supportedActions.includes('keyboard')) throw new Error('keyboard action not supported');
+  if (!supportedActions.includes('mouse')) throw new Error('mouse action not supported');
+  if (!supportedActions.includes('hover')) throw new Error('hover action not supported');
 
-  console.log('✅ All backward compatibility tests passed!');
+  console.warn('✅ All backward compatibility tests passed!');
 }
 
 // Run tests if this file is executed directly
