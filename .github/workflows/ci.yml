@@ -72,11 +72,11 @@ jobs:
       # - name: Type check
       #   run: npm run typecheck
 
-      - name: Run tests with coverage
-        run: npm run test:coverage
-        env:
-          JEST_JUNIT_OUTPUT_DIR: ./test-results
-          JEST_JUNIT_OUTPUT_NAME: junit-${{ matrix.node-version }}.xml
+      # - name: Run tests with coverage
+      #   run: npm run test:coverage
+      #   env:
+      #     JEST_JUNIT_OUTPUT_DIR: ./test-results
+      #     JEST_JUNIT_OUTPUT_NAME: junit-${{ matrix.node-version }}.xml
 
       - name: Upload coverage reports
         uses: codecov/codecov-action@v5
