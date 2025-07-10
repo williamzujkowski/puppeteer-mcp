@@ -8,14 +8,14 @@
  * providing backward compatibility while delegating to specialized modules.
  */
 
-import type { Page, JSHandle } from 'puppeteer';
+import type { Page } from 'puppeteer';
 import type {
   BrowserAction,
   ActionResult,
   ActionContext,
   EvaluateAction,
 } from '../../interfaces/action-executor.interface.js';
-import type { EvaluationConfig } from './types.js';
+// import type { EvaluationConfig } from './types.js';
 import { DEFAULT_CONFIG } from './types.js';
 import { createLogger } from '../../../utils/logger.js';
 import {
@@ -259,38 +259,6 @@ export class EvaluationExecutor {
     switch (action.type) {
       case 'evaluate':
         return this.executeEvaluate(action as EvaluateAction, page, context);
-      case 'evaluateHandle': {
-        const evalHandleAction = action as {
-          function: string;
-          args?: unknown[];
-          timeout?: number;
-        };
-        return this.executeEvaluateHandle(
-          evalHandleAction.function,
-          page,
-          context,
-          evalHandleAction.args,
-          evalHandleAction.timeout,
-        );
-      }
-      case 'injectScript': {
-        const injectAction = action as { script: string; timeout?: number };
-        return this.executeInjectScript(
-          injectAction.script,
-          page,
-          context,
-          injectAction.timeout,
-        );
-      }
-      case 'injectCSS': {
-        const cssAction = action as { css: string; timeout?: number };
-        return this.executeInjectCSS(
-          cssAction.css,
-          page,
-          context,
-          cssAction.timeout,
-        );
-      }
       default:
         throw new Error(`Unsupported evaluation action: ${action.type}`);
     }

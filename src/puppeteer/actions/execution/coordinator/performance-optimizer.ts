@@ -34,7 +34,7 @@ export class PerformanceOptimizer {
   private cacheMissCount = 0;
 
   constructor(
-    private readonly configManager: ConfigurationManager,
+    private readonly _configManager: ConfigurationManager,
     private readonly metricsCollector: MetricsCollector,
   ) {
     this.analyzer = new PerformanceAnalyzer();

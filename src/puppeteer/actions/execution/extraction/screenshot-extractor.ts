@@ -59,10 +59,11 @@ export class ScreenshotExtractor {
       throw new Error(`Element not found: ${selector}`);
     }
 
-    return element.screenshot({
+    const screenshotData = await element.screenshot({
       type: config.format,
       quality: config.format === 'jpeg' ? config.quality : undefined,
     });
+    return Buffer.from(screenshotData);
   }
 
   /**
@@ -76,11 +77,12 @@ export class ScreenshotExtractor {
     page: Page,
     config: ScreenshotConfig,
   ): Promise<Buffer> {
-    return page.screenshot({
+    const screenshotData = await page.screenshot({
       fullPage: config.fullPage,
       type: config.format,
       quality: config.format === 'jpeg' ? config.quality : undefined,
     });
+    return Buffer.from(screenshotData);
   }
 
   /**

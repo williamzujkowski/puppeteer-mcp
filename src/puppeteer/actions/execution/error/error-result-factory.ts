@@ -34,7 +34,7 @@ export class ErrorResultFactory {
     logger.warn('Creating validation failure result', {
       actionType: action.type,
       errors: validationResult.errors.length,
-      warnings: validationResult.warnings.length,
+      warnings: validationResult.warnings?.length ?? 0,
     });
 
     return {

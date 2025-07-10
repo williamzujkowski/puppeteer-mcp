@@ -19,6 +19,7 @@ import type { BatchExecutionOptions } from '../batch-executor.js';
 import type { ExecutionConfig } from './coordinator/configuration-manager.js';
 import type { ActionMetrics, AggregatedMetrics } from './coordinator/metrics-collector.js';
 import type { PerformanceHints } from './coordinator/performance-optimizer.js';
+import type { RetryConfig } from './types.js';
 import { BatchActionExecutor } from '../batch-executor.js';
 import { CoordinatorFactory } from './coordinator/coordinator-factory.js';
 import type { CoordinatorComponents } from './coordinator/coordinator-factory.js';
@@ -331,10 +332,23 @@ export class ModularBrowserActionExecutor implements ActionExecutor {
    */
   getExecutorStats(): {
     components: string[];
-    dispatcher: ReturnType<typeof this.components.dispatcher.getDispatcherStats>;
-    contextManager: ReturnType<typeof this.components.contextManager.getCacheStats>;
-    errorHandler: ReturnType<typeof this.components.errorHandler.getRetryConfig>;
-    performanceOptimizer: ReturnType<typeof this.components.performanceOptimizer.getOptimizationStats>;
+    dispatcher: {
+      builtInExecutors: number;
+      customHandlers: number;
+      totalActions: number;
+      actionsByCategory: Record<string, number>;
+    };
+    contextManager: {
+      size: number;
+      pages: string[];
+    };
+    errorHandler: RetryConfig;
+    performanceOptimizer: {
+      strategiesCount: number;
+      enabledStrategies: string[];
+      resourceBlockPatterns: number;
+      cacheHitRate: number;
+    };
     configuration: {
       hasPageManager: boolean;
       metricsEnabled: boolean;

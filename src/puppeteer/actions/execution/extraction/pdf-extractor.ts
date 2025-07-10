@@ -119,7 +119,7 @@ export class PDFExtractor {
    * @nist ac-3 "Access enforcement"
    */
   private async generatePDF(page: Page, config: PDFConfig): Promise<Buffer> {
-    return page.pdf({
+    const pdfData = await page.pdf({
       format: config.format,
       landscape: config.landscape,
       scale: config.scale,
@@ -132,6 +132,7 @@ export class PDFExtractor {
       margin: config.margin,
       timeout: config.timeout,
     });
+    return Buffer.from(pdfData);
   }
 
   /**

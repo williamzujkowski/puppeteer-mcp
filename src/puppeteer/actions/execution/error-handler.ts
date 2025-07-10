@@ -36,7 +36,7 @@ export class ActionErrorHandler {
   private readonly retryConfig: RetryConfig;
   private readonly errorClassifier: ErrorClassifier;
   private readonly securityEventHandler: SecurityEventHandler;
-  private readonly retryExecutor: RetryExecutor;
+  private retryExecutor: RetryExecutor;
 
   constructor(retryConfig?: Partial<RetryConfig>) {
     this.retryConfig = { ...DEFAULT_CONFIG.RETRY, ...retryConfig };
@@ -230,68 +230,6 @@ export class ActionErrorHandler {
     }
   }
 
-  /**
-   * Check if error is retryable
-   * @param error - Error to check
-   * @returns True if error should be retried
-   * @deprecated Use ErrorClassifier.isRetryable() instead
-   */
-  private isRetryableError(error: unknown): boolean {
-    return this.errorClassifier.isRetryable(error);
-  }
-
-  /**
-   * Wait before retry with exponential backoff
-   * @param attempt - Current attempt number
-   * @deprecated Handled internally by RetryExecutor
-   */
-  private async waitBeforeRetry(attempt: number): Promise<void> {
-    const delay = Math.min(
-      this.retryConfig.baseDelay * Math.pow(this.retryConfig.backoffMultiplier, attempt - 1),
-      this.retryConfig.maxDelay,
-    );
-
-    logger.debug('Waiting before retry', { attempt, delay });
-    
-    await new Promise<void>((resolve) => {
-      setTimeout(resolve, delay);
-    });
-  }
-
-  /**
-   * Analyze error to determine type and details
-   * @param error - Error to analyze
-   * @param action - Action that caused the error
-   * @returns Error details
-   * @deprecated Use ErrorClassifier.classify() instead
-   */
-  private analyzeError(error: unknown, action?: BrowserAction): ReturnType<ErrorClassifier['classify']> {
-    return this.errorClassifier.classify(error, action);
-  }
-
-  /**
-   * Extract timeout type from error message
-   * @deprecated Handled internally by ErrorClassifier
-   */
-  private getTimeoutType(_message: string): string {
-    return 'general';
-  }
-
-  /**
-   * Extract selector from error message
-   * @deprecated Handled internally by ErrorClassifier
-   */
-  private extractSelector(_message: string): string | undefined {
-    return undefined;
-  }
-
-  /**
-   * Extract URL from error message
-   * @deprecated Handled internally by ErrorClassifier
-   */
-  private extractUrl(_message: string): string | undefined {
-    return undefined;
-  }
 
   /**
    * Get retry configuration

@@ -240,7 +240,7 @@ export class BrowserContextTool {
       });
 
       const contextValidation = await this.validateContextAccess(args);
-      if ('error' in contextValidation) return contextValidation;
+      if ('content' in contextValidation) return contextValidation;
 
       await this.closeContextResources(args.contextId, args.sessionId);
       await this.cleanupContextProxy(contextValidation, args.contextId);

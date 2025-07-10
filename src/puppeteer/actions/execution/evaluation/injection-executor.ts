@@ -316,7 +316,7 @@ export class InjectionExecutionStrategy implements BaseEvaluationStrategy {
    * @param type - Content type
    * @returns True if preprocessing is needed
    */
-  private shouldPreprocessContent(content: string, _type: string): boolean {
+  private _shouldPreprocessContent(content: string, _type: string): boolean {
     // Check for templating or dynamic content that might need preprocessing
     const templatePatterns = [
       /\{\{.*\}\}/,  // Handlebars/Mustache
@@ -333,7 +333,7 @@ export class InjectionExecutionStrategy implements BaseEvaluationStrategy {
    * @param type - Content type
    * @returns Preprocessed content
    */
-  private preprocessContent(content: string, _type: string): string {
+  private _preprocessContent(content: string, _type: string): string {
     // For security, we don't actually process templates
     // Instead, we strip potentially dangerous template syntax
     let processed = content;
@@ -354,7 +354,7 @@ export class InjectionExecutionStrategy implements BaseEvaluationStrategy {
    * @param expectedType - Expected injection type
    * @returns True if result is valid
    */
-  private validateInjectionResult(result: { url?: string }, _expectedType: string): boolean {
+  private _validateInjectionResult(result: { url?: string }, _expectedType: string): boolean {
     // Basic validation of injection result
     if (typeof result !== 'object' || result === null) {
       return false;

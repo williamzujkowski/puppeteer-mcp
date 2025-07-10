@@ -84,12 +84,10 @@ export class ProxyContextManager extends EventEmitter {
       reason,
     });
 
-    await logSecurityEvent(SecurityEventType.CONFIGURATION_CHANGE, {
+    await logSecurityEvent(SecurityEventType.RESOURCE_UPDATED, {
       resource: `context:${contextId}`,
       action: 'proxy_rotation',
       reason,
-      oldProxyId,
-      newProxyId,
     });
 
     return rotationEvent;

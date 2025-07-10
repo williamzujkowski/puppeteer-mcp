@@ -6,7 +6,7 @@
 
 export { ErrorClassifier } from './error-classifier.js';
 export { 
-  RetryStrategy,
+  type RetryStrategy,
   BaseRetryStrategy,
   ExponentialBackoffStrategy,
   LinearRetryStrategy,
@@ -16,7 +16,7 @@ export {
 } from './retry-strategy.js';
 export { SecurityEventHandler } from './security-event-handler.js';
 export {
-  RecoveryStrategy,
+  type RecoveryStrategy,
   BaseRecoveryStrategy,
   ElementNotFoundRecovery,
   NavigationFailureRecovery,

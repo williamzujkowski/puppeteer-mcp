@@ -177,7 +177,7 @@ export class ActionContextManager {
 
       // Ensure page is not loading
       try {
-        await page.waitForLoadState('networkidle', { timeout: 5000 });
+        await page.waitForLoadState?.('networkidle', { timeout: 5000 });
       } catch {
         // Ignore timeout - page might be in a valid state
         logger.debug('Page load state timeout (ignored)', {

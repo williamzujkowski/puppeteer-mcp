@@ -94,7 +94,7 @@ export class PerformanceAnalyzer {
    * @param action - Browser action
    * @returns True if JavaScript should be disabled
    */
-  private shouldDisableJavaScript(action: BrowserAction): boolean {
+  private shouldDisableJavaScript(_action: BrowserAction): boolean {
     // Most actions require JavaScript
     return false;
   }
@@ -107,7 +107,7 @@ export class PerformanceAnalyzer {
   private getResourceBlockList(action: BrowserAction): string[] {
     const baseBlockList = ['media', 'font'];
 
-    if (action.type === 'extractText') {
+    if (action.type === 'getText' || action.type === 'content') {
       return [...baseBlockList, 'image', 'stylesheet'];
     }
 
@@ -124,8 +124,8 @@ export class PerformanceAnalyzer {
    * @returns True if cache should be used
    */
   private shouldUseCache(action: BrowserAction): boolean {
-    // Use cache for most actions except explicit refresh
-    return action.type !== 'reload';
+    // Use cache for most actions except navigation (which may be refreshing)
+    return action.type !== 'navigate';
   }
 
   /**

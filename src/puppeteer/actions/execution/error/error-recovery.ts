@@ -80,7 +80,7 @@ export class ElementNotFoundRecovery extends BaseRecoveryStrategy {
       });
 
       // Wait for any pending navigation
-      await page.waitForLoadState('domcontentloaded', { timeout: 5000 }).catch(() => {
+      await page.waitForLoadState?.('domcontentloaded', { timeout: 5000 }).catch(() => {
         // Ignore timeout, page might already be loaded
       });
 
@@ -120,7 +120,7 @@ export class NavigationFailureRecovery extends BaseRecoveryStrategy {
       });
 
       // Check if page is responsive
-      const isResponsive = await page.evaluate<boolean>(() => true).catch(() => false);
+      const isResponsive = await page.evaluate(() => true).catch(() => false);
       
       if (!isResponsive) {
         logger.warn('Page is not responsive');
@@ -133,7 +133,7 @@ export class NavigationFailureRecovery extends BaseRecoveryStrategy {
       });
 
       // Wait for stability
-      await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {
+      await page.waitForLoadState?.('networkidle', { timeout: 5000 }).catch(() => {
         // Ignore timeout
       });
 
@@ -167,7 +167,7 @@ export class TimeoutRecovery extends BaseRecoveryStrategy {
 
       // Check page responsiveness
       const startTime = Date.now();
-      const isResponsive = await page.evaluate<boolean>(() => true).catch(() => false);
+      const isResponsive = await page.evaluate(() => true).catch(() => false);
       const responseTime = Date.now() - startTime;
 
       logger.debug('Page responsiveness check', { isResponsive, responseTime });

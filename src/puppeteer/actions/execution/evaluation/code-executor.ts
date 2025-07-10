@@ -306,7 +306,7 @@ export class CodeExecutionStrategy implements BaseEvaluationStrategy {
    * @returns Sanitized arguments
    * @nist si-10 "Information input validation"
    */
-  private prepareArguments(args: unknown[]): unknown[] {
+  private _prepareArguments(args: unknown[]): unknown[] {
     return args.map(arg => {
       // For security, we avoid passing functions or complex objects
       // that might contain dangerous references

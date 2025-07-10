@@ -147,7 +147,7 @@ export class ResourceBlockingStrategy implements OptimizationStrategy {
   private getResourceBlockList(action: BrowserAction): string[] {
     const baseBlockList = ['media', 'font'];
 
-    if (action.type === 'extractText') {
+    if (action.type === 'getText' || action.type === 'content') {
       return [...baseBlockList, 'image', 'stylesheet'];
     }
 

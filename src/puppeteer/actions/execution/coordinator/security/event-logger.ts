@@ -64,7 +64,7 @@ export class SecurityEventLogger {
     return {
       sessionId: context.sessionId,
       contextId: context.contextId,
-      userId: context.userId,
+      userId: context.userId ?? 'unknown',
       actionType: action.type,
       actionId: `${action.type}-${Date.now()}`,
       timestamp: new Date().toISOString(),

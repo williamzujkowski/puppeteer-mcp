@@ -268,8 +268,7 @@ export class RetryExecutor {
   private shouldRetryResult(result: ActionResult, attempt: number): boolean {
     if (result.success) return false;
     
-    const config = this.retryStrategy.getConfig();
-    return attempt < config.maxRetries;
+    return this.retryStrategy.shouldRetry(attempt);
   }
 
   /**
