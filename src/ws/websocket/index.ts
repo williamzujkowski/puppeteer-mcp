@@ -41,6 +41,9 @@ export type {
   SessionManagementOptions,
 } from './types.js';
 
+// Import WSServer for the factory function
+import { WSServer } from './ws-server.js';
+
 // Factory function for backward compatibility
 export function createWebSocketServer(
   logger: import('pino').Logger,

@@ -105,7 +105,7 @@ export class MiddlewarePipeline {
     connectionId: string,
     message: WSMessage,
     connectionManager: ConnectionManager,
-    securityManager: SecurityManager,
+    _securityManager: SecurityManager,
   ): Promise<MiddlewareResult> {
     const state = connectionManager.getConnectionState(connectionId);
     if (!state) {

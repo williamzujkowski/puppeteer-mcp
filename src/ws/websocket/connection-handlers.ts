@@ -95,7 +95,7 @@ export async function handleIncomingMessage(
     const middlewareResult = await deps.middlewarePipeline.executeInbound(
       ws,
       connectionId,
-      message.data,
+      message.data!,
       deps.connectionManager,
       deps.securityManager,
     );
@@ -104,7 +104,7 @@ export async function handleIncomingMessage(
       if (middlewareResult.error) {
         await deps.errorHandler.handleMessageError(
           new Error(middlewareResult.error),
-          { ws, connectionId, message: message.data, connectionManager: deps.connectionManager },
+          { ws, connectionId, message: message.data!, connectionManager: deps.connectionManager },
         );
       }
       return;
@@ -114,7 +114,7 @@ export async function handleIncomingMessage(
     await deps.messageRouter.routeMessage(
       ws,
       connectionId,
-      message.data,
+      message.data!,
       deps.connectionManager,
       deps.authHandler,
       deps.eventHandler,

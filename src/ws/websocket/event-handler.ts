@@ -8,7 +8,8 @@
 import { WebSocket } from 'ws';
 import type { pino } from 'pino';
 import { v4 as uuidv4 } from 'uuid';
-import type { WSMessage, WSConnectionState } from '../../types/websocket.js';
+import { WSMessageType } from '../../types/websocket.js';
+import type { WSMessage } from '../../types/websocket.js';
 import { logSecurityEvent, SecurityEventType } from '../../utils/logger.js';
 import type { ConnectionManager } from './connection-manager.js';
 import type { WSComponentDependencies, EventHandlerOptions, MessageFilter } from './types.js';
@@ -220,7 +221,7 @@ export class EventHandler {
 
     let broadcastCount = 0;
     const message: WSMessage = {
-      type: 'subscription_update',
+      type: WSMessageType.SUBSCRIPTION_UPDATE,
       id: uuidv4(),
       timestamp: new Date().toISOString(),
       topic,

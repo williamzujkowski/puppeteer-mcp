@@ -6,7 +6,8 @@
  */
 
 import { WebSocket } from 'ws';
-import type { WSMessage, WSMessageType } from '../../types/websocket.js';
+import { WSMessageType } from '../../types/websocket.js';
+import type { WSMessage } from '../../types/websocket.js';
 import type { ConnectionManager } from './connection-manager.js';
 import type { HealthMonitor } from './health-monitor.js';
 import type { WSComponentDependencies } from './types.js';
@@ -272,7 +273,7 @@ export class ErrorHandler extends ErrorHandlerCore {
     if (ws.readyState === WebSocket.OPEN) {
       try {
         const errorMessage: WSMessage = {
-          type: 'error' as WSMessageType,
+          type: WSMessageType.ERROR,
           id: requestId,
           timestamp: new Date().toISOString(),
           error,

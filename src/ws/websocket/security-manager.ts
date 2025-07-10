@@ -13,7 +13,6 @@ import { WebSocketRateLimitPresets } from '../rate-limiter.js';
 import type {
   WSComponentDependencies,
   SecurityValidationOptions,
-  RateLimitConfig,
   ConnectionVerificationInfo,
   ConnectionVerificationCallback,
 } from './types.js';
@@ -288,7 +287,7 @@ export class SecurityManager {
    */
   private performSecurityChecks(
     info: ConnectionVerificationInfo,
-    clientIp: string,
+    _clientIp: string,
   ): { allowed: boolean; reason?: string; code?: number } {
     // Check if secure connection is required
     if (this.options.requireSecure && !info.secure) {
@@ -322,7 +321,7 @@ export class SecurityManager {
   /**
    * Generate rate limit key for client
    */
-  private getRateLimitKey(clientIp: string, info: ConnectionVerificationInfo): string {
+  private getRateLimitKey(clientIp: string, _info: ConnectionVerificationInfo): string {
     // Use client IP as the primary rate limiting key
     // Could be enhanced to include user agent, origin, etc.
     return `ip:${clientIp}`;

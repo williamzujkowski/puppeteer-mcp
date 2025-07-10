@@ -6,7 +6,7 @@
  */
 
 import type { SessionStore } from '../../../store/session-store.interface.js';
-import type { SessionInfo, SessionPersistenceData } from './types.js';
+import type { SessionInfo } from './types.js';
 import type { SessionEventEmitter } from './event-emitter.js';
 import type { pino } from 'pino';
 

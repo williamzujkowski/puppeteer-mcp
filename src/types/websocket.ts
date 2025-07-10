@@ -56,6 +56,32 @@ export const wsAuthMessageSchema = wsBaseMessageSchema.extend({
 });
 
 /**
+ * Authentication success message schema
+ */
+export const wsAuthSuccessMessageSchema = wsBaseMessageSchema.extend({
+  type: z.literal(WSMessageType.AUTH_SUCCESS),
+  data: z.object({
+    userId: z.string().optional(),
+    sessionId: z.string().optional(),
+    roles: z.array(z.string()).optional(),
+    permissions: z.array(z.string()).optional(),
+    scopes: z.array(z.string()).optional(),
+  }),
+});
+
+/**
+ * Authentication error message schema
+ */
+export const wsAuthErrorMessageSchema = wsBaseMessageSchema.extend({
+  type: z.literal(WSMessageType.AUTH_ERROR),
+  error: z.object({
+    code: z.string(),
+    message: z.string(),
+    details: z.unknown().optional(),
+  }).optional(),
+});
+
+/**
  * Request message schema
  */
 export const wsRequestMessageSchema = wsBaseMessageSchema.extend({
@@ -135,6 +161,8 @@ export const wsPingPongMessageSchema = wsBaseMessageSchema.extend({
  */
 export const wsMessageSchema = z.discriminatedUnion('type', [
   wsAuthMessageSchema,
+  wsAuthSuccessMessageSchema,
+  wsAuthErrorMessageSchema,
   wsRequestMessageSchema,
   wsResponseMessageSchema,
   wsEventMessageSchema,

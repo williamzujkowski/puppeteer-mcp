@@ -9,7 +9,8 @@ import { WebSocket } from 'ws';
 import type { pino } from 'pino';
 import type { SessionStore } from '../../store/session-store.interface.js';
 import { logSecurityEvent, SecurityEventType } from '../../utils/logger.js';
-import type { WSAuthMessage, WSMessage, WSMessageType } from '../../types/websocket.js';
+import { WSMessageType } from '../../types/websocket.js';
+import type { WSAuthMessage, WSMessage } from '../../types/websocket.js';
 import type { ConnectionManager } from './connection-manager.js';
 import type { WSComponentDependencies } from './types.js';
 
@@ -48,7 +49,7 @@ export class AuthenticationHandler {
    * @nist au-3 "Content of audit records"
    */
   async handleAuthentication(
-    ws: WebSocket,
+    _ws: WebSocket,
     connectionId: string,
     message: WSAuthMessage,
     connectionManager: ConnectionManager,
@@ -60,7 +61,6 @@ export class AuthenticationHandler {
       await logSecurityEvent(SecurityEventType.AUTHENTICATION_ATTEMPT, {
         resource: 'websocket',
         action: 'authenticate',
-        result: 'attempt',
         metadata: {
           connectionId,
           remoteAddress,
@@ -107,7 +107,7 @@ export class AuthenticationHandler {
         return this.createAuthSuccessMessage(message.id, authResult);
       } else {
         // Log authentication failure
-        await logSecurityEvent(SecurityEventType.AUTHENTICATION_FAILURE, {
+        await logSecurityEvent(SecurityEventType.WS_AUTHENTICATION_FAILED, {
           resource: 'websocket',
           action: 'authenticate',
           result: 'failure',
@@ -134,10 +134,10 @@ export class AuthenticationHandler {
       });
 
       // Log authentication error
-      await logSecurityEvent(SecurityEventType.AUTHENTICATION_FAILURE, {
+      await logSecurityEvent(SecurityEventType.WS_AUTHENTICATION_FAILED, {
         resource: 'websocket',
         action: 'authenticate',
-        result: 'error',
+        result: 'failure',
         metadata: {
           connectionId,
           error: errorMessage,
@@ -265,7 +265,7 @@ export class AuthenticationHandler {
    */
   private createAuthSuccessMessage(requestId: string | undefined, authResult: AuthenticationResult): WSMessage {
     return {
-      type: 'auth_success' as WSMessageType,
+      type: WSMessageType.AUTH_SUCCESS,
       id: requestId,
       timestamp: new Date().toISOString(),
       data: {
@@ -286,7 +286,7 @@ export class AuthenticationHandler {
     error?: { code: string; message: string },
   ): WSMessage {
     return {
-      type: 'auth_error' as WSMessageType,
+      type: WSMessageType.AUTH_ERROR,
       id: requestId,
       timestamp: new Date().toISOString(),
       error: error ?? {
