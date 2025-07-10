@@ -6,17 +6,9 @@
  */
 
 import type { Page } from 'puppeteer';
-import type { ActionResult, ActionContext, BaseBrowserAction } from '../../../interfaces/action-executor.interface.js';
+import type { ActionResult, ActionContext, HoverAction } from '../../../interfaces/action-executor.interface.js';
 import { BaseInteractionHandler } from './base-handler.js';
 import { DEFAULT_CONFIG } from '../types.js';
-
-/**
- * Hover action interface
- */
-export interface HoverAction extends BaseBrowserAction {
-  type: 'hover';
-  selector: string;
-}
 
 /**
  * Hover action handler implementation
