@@ -189,7 +189,7 @@ export function initializeProxyTelemetry(): void {
     updateHealthyProxyCount(1);
   });
 
-  proxyManager.on('proxy:unhealthy', ({ proxyId, error }: { proxyId: string; error: any }) => {
+  proxyManager.on('proxy:unhealthy', ({ proxyId, error: _error }: { proxyId: string; error: any }) => {
     recordProxyHealthCheck(proxyId, false, 0);
     updateHealthyProxyCount(-1);
   });

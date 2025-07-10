@@ -135,8 +135,8 @@ export class MigrationPhaseFactory {
         },
         circuitBreaker: {
           enabled: true,
-          errorThreshold: 10,
-          resetTimeout: 30000,
+          failureThreshold: 10,
+          timeout: 30000,
         },
       },
       rollbackPlan: 'Disable circuit breaker',

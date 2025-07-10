@@ -10,6 +10,9 @@
  * @nist cm-2 "Baseline configuration"
  */
 export interface BrowserPoolScalingStrategy {
+  enabled?: boolean;
+  enablePredictiveScaling?: boolean;
+  predictionWindow?: number;
   minSize: number;
   maxSize: number;
   targetUtilization: number;

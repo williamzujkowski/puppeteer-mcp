@@ -45,7 +45,7 @@ export class AdaptiveSampler implements Sampler {
     spanName: string,
     spanKind: number,
     attributes: Attributes,
-    links: Link[],
+    _links: Link[],
   ): SamplingResult {
     this.updateStats();
     
@@ -112,7 +112,7 @@ export class AttributeBasedSampler implements Sampler {
     spanName: string,
     spanKind: number,
     attributes: Attributes,
-    links: Link[],
+    _links: Link[],
   ): SamplingResult {
     // Check attribute rules
     for (const rule of this.attributeRules) {
@@ -208,7 +208,7 @@ export class PriorityBasedSampler implements Sampler {
     spanName: string,
     spanKind: number,
     attributes: Attributes,
-    links: Link[],
+    _links: Link[],
   ): SamplingResult {
     const priority = attributes[this.priorityAttribute];
     

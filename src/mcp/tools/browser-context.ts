@@ -86,9 +86,9 @@ export class BrowserContextTool {
 
     const options = proxyOptions as Record<string, unknown>;
     return {
-      enabled: options.enabled as boolean,
-      proxy: options.config as Record<string, unknown>,
-      pool: options.pool as Record<string, unknown>,
+      enabled: (options.enabled as boolean) ?? false,
+      proxy: options.config ? (options.config as any) : undefined,
+      pool: options.pool ? (options.pool as any) : undefined,
       rotateOnError: (options.rotateOnError as boolean) ?? true,
       rotateOnInterval: (options.rotateOnInterval as boolean) ?? false,
       rotationInterval: (options.rotationInterval as number) ?? 3600000,

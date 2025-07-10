@@ -30,8 +30,8 @@ export class PerformanceInstrumentation {
   private errorHandler: ReturnType<typeof createErrorHandler>;
   private timers: Map<string, PerformanceTimer> = new Map();
 
-  constructor(private context: InstrumentationContext) {
-    this.errorHandler = createErrorHandler(context);
+  constructor(private _context: InstrumentationContext) {
+    this.errorHandler = createErrorHandler(_context);
   }
 
   /**

@@ -143,8 +143,8 @@ export class CompatibilityValidator {
       },
       circuitBreaker: {
         enabled: currentUsage.errorRate > 2,
-        errorThreshold: Math.max(5, Math.ceil(currentUsage.errorRate * 1.5)),
-        resetTimeout: 30000,
+        failureThreshold: Math.max(5, Math.ceil(currentUsage.errorRate * 1.5)),
+        timeout: 30000,
       },
       performanceMonitoring: {
         enabled: true,

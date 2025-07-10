@@ -9,9 +9,9 @@ import type {
   BrowserAction,
   ActionContext,
   ValidationResult,
-  ScreenshotAction,
-  PDFAction,
-  ContentAction,
+  ScreenshotAction as _ScreenshotAction,
+  PDFAction as _PDFAction,
+  ContentAction as _ContentAction,
 } from '../../../interfaces/action-executor.interface.js';
 // import type { ValidationError } from '../types.js';
 import { BaseValidator } from './base-validator.js';

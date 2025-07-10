@@ -15,7 +15,7 @@ import type { ExtendedPoolMetrics } from './browser-pool-metrics.js';
 import type { OptimizationConfig, OptimizationStatus } from './optimization-config.js';
 import { PerformanceMetricType } from './browser-pool-performance-monitor.js';
 
-const logger = createLogger('optimization-monitoring');
+const _logger = createLogger('optimization-monitoring');
 
 /**
  * Optimization monitoring and metrics collection

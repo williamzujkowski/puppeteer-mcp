@@ -37,6 +37,7 @@ export interface PerformanceMonitoringConfig {
   collectionInterval: number;
   retentionPeriod: number;
   alertingEnabled: boolean;
+  detailedLogging?: boolean;
   alertThresholds: {
     [key in PerformanceMetricType]: {
       warning: number;
