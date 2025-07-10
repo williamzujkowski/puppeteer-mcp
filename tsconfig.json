@@ -2,7 +2,7 @@
   "compilerOptions": {
     // Language and Environment
     "target": "ES2020",
-    "lib": ["ES2020"],
+    "lib": ["ES2020", "DOM"],
     "module": "ES2022",
     "moduleResolution": "node",
     
@@ -69,7 +69,9 @@
     "dist",
     "tests",
     "**/*.spec.ts",
-    "**/*.test.ts"
+    "**/*.test.ts",
+    "src/mcp/examples/**/*",
+    "src/puppeteer/actions/execution/interaction/test-backward-compatibility.ts"
   ],
   "ts-node": {
     "esm": true,
