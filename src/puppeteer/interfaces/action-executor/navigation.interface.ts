@@ -39,6 +39,15 @@ export interface WaitAction extends BaseBrowserAction {
   
   /** JavaScript function string for function wait */
   function?: string;
+  
+  /** Wait for element to be visible */
+  visible?: boolean;
+  
+  /** Wait for element to be hidden */
+  hidden?: boolean;
+  
+  /** Wait condition for navigation completion */
+  waitUntil?: 'load' | 'domcontentloaded' | 'networkidle0' | 'networkidle2';
 }
 
 /**

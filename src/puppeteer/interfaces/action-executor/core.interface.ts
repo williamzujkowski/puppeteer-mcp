@@ -93,6 +93,15 @@ export interface ActionContext {
 
   /** Execution metadata */
   metadata?: Record<string, unknown>;
+
+  /** Whether the context is in restricted mode */
+  restrictedMode?: boolean;
+
+  /** Whether evaluation is allowed in the context */
+  allowEvaluation?: boolean;
+
+  /** Timestamp of the context creation or last update */
+  timestamp?: string | number;
 }
 
 /**
