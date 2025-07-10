@@ -74,6 +74,60 @@ export interface ScrollAction extends BaseBrowserAction {
 }
 
 /**
+ * Go back action
+ * @description Navigate back in browser history
+ */
+export interface GoBackAction extends BaseBrowserAction {
+  type: 'goBack';
+}
+
+/**
+ * Go forward action
+ * @description Navigate forward in browser history
+ */
+export interface GoForwardAction extends BaseBrowserAction {
+  type: 'goForward';
+}
+
+/**
+ * Refresh action
+ * @description Refresh the current page
+ */
+export interface RefreshAction extends BaseBrowserAction {
+  type: 'refresh';
+}
+
+/**
+ * Set viewport action
+ * @description Set browser viewport dimensions
+ */
+export interface SetViewportAction extends BaseBrowserAction {
+  type: 'setViewport';
+  
+  /** Viewport width */
+  width: number;
+  
+  /** Viewport height */
+  height: number;
+  
+  /** Device scale factor */
+  deviceScaleFactor?: number;
+  
+  /** Whether viewport is mobile */
+  isMobile?: boolean;
+  
+  /** Whether to include touch events */
+  hasTouch?: boolean;
+}
+
+/**
  * Navigation-related action types
  */
-export type NavigationActionType = NavigateAction | WaitAction | ScrollAction;
+export type NavigationActionType = 
+  | NavigateAction 
+  | WaitAction 
+  | ScrollAction 
+  | GoBackAction 
+  | GoForwardAction 
+  | RefreshAction 
+  | SetViewportAction;

@@ -11,6 +11,7 @@ import type {
   ActionResult,
   ActionContext,
   BrowserAction,
+  BaseBrowserAction,
 } from '../../../interfaces/action-executor.interface.js';
 import type { FileOperationExecutor, DownloadOperationResult, FileValidationResult } from './file-executor-types.js';
 import { createLogger } from '../../../../utils/logger.js';
@@ -19,7 +20,7 @@ import { checkFileExists, getFileSize, ensureDirectory } from './file-utils.js';
 
 const logger = createLogger('puppeteer:download-executor');
 
-interface DownloadAction extends BrowserAction {
+interface DownloadAction extends BaseBrowserAction {
   type: 'download';
   url: string;
   downloadPath: string;
@@ -34,7 +35,7 @@ interface DownloadAction extends BrowserAction {
  */
 export class DownloadExecutor implements FileOperationExecutor {
   private readonly validator: FileValidator;
-  private readonly downloadTimeout: number;
+  private downloadTimeout: number;
 
   constructor(
     validator?: FileValidator,

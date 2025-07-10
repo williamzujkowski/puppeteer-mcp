@@ -121,7 +121,7 @@ export class NavigationExecutor {
       // Check concurrent navigation limit
       const concurrencyCheck = await this.checkConcurrencyLimit(context.sessionId);
       if (!concurrencyCheck.allowed) {
-        return this.createConcurrencyLimitResult(action, executionStartTime, concurrencyCheck.reason);
+        return this.createConcurrencyLimitResult(action, executionStartTime, concurrencyCheck.reason || 'Concurrency limit exceeded');
       }
 
       // Track navigation start
@@ -401,8 +401,8 @@ export class NavigationExecutor {
     // Add non-sensitive action-specific fields
     if (action.type === 'navigate') {
       const navigateAction = action as NavigateAction;
-      sanitized.url = navigateAction.url;
-      sanitized.waitUntil = navigateAction.waitUntil;
+      (sanitized as any).url = navigateAction.url;
+      (sanitized as any).waitUntil = navigateAction.waitUntil;
     }
 
     return sanitized;

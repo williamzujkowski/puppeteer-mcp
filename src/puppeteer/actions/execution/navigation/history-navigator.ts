@@ -7,7 +7,6 @@
 
 import type { Page, HTTPResponse } from 'puppeteer';
 import type {
-  BrowserAction,
   ActionResult,
   ActionContext,
 } from '../../../interfaces/action-executor.interface.js';

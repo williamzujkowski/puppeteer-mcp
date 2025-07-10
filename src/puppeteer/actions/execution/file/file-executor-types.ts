@@ -103,7 +103,7 @@ export interface FileMetadata {
  */
 export interface DownloadOperationResult {
   validationResult: FileValidationResult;
-  response: unknown; // HTTPResponse | null but avoiding circular imports
+  response: import('puppeteer').HTTPResponse | null;
   fileExists: boolean;
   fileSize: number;
 }

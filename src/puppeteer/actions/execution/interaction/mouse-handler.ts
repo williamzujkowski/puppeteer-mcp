@@ -84,15 +84,16 @@ export class MouseHandler extends BaseInteractionHandler<MouseAction> {
         true,
         this.actionType,
         {
-          action: action.action,
-          x: action.x,
-          y: action.y,
-          button: action.button,
-          deltaX: action.deltaX,
-          deltaY: action.deltaY,
+          data: {
+            action: action.action,
+            x: action.x,
+            y: action.y,
+            button: action.button,
+            deltaX: action.deltaX,
+            deltaY: action.deltaY,
+          },
+          duration,
         },
-        undefined,
-        duration,
       );
     } catch (error) {
       const duration = Date.now() - startTime;
@@ -107,13 +108,14 @@ export class MouseHandler extends BaseInteractionHandler<MouseAction> {
       return this.createActionResult(
         false,
         this.actionType,
-        undefined,
-        errorMessage,
-        duration,
         {
-          action: action.action,
-          x: action.x,
-          y: action.y,
+          error: errorMessage,
+          duration,
+          metadata: {
+            action: action.action,
+            x: action.x,
+            y: action.y,
+          },
         },
       );
     }

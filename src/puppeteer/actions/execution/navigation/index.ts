@@ -12,6 +12,9 @@ export {
   type NavigationExecutorConfig,
 } from './navigation-executor.js';
 
+// Import NavigationExecutor type for return type annotations
+import type { NavigationExecutor } from './navigation-executor.js';
+
 // Navigation factory and strategy pattern
 export {
   NavigationFactory,

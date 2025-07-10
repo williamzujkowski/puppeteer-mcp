@@ -60,12 +60,13 @@ export class HoverHandler extends BaseInteractionHandler<HoverAction> {
         true,
         this.actionType,
         {
-          selector: sanitizedSelector,
-        },
-        undefined,
-        duration,
-        {
-          originalSelector: action.selector,
+          data: {
+            selector: sanitizedSelector,
+          },
+          duration,
+          metadata: {
+            originalSelector: action.selector,
+          },
         },
       );
     } catch (error) {
@@ -81,11 +82,12 @@ export class HoverHandler extends BaseInteractionHandler<HoverAction> {
       return this.createActionResult(
         false,
         this.actionType,
-        undefined,
-        errorMessage,
-        duration,
         {
-          selector: action.selector,
+          error: errorMessage,
+          duration,
+          metadata: {
+            selector: action.selector,
+          },
         },
       );
     }

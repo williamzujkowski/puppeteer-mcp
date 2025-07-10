@@ -67,7 +67,7 @@ export class FileExecutor {
   ): Promise<ActionResult> {
     const action: DownloadAction = {
       type: 'download',
-      pageId: page.target().targetId,
+      pageId: page.target().url() || page.url(),
       url: options.url,
       downloadPath: options.downloadPath,
       timeout: options.timeout,

@@ -458,8 +458,8 @@ export class PerformanceMonitor {
     if (numbers.length === 0) return 0;
     const mid = Math.floor(numbers.length / 2);
     return numbers.length % 2 === 0
-      ? (numbers[mid - 1] + numbers[mid]) / 2
-      : numbers[mid];
+      ? ((numbers[mid - 1] || 0) + (numbers[mid] || 0)) / 2
+      : (numbers[mid] || 0);
   }
 
   /**
@@ -471,7 +471,7 @@ export class PerformanceMonitor {
   private calculatePercentile(numbers: number[], percentile: number): number {
     if (numbers.length === 0) return 0;
     const index = Math.ceil((percentile / 100) * numbers.length) - 1;
-    return numbers[Math.max(0, index)];
+    return numbers[Math.max(0, index)] || 0;
   }
 }
 

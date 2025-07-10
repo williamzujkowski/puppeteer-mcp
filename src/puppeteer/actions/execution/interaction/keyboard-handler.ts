@@ -66,11 +66,12 @@ export class KeyboardHandler extends BaseInteractionHandler<KeyboardAction> {
         true,
         this.actionType,
         {
-          key: action.key,
-          action: action.action,
+          data: {
+            key: action.key,
+            action: action.action,
+          },
+          duration,
         },
-        undefined,
-        duration,
       );
     } catch (error) {
       const duration = Date.now() - startTime;
@@ -86,12 +87,13 @@ export class KeyboardHandler extends BaseInteractionHandler<KeyboardAction> {
       return this.createActionResult(
         false,
         this.actionType,
-        undefined,
-        errorMessage,
-        duration,
         {
-          key: action.key,
-          action: action.action,
+          error: errorMessage,
+          duration,
+          metadata: {
+            key: action.key,
+            action: action.action,
+          },
         },
       );
     }

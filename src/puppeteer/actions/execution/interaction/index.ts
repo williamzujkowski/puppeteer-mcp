@@ -16,7 +16,17 @@ export { SelectHandler } from './select-handler.js';
 export { KeyboardHandler } from './keyboard-handler.js';
 export { MouseHandler } from './mouse-handler.js';
 export { HoverHandler } from './hover-handler.js';
-export type { HoverAction } from './hover-handler.js';
+// Export types from action executor interface
+export type { 
+  HoverAction,
+  ClickAction,
+  TypeAction,
+  SelectAction,
+  KeyboardAction,
+  MouseAction,
+  UploadAction,
+  InteractionActionType
+} from '../../../interfaces/action-executor.interface.js';
 
 // Export factory
 export { InteractionHandlerFactory } from './handler-factory.js';

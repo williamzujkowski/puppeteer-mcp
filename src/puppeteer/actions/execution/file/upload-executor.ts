@@ -192,7 +192,7 @@ export class UploadExecutor implements FileOperationExecutor {
       throw new Error(`File input not found: ${config.selector}`);
     }
 
-    await fileInput.uploadFile(...config.filePaths);
+    await (fileInput as any).uploadFile(...config.filePaths);
 
     // Verify upload by checking the files property
     const uploadedFileNames = await page.$eval(config.selector, (element) => {

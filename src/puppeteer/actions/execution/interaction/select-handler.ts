@@ -54,14 +54,15 @@ export class SelectHandler extends BaseInteractionHandler<SelectAction> {
         true,
         this.actionType,
         {
-          selector: sanitizedSelector,
-          selectedValues,
-          requestedValues: action.values,
-        },
-        undefined,
-        duration,
-        {
-          originalSelector: action.selector,
+          data: {
+            selector: sanitizedSelector,
+            selectedValues,
+            requestedValues: action.values,
+          },
+          duration,
+          metadata: {
+            originalSelector: action.selector,
+          },
         },
       );
     } catch (error) {
@@ -77,12 +78,13 @@ export class SelectHandler extends BaseInteractionHandler<SelectAction> {
       return this.createActionResult(
         false,
         this.actionType,
-        undefined,
-        errorMessage,
-        duration,
         {
-          selector: action.selector,
-          values: action.values,
+          error: errorMessage,
+          duration,
+          metadata: {
+            selector: action.selector,
+            values: action.values,
+          },
         },
       );
     }

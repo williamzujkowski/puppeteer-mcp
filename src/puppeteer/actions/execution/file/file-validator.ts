@@ -29,10 +29,10 @@ const ALLOWED_UPLOAD_EXTENSIONS = [
  * @nist ac-3 "Access enforcement"
  */
 export class FileValidator {
-  private readonly maxFileSize: number;
-  private readonly maxFilesPerUpload: number;
-  private readonly allowedExtensions: Set<string>;
-  private readonly basePath: string;
+  private maxFileSize: number;
+  private maxFilesPerUpload: number;
+  private allowedExtensions: Set<string>;
+  private basePath: string;
 
   constructor(options?: {
     maxFileSize?: number;

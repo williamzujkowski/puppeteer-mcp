@@ -5,7 +5,7 @@
  * @nist si-10 "Information input validation"
  */
 
-import type { Page, Protocol } from 'puppeteer';
+import type { Page } from 'puppeteer';
 import type {
   ActionResult,
   ActionContext,
@@ -253,7 +253,7 @@ export class CookieExecutor implements FileOperationExecutor {
     const cookiesToSet = cookies.map(cookie => ({
       ...cookie,
       url: page.url(), // Ensure cookies are set for current page
-    })) as Protocol.Network.CookieParam[];
+    })) as any[];
 
     await page.setCookie(...cookiesToSet);
 
@@ -270,7 +270,7 @@ export class CookieExecutor implements FileOperationExecutor {
    * @param page - Page instance
    * @returns Array of cookies
    */
-  private async getCookies(page: Page): Promise<Protocol.Network.Cookie[]> {
+  private async getCookies(page: Page): Promise<any[]> {
     const cookies = await page.cookies();
     
     logger.debug('Cookies retrieved', { 

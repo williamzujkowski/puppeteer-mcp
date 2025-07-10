@@ -71,14 +71,15 @@ export class TypeHandler extends BaseInteractionHandler<TypeAction> {
         true,
         this.actionType,
         {
-          selector: sanitizedSelector,
-          textLength: action.text.length,
-          clearFirst: action.clearFirst !== false,
-        },
-        undefined,
-        duration,
-        {
-          originalSelector: action.selector,
+          data: {
+            selector: sanitizedSelector,
+            textLength: action.text.length,
+            clearFirst: action.clearFirst !== false,
+          },
+          duration,
+          metadata: {
+            originalSelector: action.selector,
+          },
         },
       );
     } catch (error) {
@@ -94,12 +95,13 @@ export class TypeHandler extends BaseInteractionHandler<TypeAction> {
       return this.createActionResult(
         false,
         this.actionType,
-        undefined,
-        errorMessage,
-        duration,
         {
-          selector: action.selector,
-          textLength: action.text?.length || 0,
+          error: errorMessage,
+          duration,
+          metadata: {
+            selector: action.selector,
+            textLength: action.text?.length || 0,
+          },
         },
       );
     }

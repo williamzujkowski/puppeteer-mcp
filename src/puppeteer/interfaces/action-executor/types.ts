@@ -29,7 +29,7 @@ export type ActionType = BrowserAction['type'];
  * Type guard for navigation actions
  */
 export function isNavigationAction(action: BrowserAction): action is NavigationActionType {
-  return ['navigate', 'wait', 'scroll'].includes(action.type);
+  return ['navigate', 'wait', 'scroll', 'goBack', 'goForward', 'refresh', 'setViewport'].includes(action.type);
 }
 
 /**
