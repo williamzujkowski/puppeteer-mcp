@@ -86,6 +86,7 @@ export class WebSocketMiddlewarePipeline {
       return;
     }
 
+    // eslint-disable-next-line security/detect-object-injection
     const middleware = this.middlewares[index];
     if (!middleware) {
       return;
