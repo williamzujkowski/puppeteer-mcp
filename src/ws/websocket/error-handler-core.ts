@@ -42,10 +42,10 @@ export class ErrorHandlerCore {
     this.severityStats.set(errorInfo.severity, (this.severityStats.get(errorInfo.severity) ?? 0) + 1);
 
     // Log security event
-    await logSecurityEvent(SecurityEventType.ERROR_OCCURRED, {
+    await logSecurityEvent(SecurityEventType.ERROR, {
       resource: 'websocket',
       action: 'error_handling',
-      result: 'logged',
+      result: 'success',
       metadata: {
         errorType: errorInfo.type,
         severity: errorInfo.severity,

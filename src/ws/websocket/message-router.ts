@@ -10,12 +10,12 @@ import type { pino } from 'pino';
 import { v4 as uuidv4 } from 'uuid';
 import type {
   WSMessage,
-  WSMessageType,
   WSAuthMessage,
   WSRequestMessage,
   WSSubscriptionMessage,
   WSPingPongMessage,
 } from '../../types/websocket.js';
+import { WSMessageType } from '../../types/websocket.js';
 import { logSecurityEvent, SecurityEventType } from '../../utils/logger.js';
 import type { ConnectionManager } from './connection-manager.js';
 import type { AuthenticationHandler } from './authentication-handler.js';

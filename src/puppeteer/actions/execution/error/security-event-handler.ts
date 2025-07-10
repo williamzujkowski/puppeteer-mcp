@@ -165,7 +165,7 @@ export class SecurityEventHandler {
       userId: context.userId,
       resource: `action:${actionType}`,
       action: actionType,
-      result: 'suspicious',
+      result: 'failure',
       reason,
       metadata: {
         sessionId: context.sessionId,
