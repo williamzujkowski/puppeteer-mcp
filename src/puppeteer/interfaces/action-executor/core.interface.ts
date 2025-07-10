@@ -102,6 +102,15 @@ export interface ActionContext {
 
   /** Timestamp of the context creation or last update */
   timestamp?: string | number;
+
+  /** Permissions granted to the context */
+  permissions?: string[];
+
+  /** Allowed domains for navigation */
+  allowedDomains?: string[];
+
+  /** Whether authentication is required */
+  requiresAuth?: boolean;
 }
 
 /**

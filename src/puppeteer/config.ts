@@ -107,14 +107,14 @@ const PRIVACY_BROWSER_ARGS = [
 export function getDefaultLaunchOptions(): LaunchOptions {
   const args = [...SECURITY_BROWSER_ARGS, ...PERFORMANCE_BROWSER_ARGS, ...PRIVACY_BROWSER_ARGS];
 
-  // Parse additional args from environment
+  // Add additional args from environment
   if (
     config.PUPPETEER_ARGS !== null &&
     config.PUPPETEER_ARGS !== undefined &&
-    config.PUPPETEER_ARGS !== ''
+    Array.isArray(config.PUPPETEER_ARGS) &&
+    config.PUPPETEER_ARGS.length > 0
   ) {
-    const additionalArgs = config.PUPPETEER_ARGS.split(',').map((arg) => arg.trim());
-    args.push(...additionalArgs);
+    args.push(...config.PUPPETEER_ARGS);
   }
 
   return {

@@ -26,6 +26,12 @@ export interface ClickAction extends BaseBrowserAction {
   
   /** Delay between down and up in milliseconds */
   delay?: number;
+  
+  /** X offset from element center */
+  offsetX?: number;
+  
+  /** Y offset from element center */
+  offsetY?: number;
 }
 
 /**
@@ -74,6 +80,9 @@ export interface KeyboardAction extends BaseBrowserAction {
   
   /** Keyboard action type */
   action: 'press' | 'down' | 'up';
+  
+  /** Modifier keys to hold during action */
+  modifiers?: string[];
 }
 
 /**

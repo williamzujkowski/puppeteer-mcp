@@ -19,6 +19,12 @@ export interface NavigateAction extends BaseBrowserAction {
   
   /** Wait condition for navigation completion */
   waitUntil?: 'load' | 'domcontentloaded' | 'networkidle0' | 'networkidle2';
+  
+  /** Referrer URL for navigation */
+  referrer?: string;
+  
+  /** Custom headers for navigation request */
+  headers?: Record<string, string>;
 }
 
 /**
