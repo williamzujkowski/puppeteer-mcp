@@ -21,6 +21,8 @@ const logger = createLogger('optimization-checks');
  * Optimization check algorithms and logic
  */
 export class OptimizationChecks {
+  private optimizationActions: { value: number };
+
   constructor(
     private optimizationConfig: OptimizationConfig,
     private scaler: BrowserPoolScaling,
@@ -28,9 +30,18 @@ export class OptimizationChecks {
     private recycler: BrowserPoolRecycler,
     private performanceMonitor: BrowserPoolPerformanceMonitor,
     private optimizationEnabled: boolean,
-    _lastOptimizationCheck: Date,
-    _optimizationActions: { value: number }
-  ) {}
+    private lastOptimizationCheck: Date,
+    optimizationActions: { value: number }
+  ) {
+    this.optimizationActions = optimizationActions;
+  }
+
+  /**
+   * Get the last optimization check timestamp
+   */
+  getLastOptimizationCheck(): Date {
+    return this.lastOptimizationCheck;
+  }
 
   /**
    * Perform optimization check
@@ -49,7 +60,7 @@ export class OptimizationChecks {
     try {
       const browsers = getBrowsersInternal();
       const metrics = getExtendedMetrics();
-      const resourceUsage = this.resourceManager.getBrowserResources() || new Map();
+      const resourceUsage = this.resourceManager.getBrowserResources() as Map<string, any> || new Map<string, any>();
 
       // Check for scaling opportunities
       if (this.optimizationConfig.scaling.enabled) {
@@ -107,18 +118,52 @@ export class OptimizationChecks {
       healthCheckInterval: 30000,
     };
 
-    const scalingDecision = this.scaler.evaluateScaling(
-      metrics,
-      browsers,
+    // Convert ExtendedPoolMetrics to a compatible BrowserPoolMetrics instance
+    // Since evaluateScaling expects a BrowserPoolMetrics class instance, we need to create a mock one
+    // or pass the metrics in a way that the scaler can understand
+    const mockMetrics = {
+      aggregator: null as any,
+      recordBrowserCreated: () => {},
+      recordBrowserDestroyed: () => {},
+      recordPageCreation: () => {},
+      recordPageDestruction: () => {},
+      recordError: () => {},
+      recordHealthCheck: () => {},
+      recordResourceUsage: () => {},
+      recordQueueMetrics: () => {},
+      updateQueueMetrics: () => {},
+      calculateUtilization: () => metrics.utilizationPercentage || 0,
+      calculateAverageResponseTime: () => metrics.avgPageCreationTime || 0,
+      getExtendedMetrics: () => metrics,
+      getMetrics: () => ({
+        totalBrowsers: metrics.totalBrowsers || browsers.size,
+        activeBrowsers: metrics.activeBrowsers || browsers.size,
+        idleBrowsers: metrics.idleBrowsers || 0,
+        totalPages: metrics.totalPages || 0,
+        activePages: metrics.activePages || 0,
+        utilizationPercentage: metrics.utilizationPercentage || 0,
+        lastHealthCheck: new Date(),
+        queueLength: metrics.queue?.queueLength || 0,
+        averagePageCreationTime: metrics.avgPageCreationTime || 0,
+        averageQueueWaitTime: metrics.queue?.averageWaitTime || 0,
+        errorRate: metrics.errors?.errorRate || 0,
+        recoverySuccessRate: (metrics.errors?.recoverySuccesses || 0) / Math.max(1, (metrics.errors?.recoverySuccesses || 0) + (metrics.errors?.recoveryFailures || 0)),
+        cpuUsage: metrics.resources?.avgCpuPerBrowser || 0,
+        memoryUsage: metrics.resources?.avgMemoryPerBrowser || 0,
+      }),
+    } as any;
+
+    const scalingDecision = await this.scaler.evaluateScaling(
+      mockMetrics,
       options
     );
 
-    if (scalingDecision.decision !== 'maintain') {
+    if (scalingDecision && scalingDecision.decision !== 'maintain') {
       logger.info(
         {
           decision: scalingDecision.decision,
           currentSize: browsers.size,
-          targetSize: scalingDecision.targetSize,
+          targetSize: scalingDecision.newSize,
           reason: scalingDecision.reason,
           confidence: scalingDecision.confidence,
         },
@@ -126,13 +171,15 @@ export class OptimizationChecks {
       );
 
       this.optimizationActions.value++;
-      this.scaler.recordScalingAction(
-        scalingDecision.decision,
-        browsers.size,
-        scalingDecision.targetSize
-      );
+      // Note: BrowserPoolScaling class doesn't have recordScalingAction method
+      // The scaling event is already recorded internally by evaluateScaling
 
-      return scalingDecision;
+      return {
+        decision: scalingDecision.decision,
+        targetSize: scalingDecision.newSize,
+        reason: scalingDecision.reason,
+        confidence: scalingDecision.confidence,
+      };
     }
 
     return null;
