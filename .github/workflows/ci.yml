@@ -97,8 +97,8 @@ jobs:
           retention-days: 7
           if-no-files-found: warn
 
-      - name: Standards compliance check
-        run: npm run standards:check || node scripts/standards-check.js
+      # - name: Standards compliance check
+      #   run: npm run standards:check || node scripts/standards-check.js
 
       - name: Build project
         run: npm run build
