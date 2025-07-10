@@ -109,10 +109,12 @@ export class ExtractionFactory {
           execute: async (action, page, context) => {
             const textAction = action as { selector: string; timeout?: number };
             return this.textExtractor.execute(
-              textAction.selector,
+              {
+                selector: textAction.selector,
+                timeout: textAction.timeout,
+              },
               page,
               context,
-              textAction.timeout,
             );
           },
         };
@@ -126,11 +128,13 @@ export class ExtractionFactory {
               timeout?: number;
             };
             return this.attributeExtractor.execute(
-              attrAction.selector,
-              attrAction.attribute,
+              {
+                selector: attrAction.selector,
+                attribute: attrAction.attribute,
+                timeout: attrAction.timeout,
+              },
               page,
               context,
-              attrAction.timeout,
             );
           },
         };

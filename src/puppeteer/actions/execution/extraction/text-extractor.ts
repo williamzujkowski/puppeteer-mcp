@@ -38,13 +38,20 @@ export class TextExtractor {
   ): Promise<string> {
     await page.waitForSelector(selector, { timeout });
 
-    return page.$eval(selector, (element: Element) => {
+    // Use typed evaluation to ensure safe return
+    const getText = (element: Element): string => {
       if (element instanceof HTMLInputElement || 
           element instanceof HTMLTextAreaElement) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return element.value;
       }
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
       return (element as HTMLElement).textContent?.trim() ?? '';
-    });
+    };
+    
+    const result = await page.$eval(selector, getText);
+    
+    return result;
   }
 
   /**
@@ -107,53 +114,52 @@ export class TextExtractor {
 
   /**
    * Execute text extraction
-   * @param selector - Element selector
+   * @param options - Text extraction options
    * @param page - Page instance
    * @param context - Execution context
-   * @param timeout - Action timeout
    * @returns Action result
    * @nist ac-3 "Access enforcement"
    * @nist au-3 "Content of audit records"
    */
   async execute(
-    selector: string,
+    options: { selector: string; timeout?: number },
     page: Page,
     context: ActionContext,
-    timeout: number = DEFAULT_CONFIG.TIMEOUT.element,
   ): Promise<ActionResult> {
+    const timeout = options.timeout ?? DEFAULT_CONFIG.TIMEOUT.element;
     const startTime = Date.now();
 
     try {
       logger.debug('Executing getText action', {
         sessionId: context.sessionId,
         contextId: context.contextId,
-        selector,
+        selector: options.selector,
       });
 
-      const text = await this.extractText(page, selector, timeout);
+      const text = await this.extractText(page, options.selector, timeout);
       const duration = Date.now() - startTime;
 
       logger.info('getText action completed', {
         sessionId: context.sessionId,
         contextId: context.contextId,
-        selector: sanitizeSelector(selector),
+        selector: sanitizeSelector(options.selector),
         textLength: text.length,
         duration,
       });
 
-      return this.buildSuccessResult(text, selector, duration);
+      return this.buildSuccessResult(text, options.selector, duration);
     } catch (error) {
       const duration = Date.now() - startTime;
 
       logger.error('getText action failed', {
         sessionId: context.sessionId,
         contextId: context.contextId,
-        selector,
+        selector: options.selector,
         error: error instanceof Error ? error.message : 'Unknown error',
         duration,
       });
 
-      return this.buildErrorResult(error, selector, duration);
+      return this.buildErrorResult(error, options.selector, duration);
     }
   }
 }

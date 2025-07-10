@@ -58,23 +58,19 @@ export class ContentExtractor {
   ): Promise<ContentResult> {
     await page.waitForSelector(selector, { timeout });
 
-    const content = await page.$eval(selector, (element: Element) => {
+    const contentResult = await page.$eval(selector, (element: Element) => {
       if (element instanceof HTMLInputElement || 
           element instanceof HTMLTextAreaElement) {
-        return element.value;
+        return { content: element.value, type: 'value' };
       }
       const htmlElement = element as HTMLElement;
-      return htmlElement.textContent ?? htmlElement.innerHTML ?? '';
+      const content = htmlElement.textContent ?? htmlElement.innerHTML ?? '';
+      const type = htmlElement.textContent ? 'text' : 'element';
+      return { content, type };
     });
-
-    const contentType = await page.$eval(selector, (element: Element) => {
-      if (element instanceof HTMLInputElement || 
-          element instanceof HTMLTextAreaElement) {
-        return 'value';
-      }
-      const htmlElement = element as HTMLElement;
-      return htmlElement.textContent ? 'text' : 'element';
-    });
+    
+    const content = (contentResult as { content: string; type: string }).content;
+    const contentType = (contentResult as { content: string; type: string }).type;
 
     return {
       content,

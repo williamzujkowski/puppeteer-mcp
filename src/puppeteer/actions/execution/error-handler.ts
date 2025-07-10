@@ -3,6 +3,8 @@
  * @module puppeteer/actions/execution/error-handler
  * @nist au-3 "Content of audit records"
  * @nist si-11 "Error handling"
+ * 
+ * This file maintains backward compatibility while delegating to modular components
  */
 
 import type { Page } from 'puppeteer';
@@ -12,25 +14,37 @@ import type {
   ActionContext,
   ValidationResult,
 } from '../../interfaces/action-executor.interface.js';
-import type {
-  RetryConfig,
-  ActionExecutionError,
-  ActionExecutionErrorDetails,
-} from './types.js';
+import type { RetryConfig } from './types.js';
 import { DEFAULT_CONFIG } from './types.js';
-import { createLogger, logSecurityEvent, SecurityEventType } from '../../../utils/logger.js';
+import { createLogger } from '../../../utils/logger.js';
+
+// Import modularized components
+import { ErrorClassifier } from './error/error-classifier.js';
+import { ErrorResultFactory } from './error/error-result-factory.js';
+import { SecurityEventHandler } from './error/security-event-handler.js';
+import { RetryExecutor, type RetryExecutionOptions } from './error/retry-executor.js';
 
 const logger = createLogger('puppeteer:error-handler');
 
 /**
  * Error handler for action execution
  * @nist si-11 "Error handling"
+ * 
+ * This class maintains the original API while delegating to specialized modules
  */
 export class ActionErrorHandler {
   private readonly retryConfig: RetryConfig;
+  private readonly errorClassifier: ErrorClassifier;
+  private readonly securityEventHandler: SecurityEventHandler;
+  private readonly retryExecutor: RetryExecutor;
 
   constructor(retryConfig?: Partial<RetryConfig>) {
     this.retryConfig = { ...DEFAULT_CONFIG.RETRY, ...retryConfig };
+    
+    // Initialize modular components
+    this.errorClassifier = new ErrorClassifier();
+    this.securityEventHandler = new SecurityEventHandler();
+    this.retryExecutor = new RetryExecutor(this.retryConfig);
   }
 
   /**
@@ -47,8 +61,6 @@ export class ActionErrorHandler {
     validationResult: ValidationResult,
     duration: number,
   ): Promise<ActionResult<T>> {
-    const errorMessage = validationResult.errors.map(e => e.message).join('; ');
-    
     logger.warn('Action validation failed', {
       sessionId: context.sessionId,
       contextId: context.contextId,
@@ -57,33 +69,20 @@ export class ActionErrorHandler {
       duration,
     });
 
-    // Log security event for validation failure
-    await logSecurityEvent(SecurityEventType.VALIDATION_FAILED, {
-      userId: context.userId,
-      resource: `page:${action.pageId}`,
-      action: `${action.type}_validation`,
-      result: 'failure',
-      reason: errorMessage,
-      metadata: {
-        sessionId: context.sessionId,
-        contextId: context.contextId,
-        actionType: action.type,
-        validationErrors: validationResult.errors,
-        duration,
-      },
-    });
+    // Log security event using dedicated handler
+    await this.securityEventHandler.logValidationFailure(
+      context,
+      action.type,
+      validationResult,
+      { pageId: action.pageId, duration },
+    );
 
-    return {
-      success: false,
-      actionType: action.type,
-      error: `Validation failed: ${errorMessage}`,
+    // Create standardized result using factory
+    return ErrorResultFactory.createValidationFailure<T>(
+      action,
+      validationResult,
       duration,
-      timestamp: new Date(),
-      metadata: {
-        validationErrors: validationResult.errors,
-        validationWarnings: validationResult.warnings,
-      },
-    };
+    );
   }
 
   /**
@@ -100,7 +99,8 @@ export class ActionErrorHandler {
     error: unknown,
     duration: number,
   ): Promise<ActionResult<T>> {
-    const errorDetails = this.analyzeError(error, action);
+    // Classify error using dedicated classifier
+    const errorDetails = this.errorClassifier.classify(error, action);
     
     logger.error('Action execution failed', {
       sessionId: context.sessionId,
@@ -111,35 +111,29 @@ export class ActionErrorHandler {
       duration,
     });
 
-    // Log security event for execution error
-    await logSecurityEvent(SecurityEventType.COMMAND_EXECUTED, {
-      userId: context.userId,
-      resource: `page:${action.pageId}`,
-      action: `${action.type}_error`,
-      result: 'failure',
-      reason: errorDetails.message,
-      metadata: {
-        sessionId: context.sessionId,
-        contextId: context.contextId,
-        actionType: action.type,
-        errorType: errorDetails.type,
-        errorContext: errorDetails.context,
-        duration,
-      },
-    });
+    // Log security event
+    await this.securityEventHandler.logExecutionError(
+      context,
+      action.type,
+      errorDetails,
+      { pageId: action.pageId, duration },
+    );
 
-    return {
-      success: false,
-      actionType: action.type,
-      error: errorDetails.message,
+    // Analyze for security implications
+    if (error instanceof Error) {
+      await this.securityEventHandler.analyzeSecurityImplications(
+        context,
+        action.type,
+        error,
+      );
+    }
+
+    // Create standardized result
+    return ErrorResultFactory.createExecutionError<T>(
+      action,
+      errorDetails,
       duration,
-      timestamp: new Date(),
-      metadata: {
-        errorType: errorDetails.type,
-        errorDetails: errorDetails.context,
-        cause: errorDetails.cause?.message,
-      },
-    };
+    );
   }
 
   /**
@@ -152,25 +146,13 @@ export class ActionErrorHandler {
     action: BrowserAction,
     duration: number,
   ): ActionResult<T> {
-    const errorMessage = `Page not found: ${action.pageId}`;
-    
     logger.error('Page not found for action execution', {
       actionType: action.type,
       pageId: action.pageId,
       duration,
     });
 
-    return {
-      success: false,
-      actionType: action.type,
-      error: errorMessage,
-      duration,
-      timestamp: new Date(),
-      metadata: {
-        errorType: 'PAGE_NOT_FOUND',
-        pageId: action.pageId,
-      },
-    };
+    return ErrorResultFactory.createPageNotFound<T>(action, duration);
   }
 
   /**
@@ -187,135 +169,81 @@ export class ActionErrorHandler {
     page: Page,
     context: ActionContext,
   ): Promise<ActionResult> {
-    let lastError: Error | null = null;
-    let attempt = 0;
+    const options: RetryExecutionOptions = {
+      strategy: 'exponential',
+      enableRecovery: true,
+      onRetry: (attempt, error) => {
+        logger.warn('Action retry attempt', {
+          sessionId: context.sessionId,
+          contextId: context.contextId,
+          actionType: action.type,
+          attempt,
+          error: error?.message,
+        });
+      },
+      onRecovery: (errorType) => {
+        logger.info('Recovery attempted', {
+          sessionId: context.sessionId,
+          contextId: context.contextId,
+          actionType: action.type,
+          errorType,
+        });
+      },
+    };
 
-    while (attempt < this.retryConfig.maxRetries) {
-      attempt++;
+    try {
+      const result = await this.retryExecutor.execute({
+        handler,
+        action,
+        page,
+        context,
+        options,
+      });
+
+      // Log successful retry if applicable
+      const metadata = result.metadata;
+      const retryAttempts = metadata?.retryAttempts as number | undefined;
       
-      try {
-        logger.debug('Executing action', {
-          sessionId: context.sessionId,
-          contextId: context.contextId,
-          actionType: action.type,
-          attempt,
-          maxRetries: this.retryConfig.maxRetries,
-        });
-
-        const result = await handler(action, page, context);
-
-        if (result.success || attempt === this.retryConfig.maxRetries) {
-          if (attempt > 1) {
-            logger.info('Action succeeded after retries', {
-              sessionId: context.sessionId,
-              contextId: context.contextId,
-              actionType: action.type,
-              attempt,
-              success: result.success,
-            });
-          }
-          return result;
-        }
-
-        // Log retry attempt for failed result
-        logger.warn('Action failed, will retry', {
-          sessionId: context.sessionId,
-          contextId: context.contextId,
-          actionType: action.type,
-          attempt,
-          error: result.error,
-        });
-
-        if (attempt < this.retryConfig.maxRetries) {
-          await this.waitBeforeRetry(attempt);
-        }
-      } catch (error) {
-        lastError = error instanceof Error ? error : new Error('Unknown error');
-        
-        logger.warn('Action threw error, will retry', {
-          sessionId: context.sessionId,
-          contextId: context.contextId,
-          actionType: action.type,
-          attempt,
-          error: lastError.message,
-        });
-
-        if (attempt < this.retryConfig.maxRetries) {
-          // Check if error is retryable
-          if (!this.isRetryableError(error)) {
-            logger.info('Error is not retryable, stopping attempts', {
-              sessionId: context.sessionId,
-              contextId: context.contextId,
-              actionType: action.type,
-              error: lastError.message,
-            });
-            break;
-          }
-
-          await this.waitBeforeRetry(attempt);
-        }
+      if (result.success && retryAttempts !== undefined && retryAttempts > 1) {
+        await this.securityEventHandler.logSuccessfulRetry(
+          context,
+          action.type,
+          retryAttempts,
+          { duration: result.duration },
+        );
       }
-    }
 
-    // If we get here, all retries failed
-    throw lastError ?? new Error('Action execution failed after retries');
+      return result;
+    } catch (error) {
+      // Handle retry exhaustion
+      const lastError = error instanceof Error ? error : new Error('Unknown error');
+      const retryConfig = this.getRetryConfig();
+      
+      await this.securityEventHandler.logMaxRetriesExceeded(
+        context,
+        action.type,
+        retryConfig.maxRetries,
+        lastError.message,
+      );
+
+      throw lastError;
+    }
   }
 
   /**
    * Check if error is retryable
    * @param error - Error to check
    * @returns True if error should be retried
+   * @deprecated Use ErrorClassifier.isRetryable() instead
    */
   private isRetryableError(error: unknown): boolean {
-    if (!(error instanceof Error)) {
-      return false;
-    }
-
-    const message = error.message.toLowerCase();
-    
-    // Non-retryable errors
-    const nonRetryablePatterns = [
-      'page closed',
-      'browser closed',
-      'session closed',
-      'invalid selector',
-      'invalid argument',
-      'security error',
-      'permission denied',
-      'not supported',
-    ];
-
-    for (const pattern of nonRetryablePatterns) {
-      if (message.includes(pattern)) {
-        return false;
-      }
-    }
-
-    // Retryable errors
-    const retryablePatterns = [
-      'timeout',
-      'network error',
-      'connection refused',
-      'element not found',
-      'element not visible',
-      'element not interactable',
-      'waiting for',
-      'navigation failed',
-    ];
-
-    for (const pattern of retryablePatterns) {
-      if (message.includes(pattern)) {
-        return true;
-      }
-    }
-
-    // Default to retryable for unknown errors
-    return true;
+    return this.errorClassifier.isRetryable(error);
   }
 
   /**
    * Wait before retry with exponential backoff
    * @param attempt - Current attempt number
+   * @deprecated Handled internally by RetryExecutor
    */
   private async waitBeforeRetry(attempt: number): Promise<void> {
     const delay = Math.min(
@@ -335,124 +263,34 @@ export class ActionErrorHandler {
    * @param error - Error to analyze
    * @param action - Action that caused the error
    * @returns Error details
+   * @deprecated Use ErrorClassifier.classify() instead
    */
-  private analyzeError(error: unknown, action?: BrowserAction): ActionExecutionErrorDetails {
-    if (!(error instanceof Error)) {
-      return {
-        type: ActionExecutionError.EXECUTION_FAILED,
-        message: 'Unknown error occurred',
-        action,
-        context: { originalError: String(error) },
-      };
-    }
-
-    const message = error.message.toLowerCase();
-    
-    // Analyze common error patterns
-    if (message.includes('timeout')) {
-      return {
-        type: ActionExecutionError.TIMEOUT,
-        message: `Action timed out: ${error.message}`,
-        cause: error,
-        action,
-        context: { timeoutType: this.getTimeoutType(message) },
-      };
-    }
-
-    if (message.includes('element not found') || message.includes('no such element')) {
-      return {
-        type: ActionExecutionError.ELEMENT_NOT_FOUND,
-        message: `Element not found: ${error.message}`,
-        cause: error,
-        action,
-        context: { selector: this.extractSelector(message) },
-      };
-    }
-
-    if (message.includes('navigation') && message.includes('failed')) {
-      return {
-        type: ActionExecutionError.NAVIGATION_FAILED,
-        message: `Navigation failed: ${error.message}`,
-        cause: error,
-        action,
-        context: { url: this.extractUrl(message) },
-      };
-    }
-
-    if (message.includes('page') && (message.includes('closed') || message.includes('crashed'))) {
-      return {
-        type: ActionExecutionError.PAGE_NOT_FOUND,
-        message: `Page is no longer available: ${error.message}`,
-        cause: error,
-        action,
-      };
-    }
-
-    if (message.includes('evaluation') || message.includes('evaluate')) {
-      return {
-        type: ActionExecutionError.EVALUATION_FAILED,
-        message: `JavaScript evaluation failed: ${error.message}`,
-        cause: error,
-        action,
-      };
-    }
-
-    if (message.includes('upload') || message.includes('file')) {
-      return {
-        type: ActionExecutionError.FILE_UPLOAD_FAILED,
-        message: `File operation failed: ${error.message}`,
-        cause: error,
-        action,
-      };
-    }
-
-    if (message.includes('click') || message.includes('type') || message.includes('interact')) {
-      return {
-        type: ActionExecutionError.INTERACTION_FAILED,
-        message: `Interaction failed: ${error.message}`,
-        cause: error,
-        action,
-      };
-    }
-
-    // Default case
-    return {
-      type: ActionExecutionError.EXECUTION_FAILED,
-      message: error.message,
-      cause: error,
-      action,
-    };
+  private analyzeError(error: unknown, action?: BrowserAction): ReturnType<ErrorClassifier['classify']> {
+    return this.errorClassifier.classify(error, action);
   }
 
   /**
    * Extract timeout type from error message
+   * @deprecated Handled internally by ErrorClassifier
    */
-  private getTimeoutType(message: string): string {
-    if (message.includes('navigation')) return 'navigation';
-    if (message.includes('selector')) return 'selector';
-    if (message.includes('element')) return 'element';
-    if (message.includes('network')) return 'network';
+  private getTimeoutType(_message: string): string {
     return 'general';
   }
 
   /**
    * Extract selector from error message
+   * @deprecated Handled internally by ErrorClassifier
    */
-  private extractSelector(message: string): string | undefined {
-    const selectorMatch = message.match(/selector[:\s]*['"`]([^'"`]+)['"`]/i);
-    return selectorMatch?.[1];
+  private extractSelector(_message: string): string | undefined {
+    return undefined;
   }
 
   /**
    * Extract URL from error message
+   * @deprecated Handled internally by ErrorClassifier
    */
-  private extractUrl(message: string): string | undefined {
-    const urlMatch = message.match(/url[:\s]*['"`]([^'"`]+)['"`]/i);
-    if (urlMatch) return urlMatch[1];
-    
-    // Try to match HTTP(S) URLs
-    const httpMatch = message.match(/(https?:\/\/[^\s]+)/i);
-    return httpMatch?.[1];
+  private extractUrl(_message: string): string | undefined {
+    return undefined;
   }
 
   /**
@@ -467,5 +305,10 @@ export class ActionErrorHandler {
    */
   updateRetryConfig(config: Partial<RetryConfig>): void {
     Object.assign(this.retryConfig, config);
+    // Recreate retry executor with new config
+    this.retryExecutor = new RetryExecutor(this.retryConfig);
   }
 }
+
+// Re-export all error handling modules for convenience
+export * from './error/index.js';

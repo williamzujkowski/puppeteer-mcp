@@ -41,13 +41,12 @@ interface PDFConfig {
  */
 export class PDFExtractor {
   /**
-   * Extract PDF configuration from action
-   * @param action - PDF action
-   * @returns PDF configuration
+   * Get default PDF configuration
+   * @returns Default PDF configuration
    * @nist si-10 "Information input validation"
    */
-  private extractConfig(action: PDFAction): PDFConfig {
-    const defaults = {
+  private getDefaultConfig(): PDFConfig {
+    return {
       format: 'a4' as PDFAction['format'],
       landscape: false,
       scale: 1,
@@ -60,19 +59,55 @@ export class PDFExtractor {
       margin: {},
       timeout: DEFAULT_CONFIG.TIMEOUT.default,
     };
+  }
 
+  /**
+   * Extract layout configuration from action
+   * @param action - PDF action
+   * @param defaults - Default configuration
+   * @returns Layout configuration subset
+   */
+  private extractLayoutConfig(action: PDFAction, defaults: PDFConfig) {
     return {
       format: action.format ?? defaults.format,
       landscape: action.landscape ?? defaults.landscape,
       scale: action.scale ?? defaults.scale,
+      margin: action.margin ?? defaults.margin,
+    };
+  }
+
+  /**
+   * Extract display configuration from action
+   * @param action - PDF action
+   * @param defaults - Default configuration
+   * @returns Display configuration subset
+   */
+  private extractDisplayConfig(action: PDFAction, defaults: PDFConfig) {
+    return {
       displayHeaderFooter: action.displayHeaderFooter ?? defaults.displayHeaderFooter,
       headerTemplate: action.headerTemplate ?? defaults.headerTemplate,
       footerTemplate: action.footerTemplate ?? defaults.footerTemplate,
       printBackground: action.printBackground ?? defaults.printBackground,
       preferCSSPageSize: action.preferCSSPageSize ?? defaults.preferCSSPageSize,
       pageRanges: action.pageRanges ?? defaults.pageRanges,
-      margin: action.margin ?? defaults.margin,
       timeout: action.timeout ?? defaults.timeout,
+    };
+  }
+
+  /**
+   * Extract PDF configuration from action
+   * @param action - PDF action
+   * @returns PDF configuration
+   * @nist si-10 "Information input validation"
+   */
+  private extractConfig(action: PDFAction): PDFConfig {
+    const defaults = this.getDefaultConfig();
+    const layoutConfig = this.extractLayoutConfig(action, defaults);
+    const displayConfig = this.extractDisplayConfig(action, defaults);
+
+    return {
+      ...layoutConfig,
+      ...displayConfig,
     };
   }
 

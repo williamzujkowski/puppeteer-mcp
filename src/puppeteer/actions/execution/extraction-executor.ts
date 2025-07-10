@@ -15,6 +15,8 @@ import type {
   ScreenshotAction,
   PDFAction,
   ContentAction,
+  GetTextAction,
+  GetAttributeAction,
 } from '../../interfaces/action-executor.interface.js';
 import { ExtractionFactory } from './extraction/extraction-factory.js';
 import { createLogger } from '../../../utils/logger.js';
@@ -112,43 +114,39 @@ export class ExtractionExecutor {
       sessionId: context.sessionId,
       contextId: context.contextId,
     });
-    const action: BrowserAction = {
+    const action: GetTextAction = {
       type: 'getText',
       pageId: context.contextId,
       selector,
       timeout,
-    } as any;
+    };
     return this.extractionFactory.execute(action, page, context);
   }
 
   /**
    * Execute attribute extraction action
-   * @param selector - Element selector
-   * @param attribute - Attribute name
+   * @param options - Attribute extraction options
    * @param page - Page instance
    * @param context - Execution context
-   * @param timeout - Action timeout
    * @returns Action result
    * @deprecated Use ExtractionFactory directly for new implementations
    */
   async executeGetAttribute(
-    selector: string,
-    attribute: string,
+    options: { selector: string; attribute: string; timeout?: number },
     page: Page,
     context: ActionContext,
-    timeout?: number,
   ): Promise<ActionResult> {
     logger.debug('Delegating getAttribute action to factory', {
       sessionId: context.sessionId,
       contextId: context.contextId,
     });
-    const action: BrowserAction = {
+    const action: GetAttributeAction = {
       type: 'getAttribute',
       pageId: context.contextId,
-      selector,
-      attribute,
-      timeout,
-    } as any;
+      selector: options.selector,
+      attribute: options.attribute,
+      timeout: options.timeout,
+    };
     return this.extractionFactory.execute(action, page, context);
   }
 

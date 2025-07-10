@@ -15,15 +15,13 @@ import type {
   ActionContext,
   UploadAction,
   CookieAction,
+  DownloadAction,
 } from '../../interfaces/action-executor.interface.js';
-import { createLogger } from '../../../utils/logger.js';
 import { ExecutorFactory } from './file/executor-factory.js';
 import { FileValidator } from './file/file-validator.js';
 
 // Re-export all modules for backward compatibility
 export * from './file/index.js';
-
-const logger = createLogger('puppeteer:file-executor');
 
 /**
  * File operation executor (backward compatibility wrapper)
@@ -57,27 +55,23 @@ export class FileExecutor {
 
   /**
    * Execute download action
-   * @param url - URL to download
-   * @param downloadPath - Local path to save file
+   * @param options - Download options
    * @param page - Page instance
    * @param context - Execution context
-   * @param timeout - Download timeout
    * @returns Action result
    */
   async executeDownload(
-    url: string,
-    downloadPath: string,
+    options: { url: string; downloadPath: string; timeout?: number },
     page: Page,
     context: ActionContext,
-    timeout?: number,
   ): Promise<ActionResult> {
-    const action: BrowserAction = {
+    const action: DownloadAction = {
       type: 'download',
       pageId: page.target().targetId,
-      url,
-      downloadPath,
-      timeout,
-    } as BrowserAction & { url: string; downloadPath: string };
+      url: options.url,
+      downloadPath: options.downloadPath,
+      timeout: options.timeout,
+    };
 
     const executor = this.executorFactory.createExecutor('download');
     return executor.execute(action, page, context);
@@ -125,13 +119,13 @@ export class FileExecutor {
         timeout?: number;
       };
       
-      const normalizedAction: BrowserAction = {
+      const normalizedAction: DownloadAction = {
         ...action,
         type: 'download',
         url: downloadAction.url,
         downloadPath: downloadAction.downloadPath,
         timeout: downloadAction.timeout,
-      } as BrowserAction;
+      } as DownloadAction;
 
       return executor.execute(normalizedAction, page, context);
     }

@@ -40,11 +40,15 @@ export class AttributeExtractor {
   ): Promise<string | null> {
     await page.waitForSelector(selector, { timeout });
 
-    return page.$eval(
-      selector,
-      (element: Element, attr: string) => element.getAttribute(attr),
-      attribute,
-    );
+    // Use typed evaluation to ensure safe return
+    const getValue = (el: Element, attr: string): string | null => {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+      return el.getAttribute(attr);
+    };
+    
+    const result = await page.$eval(selector, getValue, attribute);
+    
+    return result;
   }
 
   /**
@@ -112,59 +116,55 @@ export class AttributeExtractor {
 
   /**
    * Execute attribute extraction
-   * @param selector - Element selector
-   * @param attribute - Attribute name
+   * @param options - Attribute extraction options
    * @param page - Page instance
    * @param context - Execution context
-   * @param timeout - Action timeout
    * @returns Action result
    * @nist ac-3 "Access enforcement"
    * @nist au-3 "Content of audit records"
    */
   async execute(
-    selector: string,
-    attribute: string,
+    options: { selector: string; attribute: string; timeout?: number },
     page: Page,
     context: ActionContext,
-    timeout?: number,
   ): Promise<ActionResult> {
-    const actualTimeout = timeout ?? DEFAULT_CONFIG.TIMEOUT.element;
+    const actualTimeout = options.timeout ?? DEFAULT_CONFIG.TIMEOUT.element;
     const startTime = Date.now();
 
     try {
       logger.debug('Executing getAttribute action', {
         sessionId: context.sessionId,
         contextId: context.contextId,
-        selector,
-        attribute,
+        selector: options.selector,
+        attribute: options.attribute,
       });
 
-      const value = await this.extractAttribute(page, selector, attribute, actualTimeout);
+      const value = await this.extractAttribute(page, options.selector, options.attribute, actualTimeout);
       const duration = Date.now() - startTime;
 
       logger.info('getAttribute action completed', {
         sessionId: context.sessionId,
         contextId: context.contextId,
-        selector: sanitizeSelector(selector),
-        attribute,
+        selector: sanitizeSelector(options.selector),
+        attribute: options.attribute,
         hasValue: value !== null,
         duration,
       });
 
-      return this.buildSuccessResult(value, selector, attribute, duration);
+      return this.buildSuccessResult(value, options.selector, options.attribute, duration);
     } catch (error) {
       const duration = Date.now() - startTime;
 
       logger.error('getAttribute action failed', {
         sessionId: context.sessionId,
         contextId: context.contextId,
-        selector,
-        attribute,
+        selector: options.selector,
+        attribute: options.attribute,
         error: error instanceof Error ? error.message : 'Unknown error',
         duration,
       });
 
-      return this.buildErrorResult(error, selector, attribute, duration);
+      return this.buildErrorResult(error, options.selector, options.attribute, duration);
     }
   }
 }

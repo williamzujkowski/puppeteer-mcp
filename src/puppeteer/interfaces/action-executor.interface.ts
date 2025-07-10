@@ -181,6 +181,32 @@ export interface UploadAction extends BaseBrowserAction {
 }
 
 /**
+ * Get text action
+ */
+export interface GetTextAction extends BaseBrowserAction {
+  type: 'getText';
+  selector: string;
+}
+
+/**
+ * Get attribute action
+ */
+export interface GetAttributeAction extends BaseBrowserAction {
+  type: 'getAttribute';
+  selector: string;
+  attribute: string;
+}
+
+/**
+ * Download action
+ */
+export interface DownloadAction extends BaseBrowserAction {
+  type: 'download';
+  url: string;
+  downloadPath: string;
+}
+
+/**
  * Cookie action
  */
 export interface CookieAction extends BaseBrowserAction {
@@ -215,6 +241,9 @@ export type BrowserAction =
   | ScrollAction
   | EvaluateAction
   | UploadAction
+  | GetTextAction
+  | GetAttributeAction
+  | DownloadAction
   | CookieAction;
 
 /**

@@ -3,6 +3,9 @@
  * @module puppeteer/actions/execution/evaluation-executor
  * @nist ac-3 "Access enforcement"
  * @nist si-11 "Error handling"
+ * 
+ * This module serves as the main entry point for evaluation operations,
+ * providing backward compatibility while delegating to specialized modules.
  */
 
 import type { Page, JSHandle } from 'puppeteer';
@@ -15,6 +18,11 @@ import type {
 import type { EvaluationConfig } from './types.js';
 import { DEFAULT_CONFIG } from './types.js';
 import { createLogger } from '../../../utils/logger.js';
+import {
+  createStrategyForAction,
+  type CodeEvaluationConfig,
+  type InjectionConfig,
+} from './evaluation/index.js';
 
 const logger = createLogger('puppeteer:evaluation-executor');
 
@@ -35,77 +43,41 @@ export class EvaluationExecutor {
     page: Page,
     context: ActionContext,
   ): Promise<ActionResult> {
-    const startTime = Date.now();
+    logger.debug('Delegating evaluate action to code execution strategy', {
+      sessionId: context.sessionId,
+      contextId: context.contextId,
+      functionLength: action.function.length,
+      argsCount: action.args?.length ?? 0,
+    });
 
     try {
-      logger.debug('Executing evaluate action', {
-        sessionId: context.sessionId,
-        contextId: context.contextId,
-        functionLength: action.function.length,
-        argsCount: action.args?.length || 0,
-      });
-
-      // Security check for dangerous patterns
-      this.validateFunction(action.function);
-
-      // Prepare evaluation configuration
-      const config: EvaluationConfig = {
+      // Create strategy and delegate execution
+      const strategy = createStrategyForAction('evaluate');
+      const config: CodeEvaluationConfig = {
         functionToEvaluate: action.function,
-        args: action.args || [],
+        args: action.args ?? [],
         returnByValue: true,
       };
 
-      // Execute the function
-      const result = await page.evaluate(
-        config.functionToEvaluate,
-        ...config.args,
-      );
-
-      const duration = Date.now() - startTime;
-
-      logger.info('Evaluate action completed', {
-        sessionId: context.sessionId,
-        contextId: context.contextId,
-        functionLength: action.function.length,
-        resultType: typeof result,
-        duration,
-      });
-
-      return {
-        success: true,
-        actionType: 'evaluate',
-        data: {
-          result,
-          resultType: typeof result,
-          argsCount: config.args.length,
-        },
-        duration,
-        timestamp: new Date(),
-        metadata: {
-          functionLength: action.function.length,
-          hasArgs: config.args.length > 0,
-        },
-      };
+      return await strategy.execute(config, page, context);
     } catch (error) {
-      const duration = Date.now() - startTime;
       const errorMessage = error instanceof Error ? error.message : 'Evaluate action failed';
-
-      logger.error('Evaluate action failed', {
+      
+      logger.error('Evaluate action delegation failed', {
         sessionId: context.sessionId,
         contextId: context.contextId,
         error: errorMessage,
-        duration,
       });
 
       return {
         success: false,
         actionType: 'evaluate',
         error: errorMessage,
-        duration,
+        duration: 0,
         timestamp: new Date(),
         metadata: {
-          functionLength: action.function?.length || 0,
-          argsCount: action.args?.length || 0,
+          functionLength: action.function?.length ?? 0,
+          argsCount: action.args?.length ?? 0,
         },
       };
     }
@@ -127,78 +99,38 @@ export class EvaluationExecutor {
     args: unknown[] = [],
     timeout: number = DEFAULT_CONFIG.TIMEOUT.evaluation,
   ): Promise<ActionResult> {
-    const startTime = Date.now();
+    logger.debug('Delegating evaluateHandle action to handle execution strategy', {
+      sessionId: context.sessionId,
+      contextId: context.contextId,
+      functionLength: functionToEvaluate.length,
+      argsCount: args.length,
+    });
 
     try {
-      logger.debug('Executing evaluateHandle action', {
-        sessionId: context.sessionId,
-        contextId: context.contextId,
-        functionLength: functionToEvaluate.length,
-        argsCount: args.length,
-      });
-
-      // Security check
-      this.validateFunction(functionToEvaluate);
-
-      // Set timeout for evaluation
-      const originalTimeout = page.getDefaultTimeout();
-      page.setDefaultTimeout(timeout);
-
-      let handle: JSHandle;
-      try {
-        handle = await page.evaluateHandle(functionToEvaluate, ...args);
-      } finally {
-        // Restore original timeout
-        page.setDefaultTimeout(originalTimeout);
-      }
-
-      const duration = Date.now() - startTime;
-
-      // Get handle properties for result data
-      const handleType = await handle.evaluate((obj) => typeof obj);
-      const isElement = await handle.evaluate((obj) => obj instanceof Element);
-
-      logger.info('EvaluateHandle action completed', {
-        sessionId: context.sessionId,
-        contextId: context.contextId,
-        handleType,
-        isElement,
-        duration,
-      });
-
-      return {
-        success: true,
-        actionType: 'evaluateHandle',
-        data: {
-          handleType,
-          isElement,
-          argsCount: args.length,
-          // Note: We don't return the actual handle as it can't be serialized
-          handleId: `handle_${Date.now()}`,
-        },
-        duration,
-        timestamp: new Date(),
-        metadata: {
-          functionLength: functionToEvaluate.length,
-          hasArgs: args.length > 0,
-        },
+      // Create strategy and delegate execution
+      const strategy = createStrategyForAction('evaluateHandle');
+      const config: CodeEvaluationConfig = {
+        functionToEvaluate,
+        args,
+        timeout,
+        returnByValue: false,
       };
-    } catch (error) {
-      const duration = Date.now() - startTime;
-      const errorMessage = error instanceof Error ? error.message : 'EvaluateHandle action failed';
 
-      logger.error('EvaluateHandle action failed', {
+      return await strategy.execute(config, page, context);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'EvaluateHandle action failed';
+      
+      logger.error('EvaluateHandle action delegation failed', {
         sessionId: context.sessionId,
         contextId: context.contextId,
         error: errorMessage,
-        duration,
       });
 
       return {
         success: false,
         actionType: 'evaluateHandle',
         error: errorMessage,
-        duration,
+        duration: 0,
         timestamp: new Date(),
         metadata: {
           functionLength: functionToEvaluate.length,
@@ -222,68 +154,36 @@ export class EvaluationExecutor {
     context: ActionContext,
     timeout: number = DEFAULT_CONFIG.TIMEOUT.evaluation,
   ): Promise<ActionResult> {
-    const startTime = Date.now();
+    logger.debug('Delegating injectScript action to injection execution strategy', {
+      sessionId: context.sessionId,
+      contextId: context.contextId,
+      scriptLength: script.length,
+    });
 
     try {
-      logger.debug('Executing injectScript action', {
-        sessionId: context.sessionId,
-        contextId: context.contextId,
-        scriptLength: script.length,
-      });
-
-      // Security check
-      this.validateFunction(script);
-
-      // Set timeout
-      const originalTimeout = page.getDefaultTimeout();
-      page.setDefaultTimeout(timeout);
-
-      try {
-        // Add script tag to page
-        await page.addScriptTag({ content: script });
-      } finally {
-        // Restore original timeout
-        page.setDefaultTimeout(originalTimeout);
-      }
-
-      const duration = Date.now() - startTime;
-
-      logger.info('InjectScript action completed', {
-        sessionId: context.sessionId,
-        contextId: context.contextId,
-        scriptLength: script.length,
-        duration,
-      });
-
-      return {
-        success: true,
-        actionType: 'injectScript',
-        data: {
-          scriptLength: script.length,
-          injected: true,
-        },
-        duration,
-        timestamp: new Date(),
-        metadata: {
-          scriptLength: script.length,
-        },
+      // Create strategy and delegate execution
+      const strategy = createStrategyForAction('injectScript');
+      const config: InjectionConfig = {
+        content: script,
+        type: 'script',
+        timeout,
       };
-    } catch (error) {
-      const duration = Date.now() - startTime;
-      const errorMessage = error instanceof Error ? error.message : 'InjectScript action failed';
 
-      logger.error('InjectScript action failed', {
+      return await strategy.execute(config, page, context);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'InjectScript action failed';
+      
+      logger.error('InjectScript action delegation failed', {
         sessionId: context.sessionId,
         contextId: context.contextId,
         error: errorMessage,
-        duration,
       });
 
       return {
         success: false,
         actionType: 'injectScript',
         error: errorMessage,
-        duration,
+        duration: 0,
         timestamp: new Date(),
         metadata: {
           scriptLength: script.length,
@@ -306,68 +206,36 @@ export class EvaluationExecutor {
     context: ActionContext,
     timeout: number = DEFAULT_CONFIG.TIMEOUT.evaluation,
   ): Promise<ActionResult> {
-    const startTime = Date.now();
+    logger.debug('Delegating injectCSS action to injection execution strategy', {
+      sessionId: context.sessionId,
+      contextId: context.contextId,
+      cssLength: css.length,
+    });
 
     try {
-      logger.debug('Executing injectCSS action', {
-        sessionId: context.sessionId,
-        contextId: context.contextId,
-        cssLength: css.length,
-      });
-
-      // Basic CSS validation (no JavaScript injection)
-      this.validateCSS(css);
-
-      // Set timeout
-      const originalTimeout = page.getDefaultTimeout();
-      page.setDefaultTimeout(timeout);
-
-      try {
-        // Add style tag to page
-        await page.addStyleTag({ content: css });
-      } finally {
-        // Restore original timeout
-        page.setDefaultTimeout(originalTimeout);
-      }
-
-      const duration = Date.now() - startTime;
-
-      logger.info('InjectCSS action completed', {
-        sessionId: context.sessionId,
-        contextId: context.contextId,
-        cssLength: css.length,
-        duration,
-      });
-
-      return {
-        success: true,
-        actionType: 'injectCSS',
-        data: {
-          cssLength: css.length,
-          injected: true,
-        },
-        duration,
-        timestamp: new Date(),
-        metadata: {
-          cssLength: css.length,
-        },
+      // Create strategy and delegate execution
+      const strategy = createStrategyForAction('injectCSS');
+      const config: InjectionConfig = {
+        content: css,
+        type: 'css',
+        timeout,
       };
-    } catch (error) {
-      const duration = Date.now() - startTime;
-      const errorMessage = error instanceof Error ? error.message : 'InjectCSS action failed';
 
-      logger.error('InjectCSS action failed', {
+      return await strategy.execute(config, page, context);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'InjectCSS action failed';
+      
+      logger.error('InjectCSS action delegation failed', {
         sessionId: context.sessionId,
         contextId: context.contextId,
         error: errorMessage,
-        duration,
       });
 
       return {
         success: false,
         actionType: 'injectCSS',
         error: errorMessage,
-        duration,
+        duration: 0,
         timestamp: new Date(),
         metadata: {
           cssLength: css.length,
@@ -429,78 +297,10 @@ export class EvaluationExecutor {
   }
 
   /**
-   * Validate JavaScript function for security
-   * @param functionCode - Function code to validate
+   * Legacy validation methods - now handled by specialized security validators
+   * These methods are kept for backward compatibility but delegate to the new modules
+   * @deprecated Use security validators from evaluation module instead
    */
-  private validateFunction(functionCode: string): void {
-    // Check for dangerous patterns
-    const dangerousPatterns = [
-      /eval\s*\(/gi,
-      /Function\s*\(/gi,
-      /setTimeout\s*\(/gi,
-      /setInterval\s*\(/gi,
-      /import\s*\(/gi,
-      /require\s*\(/gi,
-      /process\./gi,
-      /global\./gi,
-      /window\.location\s*=/gi,
-      /document\.location\s*=/gi,
-      /location\.href\s*=/gi,
-      /location\.replace/gi,
-      /location\.assign/gi,
-      /XMLHttpRequest/gi,
-      /fetch\s*\(/gi,
-      /__proto__/gi,
-      /constructor/gi,
-    ];
-
-    for (const pattern of dangerousPatterns) {
-      if (pattern.test(functionCode)) {
-        throw new Error(`Function contains potentially dangerous pattern: ${pattern.source}`);
-      }
-    }
-
-    // Check for excessive length
-    if (functionCode.length > 50000) {
-      throw new Error('Function code is too long (>50KB)');
-    }
-
-    // Check for balanced brackets
-    const openBrackets = (functionCode.match(/\{/g) || []).length;
-    const closeBrackets = (functionCode.match(/\}/g) || []).length;
-    
-    if (openBrackets !== closeBrackets) {
-      throw new Error('Function code has unbalanced brackets');
-    }
-  }
-
-  /**
-   * Validate CSS for security
-   * @param css - CSS code to validate
-   */
-  private validateCSS(css: string): void {
-    // Check for JavaScript injection in CSS
-    const dangerousPatterns = [
-      /javascript:/gi,
-      /expression\s*\(/gi,
-      /behavior\s*:/gi,
-      /binding\s*:/gi,
-      /-moz-binding/gi,
-      /eval\s*\(/gi,
-      /data:.*script/gi,
-    ];
-
-    for (const pattern of dangerousPatterns) {
-      if (pattern.test(css)) {
-        throw new Error(`CSS contains potentially dangerous pattern: ${pattern.source}`);
-      }
-    }
-
-    // Check for excessive length
-    if (css.length > 100000) {
-      throw new Error('CSS code is too long (>100KB)');
-    }
-  }
 
   /**
    * Get supported evaluation action types
