@@ -17,15 +17,15 @@ export class ProxyMetricsTracker {
    * Record a failed request
    */
   recordFailure(proxy: ProxyInstance, error: string): void {
-    proxy.metrics.totalRequests++;
-    proxy.metrics.failedRequests++;
+    proxy.metrics.requestCount++;
+    proxy.metrics.failureCount++;
     proxy.metrics.lastUsed = new Date();
 
     // Update health status
     proxy.health.consecutiveFailures++;
     if (proxy.health.consecutiveFailures >= 3) {
       proxy.health.healthy = false;
-      proxy.health.error = error;
+      proxy.health.lastError = error;
     }
 
     logger.warn({
@@ -40,20 +40,20 @@ export class ProxyMetricsTracker {
    * Record a successful request
    */
   recordSuccess(proxy: ProxyInstance, responseTime: number): void {
-    proxy.metrics.totalRequests++;
-    proxy.metrics.successfulRequests++;
+    proxy.metrics.requestCount++;
+    proxy.metrics.successCount++;
     proxy.metrics.lastUsed = new Date();
     proxy.health.consecutiveFailures = 0;
 
     // Update average response time
-    const totalRequests = proxy.metrics.totalRequests;
+    const totalRequests = proxy.metrics.requestCount;
     proxy.metrics.averageResponseTime =
       (proxy.metrics.averageResponseTime * (totalRequests - 1) + responseTime) / totalRequests;
 
     // Mark as healthy if it was unhealthy
     if (!proxy.health.healthy) {
       proxy.health.healthy = true;
-      delete proxy.health.error;
+      delete proxy.health.lastError;
     }
   }
 
@@ -65,8 +65,8 @@ export class ProxyMetricsTracker {
     
     if (!health.healthy) return 0;
     
-    const successRate = metrics.totalRequests > 0
-      ? metrics.successfulRequests / metrics.totalRequests
+    const successRate = metrics.requestCount > 0
+      ? metrics.successCount / metrics.requestCount
       : 1;
     
     const responseTimeScore = Math.max(0, 1 - metrics.averageResponseTime / 10000);
@@ -102,8 +102,8 @@ export class ProxyMetricsTracker {
         stats.unhealthy++;
       }
 
-      stats.totalRequests += proxy.metrics.totalRequests;
-      stats.successfulRequests += proxy.metrics.successfulRequests;
+      stats.totalRequests += proxy.metrics.requestCount;
+      stats.successfulRequests += proxy.metrics.successCount;
       stats.averageResponseTime += proxy.metrics.averageResponseTime;
     }
 

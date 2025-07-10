@@ -99,7 +99,10 @@ export class OptimizationMonitoring {
         resourceMonitoring: {
           enabled: this.optimizationConfig.resourceMonitoring.enabled,
           systemResources: resourceMetrics,
-          browserResources: Array.from(this.resourceManager.getBrowserResources().values()),
+          browserResources: (() => {
+            const resources = this.resourceManager.getBrowserResources();
+            return resources instanceof Map ? Array.from(resources.values()) : [];
+          })(),
           activeAlerts: Array.from(this.resourceManager.getActiveAlerts().values()),
         },
         recycling: {

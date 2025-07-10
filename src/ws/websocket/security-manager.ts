@@ -275,7 +275,10 @@ export class SecurityManager {
   private extractClientIp(info: ConnectionVerificationInfo): string {
     const forwarded = info.req.headers['x-forwarded-for'];
     if (forwarded) {
-      return Array.isArray(forwarded) ? forwarded[0] : forwarded.split(',')[0].trim();
+      if (Array.isArray(forwarded)) {
+        return forwarded[0] ?? 'unknown';
+      }
+      return forwarded.split(',')[0]?.trim() ?? 'unknown';
     }
     return info.req.socket.remoteAddress ?? 'unknown';
   }

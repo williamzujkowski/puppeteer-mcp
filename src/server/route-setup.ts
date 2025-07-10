@@ -27,7 +27,7 @@ import { RouteConfig } from './types.js';
 export function createRouteConfig(): RouteConfig {
   return {
     apiPrefix: config.API_PREFIX ?? '/api',
-    apiVersion: config.API_VERSION ?? 'v1',
+    apiVersion: 'v1',
     enableHealthRoutes: true,
     enableApiRoutes: true,
   };

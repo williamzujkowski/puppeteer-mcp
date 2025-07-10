@@ -13,11 +13,26 @@ export function parseServerConfig(): {
   NODE_ENV: 'development' | 'test' | 'production';
   PORT: number;
   HOST: string;
+  TRUST_PROXY?: boolean | string | number;
 } {
+  const trustProxy = process.env.TRUST_PROXY;
+  let parsedTrustProxy: boolean | string | number | undefined;
+  
+  if (trustProxy === 'true') {
+    parsedTrustProxy = true;
+  } else if (trustProxy === 'false') {
+    parsedTrustProxy = false;
+  } else if (trustProxy && !isNaN(Number(trustProxy))) {
+    parsedTrustProxy = Number(trustProxy);
+  } else if (trustProxy) {
+    parsedTrustProxy = trustProxy;
+  }
+  
   return {
     NODE_ENV: (process.env.NODE_ENV as 'development' | 'test' | 'production') ?? 'development',
     PORT: parseInt(process.env.PORT, 8443),
     HOST: process.env.HOST ?? '0.0.0.0',
+    TRUST_PROXY: parsedTrustProxy,
   };
 }
 

@@ -113,7 +113,7 @@ export class ProxyPoolSelector {
     if (proxies.length === 0) return null;
     
     return proxies.reduce((least, current) => 
-      current.metrics.totalRequests < least.metrics.totalRequests ? current : least
+      current.metrics.requestCount < least.metrics.requestCount ? current : least
     );
   }
 
@@ -151,8 +151,8 @@ export class ProxyPoolSelector {
     
     if (!health.healthy) return 0;
     
-    const successRate = metrics.totalRequests > 0
-      ? metrics.successfulRequests / metrics.totalRequests
+    const successRate = metrics.requestCount > 0
+      ? metrics.successCount / metrics.requestCount
       : 1;
     
     const responseTimeScore = Math.max(0, 1 - metrics.averageResponseTime / 10000);

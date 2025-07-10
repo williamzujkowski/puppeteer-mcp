@@ -273,7 +273,7 @@ export function getSecureContextOptions(): Record<string, unknown> {
 export const puppeteerConfig: PuppeteerConfig = {
   executablePath: config.PUPPETEER_EXECUTABLE_PATH,
   headless: config.PUPPETEER_HEADLESS,
-  args: config.PUPPETEER_ARGS?.split(',').map((arg) => arg.trim()) ?? [],
+  args: Array.isArray(config.PUPPETEER_ARGS) ? config.PUPPETEER_ARGS : [],
   poolMaxSize: config.BROWSER_POOL_MAX_SIZE,
   idleTimeout: config.BROWSER_IDLE_TIMEOUT,
   downloadPath: config.PUPPETEER_DOWNLOAD_PATH,

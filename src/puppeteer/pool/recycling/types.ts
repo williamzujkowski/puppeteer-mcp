@@ -16,6 +16,7 @@ export enum RecyclingStrategy {
   HEALTH_BASED = 'health_based',
   RESOURCE_BASED = 'resource_based',
   HYBRID = 'hybrid',
+  AGGRESSIVE = 'aggressive',
 }
 
 /**

@@ -17,16 +17,16 @@ async function checkBrowserPoolHealth(browserPool: BrowserPool): Promise<{
   message?: string;
 }> {
   try {
-    const stats = await browserPool.getStats();
+    const stats = await browserPool.getMetrics();
     
-    if (stats.activeBrowsers === 0 && stats.availableBrowsers === 0) {
+    if (stats.activeBrowsers === 0 && stats.idleBrowsers === 0) {
       return {
         status: 'warning',
         message: 'No browsers available in pool',
       };
     }
     
-    if (stats.activeBrowsers > stats.maxBrowsers * 0.9) {
+    if (stats.utilizationPercentage > 90) {
       return {
         status: 'warning',
         message: 'Browser pool utilization > 90%',

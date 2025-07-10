@@ -164,6 +164,55 @@ export class BrowserPoolMetrics {
   reset(): void {
     this.aggregator.reset();
   }
+
+  /**
+   * Get pool metrics for scaling decisions
+   * @nist au-6 "Audit review, analysis, and reporting"
+   */
+  getPoolMetrics(browsers?: Map<string, InternalBrowserInstance>) {
+    const queueMetrics = this.aggregator.getCollectors().queue.collect();
+    const errorMetrics = this.aggregator.getCollectors().errors.collect();
+    const utilizationHistory = this.aggregator.getCollectors().resources.getUtilizationHistory();
+    const currentUtilization = utilizationHistory.length > 0 
+      ? utilizationHistory[utilizationHistory.length - 1].value 
+      : 0;
+    
+    return {
+      pool: {
+        size: browsers?.size || 0,
+        utilization: currentUtilization,
+      },
+      queue: {
+        size: queueMetrics.queueLength,
+      },
+      performance: {
+        averageAcquireTime: queueMetrics.averageWaitTime,
+      },
+      requests: {
+        total: queueMetrics.totalQueued,
+      },
+      errors: {
+        total: errorMetrics.totalErrors,
+      },
+    };
+  }
+
+  /**
+   * Get system metrics for scaling decisions
+   * @nist si-4 "Information system monitoring"
+   */
+  getSystemMetrics() {
+    const memoryUsage = process.memoryUsage();
+    return {
+      memory: {
+        heapUsed: memoryUsage.heapUsed,
+        heapTotal: memoryUsage.heapTotal,
+        external: memoryUsage.external,
+        rss: memoryUsage.rss,
+      },
+      cpu: process.cpuUsage().user / 1000000, // Convert to seconds
+    };
+  }
 }
 
 // For users who might be importing individual types/interfaces

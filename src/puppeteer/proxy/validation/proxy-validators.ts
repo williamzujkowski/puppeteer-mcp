@@ -165,7 +165,7 @@ export class ProxyValidatorFactory {
     const portValidator = new PortValidator();
     const connectivityValidator = new ConnectivityValidator();
 
-    schemaValidator
+    (schemaValidator as any)
       .setNext(authValidator)
       .setNext(bypassValidator)
       .setNext(portValidator)

@@ -102,7 +102,7 @@ export async function createProxyBrowserContext(
       metadata: {
         hasProxy: !!proxyId,
         proxyId,
-        permissions: contextOptions.permissions,
+        permissions: (contextOptions as any).permissions,
       },
     });
 

@@ -19,6 +19,8 @@ export function parsePuppeteerConfig(): {
   PUPPETEER_SLOW_MO: number;
   BROWSER_POOL_MAX_SIZE: number;
   BROWSER_IDLE_TIMEOUT: number;
+  PUPPETEER_DOWNLOAD_PATH: string | undefined;
+  PUPPETEER_CACHE_ENABLED: boolean;
 } {
   return {
     PUPPETEER_HEADLESS: parseBoolean(process.env.PUPPETEER_HEADLESS, true),
@@ -30,5 +32,7 @@ export function parsePuppeteerConfig(): {
     PUPPETEER_SLOW_MO: parseInt(process.env.PUPPETEER_SLOW_MO, 0),
     BROWSER_POOL_MAX_SIZE: parseInt(process.env.BROWSER_POOL_MAX_SIZE, 5),
     BROWSER_IDLE_TIMEOUT: parseInt(process.env.BROWSER_IDLE_TIMEOUT, 300000),
+    PUPPETEER_DOWNLOAD_PATH: process.env.PUPPETEER_DOWNLOAD_PATH,
+    PUPPETEER_CACHE_ENABLED: parseBoolean(process.env.PUPPETEER_CACHE_ENABLED, true),
   };
 }

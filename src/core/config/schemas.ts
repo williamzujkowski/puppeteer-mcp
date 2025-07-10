@@ -11,6 +11,7 @@ export const serverConfigSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   PORT: z.number().int().positive().default(8443),
   HOST: z.string().default('0.0.0.0'),
+  TRUST_PROXY: z.union([z.boolean(), z.string(), z.number()]).optional(),
 });
 
 // TLS Configuration schema
@@ -165,6 +166,8 @@ export const puppeteerConfigSchema = z.object({
   PUPPETEER_SLOW_MO: z.number().int().nonnegative().default(0),
   BROWSER_POOL_MAX_SIZE: z.number().int().positive().default(5),
   BROWSER_IDLE_TIMEOUT: z.number().int().positive().default(300000),
+  PUPPETEER_DOWNLOAD_PATH: z.string().optional(),
+  PUPPETEER_CACHE_ENABLED: z.boolean().default(true),
 });
 
 // Telemetry configuration schema

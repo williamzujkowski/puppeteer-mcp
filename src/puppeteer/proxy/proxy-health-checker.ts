@@ -133,9 +133,10 @@ export class ProxyHealthChecker {
       for (let j = 0; j < batchResults.length; j++) {
         const result = batchResults[j];
         if (result.status === 'fulfilled') {
-          results.push(result.value);
+          results.push((result as PromiseFulfilledResult<ProxyHealthStatus>).value);
         } else {
           // Create failed status for rejected promise
+          const rejectedResult = result as PromiseRejectedResult;
           results.push({
             proxyId: batch[j].id,
             healthy: false,
@@ -143,7 +144,7 @@ export class ProxyHealthChecker {
             errorCount: 1,
             successCount: 0,
             consecutiveFailures: 1,
-            lastError: result.reason instanceof Error ? result.reason.message : 'Check failed',
+            lastError: rejectedResult.reason instanceof Error ? rejectedResult.reason.message : 'Check failed',
           });
         }
       }

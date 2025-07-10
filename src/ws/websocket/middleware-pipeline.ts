@@ -175,7 +175,10 @@ export class MiddlewarePipeline {
 
     const next = async (): Promise<void> => {
       if (currentIndex < enabledMiddlewares.length) {
-        const { name, middleware } = enabledMiddlewares[currentIndex++];
+        const current = enabledMiddlewares[currentIndex++];
+        if (!current) return;
+        
+        const { name, middleware } = current;
         
         try {
           await middleware(context, next);

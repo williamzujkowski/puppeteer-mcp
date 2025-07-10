@@ -243,7 +243,7 @@ export class ProxyManager extends EventEmitter {
       const proxies = this.instanceManager.getAllProxies();
       for (const proxy of proxies) {
         try {
-          await this.healthChecker.checkProxyHealth(proxy.config);
+          await this.healthChecker.checkProxy(proxy.id, proxy.config);
           this.recordProxySuccess(proxy.id, 0);
         } catch (error) {
           this.recordProxyFailure(

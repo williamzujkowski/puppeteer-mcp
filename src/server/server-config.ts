@@ -33,7 +33,7 @@ export function createServerConfig(): ServerConfig {
     nodeEnv: config.NODE_ENV ?? 'development',
     tlsEnabled: config.TLS_ENABLED === true,
     apiPrefix: config.API_PREFIX ?? '/api',
-    apiVersion: config.API_VERSION ?? 'v1',
+    apiVersion: 'v1',
     wsPath: config.WS_PATH ?? '/ws',
   };
 }

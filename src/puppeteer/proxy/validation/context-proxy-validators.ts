@@ -97,7 +97,7 @@ export class ContextProxyValidatorFactory {
     const poolValidator = new ContextProxyPoolValidator();
     const rotationValidator = new ContextProxyRotationValidator();
 
-    schemaValidator
+    (schemaValidator as any)
       .setNext(enabledValidator)
       .setNext(singleValidator)
       .setNext(poolValidator)

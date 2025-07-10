@@ -42,6 +42,7 @@ import { BrowserPoolEventLogger } from './browser-pool-event-logger.js';
 import { BrowserPoolResourceMonitor } from './browser-pool-resource-monitor.js';
 import { BrowserPoolPageManager } from './browser-pool-page-manager.js';
 import { BrowserPoolMetricsHandler } from './browser-pool-metrics-handler.js';
+import { BrowserPoolLifecycleHandler } from './browser-pool-lifecycle-handler.js';
 
 /**
  * Browser pool implementation
@@ -60,6 +61,7 @@ export class BrowserPool extends EventEmitter implements IBrowserPool {
   private resourceMonitor: BrowserPoolResourceMonitor;
   private pageManager: BrowserPoolPageManager;
   private metricsHandler: BrowserPoolMetricsHandler;
+  private lifecycleHandler: BrowserPoolLifecycleHandler;
 
   constructor(options: Partial<BrowserPoolOptions> = {}) {
     super();
@@ -99,6 +101,18 @@ export class BrowserPool extends EventEmitter implements IBrowserPool {
       this.metricsHandler,
       (browserId, sessionId) => this.releaseBrowser(browserId, sessionId),
     );
+    
+    // Initialize lifecycle handler
+    this.lifecycleHandler = new BrowserPoolLifecycleHandler(
+      this.browsers,
+      this.options,
+      this.healthMonitor,
+      this.queue,
+      this.maintenance,
+      this.eventLogger,
+      this.metricsHandler,
+      (event, data) => this.emit(event, data),
+    );
   }
 
   /**
@@ -109,7 +123,7 @@ export class BrowserPool extends EventEmitter implements IBrowserPool {
     // Log browser pool initialization
     await this.eventLogger.logPoolInitialization();
 
-    await initializePoolWithBrowsers(this, this.options.maxBrowsers, () => this.launchNewBrowser());
+    await initializePoolWithBrowsers(this, this.options.maxBrowsers, () => this.lifecycleHandler.launchNewBrowser());
 
     // Start resource monitoring every 30 seconds
     this.resourceMonitor.startResourceMonitoring();
@@ -131,7 +145,7 @@ export class BrowserPool extends EventEmitter implements IBrowserPool {
         isShuttingDown: this.isShuttingDown,
         findIdleBrowser: helpers.findIdleBrowser,
         activateBrowser: helpers.activateBrowser,
-        createAndAcquireBrowser: (sid) => this.createAndAcquireBrowser(sid),
+        createAndAcquireBrowser: (sid) => this.lifecycleHandler.createAndAcquireBrowser(sid),
         canCreateNewBrowser: helpers.canCreateNewBrowser,
         queueAcquisition: (sid) => this.queueAcquisition(sid),
       });
@@ -285,11 +299,33 @@ export class BrowserPool extends EventEmitter implements IBrowserPool {
   configure(options: Partial<BrowserPoolOptions>): void {
     const oldOptions = { ...this.options };
     this.options = configure(this.options, options, this.maintenance, () =>
-      this.performMaintenance(),
+      this.lifecycleHandler.performMaintenance(),
     );
     
     // Log configuration change
     void this.eventLogger.logConfigurationChange(oldOptions, this.options, Object.keys(options));
+  }
+
+  /**
+   * Delegate methods to lifecycleHandler
+   */
+  private performMaintenance(): Promise<void> {
+    return this.lifecycleHandler.performMaintenance();
+  }
+
+  private launchNewBrowser(): Promise<{
+    browser: import('puppeteer').Browser;
+    instance: InternalBrowserInstance;
+  }> {
+    return this.lifecycleHandler.launchNewBrowser();
+  }
+
+  private createAndAcquireBrowser(sessionId: string): Promise<BrowserInstance> {
+    return this.lifecycleHandler.createAndAcquireBrowser(sessionId);
+  }
+
+  private queueAcquisition(sessionId: string): Promise<BrowserInstance> {
+    return this.lifecycleHandler.queueAcquisition(sessionId);
   }
 
 }
