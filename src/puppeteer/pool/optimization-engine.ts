@@ -54,8 +54,22 @@ export class OptimizationEngine extends EventEmitter {
    * Update component configurations
    */
   async updateComponentConfigurations(newConfig: Partial<OptimizationConfig>): Promise<void> {
-    if (newConfig.scaling) {
-      this.scaler.updateStrategy(newConfig.scaling);
+    if (newConfig.scaling && newConfig.scaling.minSize !== undefined && newConfig.scaling.maxSize !== undefined) {
+      // Only update if all required properties are present
+      const completeStrategy = {
+        minSize: newConfig.scaling.minSize,
+        maxSize: newConfig.scaling.maxSize,
+        targetUtilization: newConfig.scaling.targetUtilization || 75,
+        scaleUpThreshold: newConfig.scaling.scaleUpThreshold || 0.8,
+        scaleDownThreshold: newConfig.scaling.scaleDownThreshold || 0.3,
+        cooldownPeriod: newConfig.scaling.cooldownPeriod || 30000,
+        maxScaleStep: newConfig.scaling.maxScaleStep || 2,
+        aggressiveScaling: newConfig.scaling.aggressiveScaling || false,
+        memoryThreshold: newConfig.scaling.memoryThreshold || 85,
+        cpuThreshold: newConfig.scaling.cpuThreshold || 85,
+        ...newConfig.scaling
+      };
+      this.scaler.updateStrategy(completeStrategy);
     }
     if (newConfig.resourceMonitoring) {
       this.resourceManager.updateConfig(newConfig.resourceMonitoring);
@@ -75,19 +89,17 @@ export class OptimizationEngine extends EventEmitter {
    * Start optimization components
    */
   async startOptimizationComponents(): Promise<void> {
-    // Start scaler
-    if (this.optimizationConfig.scaling.enabled) {
-      this.scaler.start();
-    }
-
+    // Note: BrowserPoolScaling doesn't have a start method
+    // It's always active when created
+    
     // Start resource manager
     if (this.optimizationConfig.resourceMonitoring.enabled) {
       await this.resourceManager.start();
     }
 
-    // Start recycler
-    if (this.optimizationConfig.recycling.enabled) {
-      this.recycler.start();
+    // Start recycler (if it has a start method)
+    if (this.optimizationConfig.recycling.enabled && 'start' in this.recycler) {
+      (this.recycler as any).start();
     }
 
     // Start performance monitor
@@ -102,9 +114,15 @@ export class OptimizationEngine extends EventEmitter {
    * Stop optimization components
    */
   async stopOptimizationComponents(): Promise<void> {
-    this.scaler.stop();
+    // Note: BrowserPoolScaling doesn't have a stop method
+    
     this.resourceManager.stop();
-    this.recycler.stop();
+    
+    // Stop recycler (if it has a stop method)
+    if ('stop' in this.recycler) {
+      (this.recycler as any).stop();
+    }
+    
     this.performanceMonitor.stop();
     this.circuitBreakers.destroy();
 

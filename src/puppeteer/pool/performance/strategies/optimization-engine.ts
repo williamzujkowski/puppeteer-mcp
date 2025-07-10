@@ -7,11 +7,11 @@
 
 import type { EventEmitter } from 'events';
 import type {
-  PerformanceMetricType,
   OptimizationRecommendation,
   PerformanceSummary,
   PerformanceMonitoringConfig,
 } from '../types/performance-monitor.types.js';
+import { PerformanceMetricType } from '../types/performance-monitor.types.js';
 import type { IOptimizationEngine } from '../types/strategy.interfaces.js';
 
 /**
@@ -181,7 +181,7 @@ export class OptimizationEngine implements IOptimizationEngine {
         rec: () => ({
           id: `latency-opt-${Date.now()}`,
           type: 'configuration' as const,
-          priority: (metric.current > this.config.optimizationThresholds.maxLatency * 2 ? 'high' : 'medium') as const,
+          priority: (metric.current > this.config.optimizationThresholds.maxLatency * 2 ? 'high' : 'medium') as 'high' | 'medium',
           title: 'Optimize Latency Performance',
           description: `Current latency ${metric.current}ms exceeds threshold ${this.config.optimizationThresholds.maxLatency}ms`,
           impact: 'Improve response times by 20-30%',
@@ -234,7 +234,7 @@ export class OptimizationEngine implements IOptimizationEngine {
       },
     };
 
-    const template = templates[type];
+    const template = templates[type as keyof typeof templates];
     if (template?.condition()) {
       return { ...template.rec(), timestamp: new Date(), applied: false };
     }
@@ -269,7 +269,9 @@ export class OptimizationEngine implements IOptimizationEngine {
     // Maintain max recommendations
     if (this.recommendations.size > this.maxRecommendations) {
       const oldestId = this.recommendations.keys().next().value;
-      this.recommendations.delete(oldestId);
+      if (oldestId !== undefined) {
+        this.recommendations.delete(oldestId);
+      }
     }
   }
 

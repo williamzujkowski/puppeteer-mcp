@@ -8,15 +8,12 @@
  */
 
 import type { Page } from 'puppeteer';
-import { createLogger } from '../../utils/logger.js';
 import type { BrowserInstance } from '../interfaces/browser-pool.interface.js';
 import type { CircuitBreakerRegistry } from './browser-pool-circuit-breaker.js';
 import type { BrowserPoolPerformanceMonitor } from './browser-pool-performance-monitor.js';
 import type { BrowserPoolResourceManager } from './browser-pool-resource-manager.js';
-import { PerformanceMetricType } from './browser-pool-performance-monitor.js';
+import { PerformanceMetricType } from './performance/types/performance-monitor.types.js';
 import type { ExtendedPoolMetrics } from './browser-pool-metrics.js';
-
-const logger = createLogger('optimization-operations');
 
 /**
  * Enhanced browser operations with circuit breaker protection and optimization
@@ -104,7 +101,7 @@ export class OptimizationOperations {
         this.performanceMonitor.recordMetric(
           PerformanceMetricType.ERROR_RATE,
           1,
-          { operation: 'release_browser', sessionId, browserId, error: error.message }
+          { operation: 'release_browser', sessionId, browserId, error: (error as Error).message || 'Unknown error' }
         );
       }
       throw error;

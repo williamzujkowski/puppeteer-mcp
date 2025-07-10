@@ -5,7 +5,7 @@
  * @nist au-6 "Audit review, analysis, and reporting"
  */
 
-import { createLogger } from '../../utils/logger.js';
+// import { createLogger } from '../../utils/logger.js'; // Not used consistently
 import type { BrowserPoolScaling } from './browser-pool-scaling.js';
 import type { BrowserPoolResourceManager } from './browser-pool-resource-manager.js';
 import type { BrowserPoolRecycler } from './browser-pool-recycler.js';
@@ -13,9 +13,10 @@ import type { CircuitBreakerRegistry } from './browser-pool-circuit-breaker.js';
 import type { BrowserPoolPerformanceMonitor } from './browser-pool-performance-monitor.js';
 import type { ExtendedPoolMetrics } from './browser-pool-metrics.js';
 import type { OptimizationConfig, OptimizationStatus } from './optimization-config.js';
-import { PerformanceMetricType } from './browser-pool-performance-monitor.js';
+import { PerformanceMetricType as PerfMetricType } from './performance/types/performance-monitor.types.js';
 
-const _logger = createLogger('optimization-monitoring');
+// logger is not used consistently, commenting out to avoid unused variable warning
+// const logger = createLogger('optimization-monitoring');
 
 /**
  * Optimization monitoring and metrics collection
@@ -48,7 +49,7 @@ export class OptimizationMonitoring {
       if (this.optimizationEnabled) {
         const executionTime = Date.now() - startTime;
         this.performanceMonitor.recordMetric(
-          PerformanceMetricType.PROCESSING_TIME,
+          PerfMetricType.PROCESSING_TIME,
           executionTime,
           { operation: 'health_check', browserCount: results.size }
         );
@@ -63,9 +64,9 @@ export class OptimizationMonitoring {
     } catch (error) {
       if (this.optimizationEnabled) {
         this.performanceMonitor.recordMetric(
-          PerformanceMetricType.ERROR_RATE,
+          PerfMetricType.ERROR_RATE,
           1,
-          { operation: 'health_check', error: error.message }
+          { operation: 'health_check', error: (error as Error).message || 'Unknown error' }
         );
       }
       throw error;
@@ -82,44 +83,31 @@ export class OptimizationMonitoring {
     }
 
     // Add optimization-specific metrics
-    const scalingMetrics = this.scaler.getHistoricalData();
+    const scalingHistory = this.scaler.getScalingHistory();
     const resourceMetrics = this.resourceManager.getSystemResources();
     const recyclingStats = this.recycler.getRecyclingStats();
     const circuitBreakerStatus = this.circuitBreakers.getStatus();
     const performanceSummary = this.performanceMonitor.getPerformanceSummary();
 
-    return {
+    // Return base metrics with additional optimization data embedded in existing structure
+    const extendedMetrics = {
       ...baseMetrics,
-      optimization: {
-        scaling: {
-          enabled: this.optimizationConfig.scaling.enabled,
-          strategy: this.scaler.getStrategy(),
-          historicalData: scalingMetrics.slice(-20), // Last 20 data points
-        },
-        resourceMonitoring: {
-          enabled: this.optimizationConfig.resourceMonitoring.enabled,
-          systemResources: resourceMetrics,
-          browserResources: (() => {
-            const resources = this.resourceManager.getBrowserResources();
-            return resources instanceof Map ? Array.from(resources.values()) : [];
-          })(),
-          activeAlerts: Array.from(this.resourceManager.getActiveAlerts().values()),
-        },
-        recycling: {
-          enabled: this.optimizationConfig.recycling.enabled,
-          stats: recyclingStats,
-        },
-        circuitBreaker: {
-          enabled: this.optimizationConfig.circuitBreaker.enabled,
-          status: circuitBreakerStatus,
-        },
-        performanceMonitoring: {
-          enabled: this.optimizationConfig.performanceMonitoring.enabled,
-          summary: performanceSummary,
-          activeAlerts: this.performanceMonitor.getActiveAlerts(),
-        },
+      // Add optimization data as part of the time series or metadata
+      timeSeries: {
+        ...baseMetrics.timeSeries,
+        scalingHistory: scalingHistory.slice(-20), // Last 20 data points
       },
     };
+    
+    // Store additional optimization data in a way that doesn't break the interface
+    (extendedMetrics as any)._optimizationData = {
+      resourceMetrics,
+      recyclingStats,
+      circuitBreakerStatus,
+      performanceSummary
+    };
+    
+    return extendedMetrics;
   }
 
   /**
@@ -127,7 +115,6 @@ export class OptimizationMonitoring {
    * @nist au-6 "Audit review, analysis, and reporting"
    */
   getOptimizationStatus(): OptimizationStatus {
-    const circuitBreakerStatus = this.circuitBreakers.getStatus();
     const performanceSummary = this.performanceMonitor.getPerformanceSummary();
     const recommendations = this.performanceMonitor.getRecommendations(false);
 
@@ -187,13 +174,13 @@ export class OptimizationMonitoring {
     
     // Record various metrics
     this.performanceMonitor.recordMetric(
-      PerformanceMetricType.AVAILABILITY,
+      PerfMetricType.AVAILABILITY,
       this.calculateAvailability(metrics),
       { timestamp: new Date() }
     );
 
     this.performanceMonitor.recordMetric(
-      PerformanceMetricType.QUEUE_TIME,
+      PerfMetricType.QUEUE_TIME,
       metrics.queue.averageWaitTime,
       { timestamp: new Date() }
     );

@@ -15,7 +15,7 @@ import type { BrowserPoolPerformanceMonitor } from './browser-pool-performance-m
  */
 export class OptimizationEvents extends EventEmitter {
   constructor(
-    private scaler: BrowserPoolScaling,
+    _scaler: BrowserPoolScaling,
     private resourceManager: BrowserPoolResourceManager,
     private recycler: BrowserPoolRecycler,
     private performanceMonitor: BrowserPoolPerformanceMonitor
@@ -28,20 +28,22 @@ export class OptimizationEvents extends EventEmitter {
    * Setup optimization event handlers
    */
   private setupOptimizationEventHandlers(): void {
-    // Scaler events
-    this.scaler.on('scaling-action', (event: any) => {
-      this.emit('optimization-scaling-action', event);
-    });
+    // Note: BrowserPoolScaling does not extend EventEmitter
+    // Events will be handled through direct method calls when needed
+    
+    // Resource manager events (if it supports events)
+    if ('on' in this.resourceManager && typeof this.resourceManager.on === 'function') {
+      this.resourceManager.on('resource-alert', (alert) => {
+        this.emit('optimization-resource-alert', alert);
+      });
+    }
 
-    // Resource manager events
-    this.resourceManager.on('resource-alert', (alert) => {
-      this.emit('optimization-resource-alert', alert);
-    });
-
-    // Recycler events
-    this.recycler.on('browsers-recycled', (events) => {
-      this.emit('optimization-browsers-recycled', events);
-    });
+    // Recycler events (if it supports events)
+    if ('on' in this.recycler && typeof this.recycler.on === 'function') {
+      this.recycler.on('browsers-recycled', (events) => {
+        this.emit('optimization-browsers-recycled', events);
+      });
+    }
 
     // Performance monitor events
     this.performanceMonitor.on('alert-created', (alert) => {

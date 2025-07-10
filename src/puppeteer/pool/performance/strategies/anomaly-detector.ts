@@ -7,11 +7,11 @@
 
 import type { EventEmitter } from 'events';
 import type {
-  PerformanceMetricType,
   PerformanceAnomaly,
   TimeRange,
   PerformanceMonitoringConfig,
 } from '../types/performance-monitor.types.js';
+import { PerformanceMetricType } from '../types/performance-monitor.types.js';
 import type { IAnomalyDetector } from '../types/strategy.interfaces.js';
 
 /**
@@ -206,7 +206,9 @@ export class AnomalyDetector implements IAnomalyDetector {
     // Maintain max anomalies to prevent memory issues
     if (this.anomalies.size > this.maxAnomalies) {
       const oldestId = this.anomalies.keys().next().value;
-      this.anomalies.delete(oldestId);
+      if (oldestId !== undefined) {
+        this.anomalies.delete(oldestId);
+      }
     }
   }
 

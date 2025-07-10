@@ -7,11 +7,11 @@
 
 import type { EventEmitter } from 'events';
 import type {
-  PerformanceMetricType,
   PerformanceDataPoint,
   TimeRange,
   PerformanceMonitoringConfig,
 } from '../types/performance-monitor.types.js';
+import { PerformanceMetricType } from '../types/performance-monitor.types.js';
 import type { IMetricsCollector } from '../types/strategy.interfaces.js';
 
 /**

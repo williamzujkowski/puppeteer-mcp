@@ -5,7 +5,6 @@
 
 import type {
   PerformanceMonitoringConfig,
-  PerformanceMetricType,
 } from '../types/performance-monitor.types.js';
 
 /**

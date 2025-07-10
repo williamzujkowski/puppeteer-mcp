@@ -10,9 +10,9 @@ import { createLogger } from '../../../../utils/logger.js';
 import type {
   PerformanceMetricType,
   PerformanceAlert,
-  AlertLevel,
   PerformanceMonitoringConfig,
 } from '../types/performance-monitor.types.js';
+import { AlertLevel } from '../types/performance-monitor.types.js';
 import type { IAlertManager } from '../types/strategy.interfaces.js';
 
 const logger = createLogger('alert-manager');
