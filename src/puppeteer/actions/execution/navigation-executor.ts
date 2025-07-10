@@ -29,6 +29,7 @@ const logger = createLogger('puppeteer:navigation-executor:compat');
  */
 export class NavigationExecutor {
   private readonly executor: ModularNavigationExecutor;
+  private readonly logger = logger;
 
   constructor(config?: NavigationExecutorConfig) {
     logger.warn('Using deprecated NavigationExecutor. Consider migrating to the modular navigation system.');
@@ -72,6 +73,11 @@ export class NavigationExecutor {
     context: ActionContext,
     timeout?: number,
   ): Promise<ActionResult> {
+    // Check if navigation is possible (for logging purposes)
+    const canNavigateBack = await this.canGoBack(page);
+    if (!canNavigateBack) {
+      this.logger.warn('Cannot go back - no history available');
+    }
     return this.executor.executeGoBack(page, context, timeout);
   }
 
@@ -88,6 +94,11 @@ export class NavigationExecutor {
     context: ActionContext,
     timeout?: number,
   ): Promise<ActionResult> {
+    // Check if navigation is possible (for logging purposes)
+    const canNavigateForward = await this.canGoForward(page);
+    if (!canNavigateForward) {
+      this.logger.warn('Cannot go forward - no forward history available');
+    }
     return this.executor.executeGoForward(page, context, timeout);
   }
 

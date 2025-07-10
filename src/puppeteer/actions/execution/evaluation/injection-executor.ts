@@ -65,6 +65,12 @@ export class InjectionExecutionStrategy implements BaseEvaluationStrategy {
         );
       }
 
+      // Check if content needs preprocessing
+      let processedContent = config.content;
+      if (this.shouldPreprocessContent(config.content, config.type)) {
+        processedContent = this.preprocessContent(config.content, config.type);
+      }
+      
       // Setup timeout
       const timeout = this.getTimeoutForType(config.type);
       const originalTimeout = page.getDefaultTimeout();
@@ -75,15 +81,23 @@ export class InjectionExecutionStrategy implements BaseEvaluationStrategy {
         
         // Execute injection based on type
         if (config.type === 'script') {
-          injectionResult = await this.injectScript(config.content, page);
+          injectionResult = await this.injectScript(processedContent, page);
         } else if (config.type === 'css') {
-          injectionResult = await this.injectCSS(config.content, page);
+          injectionResult = await this.injectCSS(processedContent, page);
         } else {
           throw new Error(`Unsupported injection type: ${String(config.type)}`);
         }
       } finally {
         // Always restore original timeout
         page.setDefaultTimeout(originalTimeout);
+      }
+      
+      // Validate injection result
+      if (!this.validateInjectionResult(injectionResult || {}, config.type)) {
+        logger.warn('Injection result validation failed', {
+          sessionId: context.sessionId,
+          injectionType: config.type,
+        });
       }
 
       metrics.endTime = Date.now();
@@ -316,7 +330,7 @@ export class InjectionExecutionStrategy implements BaseEvaluationStrategy {
    * @param type - Content type
    * @returns True if preprocessing is needed
    */
-  private _shouldPreprocessContent(content: string, _type: string): boolean {
+  private shouldPreprocessContent(content: string, _type: string): boolean {
     // Check for templating or dynamic content that might need preprocessing
     const templatePatterns = [
       /\{\{.*\}\}/,  // Handlebars/Mustache
@@ -333,7 +347,7 @@ export class InjectionExecutionStrategy implements BaseEvaluationStrategy {
    * @param type - Content type
    * @returns Preprocessed content
    */
-  private _preprocessContent(content: string, _type: string): string {
+  private preprocessContent(content: string, _type: string): string {
     // For security, we don't actually process templates
     // Instead, we strip potentially dangerous template syntax
     let processed = content;
@@ -354,7 +368,7 @@ export class InjectionExecutionStrategy implements BaseEvaluationStrategy {
    * @param expectedType - Expected injection type
    * @returns True if result is valid
    */
-  private _validateInjectionResult(result: { url?: string }, _expectedType: string): boolean {
+  private validateInjectionResult(result: { url?: string }, _expectedType: string): boolean {
     // Basic validation of injection result
     if (typeof result !== 'object' || result === null) {
       return false;

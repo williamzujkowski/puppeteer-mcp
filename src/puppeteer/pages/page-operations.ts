@@ -144,11 +144,9 @@ async function clearPageDataByType(
   if (options?.localStorage === true || options?.sessionStorage === true) {
     await page.evaluate((opts) => {
       if (opts?.localStorage === true) {
-        // @ts-expect-error - window is available in browser context
         window.localStorage.clear();
       }
       if (opts?.sessionStorage === true) {
-        // @ts-expect-error - window is available in browser context
         window.sessionStorage.clear();
       }
     }, options);

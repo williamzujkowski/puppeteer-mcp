@@ -13,7 +13,7 @@ import type {
   PDFAction,
   ContentAction,
 } from '../../../interfaces/action-executor.interface.js';
-import type { ValidationError } from '../types.js';
+// import type { ValidationError } from '../types.js';
 import { BaseValidator } from './base-validator.js';
 import { ScreenshotSubValidator } from './content/screenshot-validator.js';
 import { PDFSubValidator } from './content/pdf-validator.js';

@@ -153,7 +153,7 @@ export class SecurityValidator extends BaseValidator {
    * @param action - Action to check
    * @returns Always true for security validation
    */
-  canValidate(action: BrowserAction): boolean {
+  canValidate(_action: BrowserAction): boolean {
     return true; // Security validation applies to all actions
   }
 
@@ -276,7 +276,7 @@ export class SecurityValidator extends BaseValidator {
    * @param errors - Error collection
    * @param warnings - Warning collection
    */
-  private validateUrlSafety(url: string, errors: ValidationError[], warnings: ValidationError[]): void {
+  private validateUrlSafety(url: string, _errors: ValidationError[], warnings: ValidationError[]): void {
     try {
       const parsed = new URL(url);
 
@@ -361,7 +361,7 @@ export class SecurityValidator extends BaseValidator {
    */
   private validateRateLimiting(
     action: BrowserAction,
-    context: ActionContext,
+    _context: ActionContext,
     warnings: ValidationError[]
   ): void {
     // Check for rapid automation indicators

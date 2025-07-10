@@ -42,7 +42,7 @@ export class LoadStateWaitStrategy extends BaseWaitStrategy {
   /**
    * Validate load configuration
    */
-  validate(config: WaitConditionConfig): boolean {
+  validate(_config: WaitConditionConfig): boolean {
     return true;
   }
 

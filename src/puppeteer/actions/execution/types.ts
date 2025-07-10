@@ -10,7 +10,7 @@ import type {
   BrowserAction,
   ActionResult,
   ActionContext,
-  ValidationResult,
+  // ValidationResult,
 } from '../../interfaces/action-executor.interface.js';
 
 /**

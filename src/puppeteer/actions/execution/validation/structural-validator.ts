@@ -51,7 +51,7 @@ export class StructuralValidator extends BaseValidator {
    * @param action - Action to check
    * @returns Always true for structural validation
    */
-  canValidate(action: BrowserAction): boolean {
+  canValidate(_action: BrowserAction): boolean {
     return true; // Structural validation applies to all actions
   }
 

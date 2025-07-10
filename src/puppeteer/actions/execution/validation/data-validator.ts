@@ -335,7 +335,7 @@ export class DataValidator extends BaseValidator {
   private async validateFilePath(
     filePath: string,
     index: number,
-    context: ActionContext,
+    _context: ActionContext,
     errors: ValidationError[],
     warnings: ValidationError[]
   ): Promise<void> {
@@ -348,6 +348,14 @@ export class DataValidator extends BaseValidator {
         'DANGEROUS_FILE_PATH'
       );
     }
+    
+    // Warn about large file handling
+    this.addWarning(
+      warnings,
+      `filePaths[${index}]`,
+      `Files larger than ${MAX_FILE_SIZE / (1024 * 1024)}MB may cause performance issues`,
+      'LARGE_FILE_WARNING'
+    );
 
     // Check for absolute paths (security concern)
     if (filePath.startsWith('/') || filePath.match(/^[a-zA-Z]:\\/)) {

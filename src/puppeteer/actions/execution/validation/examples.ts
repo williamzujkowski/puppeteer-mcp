@@ -4,6 +4,7 @@
  */
 
 import type { BrowserAction, ActionContext } from '../../../interfaces/action-executor.interface.js';
+import type { ValidationError } from '../types.js';
 import { ValidationOrchestrator } from './index.js';
 import { ValidatorFactory, ValidatorType } from './validator-factory.js';
 import { BaseValidator } from './base-validator.js';
@@ -84,20 +85,24 @@ async function specificValidators() {
  * Example 4: Custom validator
  */
 class CustomActionValidator extends BaseValidator {
-  async validate(action: BrowserAction, context: ActionContext) {
-    const errors = [];
-    const warnings = [];
+  async validate(action: BrowserAction, _context: ActionContext) {
+    const errors: ValidationError[] = [];
+    const warnings: ValidationError[] = [];
     
     // Custom validation logic
-    if (action.type === 'custom' && !('customField' in action)) {
+    // Note: 'custom' is not a valid BrowserAction type
+    // This is just an example of extending the validation system
+    if ('customField' in action && !action.customField) {
       this.addError(errors, 'customField', 'Custom field is required', 'MISSING_CUSTOM_FIELD');
     }
     
     return this.createResult(errors, warnings);
   }
   
-  canValidate(action: BrowserAction): boolean {
-    return action.type === 'custom';
+  canValidate(_action: BrowserAction): boolean {
+    // This custom validator example always returns false
+    // since 'custom' is not a valid BrowserAction type
+    return false;
   }
 }
 

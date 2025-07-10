@@ -321,6 +321,7 @@ export class PageNavigator {
       statusCode: navigationResult.response?.status(),
       waitUntil: action.waitUntil ?? this.config.defaultWaitUntil,
       urlValidationWarnings: urlValidation.warnings,
+      pageUrl: page.url(),
     };
 
     if (performanceMetrics) {

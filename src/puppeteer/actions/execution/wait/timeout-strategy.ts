@@ -22,7 +22,7 @@ export class TimeoutWaitStrategy extends BaseWaitStrategy {
   /**
    * Execute timeout wait
    */
-  protected async executeWait(page: Page, config: WaitConditionConfig): Promise<WaitResult> {
+  protected async executeWait(_page: Page, config: WaitConditionConfig): Promise<WaitResult> {
     const startTime = Date.now();
     if (!config.duration) {
       throw new Error('Duration is required for timeout wait');

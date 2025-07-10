@@ -5,7 +5,7 @@
  * @nist au-3 "Content of audit records"
  */
 
-import type { Page } from 'puppeteer';
+import type { Page, ElementHandle } from 'puppeteer';
 import type {
   UploadAction,
   ActionResult,
@@ -69,7 +69,7 @@ export async function handleUpload(
       throw new Error(`File input element not found: ${sanitizedSelector}`);
     }
 
-    await fileInputElement.uploadFile(...validatedFiles.map((f) => f.path));
+    await (fileInputElement as ElementHandle<HTMLInputElement>).uploadFile(...validatedFiles.map((f) => f.path));
 
     const duration = Date.now() - startTime;
 

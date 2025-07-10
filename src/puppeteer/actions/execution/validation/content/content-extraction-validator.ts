@@ -106,7 +106,7 @@ export class ContentExtractionValidator extends BaseValidator {
    */
   private validateContentTypeSpecific(
     action: ContentAction,
-    errors: ValidationError[],
+    _errors: ValidationError[],
     warnings: ValidationError[]
   ): void {
     const contentAction = action as any;

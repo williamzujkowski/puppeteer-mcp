@@ -161,7 +161,7 @@ export class ModularWaitExecutor {
   async executeWaitForFunction(
     functionToEvaluate: string,
     page: Page,
-    context: ActionContext,
+    _context: ActionContext,
     options?: {
       timeout?: number;
       args?: unknown[];
@@ -239,7 +239,7 @@ export class ModularWaitExecutor {
    */
   async executeWaitForNavigation(
     page: Page,
-    context: ActionContext,
+    _context: ActionContext,
     timeout: number = DEFAULT_CONFIG.TIMEOUT.navigation,
     waitUntil: NavigationWaitUntil = 'load',
   ): Promise<ActionResult> {

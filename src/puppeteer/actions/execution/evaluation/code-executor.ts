@@ -94,9 +94,10 @@ export class CodeExecutionStrategy implements BaseEvaluationStrategy {
     try {
       page.setDefaultTimeout(timeout);
       
+      const preparedArgs = this.prepareArguments(config.args ?? []);
       return await page.evaluate(
         config.functionToEvaluate,
-        ...(config.args ?? []),
+        ...preparedArgs,
       );
     } finally {
       page.setDefaultTimeout(originalTimeout);
@@ -306,7 +307,7 @@ export class CodeExecutionStrategy implements BaseEvaluationStrategy {
    * @returns Sanitized arguments
    * @nist si-10 "Information input validation"
    */
-  private _prepareArguments(args: unknown[]): unknown[] {
+  private prepareArguments(args: unknown[]): unknown[] {
     return args.map(arg => {
       // For security, we avoid passing functions or complex objects
       // that might contain dangerous references

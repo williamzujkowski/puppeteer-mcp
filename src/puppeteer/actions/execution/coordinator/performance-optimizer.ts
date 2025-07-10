@@ -34,7 +34,7 @@ export class PerformanceOptimizer {
   private cacheMissCount = 0;
 
   constructor(
-    private readonly _configManager: ConfigurationManager,
+    private readonly configManager: ConfigurationManager,
     private readonly metricsCollector: MetricsCollector,
   ) {
     this.analyzer = new PerformanceAnalyzer();
@@ -195,6 +195,12 @@ export class PerformanceOptimizer {
    * Initialize optimization strategies
    */
   private initializeStrategies(): void {
+    // Use configManager to get performance settings
+    const config = this.configManager.getConfig();
+    if (!config.performance.enableMetrics) {
+      logger.debug('Performance metrics disabled in configuration');
+    }
+    
     // Load strategies from factory
     const actionTypes = ['navigate', 'screenshot', 'extractContent', 'extractText'];
     
