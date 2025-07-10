@@ -14,8 +14,8 @@ import type {
   WSMessage,
   WSResponseMessage,
   WSEventMessage,
-  MCPResponse,
 } from './types.js';
+import type { MCPResponse } from '../adapter.interface.js';
 import { AppError } from '../../../core/errors/app-error.js';
 import { WebSocketEventEmitter, WebSocketEventType } from './event-emitter.js';
 
@@ -53,7 +53,7 @@ export class WebSocketMessageHandler implements MessageHandlers {
         messageId: message.id ?? 'unknown',
         type: message.type,
         timestamp: message.timestamp,
-        data: message.data,
+        data: 'data' in message ? message.data : undefined,
       });
 
       // Route message based on type

@@ -51,7 +51,7 @@ export class GrpcMiddlewarePipeline {
       }
 
       const middleware = this.middlewares[index++];
-      return middleware(operation, metadata, params, next);
+      return middleware?.(operation, metadata, params, next);
     };
 
     return next();
@@ -82,7 +82,7 @@ export class GrpcMiddlewarePipeline {
   static createAuthMiddleware(): GrpcMiddleware {
     return async (operation, _metadata, params, next) => {
       // Log authentication attempt
-      await logSecurityEvent(SecurityEventType.AUTH_ATTEMPT, {
+      await logSecurityEvent(SecurityEventType.CONNECTION_ATTEMPT, {
         userId: params.sessionId,
         resource: `${operation.service}.${operation.method}`,
         action: 'authenticate',

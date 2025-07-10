@@ -176,7 +176,7 @@ export class WebSocketMiddlewarePipeline {
   ): MiddlewareFunction {
     const requestCounts = new Map<string, { count: number; resetTime: number }>();
 
-    return async (message, connection, next): Promise<void> => {
+    return async (_message, connection, next): Promise<void> => {
       const now = Date.now();
       const connectionId = connection.connectionId;
 

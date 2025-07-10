@@ -96,6 +96,7 @@ export interface GrpcCapabilities {
   protocol: string;
   version: string;
   features: string[];
+  [key: string]: unknown;
 }
 
 /**

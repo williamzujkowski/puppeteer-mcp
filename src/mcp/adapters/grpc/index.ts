@@ -20,7 +20,7 @@ export type {
 
 // Export component classes for advanced usage
 export { GrpcConnectionManager } from './connection-manager.js';
-export { GrpcServiceHandler } from './service-handler.js';
+export { GrpcServiceMethodHandler } from './service-handler.js';
 export { GrpcMetadataManager } from './metadata-manager.js';
 export { GrpcProtocolHandler } from './protocol-handler.js';
 export { GrpcErrorHandler } from './error-handler.js';

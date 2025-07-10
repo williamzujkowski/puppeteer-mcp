@@ -71,7 +71,7 @@ export class SecurityManager {
       void logSecurityEvent(SecurityEventType.CONNECTION_ATTEMPT, {
         resource: 'websocket',
         action: 'connect',
-        result: 'attempt',
+        result: 'success',
         metadata: {
           clientIp,
           origin: info.origin,
@@ -89,10 +89,10 @@ export class SecurityManager {
           reason: securityCheck.reason,
         });
 
-        void logSecurityEvent(SecurityEventType.CONNECTION_REJECTED, {
+        void logSecurityEvent(SecurityEventType.ACCESS_DENIED, {
           resource: 'websocket',
           action: 'connect',
-          result: 'denied',
+          result: 'failure',
           metadata: {
             clientIp,
             origin: info.origin,
@@ -118,7 +118,7 @@ export class SecurityManager {
         void logSecurityEvent(SecurityEventType.RATE_LIMIT_EXCEEDED, {
           resource: 'websocket',
           action: 'connect',
-          result: 'rate_limited',
+          result: 'failure',
           metadata: {
             clientIp,
             rateLimitKey,
@@ -131,10 +131,10 @@ export class SecurityManager {
       }
 
       // Connection allowed
-      void logSecurityEvent(SecurityEventType.CONNECTION_ALLOWED, {
+      void logSecurityEvent(SecurityEventType.ACCESS_GRANTED, {
         resource: 'websocket',
         action: 'connect',
-        result: 'allowed',
+        result: 'success',
         metadata: {
           clientIp,
           origin: info.origin,
@@ -149,10 +149,10 @@ export class SecurityManager {
         origin: info.origin,
       });
 
-      void logSecurityEvent(SecurityEventType.SECURITY_ERROR, {
+      void logSecurityEvent(SecurityEventType.ERROR, {
         resource: 'websocket',
         action: 'verify_client',
-        result: 'error',
+        result: 'failure',
         metadata: {
           error: error instanceof Error ? error.message : 'Unknown error',
           origin: info.origin,

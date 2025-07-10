@@ -6,6 +6,9 @@
 
 import type { WebSocket } from 'ws';
 import type { MCPResponse, AuthParams } from '../adapter.interface.js';
+
+// Re-export MCPResponse for convenience
+export type { MCPResponse };
 import type {
   WSMessage,
   WSRequestMessage,

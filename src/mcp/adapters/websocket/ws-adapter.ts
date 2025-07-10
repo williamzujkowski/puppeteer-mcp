@@ -16,7 +16,7 @@ import type { ProtocolAdapter, MCPResponse, AuthParams } from '../adapter.interf
 import { WSConnectionManager } from '../../../ws/connection-manager.js';
 import { WSSubscriptionManager } from '../../../ws/subscription-manager.js';
 import { WSMessageType } from '../../../types/websocket.js';
-import type { WebSocketOperation } from './types.js';
+// import type { WebSocketOperation } from './types.js'; // Unused - operations handled via schema
 import { WebSocketConnectionManager } from './connection-manager.js';
 import { WebSocketEventEmitter } from './event-emitter.js';
 import { WebSocketSessionManager } from './session-manager.js';

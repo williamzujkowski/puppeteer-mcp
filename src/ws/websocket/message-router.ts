@@ -104,10 +104,10 @@ export class MessageRouter {
       });
 
       // Log security event for routing errors
-      await logSecurityEvent(SecurityEventType.REQUEST_PROCESSING_ERROR, {
+      await logSecurityEvent(SecurityEventType.ERROR, {
         resource: 'websocket',
         action: 'route_message',
-        result: 'error',
+        result: 'failure',
         metadata: {
           connectionId,
           messageType: message.type,
@@ -158,10 +158,10 @@ export class MessageRouter {
     }
 
     // Log the request
-    await logSecurityEvent(SecurityEventType.REQUEST_RECEIVED, {
+    await logSecurityEvent(SecurityEventType.API_ACCESS, {
       resource: 'websocket',
       action: 'request',
-      result: 'received',
+      result: 'success',
       metadata: {
         connectionId,
         userId: state.userId,
@@ -175,7 +175,7 @@ export class MessageRouter {
     // For now, send a not implemented response
     // This would be where you'd integrate with your request processing logic
     this.sendMessage(ws, {
-      type: 'response',
+      type: WSMessageType.RESPONSE,
       id: message.id,
       timestamp: new Date().toISOString(),
       status: 501,
@@ -213,7 +213,7 @@ export class MessageRouter {
         
         if (success) {
           this.sendMessage(ws, {
-            type: 'event',
+            type: WSMessageType.EVENT,
             id: uuidv4(),
             timestamp: new Date().toISOString(),
             event: 'subscription_confirmed',
@@ -233,7 +233,7 @@ export class MessageRouter {
         
         if (success) {
           this.sendMessage(ws, {
-            type: 'event',
+            type: WSMessageType.EVENT,
             id: uuidv4(),
             timestamp: new Date().toISOString(),
             event: 'subscription_cancelled',
@@ -268,7 +268,7 @@ export class MessageRouter {
     this.logger.debug('Ping received', { connectionId });
     
     this.sendMessage(ws, {
-      type: 'pong',
+      type: WSMessageType.PONG,
       id: message.id,
       timestamp: new Date().toISOString(),
     });
@@ -311,7 +311,7 @@ export class MessageRouter {
     error: { code: string; message: string },
   ): void {
     this.sendMessage(ws, {
-      type: 'error' as WSMessageType,
+      type: WSMessageType.ERROR,
       id: requestId,
       timestamp: new Date().toISOString(),
       error,

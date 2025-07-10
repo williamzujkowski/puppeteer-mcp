@@ -10,7 +10,7 @@ import type { CreateBrowserContextArgs, ToolResponse } from '../types/tool-types
 import { getPageManager } from '../../puppeteer/pages/page-manager.js';
 import { browserPool } from '../../server.js';
 import { createProxyBrowserContext, cleanupContextProxy } from '../../puppeteer/proxy/proxy-context-integration.js';
-import { proxyManager } from '../../puppeteer/proxy/proxy-manager.js';
+// import { ProxyManager } from '../../puppeteer/proxy/proxy-manager.js'; // Unused - proxy initialization handled elsewhere
 import type { ContextProxyConfig } from '../../puppeteer/types/proxy.js';
 
 /**
@@ -29,14 +29,12 @@ export class BrowserContextTool {
       const authContext = await this.validateAndAuthenticate(args.sessionId);
       const proxyConfig = this.prepareProxyConfiguration(args.options?.proxy);
       
-      if (proxyConfig?.pool) {
-        await proxyManager.initialize(proxyConfig.pool);
-      }
+      // Note: ProxyManager initialization handled by createProxyBrowserContext
 
       const context = await this.createContextRecord(args, authContext, proxyConfig);
       const { proxyId } = await this.setupBrowserContextWithProxy(context, proxyConfig, args.sessionId);
 
-      this.logContextCreation(context.id, authContext.userId, args.sessionId, proxyId);
+      this.logContextCreation(context.id, authContext.userId, args.sessionId ?? 'unknown', proxyId);
 
       return this.buildContextResponse(context, proxyId);
     } catch (error) {
@@ -67,7 +65,15 @@ export class BrowserContextTool {
     });
 
     await this.authBridge.requireToolPermission(authContext, 'createContext');
-    return authContext;
+    
+    if (!authContext.username) {
+      throw new Error('Username is required in authentication context');
+    }
+    
+    return {
+      username: authContext.username,
+      userId: authContext.userId
+    };
   }
 
   /**
@@ -81,11 +87,13 @@ export class BrowserContextTool {
     const options = proxyOptions as Record<string, unknown>;
     return {
       enabled: options.enabled as boolean,
-      proxy: options.config,
-      pool: options.pool,
+      proxy: options.config as any,
+      pool: options.pool as any,
       rotateOnError: (options.rotateOnError as boolean) ?? true,
       rotateOnInterval: (options.rotateOnInterval as boolean) ?? false,
       rotationInterval: (options.rotationInterval as number) ?? 3600000,
+      validateCertificates: (options.validateCertificates as boolean) ?? true,
+      allowInsecure: (options.allowInsecure as boolean) ?? false,
     };
   }
 
@@ -97,8 +105,8 @@ export class BrowserContextTool {
     authContext: { username: string; userId: string }, 
     proxyConfig?: ContextProxyConfig
   ): Promise<{ id: string; name: string; type: string; status: string; createdAt: string }> {
-    return contextStore.create({
-      sessionId: args.sessionId,
+    const context = await contextStore.create({
+      sessionId: args.sessionId ?? 'unknown',
       name: args.name ?? 'browser-context',
       type: 'puppeteer',
       config: args.options ?? {},
@@ -110,6 +118,14 @@ export class BrowserContextTool {
       userId: authContext.userId,
       proxyConfig: proxyConfig as Record<string, unknown> | undefined,
     });
+    
+    return {
+      id: context.id,
+      name: context.name,
+      type: context.type,
+      status: context.status,
+      createdAt: new Date(context.createdAt).toISOString(),
+    };
   }
 
   /**
@@ -223,11 +239,11 @@ export class BrowserContextTool {
         credentials: args.sessionId,
       });
 
-      const context = await this.validateContextAccess(args);
-      if ('error' in context) return context;
+      const contextValidation = await this.validateContextAccess(args);
+      if ('error' in contextValidation) return contextValidation;
 
       await this.closeContextResources(args.contextId, args.sessionId);
-      await this.cleanupContextProxy(context, args.contextId);
+      await this.cleanupContextProxy(contextValidation, args.contextId);
 
       const deleted = await contextStore.delete(args.contextId);
       this.logContextClosure(args.contextId, authContext.userId, args.sessionId, deleted);

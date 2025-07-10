@@ -6,7 +6,7 @@
 
 import { WebSocketServer } from 'ws';
 import { v4 as uuidv4 } from 'uuid';
-import type { WSConnectionState, WSMessage } from '../../types/websocket.js';
+import type { WSConnectionState, WSMessage, WSMessageType } from '../../types/websocket.js';
 import { config } from '../../core/config.js';
 import { logSecurityEvent, SecurityEventType } from '../../utils/logger.js';
 
@@ -109,7 +109,7 @@ export function createConnectionState(
  */
 export function createConnectionAckMessage(connectionId: string): WSMessage {
   return {
-    type: 'event',
+    type: WSMessageType.EVENT,
     event: 'connection_established',
     id: uuidv4(),
     timestamp: new Date().toISOString(),

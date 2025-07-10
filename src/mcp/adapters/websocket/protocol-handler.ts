@@ -6,7 +6,7 @@
  * @nist ia-2 "Identification and authentication"
  */
 
-import { WebSocket } from 'ws';
+import { WebSocket, type RawData } from 'ws';
 import { v4 as uuidv4 } from 'uuid';
 import type { Logger } from 'pino';
 import { AppError } from '../../../core/errors/app-error.js';
@@ -160,7 +160,7 @@ export class WebSocketProtocolHandler implements ProtocolHandlerInterface {
   /**
    * Parse WebSocket data to message
    */
-  parseMessage(data: WebSocket.Data): WSMessage {
+  parseMessage(data: RawData): WSMessage {
     let message: string;
 
     if (typeof data === 'string') {
@@ -192,7 +192,7 @@ export class WebSocketProtocolHandler implements ProtocolHandlerInterface {
    * Create MCP response from WebSocket message
    */
   createMCPResponse(message: WSMessage, metadata?: Record<string, unknown>): MCPResponse {
-    const content = message.data
+    const content = 'data' in message && message.data
       ? [
           {
             type: 'text' as const,

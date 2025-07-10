@@ -44,7 +44,7 @@ export class SecurityEventHandler {
   ): Promise<void> {
     const errorMessage = validationResult.errors.map(e => e.message).join('; ');
     
-    await logSecurityEvent(SecurityEventType.VALIDATION_FAILED, {
+    await logSecurityEvent(SecurityEventType.VALIDATION_FAILURE, {
       userId: context.userId,
       resource: `action:${actionType}`,
       action: `${actionType}_validation`,

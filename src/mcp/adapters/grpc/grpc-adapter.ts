@@ -15,10 +15,11 @@ import type { GrpcServer } from '../../../grpc/server.js';
 import type { 
   ExecuteRequestParams,
   GrpcCapabilities,
+  GrpcResponse,
 } from './types.js';
 import { GrpcOperationSchema } from './types.js';
 import { GrpcConnectionManager } from './connection-manager.js';
-import { GrpcServiceHandler } from './service-handler.js';
+import { GrpcServiceMethodHandler } from './service-handler.js';
 import { GrpcMetadataManager } from './metadata-manager.js';
 import { GrpcProtocolHandler } from './protocol-handler.js';
 import { GrpcErrorHandler } from './error-handler.js';
@@ -33,7 +34,7 @@ import { GrpcAuthHandler } from './auth-handler.js';
  */
 export class GrpcAdapter implements ProtocolAdapter {
   private readonly connectionManager: GrpcConnectionManager;
-  private readonly serviceHandler: GrpcServiceHandler;
+  private readonly serviceHandler: GrpcServiceMethodHandler;
   private readonly metadataManager: GrpcMetadataManager;
   private readonly protocolHandler: GrpcProtocolHandler;
   private readonly errorHandler: GrpcErrorHandler;
@@ -45,7 +46,7 @@ export class GrpcAdapter implements ProtocolAdapter {
     protoPath?: string,
   ) {
     this.connectionManager = new GrpcConnectionManager(server, protoPath);
-    this.serviceHandler = new GrpcServiceHandler(this.connectionManager);
+    this.serviceHandler = new GrpcServiceMethodHandler(this.connectionManager);
     this.metadataManager = new GrpcMetadataManager();
     this.protocolHandler = new GrpcProtocolHandler();
     this.errorHandler = new GrpcErrorHandler();
@@ -122,7 +123,7 @@ export class GrpcAdapter implements ProtocolAdapter {
       });
 
       // Transform to MCP response
-      return this.protocolHandler.transformToMCPResponse(response, operation, requestId);
+      return this.protocolHandler.transformToMCPResponse(response as GrpcResponse, operation, requestId);
     } catch (error) {
       // Log failed execution
       await logSecurityEvent(SecurityEventType.ACCESS_DENIED, {
@@ -208,7 +209,11 @@ export class GrpcAdapter implements ProtocolAdapter {
     }
 
     // Execute the gRPC call
-    return this.serviceHandler.executeGrpcCall(operation, metadata);
+    return this.serviceHandler.executeGrpcCall({ 
+      ...operation, 
+      streaming: false,
+      service: operation.service as 'SessionService' | 'ContextService' | 'HealthService'
+    }, metadata);
   }
 
   /**

@@ -190,10 +190,10 @@ export class MiddlewarePipeline {
           });
 
           // Log middleware error
-          void logSecurityEvent(SecurityEventType.MIDDLEWARE_ERROR, {
+          void logSecurityEvent(SecurityEventType.ERROR, {
             resource: 'websocket',
             action: 'middleware_execution',
-            result: 'error',
+            result: 'failure',
             metadata: {
               middleware: name,
               direction,
@@ -297,7 +297,7 @@ export class MiddlewarePipeline {
         
         // Record successful processing
         const duration = Date.now() - start;
-        void logSecurityEvent(SecurityEventType.MESSAGE_PROCESSED, {
+        void logSecurityEvent(SecurityEventType.API_ACCESS, {
           resource: 'websocket',
           action: 'process_message',
           result: 'success',
@@ -311,10 +311,10 @@ export class MiddlewarePipeline {
       } catch (error) {
         // Record processing error
         const duration = Date.now() - start;
-        void logSecurityEvent(SecurityEventType.MESSAGE_PROCESSING_ERROR, {
+        void logSecurityEvent(SecurityEventType.ERROR, {
           resource: 'websocket',
           action: 'process_message',
-          result: 'error',
+          result: 'failure',
           metadata: {
             connectionId: context.connectionId,
             messageType: context.message?.type,

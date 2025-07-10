@@ -97,7 +97,7 @@ export class SecurityEventCoordinator {
   ): Promise<void> {
     const metadata = this.eventLogger.createBaseMetadata(action, context);
     
-    await this.eventLogger.logEvent(SecurityEventType.VALIDATION_FAILED, {
+    await this.eventLogger.logEvent(SecurityEventType.VALIDATION_FAILURE, {
       userId: context.userId,
       resource: `page:${action.pageId}`,
       action: action.type,

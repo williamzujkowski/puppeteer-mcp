@@ -14,7 +14,7 @@ import { GrpcConnectionManager } from './connection-manager.js';
 /**
  * gRPC service method handler
  */
-export class GrpcServiceHandler {
+export class GrpcServiceMethodHandler {
   private readonly streamManager: GrpcStreamManager;
 
   constructor(private readonly connectionManager: GrpcConnectionManager) {
