@@ -1,0 +1,343 @@
+/**
+ * WebSocket connection lifecycle management
+ * @module ws/websocket/connection-manager
+ * @nist ac-3 "Access enforcement"
+ * @nist au-3 "Content of audit records"
+ */
+
+import { WebSocket } from 'ws';
+import type { pino } from 'pino';
+import type { WSConnectionState } from '../../types/websocket.js';
+import { logSecurityEvent, SecurityEventType } from '../../utils/logger.js';
+import type {
+  ConnectionEntry,
+  AuthenticationParams,
+  ConnectionStats,
+  WSComponentDependencies,
+} from './types.js';
+
+/**
+ * WebSocket connection lifecycle manager
+ * Handles connection creation, authentication, and cleanup
+ * @nist ac-3 "Access enforcement"
+ */
+export class ConnectionManager {
+  private connections: Map<string, ConnectionEntry> = new Map();
+  private sessionConnections: Map<string, Set<string>> = new Map();
+  private userConnections: Map<string, Set<string>> = new Map();
+  private logger: pino.Logger;
+
+  constructor({ logger }: WSComponentDependencies) {
+    this.logger = logger.child({ module: 'ws-connection-manager' });
+  }
+
+  /**
+   * Add a new connection to the manager
+   * @nist au-3 "Content of audit records"
+   */
+  addConnection(connectionId: string, ws: WebSocket, state: WSConnectionState): void {
+    this.connections.set(connectionId, { connectionId, ws, state });
+    this.logger.debug('Connection added', { connectionId });
+
+    // Log WebSocket connection establishment
+    void logSecurityEvent(SecurityEventType.WS_CONNECTION_ESTABLISHED, {
+      resource: 'websocket',
+      action: 'connect',
+      result: 'success',
+      metadata: {
+        connectionId,
+        remoteAddress: state.remoteAddress,
+        userAgent: state.userAgent,
+        protocol: state.protocol,
+        timestamp: new Date().toISOString(),
+      },
+    });
+  }
+
+  /**
+   * Remove a connection from the manager
+   * @nist au-3 "Content of audit records"
+   */
+  removeConnection(connectionId: string): void {
+    const connection = this.connections.get(connectionId);
+    if (!connection) return;
+
+    // Clean up user mapping if userId exists
+    const userId = connection.state.userId;
+    if (this.isValidId(userId)) {
+      this.cleanupUserConnections(userId, connectionId);
+    }
+
+    // Clean up session mapping if sessionId exists
+    const sessionId = connection.state.sessionId;
+    if (this.isValidId(sessionId)) {
+      this.cleanupSessionConnections(sessionId, connectionId);
+    }
+
+    this.connections.delete(connectionId);
+    this.logger.debug('Connection removed', { connectionId });
+
+    // Log WebSocket connection termination
+    void logSecurityEvent(SecurityEventType.WS_CONNECTION_TERMINATED, {
+      resource: 'websocket',
+      action: 'disconnect',
+      result: 'success',
+      metadata: {
+        connectionId,
+        userId,
+        sessionId,
+        connectionDuration:
+          connection.state.lastActivity.getTime() - connection.state.connectedAt.getTime(),
+        authenticated: connection.state.authenticated,
+        subscriptionCount: connection.state.subscriptions.size,
+      },
+    });
+  }
+
+  /**
+   * Get connection by ID
+   */
+  getConnection(connectionId: string): ConnectionEntry | undefined {
+    return this.connections.get(connectionId);
+  }
+
+  /**
+   * Get connection state by ID
+   */
+  getConnectionState(connectionId: string): WSConnectionState | undefined {
+    return this.connections.get(connectionId)?.state;
+  }
+
+  /**
+   * Get WebSocket instance by connection ID
+   */
+  getWebSocket(connectionId: string): WebSocket | undefined {
+    return this.connections.get(connectionId)?.ws;
+  }
+
+  /**
+   * Authenticate a connection
+   * @nist ac-3 "Access enforcement"
+   * @nist au-3 "Content of audit records"
+   */
+  authenticateConnection({
+    connectionId,
+    userId,
+    sessionId,
+    roles,
+    permissions,
+    scopes,
+  }: AuthenticationParams): void {
+    const connection = this.connections.get(connectionId);
+    if (!connection) return;
+
+    // Update connection state
+    connection.state.authenticated = true;
+    connection.state.userId = userId;
+    connection.state.sessionId = sessionId;
+    connection.state.roles = roles;
+    connection.state.permissions = permissions;
+    connection.state.scopes = scopes;
+    connection.state.metadata = {
+      ...connection.state.metadata,
+      authenticatedAt: new Date().toISOString(),
+    };
+
+    // Update user mapping
+    this.addToUserMapping(userId, connectionId);
+
+    // Update session mapping
+    this.addToSessionMapping(sessionId, connectionId);
+
+    this.logger.info('Connection authenticated', {
+      connectionId,
+      userId,
+      sessionId,
+    });
+
+    // Log WebSocket authentication success
+    void logSecurityEvent(SecurityEventType.WS_CONNECTION_ESTABLISHED, {
+      resource: 'websocket',
+      action: 'authenticate',
+      result: 'success',
+      metadata: {
+        connectionId,
+        userId,
+        sessionId,
+        roles: roles ?? [],
+        permissionCount: permissions?.length ?? 0,
+        scopeCount: scopes?.length ?? 0,
+        authenticationTime: Date.now() - connection.state.connectedAt.getTime(),
+      },
+    });
+  }
+
+  /**
+   * Get all connections
+   */
+  getAllConnections(): ConnectionEntry[] {
+    return Array.from(this.connections.values());
+  }
+
+  /**
+   * Get connections by user ID
+   * @nist ac-3 "Access enforcement"
+   */
+  getConnectionsByUser(userId: string): ConnectionEntry[] {
+    const connectionIds = this.userConnections.get(userId);
+    if (!connectionIds) {
+      return [];
+    }
+
+    return Array.from(connectionIds)
+      .map((id) => this.connections.get(id))
+      .filter((conn): conn is ConnectionEntry => conn !== undefined);
+  }
+
+  /**
+   * Get connections by session ID
+   * @nist ac-3 "Access enforcement"
+   */
+  getConnectionsBySession(sessionId: string): ConnectionEntry[] {
+    const connectionIds = this.sessionConnections.get(sessionId);
+    if (!connectionIds) {
+      return [];
+    }
+
+    return Array.from(connectionIds)
+      .map((id) => this.connections.get(id))
+      .filter((conn): conn is ConnectionEntry => conn !== undefined);
+  }
+
+  /**
+   * Get connection statistics
+   */
+  getStats(): ConnectionStats {
+    const connections = this.getAllConnections();
+    const authenticated = connections.filter((c) => c.state.authenticated);
+
+    return {
+      total: connections.length,
+      authenticated: authenticated.length,
+      unauthenticated: connections.length - authenticated.length,
+      uniqueUsers: this.userConnections.size,
+      uniqueSessions: this.sessionConnections.size,
+      connectionsByUser: Array.from(this.userConnections.entries()).map(([userId, conns]) => ({
+        userId,
+        count: conns.size,
+      })),
+    };
+  }
+
+  /**
+   * Clean up stale connections
+   * @nist au-3 "Content of audit records"
+   */
+  cleanupStaleConnections(maxAge: number): number {
+    const now = Date.now();
+    let cleaned = 0;
+
+    this.connections.forEach((connection, connectionId) => {
+      const age = now - connection.state.lastActivity.getTime();
+      if (age > maxAge) {
+        if (connection.ws.readyState === WebSocket.OPEN) {
+          connection.ws.close(1001, 'Connection timeout');
+        }
+
+        // Log stale connection cleanup
+        void logSecurityEvent(SecurityEventType.WS_CONNECTION_TERMINATED, {
+          resource: 'websocket',
+          action: 'cleanup_stale',
+          result: 'success',
+          reason: 'Connection timeout',
+          metadata: {
+            connectionId,
+            userId: connection.state.userId,
+            sessionId: connection.state.sessionId,
+            age,
+            maxAge,
+            authenticated: connection.state.authenticated,
+          },
+        });
+
+        this.removeConnection(connectionId);
+        cleaned++;
+      }
+    });
+
+    if (cleaned > 0) {
+      this.logger.info(`Cleaned up ${cleaned} stale connections`);
+    }
+
+    return cleaned;
+  }
+
+  /**
+   * Update last activity for a connection
+   */
+  updateLastActivity(connectionId: string): void {
+    const connection = this.connections.get(connectionId);
+    if (connection) {
+      connection.state.lastActivity = new Date();
+    }
+  }
+
+  /**
+   * Check if an ID is valid (non-null, non-undefined, non-empty)
+   */
+  private isValidId(id: string | undefined): id is string {
+    return id !== null && id !== undefined && id !== '' && id.length > 0;
+  }
+
+  /**
+   * Clean up user connections mapping
+   */
+  private cleanupUserConnections(userId: string, connectionId: string): void {
+    const userConnections = this.userConnections.get(userId);
+    if (!userConnections) return;
+
+    userConnections.delete(connectionId);
+    if (userConnections.size === 0) {
+      this.userConnections.delete(userId);
+    }
+  }
+
+  /**
+   * Clean up session connections mapping
+   */
+  private cleanupSessionConnections(sessionId: string, connectionId: string): void {
+    const sessionConnections = this.sessionConnections.get(sessionId);
+    if (!sessionConnections) return;
+
+    sessionConnections.delete(connectionId);
+    if (sessionConnections.size === 0) {
+      this.sessionConnections.delete(sessionId);
+    }
+  }
+
+  /**
+   * Add connection to user mapping
+   */
+  private addToUserMapping(userId: string, connectionId: string): void {
+    if (!this.userConnections.has(userId)) {
+      this.userConnections.set(userId, new Set());
+    }
+    const userConnectionSet = this.userConnections.get(userId);
+    if (userConnectionSet !== undefined) {
+      userConnectionSet.add(connectionId);
+    }
+  }
+
+  /**
+   * Add connection to session mapping
+   */
+  private addToSessionMapping(sessionId: string, connectionId: string): void {
+    if (!this.sessionConnections.has(sessionId)) {
+      this.sessionConnections.set(sessionId, new Set());
+    }
+    const sessionConnectionSet = this.sessionConnections.get(sessionId);
+    if (sessionConnectionSet !== undefined) {
+      sessionConnectionSet.add(connectionId);
+    }
+  }
+}
