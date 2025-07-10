@@ -5,7 +5,6 @@
  */
 
 import type { pino } from 'pino';
-import type { SessionStore } from '../../../store/session-store.interface.js';
 import type { WSComponentDependencies, SessionManagementOptions } from '../types.js';
 import { SessionStateManager } from './state-manager.js';
 import { SessionEventEmitter } from './event-emitter.js';

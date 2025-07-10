@@ -39,7 +39,7 @@ export class SessionEventEmitter extends EventEmitter {
   /**
    * Emit typed event
    */
-  emit<K extends keyof SessionEvents>(
+  override emit<K extends keyof SessionEvents>(
     event: K,
     ...args: Parameters<SessionEvents[K]>
   ): boolean {
@@ -50,7 +50,7 @@ export class SessionEventEmitter extends EventEmitter {
   /**
    * Add typed event listener
    */
-  on<K extends keyof SessionEvents>(
+  override on<K extends keyof SessionEvents>(
     event: K,
     listener: SessionEvents[K],
   ): this {
@@ -61,7 +61,7 @@ export class SessionEventEmitter extends EventEmitter {
   /**
    * Add one-time typed event listener
    */
-  once<K extends keyof SessionEvents>(
+  override once<K extends keyof SessionEvents>(
     event: K,
     listener: SessionEvents[K],
   ): this {
@@ -72,7 +72,7 @@ export class SessionEventEmitter extends EventEmitter {
   /**
    * Remove typed event listener
    */
-  off<K extends keyof SessionEvents>(
+  override off<K extends keyof SessionEvents>(
     event: K,
     listener: SessionEvents[K],
   ): this {
@@ -83,7 +83,7 @@ export class SessionEventEmitter extends EventEmitter {
   /**
    * Remove all listeners for an event
    */
-  removeAllListeners<K extends keyof SessionEvents>(event?: K): this {
+  override removeAllListeners<K extends keyof SessionEvents>(event?: K): this {
     if (event) {
       this.logger.debug('Removing all listeners for event', { event });
     } else {
@@ -95,7 +95,7 @@ export class SessionEventEmitter extends EventEmitter {
   /**
    * Get listener count for an event
    */
-  listenerCount<K extends keyof SessionEvents>(event: K): number {
+  override listenerCount<K extends keyof SessionEvents>(event: K): number {
     return super.listenerCount(event);
   }
 

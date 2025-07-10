@@ -15,13 +15,13 @@ export * as ErrorTypeGuards from './type-guards.js';
 export * as ErrorUtilityTypes from './utility-types.js';
 
 /**
- * Re-export all error system types
+ * Re-export all error system types - qualified re-exports to avoid conflicts
  */
-export * from './error-context.js';
+export type { ErrorContext } from './error-context.js';
 export * from './error-serialization.js';
 export * from './error-tracking.js';
 export * from './error-recovery.js';
 export { AppError } from './app-error.js';
 export { EnhancedAppError } from './enhanced-app-error.js';
 export * from './domain-errors.js';
-export * from './error-factory.js';
+export { ErrorFactory } from './error-factory.js';

@@ -78,7 +78,7 @@ export class SessionSecurityLogger {
     await logSecurityEvent(SecurityEventType.SESSION_LIMIT_EXCEEDED, {
       resource: 'websocket',
       action: 'create_session',
-      result: 'denied',
+      result: 'failure',
       metadata: {
         userId,
         maxAllowed: limit,
@@ -99,7 +99,7 @@ export class SessionSecurityLogger {
     await logSecurityEvent(SecurityEventType.SESSION_INVALID, {
       resource: 'websocket',
       action: 'validate_session',
-      result: 'failed',
+      result: 'failure',
       metadata: {
         sessionId,
         reason,

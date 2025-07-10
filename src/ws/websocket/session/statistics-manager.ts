@@ -49,7 +49,6 @@ export class SessionStatisticsManager {
    */
   getSessionStats(): SessionStats {
     const sessions = this.stateManager.getAllSessions();
-    const now = Date.now();
     
     const activeSessions = sessions.filter(
       session => session.state !== 'terminated',

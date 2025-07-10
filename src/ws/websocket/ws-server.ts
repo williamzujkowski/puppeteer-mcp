@@ -10,7 +10,7 @@ import { WebSocketServer, WebSocket } from 'ws';
 import { EventEmitter } from 'events';
 import type { pino } from 'pino';
 import type { SessionStore } from '../../store/session-store.interface.js';
-import type { WSMessage, WSConnectionState } from '../../types/websocket.js';
+import type { WSMessage } from '../../types/websocket.js';
 
 // Import modular components
 import { HealthMonitor } from './health-monitor.js';

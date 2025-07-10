@@ -14,12 +14,13 @@ import type { IncomingHttpHeaders } from 'http';
  * Extended Request type with additional properties
  */
 export interface ExtendedRequest extends Request {
-  id?: string;
-  startTime?: number;
+  id: string;
+  startTime: number;
   user?: {
     userId: string;
+    username: string;
+    roles: string[];
     sessionId: string;
-    [key: string]: unknown;
   };
 }
 

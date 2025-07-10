@@ -43,7 +43,7 @@ export const securityHeaders = (): RequestHandler => {
         objectSrc: ["'none'"],
         mediaSrc: ["'self'"],
         frameSrc: ["'none'"],
-        ...parseCSPDirectives(config.CSP_DIRECTIVES),
+        ...(parseCSPDirectives(String(config.CSP_DIRECTIVES || ''))),
       },
     },
 

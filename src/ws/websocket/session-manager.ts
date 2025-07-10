@@ -8,7 +8,6 @@
  */
 
 import type { pino } from 'pino';
-import type { SessionStore } from '../../store/session-store.interface.js';
 import type { ConnectionManager } from './connection-manager.js';
 import type { WSComponentDependencies, SessionManagementOptions } from './types.js';
 import { SessionFactory, type SessionManagerComponents } from './session/session-factory.js';

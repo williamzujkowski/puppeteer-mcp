@@ -6,8 +6,6 @@
 
 import { WebSocketServer } from 'ws';
 import { v4 as uuidv4 } from 'uuid';
-import type { pino } from 'pino';
-import type { SessionStore } from '../../store/session-store.interface.js';
 import type { WSConnectionState, WSMessage } from '../../types/websocket.js';
 import { config } from '../../core/config.js';
 import { logSecurityEvent, SecurityEventType } from '../../utils/logger.js';

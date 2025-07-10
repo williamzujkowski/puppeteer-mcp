@@ -169,4 +169,7 @@ export interface SessionManagementOptions {
   sessionTimeout?: number;
   maxSessionsPerUser?: number;
   persistSessions?: boolean;
+  cleanupInterval?: number;
+  batchSize?: number;
+  flushInterval?: number;
 }

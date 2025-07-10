@@ -27,7 +27,9 @@ export * from './error-tracking-storage.js';
 // Domain errors
 export * from './domain-errors.js';
 
-// Types
+// Types - qualified re-exports to avoid conflicts
+export type { ErrorContext } from './error-context.js';
+export type { ErrorFactory } from './error-factory.js';
 export * from './types.js';
 
 // Utils

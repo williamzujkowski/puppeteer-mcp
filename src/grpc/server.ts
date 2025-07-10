@@ -70,8 +70,8 @@ export class GrpcServer {
     this.logger = logger.child({ module: 'grpc-server' });
     this.sessionStore = sessionStore;
     this.server = new grpc.Server({
-      'grpc.max_receive_message_length': config.GRPC_MAX_MESSAGE_SIZE || 4 * 1024 * 1024, // 4MB
-      'grpc.max_send_message_length': config.GRPC_MAX_MESSAGE_SIZE || 4 * 1024 * 1024,
+      'grpc.max_receive_message_length': config.GRPC_MAX_RECEIVE_MESSAGE_SIZE || 4 * 1024 * 1024, // 4MB
+      'grpc.max_send_message_length': config.GRPC_MAX_SEND_MESSAGE_SIZE || 4 * 1024 * 1024,
       'grpc.keepalive_time_ms': config.GRPC_KEEPALIVE_TIME || 120000, // 2 minutes
       'grpc.keepalive_timeout_ms': config.GRPC_KEEPALIVE_TIMEOUT || 20000, // 20 seconds
       'grpc.keepalive_permit_without_calls': 1,
@@ -224,16 +224,16 @@ export class GrpcServer {
     };
 
     // Read TLS files with validation
-    const cert = readTLSFile(config.GRPC_TLS_CERT_PATH as string, 'TLS certificate');
-    const key = readTLSFile(config.GRPC_TLS_KEY_PATH as string, 'TLS key');
+    const cert = readTLSFile(config.TLS_CERT_PATH as string, 'TLS certificate');
+    const key = readTLSFile(config.TLS_KEY_PATH as string, 'TLS key');
 
     let ca: Buffer | undefined;
     if (
-      config.GRPC_TLS_CA_PATH !== null &&
-      config.GRPC_TLS_CA_PATH !== undefined &&
-      config.GRPC_TLS_CA_PATH !== ''
+      config.TLS_CA_PATH !== null &&
+      config.TLS_CA_PATH !== undefined &&
+      config.TLS_CA_PATH !== ''
     ) {
-      ca = readTLSFile(config.GRPC_TLS_CA_PATH, 'TLS CA');
+      ca = readTLSFile(config.TLS_CA_PATH, 'TLS CA');
     }
 
     return grpc.ServerCredentials.createSsl(
@@ -244,7 +244,7 @@ export class GrpcServer {
           private_key: key,
         },
       ],
-      config.GRPC_TLS_CLIENT_AUTH, // Require client certificates if configured
+      false, // Client certificate authentication - default disabled
     );
   }
 
@@ -254,12 +254,12 @@ export class GrpcServer {
   private shouldEnableTLS(): boolean {
     return (
       config.TLS_ENABLED === true &&
-      config.GRPC_TLS_CERT_PATH !== null &&
-      config.GRPC_TLS_CERT_PATH !== undefined &&
-      config.GRPC_TLS_CERT_PATH !== '' &&
-      config.GRPC_TLS_KEY_PATH !== null &&
-      config.GRPC_TLS_KEY_PATH !== undefined &&
-      config.GRPC_TLS_KEY_PATH !== ''
+      config.TLS_CERT_PATH !== null &&
+      config.TLS_CERT_PATH !== undefined &&
+      config.TLS_CERT_PATH !== '' &&
+      config.TLS_KEY_PATH !== null &&
+      config.TLS_KEY_PATH !== undefined &&
+      config.TLS_KEY_PATH !== ''
     );
   }
 

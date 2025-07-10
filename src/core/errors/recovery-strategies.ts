@@ -40,7 +40,7 @@ export class TokenRefreshRecoveryStrategy implements RecoveryStrategy {
   }
 
   canHandle(error: EnhancedAppError): boolean {
-    return error.getRecoverySuggestions().includes(RecoveryAction.REFRESH_TOKEN);
+    return error.getRecoverySuggestions()?.includes(RecoveryAction.REFRESH_TOKEN) ?? false;
   }
 
   async execute(_error: EnhancedAppError, _context: RecoveryContext): Promise<RecoveryResult> {
@@ -81,7 +81,7 @@ export class SessionRestartRecoveryStrategy implements RecoveryStrategy {
   }
 
   canHandle(error: EnhancedAppError): boolean {
-    return error.getRecoverySuggestions().includes(RecoveryAction.RESTART_SESSION);
+    return error.getRecoverySuggestions()?.includes(RecoveryAction.RESTART_SESSION) ?? false;
   }
 
   async execute(_error: EnhancedAppError, context: RecoveryContext): Promise<RecoveryResult> {
@@ -132,7 +132,7 @@ export class CacheClearRecoveryStrategy implements RecoveryStrategy {
   }
 
   canHandle(error: EnhancedAppError): boolean {
-    return error.getRecoverySuggestions().includes(RecoveryAction.CLEAR_CACHE);
+    return error.getRecoverySuggestions()?.includes(RecoveryAction.CLEAR_CACHE) ?? false;
   }
 
   async execute(_error: EnhancedAppError, context: RecoveryContext): Promise<RecoveryResult> {

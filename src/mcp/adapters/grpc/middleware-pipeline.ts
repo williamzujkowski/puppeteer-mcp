@@ -80,7 +80,7 @@ export class GrpcMiddlewarePipeline {
    * @nist ia-2 "Identification and authentication"
    */
   static createAuthMiddleware(): GrpcMiddleware {
-    return async (operation, metadata, params, next) => {
+    return async (operation, _metadata, params, next) => {
       // Log authentication attempt
       await logSecurityEvent(SecurityEventType.AUTH_ATTEMPT, {
         userId: params.sessionId,
@@ -114,7 +114,7 @@ export class GrpcMiddlewarePipeline {
    * @nist au-3 "Content of audit records"
    */
   static createLoggingMiddleware(): GrpcMiddleware {
-    return async (operation, metadata, params, next) => {
+    return async (operation, _metadata, params, next) => {
       const startTime = Date.now();
       
       try {
@@ -161,7 +161,7 @@ export class GrpcMiddlewarePipeline {
   static createRateLimitMiddleware(maxRequestsPerMinute = 60): GrpcMiddleware {
     const requestCounts = new Map<string, { count: number; resetTime: number }>();
 
-    return async (operation, metadata, params, next) => {
+    return async (operation, _metadata, params, next) => {
       const clientId = params.sessionId ?? 'anonymous';
       const now = Date.now();
       const resetTime = now + 60000; // 1 minute from now
@@ -195,7 +195,7 @@ export class GrpcMiddlewarePipeline {
    * @nist si-10 "Information input validation"
    */
   static createValidationMiddleware(): GrpcMiddleware {
-    return async (operation, metadata, params, next) => {
+    return async (operation, _metadata, _params, next) => {
       // Validate operation structure
       if (!operation.service || !operation.method) {
         throw new Error('Invalid operation: service and method are required');
