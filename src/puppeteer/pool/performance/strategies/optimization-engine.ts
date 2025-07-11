@@ -181,7 +181,7 @@ export class OptimizationEngine implements IOptimizationEngine {
         rec: () => ({
           id: `latency-opt-${Date.now()}`,
           type: 'configuration' as const,
-          priority: (metric.current > this.config.optimizationThresholds.maxLatency * 2 ? 'high' : 'medium') as 'high' | 'medium',
+          priority: (metric.current > this.config.optimizationThresholds.maxLatency * 2 ? 'high' : 'medium'),
           title: 'Optimize Latency Performance',
           description: `Current latency ${metric.current}ms exceeds threshold ${this.config.optimizationThresholds.maxLatency}ms`,
           impact: 'Improve response times by 20-30%',

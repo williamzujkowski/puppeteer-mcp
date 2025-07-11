@@ -138,7 +138,7 @@ describe('BrowserActionExecutor', () => {
         url: 'https://example.com',
       };
 
-      const result = await executor.validate(action, context);
+      const result = executor.validate(action, context);
 
       expect(result.valid).toBe(true);
       expect(result.errors).toHaveLength(0);
@@ -151,7 +151,7 @@ describe('BrowserActionExecutor', () => {
         pageId: 'test-page-123',
       } as BrowserAction;
 
-      const result = await executor.validate(action, context);
+      const result = executor.validate(action, context);
 
       expect(result.valid).toBe(false);
       expect(result.errors).toHaveLength(1);
@@ -171,7 +171,7 @@ describe('BrowserActionExecutor', () => {
         url: 'invalid-url',
       };
 
-      const result = await executor.validate(action, context);
+      const result = executor.validate(action, context);
 
       expect(result.valid).toBe(false);
       expect(result.errors).toHaveLength(1);
@@ -233,7 +233,6 @@ describe('BrowserActionExecutor', () => {
   describe('execute', () => {
     beforeEach(() => {
       // Mock the private getPageInstance method
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       if (!(executor as unknown as { getPageInstance?: unknown }).getPageInstance) {
         (executor as any).getPageInstance = jest.fn().mockResolvedValue(mockPage);
       } else {
@@ -347,7 +346,6 @@ describe('BrowserActionExecutor', () => {
   describe('executeBatch', () => {
     beforeEach(() => {
       // Mock the private getPageInstance method
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       if (!(executor as unknown as { getPageInstance?: unknown }).getPageInstance) {
         (executor as any).getPageInstance = jest.fn().mockResolvedValue(mockPage);
       } else {
@@ -515,7 +513,6 @@ describe('BrowserActionExecutor', () => {
   describe('getHistory', () => {
     beforeEach(() => {
       // Mock the private getPageInstance method
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       if (!(executor as unknown as { getPageInstance?: unknown }).getPageInstance) {
         (executor as any).getPageInstance = jest.fn().mockResolvedValue(mockPage);
       } else {
@@ -568,7 +565,7 @@ describe('BrowserActionExecutor', () => {
 
   describe('getMetrics', () => {
     it('should return empty metrics for new context', async () => {
-      const metrics = await executor.getMetrics(context);
+      const metrics = executor.getMetrics(context);
 
       expect(metrics.totalActions).toBe(0);
       expect(metrics.successfulActions).toBe(0);
@@ -581,7 +578,6 @@ describe('BrowserActionExecutor', () => {
   describe('clearHistory', () => {
     beforeEach(() => {
       // Mock the private getPageInstance method
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       if (!(executor as unknown as { getPageInstance?: unknown }).getPageInstance) {
         (executor as any).getPageInstance = jest.fn().mockResolvedValue(mockPage);
       } else {

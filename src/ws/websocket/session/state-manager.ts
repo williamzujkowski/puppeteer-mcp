@@ -162,7 +162,7 @@ export class SessionStateManager {
   /**
    * Transition session state
    */
-  async transitionState(sessionId: string, newState: SessionState): Promise<boolean> {
+  transitionState(sessionId: string, newState: SessionState): boolean {
     const session = this.sessions.get(sessionId);
     if (!session) return false;
 

@@ -108,7 +108,7 @@ export class ModularBrowserActionExecutor implements ActionExecutor {
    * @returns Validation result
    * @nist si-10 "Information input validation"
    */
-  async validate(action: BrowserAction, context: ActionContext): Promise<ValidationResult> {
+  validate(action: BrowserAction, context: ActionContext): ValidationResult {
     try {
       logger.debug('Validating browser action', {
         sessionId: context.sessionId,
@@ -221,7 +221,7 @@ export class ModularBrowserActionExecutor implements ActionExecutor {
    * @returns Array of historical action results
    * @nist au-7 "Audit reduction and report generation"
    */
-  async getHistory(
+  getHistory(
     context: ActionContext,
     options?: {
       limit?: number;
@@ -240,7 +240,7 @@ export class ModularBrowserActionExecutor implements ActionExecutor {
    * @param before - Clear history before this date
    * @nist au-4 "Audit storage capacity"
    */
-  async clearHistory(context: ActionContext, before?: Date): Promise<void> {
+  clearHistory(context: ActionContext, before?: Date): void {
     this.components.historyManager.clearHistory(context, before);
   }
 
@@ -250,13 +250,13 @@ export class ModularBrowserActionExecutor implements ActionExecutor {
    * @returns Action execution metrics
    * @nist au-6 "Audit review, analysis, and reporting"
    */
-  async getMetrics(context: ActionContext): Promise<{
+  getMetrics(context: ActionContext): {
     totalActions: number;
     successfulActions: number;
     failedActions: number;
     averageDuration: number;
     actionTypeBreakdown: Record<string, number>;
-  }> {
+  } {
     return this.components.historyManager.getMetrics(context);
   }
 

@@ -130,7 +130,7 @@ export class WebSocketMessageHandler implements MessageHandlers {
   handleEventMessage(connection: MCPWebSocketConnection, message: WSEventMessage): void {
     const eventData = message.data as { topic?: string; data?: unknown } | undefined;
 
-    if (!eventData || eventData.topic === null || eventData.topic === undefined || eventData.topic === '') {
+    if (!eventData?.topic) {
       this.logger.debug('Event message without topic', {
         connectionId: connection.connectionId,
         messageId: message.id,

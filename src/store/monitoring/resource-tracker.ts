@@ -116,7 +116,7 @@ export class ResourceTracker {
 
     try {
       const [info, keyCount] = await Promise.all([
-        redisClient.info() as Promise<string>,
+        redisClient.info(),
         redisClient.dbsize()
       ]);
       
@@ -138,7 +138,7 @@ export class ResourceTracker {
   private parseInfoValue(info: string | undefined, key: string): number | undefined {
     if (!info) return undefined;
     const match = info.match(new RegExp(`${key}:(\\d+)`));
-    return match && match[1] ? parseInt(match[1], 10) : undefined;
+    return match?.[1] ? parseInt(match[1], 10) : undefined;
   }
 
   /**

@@ -64,7 +64,6 @@ export class ActionDispatcher {
       });
 
       // Check for custom handler first
-      // eslint-disable-next-line security/detect-object-injection
       const customHandler = this.customHandlers[action.type];
       if (customHandler) {
         logger.debug('Using custom handler', {

@@ -594,25 +594,25 @@ describe('Request/Response Logger Middleware', () => {
   });
 
   describe('Preset Configurations', () => {
-    it('should use production preset correctly', async () => {
+    it('should use production preset correctly', () => {
       const middleware = createRequestResponseLogger.production();
       expect(middleware).toBeDefined();
       expect(typeof middleware).toBe('function');
     });
 
-    it('should use development preset correctly', async () => {
+    it('should use development preset correctly', () => {
       const middleware = createRequestResponseLogger.development();
       expect(middleware).toBeDefined();
       expect(typeof middleware).toBe('function');
     });
 
-    it('should use security preset correctly', async () => {
+    it('should use security preset correctly', () => {
       const middleware = createRequestResponseLogger.security();
       expect(middleware).toBeDefined();
       expect(typeof middleware).toBe('function');
     });
 
-    it('should use performance preset correctly', async () => {
+    it('should use performance preset correctly', () => {
       const middleware = createRequestResponseLogger.performance();
       expect(middleware).toBeDefined();
       expect(typeof middleware).toBe('function');

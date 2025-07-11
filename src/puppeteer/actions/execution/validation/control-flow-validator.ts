@@ -299,7 +299,7 @@ export class ControlFlowValidator extends BaseValidator {
     // Check for basic syntax errors
     try {
       // Simple syntax check - try to parse as function
-      // eslint-disable-next-line no-new-func, @typescript-eslint/no-implied-eval
+      // eslint-disable-next-line @typescript-eslint/no-implied-eval
       new Function(func);
     } catch {
       this.addError(

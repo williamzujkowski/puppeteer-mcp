@@ -94,19 +94,23 @@ function createRedisStore(redisClient: unknown): RedisStore | null {
       sendCommand: async (...args: unknown[]) => {
         // Handle different command formats
         if (args[0] === 'SCRIPT' && args[1] === 'LOAD') {
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-explicit-any
+          // @typescript-eslint/no-explicit-any is needed for dynamic Redis command invocation
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           return (redisClient as any).script('LOAD', args[2]);
         }
         if (args[0] === 'EVALSHA') {
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-explicit-any
+          // @typescript-eslint/no-explicit-any is needed for dynamic Redis command invocation
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           return (redisClient as any).evalsha(args[1], args[2], ...args.slice(3));
         }
         if (args[0] === 'EVAL') {
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-explicit-any
+          // @typescript-eslint/no-explicit-any is needed for dynamic Redis command invocation
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           return (redisClient as any).eval(args[1], args[2], ...args.slice(3));
         }
         // Default case
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-explicit-any
+        // @typescript-eslint/no-explicit-any is needed for dynamic Redis command invocation
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return (redisClient as any)[String(args[0]).toLowerCase()](...args.slice(1));
       },
     };
@@ -127,7 +131,6 @@ function createRedisStore(redisClient: unknown): RedisStore | null {
 /**
  * Create rate limiter with Redis support
  */
-// eslint-disable-next-line complexity
 export function createRateLimiter(options: RateLimitConfig = {}): RateLimitRequestHandler {
   const redisClient = getRedisClient();
 

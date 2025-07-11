@@ -141,7 +141,7 @@ export function getTelemetryConfig(): TelemetryConfig {
     tracing: {
       enabled: config.TELEMETRY_ENABLED,
       samplingRate: config.TELEMETRY_SAMPLING_RATIO,
-      exporter: config.TELEMETRY_EXPORTER_TYPE === 'none' ? 'none' : config.TELEMETRY_EXPORTER_TYPE as 'otlp' | 'jaeger' | 'zipkin' | 'console',
+      exporter: config.TELEMETRY_EXPORTER_TYPE === 'none' ? 'none' : config.TELEMETRY_EXPORTER_TYPE,
       endpoints: {
         otlp: config.TELEMETRY_EXPORTER_ENDPOINT || 'http://localhost:4318',
         jaeger: config.TELEMETRY_EXPORTER_ENDPOINT || 'http://localhost:14268/api/traces',

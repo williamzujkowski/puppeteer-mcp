@@ -201,10 +201,10 @@ export class SessionValidationManager {
   /**
    * Validate connections
    */
-  private async validateConnections(
+  private validateConnections(
     session: SessionInfo,
     connectionManager: ConnectionManager,
-  ): Promise<SessionValidationResult> {
+  ): SessionValidationResult {
     const validConnections = new Set<string>();
 
     for (const connectionId of session.connectionIds) {

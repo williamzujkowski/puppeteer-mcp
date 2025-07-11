@@ -330,7 +330,6 @@ export class ErrorFactory {
     ): InstanceType<T> => {
       // Type assertion is necessary here because TypeScript cannot infer
       // the exact type when using generic constructors
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
       return new errorClass(...args) as InstanceType<T>;
     },
   };

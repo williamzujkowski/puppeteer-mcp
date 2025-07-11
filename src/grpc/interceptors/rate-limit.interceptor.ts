@@ -99,7 +99,6 @@ async function checkRateLimit(
 /**
  * Extract rate limit key from call
  */
-// eslint-disable-next-line complexity
 function extractRateLimitKey(call: ExtendedCall): string {
   // Priority: API Key > Session ID > Peer IP
   const metadata = call.metadata;

@@ -54,7 +54,7 @@ export class OptimizationEngine extends EventEmitter {
    * Update component configurations
    */
   async updateComponentConfigurations(newConfig: Partial<OptimizationConfig>): Promise<void> {
-    if (newConfig.scaling && newConfig.scaling.minSize !== undefined && newConfig.scaling.maxSize !== undefined) {
+    if (newConfig.scaling?.minSize !== undefined && newConfig.scaling.maxSize !== undefined) {
       // Only update if all required properties are present
       const completeStrategy = {
         minSize: newConfig.scaling.minSize,

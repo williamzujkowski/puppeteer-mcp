@@ -193,7 +193,7 @@ export class SessionLifecycleManager {
   /**
    * Check if user can create session
    */
-  private async canUserCreateSession(userId: string): Promise<boolean> {
+  private canUserCreateSession(userId: string): boolean {
     const userSessions = this.stateManager.getUserSessions(userId);
     const maxSessions = this.options.maxSessionsPerUser ?? 10;
     return userSessions.length < maxSessions;

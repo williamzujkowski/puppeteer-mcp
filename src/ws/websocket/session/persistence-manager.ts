@@ -127,7 +127,7 @@ export class SessionPersistenceManager {
   /**
    * Load sessions from persistence
    */
-  async loadSessions(): Promise<SessionInfo[]> {
+  loadSessions(): SessionInfo[] {
     if (!this.options.persistSessions) return [];
 
     try {
