@@ -342,7 +342,7 @@ jobs:
           
       - name: Analyze benchmark results
         run: |
-          cat > benchmarks/analyze-results.js << 'EOF'
+          cat > benchmarks/analyze-results.cjs << 'EOF'
           const fs = require('fs');
           const path = require('path');
           
@@ -438,7 +438,7 @@ jobs:
           fs.writeFileSync('benchmarks/performance-report.md', markdown);
           EOF
           
-          node benchmarks/analyze-results.js
+          node benchmarks/analyze-results.cjs
           
       - name: Upload benchmark results
         uses: actions/upload-artifact@v4
