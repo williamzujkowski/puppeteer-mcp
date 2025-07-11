@@ -259,13 +259,23 @@ export async function mcpGetContent(
     throw new Error('Get content failed');
   }
 
-  const data = JSON.parse(resultText) as { error?: string; success?: boolean; data?: string };
+  const data = JSON.parse(resultText) as { error?: string; success?: boolean; data?: any };
   if (data.error !== undefined && data.error !== null && data.error !== '') {
     throw new Error(`Get content failed: ${data.error}`);
   }
 
   // The content is returned in the data field from the execute-in-context response
-  return data.data ?? '';
+  // Extract the actual content string
+  if (typeof data.data === 'string') {
+    return data.data;
+  } else if (data.data && typeof data.data.content === 'string') {
+    return data.data.content;
+  } else if (data.data && typeof data.data.text === 'string') {
+    return data.data.text;
+  } else {
+    console.warn('Unexpected content response format:', data);
+    return JSON.stringify(data.data ?? '');
+  }
 }
 
 /**
@@ -307,6 +317,12 @@ export async function mcpScreenshot(
   client: Client,
   contextId: string,
   filename?: string,
+  options?: {
+    fullPage?: boolean;
+    format?: 'png' | 'jpeg' | 'webp';
+    quality?: number;
+    selector?: string;
+  },
 ): Promise<string> {
   const result = await client.callTool({
     name: 'execute-in-context',
@@ -315,6 +331,10 @@ export async function mcpScreenshot(
       command: 'screenshot',
       parameters: {
         filename,
+        fullPage: options?.fullPage,
+        format: options?.format,
+        quality: options?.quality,
+        selector: options?.selector,
       },
     },
   });
@@ -324,12 +344,247 @@ export async function mcpScreenshot(
     throw new Error('Screenshot failed');
   }
 
-  const data = JSON.parse(resultText) as { error?: string; filename?: string };
+  const data = JSON.parse(resultText) as {
+    error?: string;
+    filename?: string;
+    data?: { filename?: string; path?: string };
+  };
   if (data.error !== undefined && data.error !== null && data.error !== '') {
     throw new Error(`Screenshot failed: ${data.error}`);
   }
 
-  return data.filename ?? '';
+  // Handle different response formats
+  return data.filename ?? data.data?.filename ?? data.data?.path ?? '';
+}
+
+/**
+ * Evaluate JavaScript code in the page using MCP
+ */
+export async function mcpEvaluate(client: Client, contextId: string, code: string): Promise<any> {
+  const result = await client.callTool({
+    name: 'execute-in-context',
+    arguments: {
+      contextId,
+      command: 'evaluate',
+      parameters: {
+        code,
+      },
+    },
+  });
+
+  const resultText = result.content?.[0]?.text;
+  if (resultText === undefined || resultText === null) {
+    throw new Error('Evaluate failed');
+  }
+
+  const data = JSON.parse(resultText) as { error?: string; success?: boolean; data?: any };
+  if (data.error !== undefined && data.error !== null && data.error !== '') {
+    throw new Error(`Evaluate failed: ${data.error}`);
+  }
+
+  // If the data contains evaluation result details, extract just the result
+  if (data.data && typeof data.data === 'object' && 'result' in data.data) {
+    return data.data.result;
+  }
+
+  return data.data;
+}
+
+/**
+ * Cookie operations using MCP
+ */
+export async function mcpCookie(
+  client: Client,
+  contextId: string,
+  operation: 'set' | 'get' | 'delete' | 'clear',
+  cookies?: Array<{
+    name: string;
+    value?: string;
+    domain?: string;
+    path?: string;
+    expires?: number;
+    httpOnly?: boolean;
+    secure?: boolean;
+    sameSite?: 'Strict' | 'Lax' | 'None';
+  }>,
+): Promise<any> {
+  const result = await client.callTool({
+    name: 'execute-in-context',
+    arguments: {
+      contextId,
+      command: 'cookie',
+      parameters: {
+        operation,
+        cookies,
+      },
+    },
+  });
+
+  const resultText = result.content?.[0]?.text;
+  if (resultText === undefined || resultText === null) {
+    throw new Error('Cookie operation failed');
+  }
+
+  const data = JSON.parse(resultText) as { error?: string; success?: boolean; data?: any };
+  if (data.error !== undefined && data.error !== null && data.error !== '') {
+    throw new Error(`Cookie operation failed: ${data.error}`);
+  }
+
+  // Return the actual cookie data
+  if (data.data && typeof data.data === 'object' && 'result' in data.data) {
+    return data.data.result;
+  }
+
+  return data.data;
+}
+
+/**
+ * Create additional browser context in existing session
+ */
+export async function createAdditionalBrowserContext(
+  client: Client,
+  sessionId: string,
+  options?: {
+    headless?: boolean;
+    viewport?: { width: number; height: number };
+    slowMo?: number;
+  },
+): Promise<string> {
+  const result = await client.callTool({
+    name: 'create-browser-context',
+    arguments: {
+      sessionId,
+      options: {
+        headless: options?.headless ?? TEST_CONFIG.headless,
+        viewport: options?.viewport ?? TEST_CONFIG.viewport,
+        slowMo: options?.slowMo ?? TEST_CONFIG.slowMo,
+      },
+    },
+  });
+
+  const text = extractResultText(result, 'Failed to create additional browser context');
+  const data = JSON.parse(text);
+  checkDataError(data, 'Failed to create additional browser context');
+
+  return data.contextId;
+}
+
+/**
+ * List browser contexts for a session
+ */
+export async function listBrowserContexts(client: Client, sessionId: string): Promise<any[]> {
+  const result = await client.callTool({
+    name: 'list-browser-contexts',
+    arguments: {
+      sessionId,
+    },
+  });
+
+  const text = extractResultText(result, 'Failed to list browser contexts');
+  const data = JSON.parse(text);
+  checkDataError(data, 'Failed to list browser contexts');
+
+  return data.contexts || [];
+}
+
+/**
+ * Close a specific browser context
+ */
+export async function closeBrowserContext(
+  client: Client,
+  sessionId: string,
+  contextId: string,
+): Promise<void> {
+  const result = await client.callTool({
+    name: 'close-browser-context',
+    arguments: {
+      sessionId,
+      contextId,
+    },
+  });
+
+  const text = extractResultText(result, 'Failed to close browser context');
+  const data = JSON.parse(text);
+  checkDataError(data, 'Failed to close browser context');
+}
+
+/**
+ * Generate PDF using MCP
+ */
+export async function mcpPDF(
+  client: Client,
+  contextId: string,
+  options?: {
+    format?:
+      | 'letter'
+      | 'legal'
+      | 'tabloid'
+      | 'ledger'
+      | 'a0'
+      | 'a1'
+      | 'a2'
+      | 'a3'
+      | 'a4'
+      | 'a5'
+      | 'a6';
+    landscape?: boolean;
+    scale?: number;
+    displayHeaderFooter?: boolean;
+    headerTemplate?: string;
+    footerTemplate?: string;
+    printBackground?: boolean;
+    preferCSSPageSize?: boolean;
+    pageRanges?: string;
+    margin?: {
+      top?: string;
+      bottom?: string;
+      left?: string;
+      right?: string;
+    };
+    timeout?: number;
+  },
+): Promise<string> {
+  const result = await client.callTool({
+    name: 'execute-in-context',
+    arguments: {
+      contextId,
+      command: 'pdf',
+      parameters: {
+        format: options?.format,
+        landscape: options?.landscape,
+        scale: options?.scale,
+        displayHeaderFooter: options?.displayHeaderFooter,
+        headerTemplate: options?.headerTemplate,
+        footerTemplate: options?.footerTemplate,
+        printBackground: options?.printBackground,
+        preferCSSPageSize: options?.preferCSSPageSize,
+        pageRanges: options?.pageRanges,
+        margin: options?.margin,
+        timeout: options?.timeout,
+      },
+    },
+  });
+
+  const resultText = result.content?.[0]?.text;
+  if (resultText === undefined || resultText === null) {
+    throw new Error('PDF generation failed');
+  }
+
+  const data = JSON.parse(resultText) as {
+    error?: string;
+    success?: boolean;
+    data?: {
+      pdf?: string;
+      format?: string;
+      size?: number;
+    };
+  };
+  if (data.error !== undefined && data.error !== null && data.error !== '') {
+    throw new Error(`PDF generation failed: ${data.error}`);
+  }
+
+  // Return the base64 encoded PDF data
+  return data.data?.pdf ?? '';
 }
 
 /**
@@ -353,8 +608,8 @@ export async function cleanupMCPSession(
 
     if (result.content?.[0]?.text !== undefined && result.content[0].text !== null) {
       const response = JSON.parse(result.content[0].text);
-      if (response.success === true) {
-        console.warn(`Session ${sessionInfo.sessionId} cleaned up successfully`);
+      if (response.success !== true) {
+        console.warn(`Session ${sessionInfo.sessionId} cleanup had issues:`, response);
       }
     }
   } catch (error) {

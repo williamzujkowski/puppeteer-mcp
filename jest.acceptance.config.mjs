@@ -39,7 +39,9 @@ export default {
       },
     ],
   },
-  transformIgnorePatterns: ['node_modules/(?!(.*\\.mjs$))'],
+  transformIgnorePatterns: [
+    'node_modules/(?!(node-fetch|data-uri-to-buffer|fetch-blob|formdata-polyfill))'
+  ],
   roots: ['<rootDir>/src', '<rootDir>/tests'],
   testMatch: [
     '**/tests/acceptance/**/*.+(ts|tsx|js)',

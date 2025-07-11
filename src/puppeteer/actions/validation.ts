@@ -250,6 +250,53 @@ const actionSchemas = {
       .max(50)
       .optional(),
   }),
+
+  // Extended wait actions
+  waitForSelector: baseActionSchema.extend({
+    type: z.literal('waitForSelector'),
+    selector: selectorSchema,
+    timeout: z.number().int().min(100).max(300000).optional(),
+    visible: z.boolean().optional(),
+    hidden: z.boolean().optional(),
+  }),
+
+  waitForFunction: baseActionSchema.extend({
+    type: z.literal('waitForFunction'),
+    function: javascriptCodeSchema,
+    timeout: z.number().int().min(100).max(300000).optional(),
+    args: z.array(z.unknown()).max(10).optional(),
+  }),
+
+  waitForNavigation: baseActionSchema.extend({
+    type: z.literal('waitForNavigation'),
+    timeout: z.number().int().min(100).max(300000).optional(),
+    waitUntil: z.enum(['load', 'domcontentloaded', 'networkidle0', 'networkidle2']).optional(),
+  }),
+
+  waitForTimeout: baseActionSchema.extend({
+    type: z.literal('waitForTimeout'),
+    duration: z.number().int().min(100).max(300000),
+  }),
+
+  // Content extraction
+  content: baseActionSchema.extend({
+    type: z.literal('content'),
+    selector: selectorSchema.optional(),
+    timeout: z.number().int().min(100).max(60000).optional(),
+  }),
+
+  // Text extraction
+  getText: baseActionSchema.extend({
+    type: z.literal('getText'),
+    selector: selectorSchema,
+  }),
+
+  // Attribute extraction
+  getAttribute: baseActionSchema.extend({
+    type: z.literal('getAttribute'),
+    selector: selectorSchema,
+    attribute: z.string().min(1).max(100),
+  }),
 };
 
 /**

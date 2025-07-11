@@ -47,8 +47,21 @@ export class ContextActionHandlers {
   executeAction = (req: Request, res: Response, next: NextFunction): void =>
     void (async () => {
       try {
-        // Validate request
-        const { contextId, browserAction } = await this.validateExecuteRequest(req);
+        // Check if request body has command format (from MCP)
+        let browserAction: BrowserAction;
+        let contextId: string;
+
+        if (req.body.action && typeof req.body.action === 'string') {
+          // MCP command format
+          const result = await this.validateCommandRequest(req);
+          contextId = result.contextId;
+          browserAction = result.browserAction;
+        } else {
+          // Direct BrowserAction format
+          const result = await this.validateExecuteRequest(req);
+          contextId = result.contextId;
+          browserAction = result.browserAction;
+        }
 
         // Create action context
         const actionContext = this.createActionContext(req, contextId);
@@ -108,6 +121,53 @@ export class ContextActionHandlers {
   }
 
   /**
+   * Validate command-based request (from MCP)
+   */
+  private async validateCommandRequest(req: Request): Promise<{
+    contextId: string;
+    browserAction: BrowserAction;
+  }> {
+    if (!req.user) {
+      throw new AppError('Not authenticated', 401);
+    }
+
+    if (!this.browserPool) {
+      throw new AppError('Browser pool not available', 503);
+    }
+
+    const { contextId } = req.params;
+    if (contextId === null || contextId === '') {
+      throw new AppError('Context ID is required', 400);
+    }
+
+    // Verify context exists and user has access
+    await this.storage.getContext(contextId as string, req.user.userId, req.user.roles);
+
+    // Parse command format
+    const { action: command, params } = req.body as {
+      action: string;
+      params?: Record<string, unknown>;
+    };
+    if (!command) {
+      throw new AppError('Command is required', 400);
+    }
+
+    // Convert command to BrowserAction
+    const browserAction = this.convertCommandToAction(command, params);
+
+    // Validate the converted action
+    const validationResult = validateAction(browserAction);
+    if (!validationResult.valid) {
+      throw new AppError(
+        `Validation failed: ${validationResult.errors.map((e) => e.message).join(', ')}`,
+        400,
+      );
+    }
+
+    return { contextId: contextId as string, browserAction };
+  }
+
+  /**
    * Create action context from request
    */
   private createActionContext(req: Request, contextId: string): ActionContext {
@@ -124,6 +184,128 @@ export class ContextActionHandlers {
         timestamp: new Date().toISOString(),
       },
     };
+  }
+
+  /**
+   * Convert command format to BrowserAction
+   */
+  private convertCommandToAction(command: string, params?: Record<string, unknown>): BrowserAction {
+    // Map common commands to action types
+    const commandMap: Record<string, string> = {
+      navigate: 'navigate',
+      goto: 'navigate',
+      click: 'click',
+      type: 'type',
+      fill: 'type',
+      screenshot: 'screenshot',
+      wait: 'wait',
+      waitForSelector: 'wait',
+      evaluate: 'evaluate',
+      execute: 'evaluate',
+      scroll: 'scroll',
+      select: 'select',
+      press: 'keyboard',
+      hover: 'mouse',
+      pdf: 'pdf',
+      setCookie: 'cookie',
+      getCookies: 'cookie',
+      getContent: 'content',
+      content: 'content',
+    };
+
+    const actionType = commandMap[command.toLowerCase()] ?? command;
+    const pageId = ''; // Will be set by the executor
+
+    // Build action based on type
+    switch (actionType) {
+      case 'navigate':
+        return {
+          type: 'navigate',
+          pageId,
+          url: (params?.url as string) ?? (params?.href as string) ?? '',
+          waitUntil:
+            (params?.waitUntil as 'load' | 'domcontentloaded' | 'networkidle0' | 'networkidle2') ??
+            'load',
+        };
+
+      case 'click':
+        return {
+          type: 'click',
+          pageId,
+          selector: (params?.selector as string) ?? '',
+          button: (params?.button as 'left' | 'right' | 'middle') ?? 'left',
+          clickCount: (params?.clickCount as number) ?? 1,
+          delay: (params?.delay as number) ?? 0,
+        };
+
+      case 'type':
+        return {
+          type: 'type',
+          pageId,
+          selector: (params?.selector as string) ?? '',
+          text: (params?.text as string) ?? (params?.value as string) ?? '',
+          delay: (params?.delay as number) ?? 0,
+        };
+
+      case 'wait':
+        if (params?.selector !== undefined && params.selector !== null) {
+          return {
+            type: 'wait',
+            pageId,
+            waitType: 'selector',
+            selector: params.selector as string,
+            timeout: (params?.timeout as number) ?? 30000,
+          };
+        } else {
+          return {
+            type: 'wait',
+            pageId,
+            waitType: 'timeout',
+            duration: (params?.duration as number) ?? (params?.timeout as number) ?? 1000,
+          };
+        }
+
+      case 'screenshot':
+        return {
+          type: 'screenshot',
+          pageId,
+          fullPage: (params?.fullPage as boolean) ?? false,
+          format: (params?.format as 'png' | 'jpeg' | 'webp') ?? 'png',
+          quality: params?.quality as number | undefined,
+        };
+
+      case 'evaluate':
+        return {
+          type: 'evaluate',
+          pageId,
+          function: (params?.code as string) ?? (params?.script as string) ?? '',
+          args: (params?.args as unknown[]) ?? [],
+        };
+
+      case 'scroll':
+        return {
+          type: 'scroll',
+          pageId,
+          direction: (params?.direction as 'up' | 'down' | 'left' | 'right') ?? 'down',
+          distance: (params?.distance as number) ?? (params?.amount as number) ?? 100,
+        };
+
+      case 'content':
+        return {
+          type: 'content',
+          pageId,
+          selector: params?.selector as string | undefined,
+          timeout: (params?.timeout as number) ?? 30000,
+        };
+
+      default:
+        // Generic action with all parameters
+        return {
+          type: actionType,
+          pageId,
+          ...params,
+        } as BrowserAction;
+    }
   }
 
   /**

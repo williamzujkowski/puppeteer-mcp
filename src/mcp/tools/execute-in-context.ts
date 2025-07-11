@@ -36,6 +36,13 @@ export class ExecuteInContextTool {
         return this.parseResponse(result);
       } else {
         // Use direct browser executor for stdio mode
+        logger.info({
+          msg: 'MCP using direct browser executor',
+          contextId: args.contextId,
+          command: args.command,
+          hasParameters: !!args.parameters,
+        });
+
         const browserExecutor = getBrowserExecutor();
         const actionResult = await browserExecutor.executeInContext(args);
 
@@ -70,7 +77,7 @@ export class ExecuteInContextTool {
 
       return this.errorResponse(
         error instanceof Error ? error.message : 'Failed to execute command',
-        'EXECUTION_FAILED',
+        this.restAdapter ? 'REST_EXECUTION_FAILED' : 'DIRECT_EXECUTION_FAILED',
       );
     }
   }

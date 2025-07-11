@@ -5,7 +5,7 @@ import { cleanupLoggers } from '../src/utils/logger.js';
 
 // Set test environment
 process.env.NODE_ENV = 'test';
-process.env.LOG_LEVEL = 'silent';
+process.env.LOG_LEVEL = 'error'; // Changed from 'silent' to match schema validation
 
 // Define __dirname for ES modules compatibility in Jest
 // Since this is the setup file, we can use process.cwd() as a base

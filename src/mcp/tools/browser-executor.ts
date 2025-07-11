@@ -13,6 +13,7 @@ import type {
   BrowserAction,
   ActionContext,
   ActionResult,
+  CookieOperation,
 } from '../../puppeteer/interfaces/action-executor.interface.js';
 import type { ExecuteInContextArgs } from '../types/tool-types.js';
 
@@ -50,7 +51,7 @@ export class BrowserExecutor {
         maxPagesPerBrowser: 10, // Increased for more pages
         idleTimeout: 30000, // 30 seconds - reduced for faster cleanup
         healthCheckInterval: 15000, // 15 seconds
-        acquisitionTimeout: 60000, // 60 seconds - increased timeout
+        acquisitionTimeout: 120000, // 120 seconds - increased timeout for tests
         launchOptions: {
           headless: true,
           args: [
@@ -143,7 +144,7 @@ export class BrowserExecutor {
 
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Browser execution failed',
+        error: `[BrowserExecutor] ${error instanceof Error ? error.message : 'Browser execution failed'}`,
         timestamp: new Date(),
         duration: 0,
         actionType: args.command,
@@ -163,7 +164,7 @@ export class BrowserExecutor {
       fill: 'type',
       screenshot: 'screenshot',
       wait: 'wait',
-      waitForSelector: 'wait',
+      waitforselector: 'wait', // lowercase version
       evaluate: 'evaluate',
       execute: 'evaluate',
       scroll: 'scroll',
@@ -171,14 +172,18 @@ export class BrowserExecutor {
       press: 'keyboard',
       hover: 'mouse',
       pdf: 'pdf',
-      setCookie: 'cookie',
-      getCookies: 'cookie',
-      getContent: 'content',
+      setcookie: 'cookie',
+      getcookies: 'cookie',
+      deletecookie: 'cookie',
+      clearcookies: 'cookie',
+      cookie: 'cookie',
+      getcontent: 'content',
       content: 'content',
       close: 'close',
     };
 
-    return commandMap[command.toLowerCase()] ?? command;
+    const actionType = commandMap[command.toLowerCase()] ?? command;
+    return actionType;
   }
 
   /**
@@ -294,6 +299,54 @@ export class BrowserExecutor {
   }
 
   /**
+   * Create cookie action
+   */
+  private createCookieAction(command: string, parameters?: Record<string, unknown>): BrowserAction {
+    // Determine operation from command
+    let operation: CookieOperation;
+    if (
+      command.toLowerCase().includes('set') ||
+      (command === 'cookie' && parameters?.operation === 'set')
+    ) {
+      operation = 'set';
+    } else if (
+      command.toLowerCase().includes('get') ||
+      (command === 'cookie' && parameters?.operation === 'get')
+    ) {
+      operation = 'get';
+    } else if (
+      command.toLowerCase().includes('delete') ||
+      (command === 'cookie' && parameters?.operation === 'delete')
+    ) {
+      operation = 'delete';
+    } else if (
+      command.toLowerCase().includes('clear') ||
+      (command === 'cookie' && parameters?.operation === 'clear')
+    ) {
+      operation = 'clear';
+    } else if (parameters?.operation && typeof parameters.operation === 'string') {
+      // Validate operation is one of the allowed values
+      const validOps: CookieOperation[] = ['set', 'get', 'delete', 'clear'];
+      if (validOps.includes(parameters.operation as CookieOperation)) {
+        operation = parameters.operation as CookieOperation;
+      } else {
+        operation = 'get'; // Default fallback
+      }
+    } else {
+      // Default to get if no operation specified
+      operation = 'get';
+    }
+
+    return {
+      type: 'cookie',
+      pageId: '',
+      operation,
+      cookies: parameters?.cookies as any[] | undefined,
+      names: parameters?.names as string[] | undefined,
+    };
+  }
+
+  /**
    * Parse command string into browser action
    */
   private parseCommand(command: string, parameters?: Record<string, unknown>): BrowserAction {
@@ -317,6 +370,8 @@ export class BrowserExecutor {
         return this.createScrollAction(parameters);
       case 'content':
         return this.createContentAction(parameters);
+      case 'cookie':
+        return this.createCookieAction(command, parameters);
       default:
         // Generic action with all parameters
         return {
