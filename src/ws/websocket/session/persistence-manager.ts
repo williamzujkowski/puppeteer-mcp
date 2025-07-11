@@ -100,7 +100,7 @@ export class SessionPersistenceManager {
         sessionId: session.sessionId,
         error: error instanceof Error ? error.message : 'Unknown error',
       });
-      
+
       this.eventEmitter.emit('persistence:error', session.sessionId, error as Error);
     }
   }
@@ -114,7 +114,7 @@ export class SessionPersistenceManager {
     try {
       await this.sessionStore.delete(sessionId);
       this.persistenceQueue.delete(sessionId);
-      
+
       this.logger.debug('Session removed from persistence', { sessionId });
     } catch (error) {
       this.logger.error('Failed to remove session from persistence', {
@@ -133,7 +133,9 @@ export class SessionPersistenceManager {
     try {
       // Since getAllSessions doesn't exist, we'll return empty array for now
       // This method would need to be implemented differently based on the SessionStore implementation
-      this.logger.info('Session loading not implemented - getAllSessions method not available in SessionStore');
+      this.logger.info(
+        'Session loading not implemented - getAllSessions method not available in SessionStore',
+      );
       return [];
     } catch (error) {
       this.logger.error('Failed to load sessions from persistence', {
@@ -155,7 +157,7 @@ export class SessionPersistenceManager {
     const batchSize = this.options.batchSize ?? 10;
     for (let i = 0; i < sessions.length; i += batchSize) {
       const batch = sessions.slice(i, i + batchSize);
-      await Promise.all(batch.map(session => this.persistSession(session)));
+      await Promise.all(batch.map((session) => this.persistSession(session)));
     }
 
     this.logger.debug(`Flushed ${sessions.length} sessions to persistence`);
@@ -166,9 +168,8 @@ export class SessionPersistenceManager {
    */
   private startPeriodicFlush(): void {
     const interval = this.options.flushInterval ?? 5000; // Default 5 seconds
-    this.persistenceInterval = setInterval(async () => {
-      await this.flushPendingSessions();
+    this.persistenceInterval = setInterval(() => {
+      void this.flushPendingSessions();
     }, interval);
   }
-
 }

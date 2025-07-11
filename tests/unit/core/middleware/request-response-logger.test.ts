@@ -4,16 +4,9 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
-import { Request, Response, NextFunction } from 'express';
-import { createServer, Server } from 'http';
 import request from 'supertest';
 import express from 'express';
-import {
-  requestResponseLogger,
-  createRequestResponseLogger,
-  type RequestResponseLoggerOptions,
-} from '../../../../src/core/middleware/request-response-logger.js';
-import { VerbosityLevel } from '../../../../src/core/middleware/logging/types.js';
+import { createRequestResponseLogger } from '../../../../src/core/middleware/request-response-logger.js';
 
 // Mock dependencies
 jest.mock('../../../../src/utils/logger.js', () => ({
@@ -38,15 +31,15 @@ describe('Request/Response Logger Middleware', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     mockLogger = {
       info: jest.fn(),
       warn: jest.fn(),
       error: jest.fn(),
     };
-    
+
     (createLogger as jest.Mock).mockReturnValue(mockLogger);
-    
+
     app = express();
     app.use(express.json());
   });
@@ -60,14 +53,12 @@ describe('Request/Response Logger Middleware', () => {
   describe('Basic Functionality', () => {
     it('should log request and response with standard verbosity', async () => {
       app.use(createRequestResponseLogger.standard());
-      
+
       app.get('/test', (req, res) => {
         res.json({ message: 'test' });
       });
 
-      const response = await request(app)
-        .get('/test')
-        .expect(200);
+      const response = await request(app).get('/test').expect(200);
 
       expect(response.body).toEqual({ message: 'test' });
       expect(mockLogger.info).toHaveBeenCalledWith(
@@ -77,9 +68,9 @@ describe('Request/Response Logger Middleware', () => {
           path: '/test',
           url: '/test',
         }),
-        expect.stringContaining('HTTP GET /test started')
+        expect.stringContaining('HTTP GET /test started'),
       );
-      
+
       expect(mockLogger.info).toHaveBeenCalledWith(
         expect.objectContaining({
           type: 'HTTP_RESPONSE',
@@ -88,22 +79,20 @@ describe('Request/Response Logger Middleware', () => {
           statusCode: 200,
           duration: expect.any(Number),
         }),
-        expect.stringContaining('HTTP GET /test 200')
+        expect.stringContaining('HTTP GET /test 200'),
       );
     });
 
     it('should assign request ID if not present', async () => {
       app.use(createRequestResponseLogger.standard());
-      
+
       let capturedReq: Request;
       app.get('/test', (req, res) => {
         capturedReq = req;
         res.json({ message: 'test' });
       });
 
-      await request(app)
-        .get('/test')
-        .expect(200);
+      await request(app).get('/test').expect(200);
 
       expect(capturedReq!.id).toBeDefined();
       expect(typeof capturedReq!.id).toBe('string');
@@ -111,20 +100,19 @@ describe('Request/Response Logger Middleware', () => {
 
     it('should use existing request ID from header', async () => {
       const existingId = 'existing-request-id';
-      app.use(createRequestResponseLogger.standard({
-        requestIdHeader: 'x-request-id',
-      }));
-      
+      app.use(
+        createRequestResponseLogger.standard({
+          requestIdHeader: 'x-request-id',
+        }),
+      );
+
       let capturedReq: Request;
       app.get('/test', (req, res) => {
         capturedReq = req;
         res.json({ message: 'test' });
       });
 
-      await request(app)
-        .get('/test')
-        .set('x-request-id', existingId)
-        .expect(200);
+      await request(app).get('/test').set('x-request-id', existingId).expect(200);
 
       expect(capturedReq!.id).toBe(existingId);
     });
@@ -133,14 +121,12 @@ describe('Request/Response Logger Middleware', () => {
   describe('Verbosity Levels', () => {
     it('should log minimal information with MINIMAL verbosity', async () => {
       app.use(createRequestResponseLogger.minimal());
-      
+
       app.get('/test', (req, res) => {
         res.json({ message: 'test' });
       });
 
-      await request(app)
-        .get('/test')
-        .expect(200);
+      await request(app).get('/test').expect(200);
 
       const requestLog = mockLogger.info.mock.calls[0][0];
       const responseLog = mockLogger.info.mock.calls[1][0];
@@ -153,15 +139,12 @@ describe('Request/Response Logger Middleware', () => {
 
     it('should log headers with VERBOSE verbosity', async () => {
       app.use(createRequestResponseLogger.verbose());
-      
+
       app.get('/test', (req, res) => {
         res.json({ message: 'test' });
       });
 
-      await request(app)
-        .get('/test')
-        .set('custom-header', 'custom-value')
-        .expect(200);
+      await request(app).get('/test').set('custom-header', 'custom-value').expect(200);
 
       const requestLog = mockLogger.info.mock.calls[0][0];
       expect(requestLog.headers).toBeDefined();
@@ -170,15 +153,12 @@ describe('Request/Response Logger Middleware', () => {
 
     it('should log request body with VERBOSE verbosity', async () => {
       app.use(createRequestResponseLogger.verbose());
-      
+
       app.post('/test', (req, res) => {
         res.json({ received: req.body });
       });
 
-      await request(app)
-        .post('/test')
-        .send({ test: 'data' })
-        .expect(200);
+      await request(app).post('/test').send({ test: 'data' }).expect(200);
 
       const requestLog = mockLogger.info.mock.calls[0][0];
       expect(requestLog.body).toBeDefined();
@@ -187,14 +167,12 @@ describe('Request/Response Logger Middleware', () => {
 
     it('should log response body with DEBUG verbosity', async () => {
       app.use(createRequestResponseLogger.debug());
-      
+
       app.get('/test', (req, res) => {
         res.json({ message: 'test response' });
       });
 
-      await request(app)
-        .get('/test')
-        .expect(200);
+      await request(app).get('/test').expect(200);
 
       const responseLog = mockLogger.info.mock.calls[1][0];
       expect(responseLog.body).toBeDefined();
@@ -204,7 +182,7 @@ describe('Request/Response Logger Middleware', () => {
   describe('Sensitive Data Redaction', () => {
     it('should redact sensitive headers', async () => {
       app.use(createRequestResponseLogger.verbose());
-      
+
       app.get('/test', (req, res) => {
         res.json({ message: 'test' });
       });
@@ -224,7 +202,7 @@ describe('Request/Response Logger Middleware', () => {
 
     it('should redact sensitive body fields', async () => {
       app.use(createRequestResponseLogger.verbose());
-      
+
       app.post('/test', (req, res) => {
         res.json({ received: 'ok' });
       });
@@ -247,11 +225,13 @@ describe('Request/Response Logger Middleware', () => {
     });
 
     it('should respect custom sensitive fields', async () => {
-      app.use(createRequestResponseLogger.verbose({
-        sensitiveHeaders: ['x-custom-secret'],
-        sensitiveBodyFields: ['customSecret'],
-      }));
-      
+      app.use(
+        createRequestResponseLogger.verbose({
+          sensitiveHeaders: ['x-custom-secret'],
+          sensitiveBodyFields: ['customSecret'],
+        }),
+      );
+
       app.post('/test', (req, res) => {
         res.json({ received: 'ok' });
       });
@@ -276,41 +256,43 @@ describe('Request/Response Logger Middleware', () => {
 
   describe('Performance Monitoring', () => {
     it('should detect slow requests', async () => {
-      app.use(createRequestResponseLogger.standard({
-        slowRequestThreshold: 50, // 50ms
-      }));
-      
+      app.use(
+        createRequestResponseLogger.standard({
+          slowRequestThreshold: 50, // 50ms
+        }),
+      );
+
       app.get('/slow', (req, res) => {
         setTimeout(() => {
           res.json({ message: 'slow response' });
         }, 100); // 100ms delay
       });
 
-      await request(app)
-        .get('/slow')
-        .expect(200);
+      await request(app).get('/slow').expect(200);
 
       // Wait for async logging to complete
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
-      const responseLog = mockLogger.warn.mock.calls.find(call => call[0].type === 'HTTP_RESPONSE');
+      const responseLog = mockLogger.warn.mock.calls.find(
+        (call) => call[0].type === 'HTTP_RESPONSE',
+      );
       expect(responseLog).toBeDefined();
       expect(responseLog[0].isSlowRequest).toBe(true);
       expect(responseLog[0].duration).toBeGreaterThan(50);
     });
 
     it('should use high precision timing when enabled', async () => {
-      app.use(createRequestResponseLogger.standard({
-        highPrecisionTiming: true,
-      }));
-      
+      app.use(
+        createRequestResponseLogger.standard({
+          highPrecisionTiming: true,
+        }),
+      );
+
       app.get('/test', (req, res) => {
         res.json({ message: 'test' });
       });
 
-      await request(app)
-        .get('/test')
-        .expect(200);
+      await request(app).get('/test').expect(200);
 
       const responseLog = mockLogger.info.mock.calls[1][0];
       expect(responseLog.timing).toBeDefined();
@@ -321,92 +303,86 @@ describe('Request/Response Logger Middleware', () => {
 
   describe('Filtering', () => {
     it('should skip logging for specified paths', async () => {
-      app.use(createRequestResponseLogger.standard({
-        skipPaths: ['/health', '/metrics'],
-      }));
-      
+      app.use(
+        createRequestResponseLogger.standard({
+          skipPaths: ['/health', '/metrics'],
+        }),
+      );
+
       app.get('/health', (req, res) => {
         res.json({ status: 'ok' });
       });
-      
+
       app.get('/test', (req, res) => {
         res.json({ message: 'test' });
       });
 
-      await request(app)
-        .get('/health')
-        .expect(200);
+      await request(app).get('/health').expect(200);
 
       expect(mockLogger.info).not.toHaveBeenCalled();
 
-      await request(app)
-        .get('/test')
-        .expect(200);
+      await request(app).get('/test').expect(200);
 
       expect(mockLogger.info).toHaveBeenCalled();
     });
 
     it('should skip logging for specified methods', async () => {
-      app.use(createRequestResponseLogger.standard({
-        skipMethods: ['OPTIONS'],
-      }));
-      
+      app.use(
+        createRequestResponseLogger.standard({
+          skipMethods: ['OPTIONS'],
+        }),
+      );
+
       app.options('/test', (req, res) => {
         res.status(200).end();
       });
-      
+
       app.get('/test', (req, res) => {
         res.json({ message: 'test' });
       });
 
-      await request(app)
-        .options('/test')
-        .expect(200);
+      await request(app).options('/test').expect(200);
 
       expect(mockLogger.info).not.toHaveBeenCalled();
 
-      await request(app)
-        .get('/test')
-        .expect(200);
+      await request(app).get('/test').expect(200);
 
       expect(mockLogger.info).toHaveBeenCalled();
     });
 
     it('should log only errors when errorsOnly is true', async () => {
-      app.use(createRequestResponseLogger.standard({
-        errorsOnly: true,
-      }));
-      
+      app.use(
+        createRequestResponseLogger.standard({
+          errorsOnly: true,
+        }),
+      );
+
       app.get('/success', (req, res) => {
         res.json({ message: 'success' });
       });
-      
+
       app.get('/error', (req, res) => {
         res.status(500).json({ error: 'server error' });
       });
 
-      await request(app)
-        .get('/success')
-        .expect(200);
+      await request(app).get('/success').expect(200);
 
       // Wait for async logging to complete
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       // Should log request but not response for successful requests
       expect(mockLogger.info).toHaveBeenCalledTimes(1);
       expect(mockLogger.info).toHaveBeenCalledWith(
         expect.objectContaining({ type: 'HTTP_REQUEST' }),
-        expect.any(String)
+        expect.any(String),
       );
 
       jest.clearAllMocks();
 
-      await request(app)
-        .get('/error')
-        .expect(500);
+      await request(app).get('/error').expect(500);
 
       // Wait for async logging to complete
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       // Should log both request and response for error requests
       expect(mockLogger.info).toHaveBeenCalledTimes(1); // Request
@@ -416,18 +392,17 @@ describe('Request/Response Logger Middleware', () => {
 
   describe('Content Type Filtering', () => {
     it('should log body only for specified content types', async () => {
-      app.use(createRequestResponseLogger.verbose({
-        loggedContentTypes: ['application/json'],
-      }));
-      
+      app.use(
+        createRequestResponseLogger.verbose({
+          loggedContentTypes: ['application/json'],
+        }),
+      );
+
       app.post('/json', (req, res) => {
         res.json({ received: 'json' });
       });
 
-      await request(app)
-        .post('/json')
-        .send({ test: 'data' })
-        .expect(200);
+      await request(app).post('/json').send({ test: 'data' }).expect(200);
 
       const requestLog = mockLogger.info.mock.calls[0][0];
       expect(requestLog.body).toBeDefined();
@@ -435,19 +410,17 @@ describe('Request/Response Logger Middleware', () => {
     });
 
     it('should not log body for non-matching content types', async () => {
-      app.use(createRequestResponseLogger.verbose({
-        loggedContentTypes: ['application/json'],
-      }));
-      
+      app.use(
+        createRequestResponseLogger.verbose({
+          loggedContentTypes: ['application/json'],
+        }),
+      );
+
       app.post('/form', express.urlencoded({ extended: true }), (req, res) => {
         res.json({ received: 'form' });
       });
 
-      await request(app)
-        .post('/form')
-        .type('form')
-        .send('test=data')
-        .expect(200);
+      await request(app).post('/form').type('form').send('test=data').expect(200);
 
       const requestLog = mockLogger.info.mock.calls[0][0];
       expect(requestLog.body).toBeUndefined();
@@ -457,38 +430,33 @@ describe('Request/Response Logger Middleware', () => {
   describe('Error Handling', () => {
     it('should log errors during request processing', async () => {
       app.use(createRequestResponseLogger.standard());
-      
+
       app.get('/error', (req, res) => {
         res.emit('error', new Error('Test error'));
         res.status(500).json({ error: 'server error' });
       });
 
-      await request(app)
-        .get('/error')
-        .expect(500);
+      await request(app).get('/error').expect(500);
 
       expect(mockLogger.error).toHaveBeenCalledWith(
         expect.objectContaining({
           type: 'HTTP_ERROR',
           error: 'Test error',
         }),
-        expect.stringContaining('HTTP GET /error error')
+        expect.stringContaining('HTTP GET /error error'),
       );
     });
 
     it('should handle parsing errors gracefully', async () => {
       app.use(createRequestResponseLogger.verbose());
-      
+
       // Create a custom route that will have a body that causes parsing issues
       app.post('/test', (req, res) => {
         res.json({ received: 'ok' });
       });
 
       // Send a request with valid JSON that will be parsed normally
-      await request(app)
-        .post('/test')
-        .send({ test: 'data' })
-        .expect(200);
+      await request(app).post('/test').send({ test: 'data' }).expect(200);
 
       // Check that the request was logged successfully
       expect(mockLogger.info).toHaveBeenCalledWith(
@@ -497,7 +465,7 @@ describe('Request/Response Logger Middleware', () => {
           method: 'POST',
           path: '/test',
         }),
-        expect.any(String)
+        expect.any(String),
       );
 
       // The body should be logged as an object
@@ -508,17 +476,17 @@ describe('Request/Response Logger Middleware', () => {
 
   describe('Audit Logging', () => {
     it('should log security events when audit logging is enabled', async () => {
-      app.use(createRequestResponseLogger.standard({
-        auditLogging: true,
-      }));
-      
+      app.use(
+        createRequestResponseLogger.standard({
+          auditLogging: true,
+        }),
+      );
+
       app.get('/test', (req, res) => {
         res.json({ message: 'test' });
       });
 
-      await request(app)
-        .get('/test')
-        .expect(200);
+      await request(app).get('/test').expect(200);
 
       expect(logSecurityEvent).toHaveBeenCalledWith(
         'HTTP_REQUEST_COMPLETED',
@@ -526,22 +494,22 @@ describe('Request/Response Logger Middleware', () => {
           resource: '/test',
           action: 'GET',
           result: 'success',
-        })
+        }),
       );
     });
 
     it('should not log security events when audit logging is disabled', async () => {
-      app.use(createRequestResponseLogger.standard({
-        auditLogging: false,
-      }));
-      
+      app.use(
+        createRequestResponseLogger.standard({
+          auditLogging: false,
+        }),
+      );
+
       app.get('/test', (req, res) => {
         res.json({ message: 'test' });
       });
 
-      await request(app)
-        .get('/test')
-        .expect(200);
+      await request(app).get('/test').expect(200);
 
       expect(logSecurityEvent).not.toHaveBeenCalled();
     });
@@ -549,21 +517,21 @@ describe('Request/Response Logger Middleware', () => {
 
   describe('Custom Metadata', () => {
     it('should include custom metadata when provided', async () => {
-      app.use(createRequestResponseLogger.standard({
-        metadataExtractor: (req, res) => ({
-          customField: 'custom-value',
-          endpoint: req.path,
-          method: req.method,
+      app.use(
+        createRequestResponseLogger.standard({
+          metadataExtractor: (req, _res) => ({
+            customField: 'custom-value',
+            endpoint: req.path,
+            method: req.method,
+          }),
         }),
-      }));
-      
+      );
+
       app.get('/test', (req, res) => {
         res.json({ message: 'test' });
       });
 
-      await request(app)
-        .get('/test')
-        .expect(200);
+      await request(app).get('/test').expect(200);
 
       const requestLog = mockLogger.info.mock.calls[0][0];
       expect(requestLog.customField).toBe('custom-value');
@@ -574,19 +542,18 @@ describe('Request/Response Logger Middleware', () => {
 
   describe('Body Size Limits', () => {
     it('should truncate large bodies', async () => {
-      app.use(createRequestResponseLogger.verbose({
-        maxBodySize: 10, // Very small limit
-      }));
-      
+      app.use(
+        createRequestResponseLogger.verbose({
+          maxBodySize: 10, // Very small limit
+        }),
+      );
+
       app.post('/test', (req, res) => {
         res.json({ received: 'ok' });
       });
 
       const largeBody = { data: 'x'.repeat(1000) };
-      await request(app)
-        .post('/test')
-        .send(largeBody)
-        .expect(200);
+      await request(app).post('/test').send(largeBody).expect(200);
 
       const requestLog = mockLogger.info.mock.calls[0][0];
       expect(requestLog.body).toMatch(/\[BODY TOO LARGE: \d+ bytes\]/);
@@ -630,16 +597,14 @@ describe('Request/Response Logger Middleware', () => {
         };
         next();
       });
-      
+
       app.use(createRequestResponseLogger.standard());
-      
+
       app.get('/test', (req, res) => {
         res.json({ message: 'test' });
       });
 
-      await request(app)
-        .get('/test')
-        .expect(200);
+      await request(app).get('/test').expect(200);
 
       const requestLog = mockLogger.info.mock.calls[0][0];
       expect(requestLog.userId).toBe('user-123');
@@ -650,58 +615,52 @@ describe('Request/Response Logger Middleware', () => {
   describe('Response Levels', () => {
     it('should use error level for 5xx responses', async () => {
       app.use(createRequestResponseLogger.standard());
-      
+
       app.get('/error', (req, res) => {
         res.status(500).json({ error: 'server error' });
       });
 
-      await request(app)
-        .get('/error')
-        .expect(500);
+      await request(app).get('/error').expect(500);
 
       expect(mockLogger.error).toHaveBeenCalledWith(
         expect.objectContaining({
           statusCode: 500,
         }),
-        expect.stringContaining('HTTP GET /error 500')
+        expect.stringContaining('HTTP GET /error 500'),
       );
     });
 
     it('should use warn level for 4xx responses', async () => {
       app.use(createRequestResponseLogger.standard());
-      
+
       app.get('/notfound', (req, res) => {
         res.status(404).json({ error: 'not found' });
       });
 
-      await request(app)
-        .get('/notfound')
-        .expect(404);
+      await request(app).get('/notfound').expect(404);
 
       expect(mockLogger.warn).toHaveBeenCalledWith(
         expect.objectContaining({
           statusCode: 404,
         }),
-        expect.stringContaining('HTTP GET /notfound 404')
+        expect.stringContaining('HTTP GET /notfound 404'),
       );
     });
 
     it('should use info level for 2xx responses', async () => {
       app.use(createRequestResponseLogger.standard());
-      
+
       app.get('/success', (req, res) => {
         res.json({ message: 'success' });
       });
 
-      await request(app)
-        .get('/success')
-        .expect(200);
+      await request(app).get('/success').expect(200);
 
       expect(mockLogger.info).toHaveBeenCalledWith(
         expect.objectContaining({
           statusCode: 200,
         }),
-        expect.stringContaining('HTTP GET /success 200')
+        expect.stringContaining('HTTP GET /success 200'),
       );
     });
   });

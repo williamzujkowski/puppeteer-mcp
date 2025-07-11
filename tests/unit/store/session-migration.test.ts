@@ -17,7 +17,7 @@ describe('SessionMigration', () => {
     migration = new SessionMigration();
     sourceStore = new InMemorySessionStore();
     targetStore = new InMemorySessionStore();
-    
+
     sessionData = {
       userId: '123e4567-e89b-12d3-a456-426614174000',
       username: 'testuser',
@@ -49,7 +49,7 @@ describe('SessionMigration', () => {
       // Verify sessions exist in target store
       const migratedSession1 = await targetStore.get(id1);
       const migratedSession2 = await targetStore.get(id2);
-      
+
       expect(migratedSession1).toBeDefined();
       expect(migratedSession2).toBeDefined();
       expect(migratedSession1?.data.username).toBe('testuser');
@@ -59,12 +59,12 @@ describe('SessionMigration', () => {
     it('should skip existing sessions when skipExisting is true', async () => {
       // Create session in source store
       await sourceStore.create(sessionData);
-      
+
       // Create same session in target store
       await targetStore.create(sessionData);
 
       const stats = await migration.migrate(sourceStore, targetStore, {
-        skipExisting: true
+        skipExisting: true,
       });
 
       expect(stats.totalSessions).toBe(1);
@@ -78,15 +78,15 @@ describe('SessionMigration', () => {
       const id = await sourceStore.create(sessionData);
 
       const stats = await migration.migrate(sourceStore, targetStore, {
-        deleteAfterMigration: true
+        deleteAfterMigration: true,
       });
 
       expect(stats.migratedSessions).toBe(1);
-      
+
       // Session should be deleted from source
       const sourceSession = await sourceStore.get(id);
       expect(sourceSession).toBeNull();
-      
+
       // Session should exist in target
       const targetSession = await targetStore.get(id);
       expect(targetSession).toBeDefined();
@@ -96,7 +96,7 @@ describe('SessionMigration', () => {
       // Create expired session
       const expiredData: SessionData = {
         ...sessionData,
-        expiresAt: new Date(Date.now() - 1000).toISOString()
+        expiresAt: new Date(Date.now() - 1000).toISOString(),
       };
 
       await sourceStore.create(expiredData);
@@ -111,10 +111,15 @@ describe('SessionMigration', () => {
     it('should apply filter function when provided', async () => {
       // Create sessions with different roles
       await sourceStore.create({ ...sessionData, roles: ['user'] });
-      await sourceStore.create({ ...sessionData, userId: 'admin', username: 'admin', roles: ['admin'] });
+      await sourceStore.create({
+        ...sessionData,
+        userId: 'admin',
+        username: 'admin',
+        roles: ['admin'],
+      });
 
       const stats = await migration.migrate(sourceStore, targetStore, {
-        filter: (session: Session) => session.data.roles.includes('admin')
+        filter: (session: Session) => session.data.roles.includes('admin'),
       });
 
       expect(stats.totalSessions).toBe(2);
@@ -127,12 +132,12 @@ describe('SessionMigration', () => {
         await sourceStore.create({
           ...sessionData,
           userId: `user${i}`,
-          username: `user${i}`
+          username: `user${i}`,
         });
       }
 
       const stats = await migration.migrate(sourceStore, targetStore, {
-        batchSize: 2
+        batchSize: 2,
       });
 
       expect(stats.totalSessions).toBe(5);
@@ -141,11 +146,11 @@ describe('SessionMigration', () => {
 
     it('should call progress callback if provided', async () => {
       const progressCallback = jest.fn();
-      
+
       await sourceStore.create(sessionData);
 
       await migration.migrate(sourceStore, targetStore, {
-        onProgress: progressCallback
+        onProgress: progressCallback,
       });
 
       expect(progressCallback).toHaveBeenCalledWith(1, 1);
@@ -156,11 +161,11 @@ describe('SessionMigration', () => {
       await sourceStore.create(sessionData);
 
       // Mock target store to throw error
-      const originalCreate = targetStore.create;
+      const originalCreate = targetStore.create.bind(targetStore);
       targetStore.create = jest.fn().mockRejectedValue(new Error('Target store error'));
 
       const stats = await migration.migrate(sourceStore, targetStore, {
-        continueOnError: true
+        continueOnError: true,
       });
 
       expect(stats.totalSessions).toBe(1);
@@ -179,9 +184,11 @@ describe('SessionMigration', () => {
       // Mock target store to throw error
       targetStore.create = jest.fn().mockRejectedValue(new Error('Target store error'));
 
-      await expect(migration.migrate(sourceStore, targetStore, {
-        continueOnError: false
-      })).rejects.toThrow('Target store error');
+      await expect(
+        migration.migrate(sourceStore, targetStore, {
+          continueOnError: false,
+        }),
+      ).rejects.toThrow('Target store error');
     });
 
     it('should handle empty source store', async () => {
@@ -247,14 +254,14 @@ describe('SessionMigration', () => {
     it('should filter expired sessions when checkExpired is true', async () => {
       const expiredData: SessionData = {
         ...sessionData,
-        expiresAt: new Date(Date.now() - 1000).toISOString()
+        expiresAt: new Date(Date.now() - 1000).toISOString(),
       };
 
       await sourceStore.create(expiredData);
       await targetStore.create(expiredData);
 
       const validation = await migration.validateMigration(sourceStore, targetStore, {
-        checkExpired: true
+        checkExpired: true,
       });
 
       expect(validation.valid).toBe(true);
@@ -277,17 +284,17 @@ describe('SessionMigration', () => {
 
     it('should exclude expired sessions when includeExpired is false', async () => {
       await sourceStore.create(sessionData);
-      
+
       const expiredData: SessionData = {
         ...sessionData,
         userId: 'expired-user',
         username: 'expired-user',
-        expiresAt: new Date(Date.now() - 1000).toISOString()
+        expiresAt: new Date(Date.now() - 1000).toISOString(),
       };
       await sourceStore.create(expiredData);
 
       const backup = await migration.backup(sourceStore, {
-        includeExpired: false
+        includeExpired: false,
       });
 
       expect(backup).toHaveLength(1);
@@ -296,10 +303,15 @@ describe('SessionMigration', () => {
 
     it('should apply filter function when provided', async () => {
       await sourceStore.create({ ...sessionData, roles: ['user'] });
-      await sourceStore.create({ ...sessionData, userId: 'admin', username: 'admin', roles: ['admin'] });
+      await sourceStore.create({
+        ...sessionData,
+        userId: 'admin',
+        username: 'admin',
+        roles: ['admin'],
+      });
 
       const backup = await migration.backup(sourceStore, {
-        filter: (session: Session) => session.data.roles.includes('admin')
+        filter: (session: Session) => session.data.roles.includes('admin'),
       });
 
       expect(backup).toHaveLength(1);
@@ -319,13 +331,13 @@ describe('SessionMigration', () => {
         {
           id: 'session1',
           data: sessionData,
-          lastAccessedAt: new Date().toISOString()
+          lastAccessedAt: new Date().toISOString(),
         },
         {
           id: 'session2',
           data: { ...sessionData, userId: 'user2', username: 'user2' },
-          lastAccessedAt: new Date().toISOString()
-        }
+          lastAccessedAt: new Date().toISOString(),
+        },
       ];
 
       const stats = await migration.restore(targetStore, sessions);
@@ -349,12 +361,12 @@ describe('SessionMigration', () => {
         {
           id: 'existing-session',
           data: sessionData,
-          lastAccessedAt: new Date().toISOString()
-        }
+          lastAccessedAt: new Date().toISOString(),
+        },
       ];
 
       const stats = await migration.restore(targetStore, sessions, {
-        overwrite: false
+        overwrite: false,
       });
 
       expect(stats.restored).toBe(0);
@@ -370,12 +382,12 @@ describe('SessionMigration', () => {
         {
           id: existingId,
           data: { ...sessionData, roles: ['admin'] },
-          lastAccessedAt: new Date().toISOString()
-        }
+          lastAccessedAt: new Date().toISOString(),
+        },
       ];
 
       const stats = await migration.restore(targetStore, sessions, {
-        overwrite: true
+        overwrite: true,
       });
 
       expect(stats.restored).toBe(1);
@@ -391,13 +403,13 @@ describe('SessionMigration', () => {
         id: 'expired-session',
         data: {
           ...sessionData,
-          expiresAt: new Date(Date.now() - 1000).toISOString()
+          expiresAt: new Date(Date.now() - 1000).toISOString(),
         },
-        lastAccessedAt: new Date().toISOString()
+        lastAccessedAt: new Date().toISOString(),
       };
 
       const stats = await migration.restore(targetStore, [expiredSession], {
-        skipExpired: true
+        skipExpired: true,
       });
 
       expect(stats.restored).toBe(0);
@@ -407,17 +419,17 @@ describe('SessionMigration', () => {
 
     it('should call progress callback if provided', async () => {
       const progressCallback = jest.fn();
-      
+
       const sessions = [
         {
           id: 'session1',
           data: sessionData,
-          lastAccessedAt: new Date().toISOString()
-        }
+          lastAccessedAt: new Date().toISOString(),
+        },
       ];
 
       await migration.restore(targetStore, sessions, {
-        onProgress: progressCallback
+        onProgress: progressCallback,
       });
 
       expect(progressCallback).toHaveBeenCalledWith(1, 1);
@@ -428,12 +440,12 @@ describe('SessionMigration', () => {
         {
           id: 'failing-session',
           data: sessionData,
-          lastAccessedAt: new Date().toISOString()
-        }
+          lastAccessedAt: new Date().toISOString(),
+        },
       ];
 
       // Mock target store to throw error
-      const originalCreate = targetStore.create;
+      const originalCreate = targetStore.create.bind(targetStore);
       targetStore.create = jest.fn().mockRejectedValue(new Error('Restore error'));
 
       const stats = await migration.restore(targetStore, sessions);

@@ -8,14 +8,6 @@
 
 import { DiagLogLevel } from '@opentelemetry/api';
 import { config } from '../core/config.js';
-import type { 
-  SpanExporter, 
-  ReadableSpan, 
-  SpanProcessor 
-} from '@opentelemetry/sdk-trace-node';
-import type { 
-  PeriodicExportingMetricReaderOptions 
-} from '@opentelemetry/sdk-metrics';
 
 /**
  * Telemetry configuration interface
@@ -25,7 +17,7 @@ export interface TelemetryConfig {
   serviceName: string;
   serviceVersion: string;
   environment?: string;
-  
+
   // Tracing
   tracing: {
     enabled: boolean;
@@ -37,7 +29,7 @@ export interface TelemetryConfig {
       zipkin: string;
     };
   };
-  
+
   // Metrics
   metrics: {
     enabled: boolean;
@@ -48,25 +40,25 @@ export interface TelemetryConfig {
       prometheusPort: number;
     };
   };
-  
+
   // Context propagation
   propagation: {
     propagators: string[];
     baggageMaxSize: number;
   };
-  
+
   // Resource detection
   resource: {
     detectionEnabled: boolean;
     attributes?: Record<string, string | number | boolean>;
   };
-  
+
   // Sampling
   sampling: {
     strategy: 'always_on' | 'always_off' | 'trace_id_ratio' | 'parent_based' | 'adaptive';
     adaptiveTargetRate?: number;
   };
-  
+
   // Export configuration
   export: {
     timeout: number;
@@ -74,7 +66,7 @@ export interface TelemetryConfig {
     maxBatchSize: number;
     batchDelay: number;
   };
-  
+
   // Instrumentation control
   instrumentations: {
     http: boolean;
@@ -84,7 +76,7 @@ export interface TelemetryConfig {
     ws: boolean;
     puppeteer: boolean;
   };
-  
+
   // Debug
   debug: {
     enabled: boolean;
@@ -99,7 +91,7 @@ function parseResourceAttributes(): Record<string, string | number | boolean> | 
   if (!config.TELEMETRY_RESOURCE_ATTRIBUTES) {
     return undefined;
   }
-  
+
   try {
     return config.TELEMETRY_RESOURCE_ATTRIBUTES as Record<string, string | number | boolean>;
   } catch (error) {
@@ -137,7 +129,7 @@ export function getTelemetryConfig(): TelemetryConfig {
     serviceName: config.TELEMETRY_SERVICE_NAME,
     serviceVersion: config.TELEMETRY_SERVICE_VERSION,
     environment: config.TELEMETRY_ENVIRONMENT,
-    
+
     tracing: {
       enabled: config.TELEMETRY_ENABLED,
       samplingRate: config.TELEMETRY_SAMPLING_RATIO,
@@ -148,39 +140,44 @@ export function getTelemetryConfig(): TelemetryConfig {
         zipkin: config.TELEMETRY_EXPORTER_ENDPOINT || 'http://localhost:9411/api/v2/spans',
       },
     },
-    
+
     metrics: {
       enabled: config.TELEMETRY_ENABLED,
       interval: config.TELEMETRY_METRICS_INTERVAL,
-      exporter: config.TELEMETRY_EXPORTER_TYPE === 'none' ? 'none' : config.TELEMETRY_EXPORTER_TYPE === 'otlp' ? 'otlp' : 'console',
+      exporter:
+        config.TELEMETRY_EXPORTER_TYPE === 'none'
+          ? 'none'
+          : config.TELEMETRY_EXPORTER_TYPE === 'otlp'
+            ? 'otlp'
+            : 'console',
       endpoints: {
         otlp: config.TELEMETRY_EXPORTER_ENDPOINT || 'http://localhost:4318',
         prometheusPort: 9090,
       },
     },
-    
+
     propagation: {
       propagators: config.TELEMETRY_PROPAGATORS,
       baggageMaxSize: 180,
     },
-    
+
     resource: {
       detectionEnabled: true,
       attributes: parseResourceAttributes(),
     },
-    
+
     sampling: {
       strategy: config.TELEMETRY_TRACE_ID_RATIO_BASED ? 'trace_id_ratio' : 'parent_based',
       adaptiveTargetRate: config.TELEMETRY_SAMPLING_RATIO,
     },
-    
+
     export: {
       timeout: config.TELEMETRY_EXPORTER_TIMEOUT,
       maxQueueSize: config.TELEMETRY_BATCH_MAX_QUEUE_SIZE,
       maxBatchSize: config.TELEMETRY_BATCH_MAX_EXPORT_BATCH_SIZE,
       batchDelay: config.TELEMETRY_BATCH_SCHEDULED_DELAY,
     },
-    
+
     instrumentations: {
       http: config.TELEMETRY_INSTRUMENTATION_HTTP,
       express: config.TELEMETRY_INSTRUMENTATION_EXPRESS,
@@ -189,7 +186,7 @@ export function getTelemetryConfig(): TelemetryConfig {
       ws: true,
       puppeteer: true,
     },
-    
+
     debug: {
       enabled: config.TELEMETRY_LOG_LEVEL !== 'none',
       logLevel: getLogLevel(config.TELEMETRY_LOG_LEVEL),
@@ -210,7 +207,9 @@ export interface BatchSpanProcessorConfig {
 /**
  * Get batch span processor configuration
  */
-export function getBatchSpanProcessorConfig(telemetryConfig: TelemetryConfig): BatchSpanProcessorConfig {
+export function getBatchSpanProcessorConfig(
+  telemetryConfig: TelemetryConfig,
+): BatchSpanProcessorConfig {
   return {
     maxQueueSize: telemetryConfig.export.maxQueueSize,
     maxExportBatchSize: telemetryConfig.export.maxBatchSize,
@@ -236,27 +235,31 @@ export function validateTelemetryConfig(telemetryConfig: TelemetryConfig): void 
   if (!telemetryConfig.enabled) {
     return; // Skip validation if telemetry is disabled
   }
-  
+
   // Validate sampling rate
   if (telemetryConfig.tracing.samplingRate < 0 || telemetryConfig.tracing.samplingRate > 1) {
     throw new Error('TELEMETRY_TRACE_SAMPLING_RATE must be between 0 and 1');
   }
-  
+
   // Validate export configuration
   if (telemetryConfig.export.maxBatchSize > telemetryConfig.export.maxQueueSize) {
-    throw new Error('TELEMETRY_EXPORT_MAX_BATCH_SIZE cannot be larger than TELEMETRY_EXPORT_MAX_QUEUE_SIZE');
+    throw new Error(
+      'TELEMETRY_EXPORT_MAX_BATCH_SIZE cannot be larger than TELEMETRY_EXPORT_MAX_QUEUE_SIZE',
+    );
   }
-  
+
   // Validate endpoints based on exporters
   if (telemetryConfig.tracing.enabled && telemetryConfig.tracing.exporter === 'otlp') {
     if (!telemetryConfig.tracing.endpoints.otlp) {
       throw new Error('TELEMETRY_TRACE_OTLP_ENDPOINT is required when using OTLP exporter');
     }
   }
-  
+
   if (telemetryConfig.metrics.enabled && telemetryConfig.metrics.exporter === 'otlp') {
     if (!telemetryConfig.metrics.endpoints.otlp) {
-      throw new Error('TELEMETRY_METRICS_OTLP_ENDPOINT is required when using OTLP metrics exporter');
+      throw new Error(
+        'TELEMETRY_METRICS_OTLP_ENDPOINT is required when using OTLP metrics exporter',
+      );
     }
   }
 }

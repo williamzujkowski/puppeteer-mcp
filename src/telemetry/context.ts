@@ -5,21 +5,19 @@
  * @nist au-10 "Non-repudiation"
  */
 
-import { 
-  context as otelContext, 
-  trace, 
+import {
+  context as otelContext,
+  trace,
   propagation,
   Context,
   TextMapGetter,
   TextMapSetter,
   Span,
-  SpanContext,
   Baggage,
 } from '@opentelemetry/api';
 import { AsyncLocalStorage } from 'async_hooks';
 import type { Request, Response, NextFunction } from 'express';
 import type { TelemetryConfig } from './config.js';
-import { logger } from '../utils/logger.js';
 
 /**
  * Enhanced context with request and telemetry information
@@ -55,7 +53,9 @@ export function runWithContext<T>(context: EnhancedContext, fn: () => T): T {
 /**
  * Extract context from HTTP headers
  */
-export function extractContextFromHeaders(headers: Record<string, string | string[] | undefined>): Context {
+export function extractContextFromHeaders(
+  headers: Record<string, string | string[] | undefined>,
+): Context {
   const getter: TextMapGetter = {
     keys: (carrier) => Object.keys(carrier),
     get: (carrier, key) => {
@@ -63,7 +63,7 @@ export function extractContextFromHeaders(headers: Record<string, string | strin
       return Array.isArray(value) ? value[0] : value;
     },
   };
-  
+
   return propagation.extract(otelContext.active(), headers, getter);
 }
 
@@ -76,7 +76,7 @@ export function injectContextToHeaders(context: Context, headers: Record<string,
       carrier[key] = value;
     },
   };
-  
+
   propagation.inject(context, headers, setter);
 }
 
@@ -87,13 +87,14 @@ export function contextPropagationMiddleware(config: TelemetryConfig) {
   return (req: Request, res: Response, next: NextFunction): void => {
     // Extract context from incoming request
     const extractedContext = extractContextFromHeaders(req.headers);
-    
+
     // Get or create request ID
-    const requestId = req.id ?? 
-      req.headers['x-request-id'] as string ?? 
-      trace.getSpan(extractedContext)?.spanContext().traceId ?? 
+    const requestId =
+      req.id ??
+      (req.headers['x-request-id'] as string) ??
+      trace.getSpan(extractedContext)?.spanContext().traceId ??
       'unknown';
-    
+
     // Create enhanced context
     const enhancedContext: EnhancedContext = {
       requestId,
@@ -109,7 +110,7 @@ export function contextPropagationMiddleware(config: TelemetryConfig) {
         'net.peer.ip': req.ip ?? 'unknown',
       },
     };
-    
+
     // Run the rest of the request in context
     otelContext.with(extractedContext, () => {
       runWithContext(enhancedContext, () => {
@@ -118,34 +119,34 @@ export function contextPropagationMiddleware(config: TelemetryConfig) {
         const span = tracer.startSpan(`${req.method} ${req.path}`, {
           attributes: enhancedContext.attributes,
         });
-        
+
         enhancedContext.span = span;
-        
+
         // Inject context into response headers for downstream propagation
         const responseHeaders: Record<string, string> = {};
         injectContextToHeaders(otelContext.active(), responseHeaders);
-        
+
         Object.entries(responseHeaders).forEach(([key, value]) => {
           res.setHeader(key, value);
         });
-        
+
         // End span when response finishes
         res.on('finish', () => {
           span.setAttributes({
             'http.status_code': res.statusCode,
             'http.response.size': res.get('content-length') ?? 0,
           });
-          
+
           if (res.statusCode >= 400) {
             span.setStatus({
               code: trace.SpanStatusCode.ERROR,
               message: `HTTP ${res.statusCode}`,
             });
           }
-          
+
           span.end();
         });
-        
+
         next();
       });
     });
@@ -162,7 +163,7 @@ export function wrapWithContext<T extends (...args: any[]) => Promise<any>>(
   return (async (...args: Parameters<T>): Promise<ReturnType<T>> => {
     const currentContext = getCurrentContext();
     const activeContext = otelContext.active();
-    
+
     return otelContext.with(activeContext, async () => {
       if (currentContext) {
         return runWithContext(currentContext, async () => {
@@ -171,7 +172,7 @@ export function wrapWithContext<T extends (...args: any[]) => Promise<any>>(
             const span = tracer.startSpan(spanName, {
               parent: currentContext.span,
             });
-            
+
             try {
               const result = await fn(...args);
               span.setStatus({ code: trace.SpanStatusCode.OK });
@@ -186,11 +187,11 @@ export function wrapWithContext<T extends (...args: any[]) => Promise<any>>(
               span.end();
             }
           }
-          
+
           return fn(...args);
         });
       }
-      
+
       return fn(...args);
     });
   }) as T;
@@ -204,7 +205,7 @@ export function createChildSpan(name: string, attributes?: Record<string, any>):
   if (!context?.span) {
     return undefined;
   }
-  
+
   const tracer = trace.getTracer('puppeteer-mcp');
   return tracer.startSpan(name, {
     parent: context.span,

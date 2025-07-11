@@ -5,7 +5,7 @@
 
 import { describe, expect, it, jest, beforeEach, afterEach } from '@jest/globals';
 import { Logger } from 'pino';
-import { ZodError, z } from 'zod';
+import { ZodError } from 'zod';
 
 // Import error system components
 import {
@@ -13,7 +13,6 @@ import {
   ErrorCategory,
   ErrorSeverity,
   RecoveryAction,
-  ErrorContext,
 } from '../../../src/core/errors/error-context.js';
 import { EnhancedAppError } from '../../../src/core/errors/enhanced-app-error.js';
 import {
@@ -177,7 +176,7 @@ describe('Comprehensive Error System Tests', () => {
         'AUTH_INVALID_CREDENTIALS',
         { attempts: 3 },
         testContext.requestId,
-        testContext.userId
+        testContext.userId,
       );
 
       expect(error.statusCode).toBe(401);
@@ -197,7 +196,7 @@ describe('Comprehensive Error System Tests', () => {
           action: 'click',
         },
         testContext.requestId,
-        testContext.sessionId
+        testContext.sessionId,
       );
 
       expect(error.statusCode).toBe(500);
@@ -216,7 +215,7 @@ describe('Comprehensive Error System Tests', () => {
           timeout: 5000,
           method: 'GET',
         },
-        testContext.requestId
+        testContext.requestId,
       );
 
       expect(error.statusCode).toBe(500);
@@ -234,7 +233,7 @@ describe('Comprehensive Error System Tests', () => {
           value: 'invalid-email',
           expectedType: 'email',
         },
-        testContext.requestId
+        testContext.requestId,
       );
 
       expect(error.statusCode).toBe(400);
@@ -253,7 +252,7 @@ describe('Comprehensive Error System Tests', () => {
           maxLimit: 512,
           unit: 'MB',
         },
-        testContext.requestId
+        testContext.requestId,
       );
 
       expect(error.statusCode).toBe(503);
@@ -266,7 +265,7 @@ describe('Comprehensive Error System Tests', () => {
   describe('Error Factory', () => {
     it('should create authentication errors', () => {
       const error = ErrorFactory.auth.invalidCredentials(testContext);
-      
+
       expect(error).toBeInstanceOf(AuthenticationDomainError);
       expect(error.statusCode).toBe(401);
       expect(error.errorContext.errorCode).toBe('AUTH_INVALID_CREDENTIALS');
@@ -274,11 +273,7 @@ describe('Comprehensive Error System Tests', () => {
     });
 
     it('should create browser errors', () => {
-      const error = ErrorFactory.browser.elementNotFound(
-        '#test-selector',
-        'page-123',
-        testContext
-      );
+      const error = ErrorFactory.browser.elementNotFound('#test-selector', 'page-123', testContext);
 
       expect(error).toBeInstanceOf(BrowserDomainError);
       expect(error.errorContext.errorCode).toBe('BROWSER_ELEMENT_NOT_FOUND');
@@ -296,12 +291,12 @@ describe('Comprehensive Error System Tests', () => {
 
     it('should use default context when set', () => {
       ErrorFactory.setDefaultContext(testContext);
-      
+
       const error = ErrorFactory.auth.tokenExpired();
-      
+
       expect(error.getRequestId()).toBe(testContext.requestId);
       expect(error.getUserId()).toBe(testContext.userId);
-      
+
       ErrorFactory.clearDefaultContext();
     });
   });
@@ -369,11 +364,6 @@ describe('Comprehensive Error System Tests', () => {
     });
 
     it('should handle Zod validation errors', () => {
-      const schema = z.object({
-        email: z.string().email(),
-        age: z.number().min(18),
-      });
-
       const zodError = new ZodError([
         {
           code: 'invalid_string',
@@ -402,12 +392,12 @@ describe('Comprehensive Error System Tests', () => {
 
     it('should track error occurrence', async () => {
       const error = ErrorFactory.auth.invalidCredentials(testContext);
-      
+
       const entryId = await errorTracker.trackError(error, testContext);
-      
+
       expect(entryId).toBeDefined();
       expect(entryId).toMatch(/^err_\d+_[a-z0-9]+$/);
-      
+
       const entry = await storage.get(entryId);
       expect(entry).toBeDefined();
       expect(entry?.error.errorCode).toBe('AUTH_INVALID_CREDENTIALS');
@@ -416,10 +406,10 @@ describe('Comprehensive Error System Tests', () => {
 
     it('should resolve tracked errors', async () => {
       const error = ErrorFactory.browser.actionTimeout('click', '#button', 5000, testContext);
-      
+
       const entryId = await errorTracker.trackError(error, testContext);
       await errorTracker.resolveError(entryId, 2000, true);
-      
+
       const entry = await storage.get(entryId);
       expect(entry?.resolved).toBe(true);
       expect(entry?.resolutionTime).toBe(2000);
@@ -428,11 +418,11 @@ describe('Comprehensive Error System Tests', () => {
 
     it('should record retry attempts', async () => {
       const error = ErrorFactory.network.timeout('https://api.example.com', 5000, testContext);
-      
+
       const entryId = await errorTracker.trackError(error, testContext);
       await errorTracker.recordRetryAttempt(entryId);
       await errorTracker.recordRetryAttempt(entryId);
-      
+
       const entry = await storage.get(entryId);
       expect(entry?.retryAttempts).toBe(2);
     });
@@ -440,11 +430,17 @@ describe('Comprehensive Error System Tests', () => {
     it('should generate error metrics', async () => {
       // Track multiple errors
       await errorTracker.trackError(ErrorFactory.auth.invalidCredentials(testContext), testContext);
-      await errorTracker.trackError(ErrorFactory.browser.pageNotFound('page-123', testContext), testContext);
-      await errorTracker.trackError(ErrorFactory.validation.required('email', testContext), testContext);
-      
+      await errorTracker.trackError(
+        ErrorFactory.browser.pageNotFound('page-123', testContext),
+        testContext,
+      );
+      await errorTracker.trackError(
+        ErrorFactory.validation.required('email', testContext),
+        testContext,
+      );
+
       const metrics = await errorTracker.getMetrics(60);
-      
+
       expect(metrics.total).toBe(3);
       expect(metrics.byCategory[ErrorCategory.AUTHENTICATION]).toBe(1);
       expect(metrics.byCategory[ErrorCategory.BROWSER]).toBe(1);
@@ -464,12 +460,12 @@ describe('Comprehensive Error System Tests', () => {
     it('should execute token refresh recovery strategy', async () => {
       const tokenRefreshFn = jest.fn().mockResolvedValue('new-token-123');
       const strategy = new TokenRefreshRecoveryStrategy(tokenRefreshFn);
-      
+
       recoveryManager.registerStrategy(strategy);
-      
+
       const error = ErrorFactory.auth.tokenExpired(testContext);
       const result = await recoveryManager.recover(error, testContext);
-      
+
       expect(result.success).toBe(true);
       expect(result.result).toBe('new-token-123');
       expect(result.strategy).toBe('token_refresh');
@@ -479,12 +475,15 @@ describe('Comprehensive Error System Tests', () => {
     it('should execute session restart recovery strategy', async () => {
       const sessionRestartFn = jest.fn().mockResolvedValue(undefined);
       const strategy = new SessionRestartRecoveryStrategy(sessionRestartFn);
-      
+
       recoveryManager.registerStrategy(strategy);
-      
+
       const error = ErrorFactory.browser.browserCrashed('browser-123', testContext);
-      const result = await recoveryManager.recover(error, { ...testContext, sessionId: 'session-123' });
-      
+      const result = await recoveryManager.recover(error, {
+        ...testContext,
+        sessionId: 'session-123',
+      });
+
       expect(result.success).toBe(true);
       expect(result.strategy).toBe('session_restart');
       expect(sessionRestartFn).toHaveBeenCalledWith('session-123');
@@ -509,7 +508,7 @@ describe('Comprehensive Error System Tests', () => {
           maxDelay: 1000,
           jitter: 0.1,
         },
-        testContext
+        testContext,
       );
 
       expect(result).toBe('success');
@@ -550,11 +549,14 @@ describe('Comprehensive Error System Tests', () => {
 
     it('should calculate error health score', async () => {
       // Track some errors
-      await errorTracker.trackError(ErrorFactory.validation.required('email', testContext), testContext);
+      await errorTracker.trackError(
+        ErrorFactory.validation.required('email', testContext),
+        testContext,
+      );
       await errorTracker.trackError(ErrorFactory.auth.invalidCredentials(testContext), testContext);
-      
+
       const healthScore = await analytics.getHealthScore(60);
-      
+
       expect(typeof healthScore).toBe('number');
       expect(healthScore).toBeGreaterThanOrEqual(0);
       expect(healthScore).toBeLessThanOrEqual(100);
@@ -562,11 +564,17 @@ describe('Comprehensive Error System Tests', () => {
 
     it('should analyze error trends', async () => {
       // Track errors over time
-      await errorTracker.trackError(ErrorFactory.network.timeout('https://api.example.com', 5000, testContext), testContext);
-      await errorTracker.trackError(ErrorFactory.browser.pageNotFound('page-123', testContext), testContext);
-      
+      await errorTracker.trackError(
+        ErrorFactory.network.timeout('https://api.example.com', 5000, testContext),
+        testContext,
+      );
+      await errorTracker.trackError(
+        ErrorFactory.browser.pageNotFound('page-123', testContext),
+        testContext,
+      );
+
       const trendAnalysis = await analytics.getTrendAnalysis(60);
-      
+
       expect(trendAnalysis.trend).toBeOneOf(['increasing', 'decreasing', 'stable']);
       expect(typeof trendAnalysis.changePercentage).toBe('number');
       expect(trendAnalysis.periods).toHaveLength(2);
@@ -581,7 +589,7 @@ describe('Comprehensive Error System Tests', () => {
 
     beforeEach(() => {
       handler = new EnhancedErrorHandler(mockLogger);
-      
+
       mockReq = {
         method: 'GET',
         originalUrl: '/api/test',
@@ -608,9 +616,9 @@ describe('Comprehensive Error System Tests', () => {
     it('should handle enhanced app errors', async () => {
       const error = ErrorFactory.auth.invalidCredentials(testContext);
       const middleware = handler.getMiddleware();
-      
+
       await middleware(error, mockReq, mockRes, mockNext);
-      
+
       expect(mockRes.status).toHaveBeenCalledWith(401);
       expect(mockRes.json).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -619,7 +627,7 @@ describe('Comprehensive Error System Tests', () => {
             category: ErrorCategory.AUTHENTICATION,
             severity: ErrorSeverity.HIGH,
           }),
-        })
+        }),
       );
     });
 
@@ -635,7 +643,7 @@ describe('Comprehensive Error System Tests', () => {
 
       const middleware = handler.getMiddleware();
       await middleware(zodError, mockReq, mockRes, mockNext);
-      
+
       expect(mockRes.status).toHaveBeenCalledWith(400);
       expect(mockRes.json).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -643,16 +651,16 @@ describe('Comprehensive Error System Tests', () => {
             code: 'VALIDATION_ERROR',
             category: ErrorCategory.VALIDATION,
           }),
-        })
+        }),
       );
     });
 
     it('should handle generic errors', async () => {
       const genericError = new Error('Generic error message');
       const middleware = handler.getMiddleware();
-      
+
       await middleware(genericError, mockReq, mockRes, mockNext);
-      
+
       expect(mockRes.status).toHaveBeenCalledWith(500);
       expect(mockRes.json).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -661,23 +669,23 @@ describe('Comprehensive Error System Tests', () => {
             category: ErrorCategory.SYSTEM,
             severity: ErrorSeverity.CRITICAL,
           }),
-        })
+        }),
       );
     });
 
     it('should set security headers', async () => {
       const error = ErrorFactory.auth.invalidCredentials(testContext);
       const middleware = handler.getMiddleware();
-      
+
       await middleware(error, mockReq, mockRes, mockNext);
-      
+
       expect(mockRes.set).toHaveBeenCalledWith({
         'X-Content-Type-Options': 'nosniff',
         'X-Frame-Options': 'DENY',
         'X-XSS-Protection': '1; mode=block',
         'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'Pragma': 'no-cache',
-        'Expires': '0',
+        Pragma: 'no-cache',
+        Expires: '0',
       });
     });
   });
@@ -685,7 +693,7 @@ describe('Comprehensive Error System Tests', () => {
   describe('Error Type Guards', () => {
     it('should identify enhanced app errors', () => {
       const error = ErrorFactory.auth.invalidCredentials(testContext);
-      
+
       expect(ErrorTypeGuards.isEnhancedAppError(error)).toBe(true);
       expect(ErrorTypeGuards.isAppError(error)).toBe(true);
       expect(ErrorTypeGuards.isOperationalError(error)).toBe(true);
@@ -694,7 +702,7 @@ describe('Comprehensive Error System Tests', () => {
     it('should identify error categories and severities', () => {
       const authError = ErrorFactory.auth.tokenExpired(testContext);
       const browserError = ErrorFactory.browser.pageNotFound('page-123', testContext);
-      
+
       expect(ErrorTypeGuards.hasCategory(authError, ErrorCategory.AUTHENTICATION)).toBe(true);
       expect(ErrorTypeGuards.hasCategory(browserError, ErrorCategory.BROWSER)).toBe(true);
       expect(ErrorTypeGuards.hasSeverity(authError, ErrorSeverity.HIGH)).toBe(true);
@@ -702,9 +710,13 @@ describe('Comprehensive Error System Tests', () => {
     });
 
     it('should identify retryable errors', () => {
-      const networkError = ErrorFactory.network.timeout('https://api.example.com', 5000, testContext);
+      const networkError = ErrorFactory.network.timeout(
+        'https://api.example.com',
+        5000,
+        testContext,
+      );
       const validationError = ErrorFactory.validation.required('email', testContext);
-      
+
       expect(ErrorTypeGuards.isRetryable(networkError)).toBe(true);
       expect(ErrorTypeGuards.isRetryable(validationError)).toBe(false);
     });
@@ -721,12 +733,12 @@ describe('Comprehensive Error System Tests', () => {
       const storage = new InMemoryErrorTrackingStorage();
       const errorTracker = new ErrorTracker(storage, mockLogger);
       const recoveryManager = new ErrorRecoveryManager(mockLogger, errorTracker);
-      
+
       // Set up recovery strategy
       const tokenRefreshFn = jest.fn().mockResolvedValue('new-token');
       const strategy = new TokenRefreshRecoveryStrategy(tokenRefreshFn);
       recoveryManager.registerStrategy(strategy);
-      
+
       // Create error handler with full configuration
       const errorHandler = createEnhancedErrorHandler(
         mockLogger,
@@ -736,18 +748,18 @@ describe('Comprehensive Error System Tests', () => {
           includeRetryConfig: true,
         },
         errorTracker,
-        recoveryManager
+        recoveryManager,
       );
-      
+
       // Simulate error in middleware
       const error = ErrorFactory.auth.tokenExpired(testContext);
       await errorHandler(error, mockReq, mockRes, mockNext);
-      
+
       // Verify error was tracked
       const metrics = await errorTracker.getMetrics(60);
       expect(metrics.total).toBe(1);
       expect(metrics.byCategory[ErrorCategory.AUTHENTICATION]).toBe(1);
-      
+
       // Verify response
       expect(mockRes.status).toHaveBeenCalledWith(401);
       expect(mockRes.json).toHaveBeenCalledWith(
@@ -756,30 +768,30 @@ describe('Comprehensive Error System Tests', () => {
             code: 'AUTH_TOKEN_EXPIRED',
             retryConfig: expect.any(Object),
           }),
-        })
+        }),
       );
     });
 
     it('should handle error pattern detection', async () => {
       const storage = new InMemoryErrorTrackingStorage();
       const errorTracker = new ErrorTracker(storage, mockLogger);
-      
+
       let patternDetected = false;
       errorTracker.on('error_threshold_exceeded', () => {
         patternDetected = true;
       });
-      
+
       // Track multiple auth errors to trigger pattern detection
       for (let i = 0; i < 6; i++) {
         await errorTracker.trackError(
           ErrorFactory.auth.invalidCredentials({ ...testContext, requestId: `req-${i}` }),
-          { ...testContext, requestId: `req-${i}` }
+          { ...testContext, requestId: `req-${i}` },
         );
       }
-      
+
       // Give some time for pattern detection
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
       expect(patternDetected).toBe(true);
     });
   });
@@ -807,10 +819,8 @@ expect.extend({
   },
 });
 
-declare global {
-  namespace jest {
-    interface Matchers<R> {
-      toBeOneOf(expected: any[]): R;
-    }
+declare module '@jest/expect' {
+  interface Matchers<R> {
+    toBeOneOf(expected: any[]): R;
   }
 }

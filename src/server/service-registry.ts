@@ -10,11 +10,11 @@ import { InMemorySessionStore } from '../store/in-memory-session-store.js';
 import { BrowserPool } from '../puppeteer/pool/browser-pool.js';
 import { puppeteerConfig } from '../puppeteer/config.js';
 import { initializeRedis, closeRedis } from '../utils/redis-client.js';
-import { 
-  initializeTelemetry, 
+import {
+  initializeTelemetry,
   shutdownTelemetry,
   startTelemetryHealthMonitoring,
-  instrumentSessionStore
+  instrumentSessionStore,
 } from '../telemetry-stub.js';
 const createBrowserPoolMetrics = () => {};
 import { SessionStore } from '../store/session-store.interface.js';
@@ -80,20 +80,20 @@ export function createBrowserPool(): BrowserPool {
  */
 export async function initializeAllTelemetry(
   sessionStore: SessionStore,
-  browserPool: BrowserPool
-): Promise<{ 
+  _browserPool: BrowserPool,
+): Promise<{
   instrumentedSessionStore: SessionStore;
   browserPoolMetrics: unknown;
 }> {
   // Initialize telemetry as early as possible
   await initializeTelemetry();
-  
+
   // Instrument session store after telemetry is initialized
   const instrumentedSessionStore = instrumentSessionStore(sessionStore);
-  
+
   // Create browser pool metrics
   const browserPoolMetrics = createBrowserPoolMetrics();
-  
+
   // Start telemetry health monitoring
   if (config.TELEMETRY_ENABLED) {
     startTelemetryHealthMonitoring(); // Check every minute
@@ -105,7 +105,10 @@ export async function initializeAllTelemetry(
 /**
  * Initialize browser pool for non-test environments
  */
-export async function initializeBrowserPool(browserPool: BrowserPool, logger: Logger): Promise<void> {
+export async function initializeBrowserPool(
+  browserPool: BrowserPool,
+  logger: Logger,
+): Promise<void> {
   if (config.NODE_ENV !== 'test') {
     try {
       await browserPool.initialize();
@@ -164,7 +167,7 @@ export async function createServerDependencies(): Promise<ServerDependencies> {
 export async function shutdownAllServices(
   browserPool: BrowserPool,
   sessionStore: SessionStore,
-  logger: Logger
+  logger: Logger,
 ): Promise<void> {
   // Clean up session store
   if ('clear' in sessionStore && typeof sessionStore.clear === 'function') {
@@ -193,7 +196,7 @@ export async function shutdownAllServices(
   } catch (error) {
     logger.error({ error }, 'Error closing Redis connection');
   }
-  
+
   // Shutdown telemetry
   try {
     logger.info('Shutting down telemetry...');

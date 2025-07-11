@@ -15,11 +15,11 @@ import { MetricsCollector } from './metrics-collector.js';
 import { StrategyManager } from './strategy-manager.js';
 import { HealthEventManager } from './health-event-manager.js';
 import { CleanupRecoveryAction, ConnectionLimitRecoveryAction } from './recovery/index.js';
-import type { 
-  HealthCheckContext, 
-  HealthCheckResult, 
+import type {
+  HealthCheckContext,
+  HealthCheckResult,
   HealthMonitorOptions,
-  WSComponentDependencies
+  WSComponentDependencies,
 } from './types.js';
 import { HealthStatus, HealthEventType } from './types.js';
 
@@ -35,13 +35,13 @@ export class HealthMonitorCoordinator {
   private strategyManager: StrategyManager;
   private eventManager: HealthEventManager;
   private recoveryChain: CleanupRecoveryAction;
-  
+
   // Intervals
   private heartbeatInterval: NodeJS.Timeout | null = null;
   private healthCheckInterval: NodeJS.Timeout | null = null;
-  
+
   // State
-  private lastStatus: typeof HealthStatus[keyof typeof HealthStatus] = HealthStatus.UNKNOWN;
+  private lastStatus: (typeof HealthStatus)[keyof typeof HealthStatus] = HealthStatus.UNKNOWN;
   private isRunning = false;
 
   constructor({ logger }: WSComponentDependencies, options: HealthMonitorOptions = {}) {
@@ -126,7 +126,10 @@ export class HealthMonitorCoordinator {
    */
   async getHealthStatus(context: HealthCheckContext): Promise<HealthCheckResult> {
     const metrics = this.metricsCollector.collectMetrics(context);
-    const { status, issues, recommendations } = await this.strategyManager.executeHealthChecks(context, metrics);
+    const { status, issues, recommendations } = await this.strategyManager.executeHealthChecks(
+      context,
+      metrics,
+    );
 
     const result: HealthCheckResult = {
       status,
@@ -235,28 +238,33 @@ export class HealthMonitorCoordinator {
    */
   private startHealthChecks(context: HealthCheckContext): void {
     // Run health check every minute
-    this.healthCheckInterval = setInterval(async () => {
-      try {
-        const result = await this.getHealthStatus(context);
-        
-        // Trigger recovery if needed
-        if (result.status === HealthStatus.CRITICAL) {
-          await this.triggerRecovery(context, result);
+    this.healthCheckInterval = setInterval(() => {
+      void (async () => {
+        try {
+          const result = await this.getHealthStatus(context);
+
+          // Trigger recovery if needed
+          if (result.status === HealthStatus.CRITICAL) {
+            await this.triggerRecovery(context, result);
+          }
+        } catch (error) {
+          this.logger.error('Health check failed', {
+            error: error instanceof Error ? error.message : 'Unknown error',
+          });
         }
-      } catch (error) {
-        this.logger.error('Health check failed', {
-          error: error instanceof Error ? error.message : 'Unknown error',
-        });
-      }
+      })();
     }, 60000); // 1 minute
   }
 
   /**
    * Handle status change
    */
-  private handleStatusChange(newStatus: typeof HealthStatus[keyof typeof HealthStatus], result: HealthCheckResult): void {
+  private handleStatusChange(
+    newStatus: (typeof HealthStatus)[keyof typeof HealthStatus],
+    result: HealthCheckResult,
+  ): void {
     this.lastStatus = newStatus;
-    
+
     this.eventManager.emitHealthEvent({
       type: HealthEventType.STATUS_CHANGED,
       timestamp: Date.now(),
@@ -273,7 +281,10 @@ export class HealthMonitorCoordinator {
    * Trigger recovery actions
    * @nist ir-4 "Incident handling"
    */
-  private async triggerRecovery(context: HealthCheckContext, result: HealthCheckResult): Promise<void> {
+  private async triggerRecovery(
+    context: HealthCheckContext,
+    result: HealthCheckResult,
+  ): Promise<void> {
     this.logger.warn('Triggering recovery actions', {
       status: result.status,
       issueCount: result.issues.length,
@@ -314,7 +325,10 @@ export class HealthMonitorCoordinator {
   /**
    * Get status message
    */
-  private getStatusMessage(status: typeof HealthStatus[keyof typeof HealthStatus], issues: string[]): string {
+  private getStatusMessage(
+    status: (typeof HealthStatus)[keyof typeof HealthStatus],
+    issues: string[],
+  ): string {
     switch (status) {
       case HealthStatus.HEALTHY:
         return 'WebSocket server is operating normally';

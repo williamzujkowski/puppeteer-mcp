@@ -50,12 +50,14 @@ export class MonitoringOrchestrator extends EventEmitter {
     }
 
     // Start monitoring interval
-    this.monitoringInterval = setInterval(async () => {
-      try {
-        await this.monitorResources();
-      } catch (error) {
-        logger.error({ error }, 'Error during resource monitoring');
-      }
+    this.monitoringInterval = setInterval(() => {
+      void (async () => {
+        try {
+          await this.monitorResources();
+        } catch (error) {
+          logger.error({ error }, 'Error during resource monitoring');
+        }
+      })();
     }, this.config.intervalMs);
 
     this.emit(ResourceEventType.MONITORING_STARTED);
@@ -88,20 +90,17 @@ export class MonitoringOrchestrator extends EventEmitter {
     const promises = Array.from(browsers.values()).map(async (instance) => {
       try {
         const usage = await this.components.browserMonitor.monitorBrowser(
-          instance.id, 
-          instance.browser
+          instance.id,
+          instance.browser,
         );
-        
+
         // Add to history
         this.components.historyManager.addUsage(instance.id, usage);
-        
+
         // Check alerts
         await this.components.alertManager.checkBrowserAlerts(instance.id, usage);
       } catch (error) {
-        logger.error(
-          { browserId: instance.id, error },
-          'Error monitoring browser resources'
-        );
+        logger.error({ browserId: instance.id, error }, 'Error monitoring browser resources');
       }
     });
 

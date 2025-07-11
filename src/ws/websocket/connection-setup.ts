@@ -48,7 +48,11 @@ export async function handleConnectionSetup(
 
   try {
     // Create connection state
-    const connectionState = createConnectionState(connectionId, clientIp, req.headers['user-agent']);
+    const connectionState = createConnectionState(
+      connectionId,
+      clientIp,
+      req.headers['user-agent'],
+    );
 
     // Add connection to manager
     deps.connectionManager.addConnection(connectionId, ws, connectionState);
@@ -129,7 +133,7 @@ function sendMessage(ws: WebSocket, message: unknown): void {
   if (ws.readyState === WebSocket.OPEN) {
     try {
       ws.send(JSON.stringify(message));
-    } catch (error) {
+    } catch {
       // Error handling is done by the connection error handler
     }
   }

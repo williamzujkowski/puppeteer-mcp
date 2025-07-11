@@ -8,18 +8,14 @@
 
 import { NodeSDK } from '@opentelemetry/sdk-node';
 import { diag, DiagConsoleLogger, trace, metrics } from '@opentelemetry/api';
-import { 
-  BatchSpanProcessor, 
+import {
+  BatchSpanProcessor,
   ConsoleSpanExporter,
   SimpleSpanProcessor,
 } from '@opentelemetry/sdk-trace-node';
-import { 
-  PeriodicExportingMetricReader,
-  ConsoleMetricExporter,
-  MeterProvider,
-} from '@opentelemetry/sdk-metrics';
+import { PeriodicExportingMetricReader } from '@opentelemetry/sdk-metrics';
 import { PrometheusExporter } from '@opentelemetry/exporter-prometheus';
-import { 
+import {
   CompositePropagator,
   W3CTraceContextPropagator,
   W3CBaggagePropagator,
@@ -27,8 +23,8 @@ import {
 import { B3Propagator, B3InjectEncoding } from '@opentelemetry/propagator-b3';
 import { JaegerPropagator } from '@opentelemetry/propagator-jaeger';
 import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node';
-import { 
-  getTelemetryConfig, 
+import {
+  getTelemetryConfig,
   validateTelemetryConfig,
   getBatchSpanProcessorConfig,
   getMetricReaderOptions,
@@ -51,8 +47,8 @@ let isInitialized = false;
  */
 function createPropagator(config: TelemetryConfig): CompositePropagator {
   const propagators: any[] = [];
-  
-  config.propagation.propagators.forEach(name => {
+
+  config.propagation.propagators.forEach((name) => {
     switch (name.toLowerCase()) {
       case 'tracecontext':
         propagators.push(new W3CTraceContextPropagator());
@@ -73,12 +69,12 @@ function createPropagator(config: TelemetryConfig): CompositePropagator {
         logger.warn({ propagator: name }, 'Unknown propagator type');
     }
   });
-  
+
   if (propagators.length === 0) {
     // Default to W3C trace context
     propagators.push(new W3CTraceContextPropagator());
   }
-  
+
   return new CompositePropagator({
     propagators,
   });
@@ -89,7 +85,7 @@ function createPropagator(config: TelemetryConfig): CompositePropagator {
  */
 function createInstrumentations(config: TelemetryConfig): any[] {
   const instrumentations: any[] = [];
-  
+
   // Use auto-instrumentations with configuration
   const autoInstrumentations = getNodeAutoInstrumentations({
     '@opentelemetry/instrumentation-http': {
@@ -147,9 +143,9 @@ function createInstrumentations(config: TelemetryConfig): any[] {
       enabled: false, // Not needed
     },
   });
-  
+
   instrumentations.push(...autoInstrumentations);
-  
+
   return instrumentations;
 }
 
@@ -161,9 +157,9 @@ export async function initializeTelemetry(): Promise<void> {
     logger.warn('Telemetry already initialized');
     return;
   }
-  
+
   const config = getTelemetryConfig();
-  
+
   // Validate configuration
   try {
     validateTelemetryConfig(config);
@@ -171,13 +167,13 @@ export async function initializeTelemetry(): Promise<void> {
     logger.error({ error }, 'Invalid telemetry configuration');
     throw error;
   }
-  
+
   if (!config.enabled) {
     logger.info('Telemetry is disabled');
     isInitialized = true;
     return;
   }
-  
+
   logTelemetryEvent(logger, {
     operation: 'telemetry.init',
     status: 'started',
@@ -187,55 +183,54 @@ export async function initializeTelemetry(): Promise<void> {
       environment: config.environment,
     },
   });
-  
+
   try {
     // Set up diagnostics
     if (config.debug.enabled) {
       diag.setLogger(new DiagConsoleLogger(), config.debug.logLevel);
     }
-    
+
     // Create resource
     const resource = createResource(config);
-    
+
     // Create span processors
     const spanProcessors: any[] = [];
     const traceExporters = createMultiTraceExporter(config);
-    
-    traceExporters.forEach(exporter => {
+
+    traceExporters.forEach((exporter) => {
       if (config.debug.enabled || exporter instanceof ConsoleSpanExporter) {
         spanProcessors.push(new SimpleSpanProcessor(exporter));
       } else {
-        spanProcessors.push(new BatchSpanProcessor(
-          exporter,
-          getBatchSpanProcessorConfig(config),
-        ));
+        spanProcessors.push(new BatchSpanProcessor(exporter, getBatchSpanProcessorConfig(config)));
       }
     });
-    
+
     // Create metric readers
     const metricReaders: any[] = [];
     const metricExporters = createMultiMetricExporter(config);
-    
-    metricExporters.forEach(exporter => {
+
+    metricExporters.forEach((exporter) => {
       if (exporter instanceof PrometheusExporter) {
         metricReaders.push(exporter);
       } else {
-        metricReaders.push(new PeriodicExportingMetricReader({
-          exporter,
-          ...getMetricReaderOptions(config),
-        }));
+        metricReaders.push(
+          new PeriodicExportingMetricReader({
+            exporter,
+            ...getMetricReaderOptions(config),
+          }),
+        );
       }
     });
-    
+
     // Create sampler
     const sampler = createEnhancedSampler(config);
-    
+
     // Create propagator
     const textMapPropagator = createPropagator(config);
-    
+
     // Create instrumentations
     const instrumentations = createInstrumentations(config);
-    
+
     // Initialize SDK
     telemetryInstance = new NodeSDK({
       resource,
@@ -246,12 +241,12 @@ export async function initializeTelemetry(): Promise<void> {
       instrumentations,
       serviceName: config.serviceName,
     });
-    
+
     // Start SDK
     await telemetryInstance.start();
-    
+
     isInitialized = true;
-    
+
     logTelemetryEvent(logger, {
       operation: 'telemetry.init',
       status: 'completed',
@@ -267,22 +262,24 @@ export async function initializeTelemetry(): Promise<void> {
           .map(([name]) => name),
       },
     });
-    
-    logger.info({
-      serviceName: config.serviceName,
-      serviceVersion: config.serviceVersion,
-      environment: config.environment,
-      tracing: config.tracing.enabled,
-      metrics: config.metrics.enabled,
-    }, 'OpenTelemetry initialized successfully');
-    
+
+    logger.info(
+      {
+        serviceName: config.serviceName,
+        serviceVersion: config.serviceVersion,
+        environment: config.environment,
+        tracing: config.tracing.enabled,
+        metrics: config.metrics.enabled,
+      },
+      'OpenTelemetry initialized successfully',
+    );
   } catch (error) {
     logTelemetryEvent(logger, {
       operation: 'telemetry.init',
       status: 'failed',
       error: error as Error,
     });
-    
+
     logger.error({ error }, 'Failed to initialize OpenTelemetry');
     throw error;
   }
@@ -295,22 +292,22 @@ export async function shutdownTelemetry(): Promise<void> {
   if (!isInitialized || !telemetryInstance) {
     return;
   }
-  
+
   logTelemetryEvent(logger, {
     operation: 'telemetry.shutdown',
     status: 'started',
   });
-  
+
   try {
     await telemetryInstance.shutdown();
     telemetryInstance = null;
     isInitialized = false;
-    
+
     logTelemetryEvent(logger, {
       operation: 'telemetry.shutdown',
       status: 'completed',
     });
-    
+
     logger.info('OpenTelemetry shut down successfully');
   } catch (error) {
     logTelemetryEvent(logger, {
@@ -318,7 +315,7 @@ export async function shutdownTelemetry(): Promise<void> {
       status: 'failed',
       error: error as Error,
     });
-    
+
     logger.error({ error }, 'Error shutting down OpenTelemetry');
     throw error;
   }
@@ -328,20 +325,14 @@ export async function shutdownTelemetry(): Promise<void> {
  * Get tracer instance
  */
 export function getTracer(name?: string, version?: string): any {
-  return trace.getTracer(
-    name ?? 'puppeteer-mcp',
-    version ?? getTelemetryConfig().serviceVersion,
-  );
+  return trace.getTracer(name ?? 'puppeteer-mcp', version ?? getTelemetryConfig().serviceVersion);
 }
 
 /**
  * Get meter instance
  */
 export function getMeter(name?: string, version?: string): any {
-  return metrics.getMeter(
-    name ?? 'puppeteer-mcp',
-    version ?? getTelemetryConfig().serviceVersion,
-  );
+  return metrics.getMeter(name ?? 'puppeteer-mcp', version ?? getTelemetryConfig().serviceVersion);
 }
 
 /**
@@ -358,20 +349,20 @@ export async function flushTelemetry(): Promise<void> {
   if (!isInitialized || !telemetryInstance) {
     return;
   }
-  
+
   try {
     // Force flush all span processors
     const tracerProvider = trace.getTracerProvider();
     if ('forceFlush' in tracerProvider) {
       await (tracerProvider as any).forceFlush();
     }
-    
+
     // Force flush all metric readers
     const meterProvider = metrics.getMeterProvider();
     if ('forceFlush' in meterProvider) {
       await (meterProvider as any).forceFlush();
     }
-    
+
     logger.debug('Telemetry data flushed successfully');
   } catch (error) {
     logger.error({ error }, 'Error flushing telemetry data');

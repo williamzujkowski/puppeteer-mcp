@@ -28,7 +28,7 @@ export class RedisClientManager {
     if (redisClient && isRedisAvailable()) {
       return { redis: true, client: redisClient as RedisClient };
     }
-    
+
     this.logger.warn('Redis unavailable, using in-memory fallback');
     return { redis: false, client: this.fallbackStore };
   }
@@ -54,18 +54,18 @@ export class RedisClientManager {
   /**
    * Get Redis connection info
    */
-  getConnectionInfo(): { 
-    connected: boolean; 
+  getConnectionInfo(): {
+    connected: boolean;
     client: RedisClient | null;
     fallbackAvailable: boolean;
   } {
     const redisClient = getRedisClient();
     const connected = redisClient && isRedisAvailable();
-    
+
     return {
       connected: Boolean(connected),
-      client: connected ? redisClient as RedisClient : null,
-      fallbackAvailable: true
+      client: connected ? (redisClient as RedisClient) : null,
+      fallbackAvailable: true,
     };
   }
 
@@ -74,25 +74,25 @@ export class RedisClientManager {
    */
   async executeWithFallback<T>(
     operation: (client: RedisClient) => Promise<T>,
-    fallbackOperation: (store: FallbackStore) => Promise<T>
+    fallbackOperation: (store: FallbackStore) => Promise<T>,
   ): Promise<T> {
     const { redis, client } = this.getStore();
 
     try {
       if (redis) {
-        return operation(client as RedisClient);
+        return await operation(client as RedisClient);
       } else {
         return await fallbackOperation(client as FallbackStore);
       }
     } catch (error) {
       this.logger.error({ error }, 'Redis operation failed');
-      
+
       // If Redis operation failed, try fallback
       if (redis) {
         this.logger.warn('Falling back to in-memory store');
         return fallbackOperation(this.fallbackStore);
       }
-      
+
       throw error;
     }
   }
@@ -111,7 +111,7 @@ export class RedisClientManager {
       if (!redisClient || !isRedisAvailable()) {
         return {
           success: false,
-          error: 'Redis not configured or unavailable'
+          error: 'Redis not configured or unavailable',
         };
       }
 
@@ -121,12 +121,12 @@ export class RedisClientManager {
 
       return {
         success: true,
-        latency
+        latency,
       };
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       };
     }
   }

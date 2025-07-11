@@ -52,7 +52,10 @@ export function setupTrustProxy(app: Application): void {
 /**
  * Setup security middleware
  */
-export function setupSecurityMiddleware(app: Application, middlewareConfig: MiddlewareConfig): void {
+export function setupSecurityMiddleware(
+  app: Application,
+  middlewareConfig: MiddlewareConfig,
+): void {
   if (!middlewareConfig.enableSecurity) {
     return;
   }
@@ -111,7 +114,10 @@ export function setupCorsMiddleware(app: Application, middlewareConfig: Middlewa
 /**
  * Setup compression middleware
  */
-export function setupCompressionMiddleware(app: Application, middlewareConfig: MiddlewareConfig): void {
+export function setupCompressionMiddleware(
+  app: Application,
+  middlewareConfig: MiddlewareConfig,
+): void {
   if (middlewareConfig.enableCompression) {
     app.use(compression());
   }
@@ -120,7 +126,10 @@ export function setupCompressionMiddleware(app: Application, middlewareConfig: M
 /**
  * Setup rate limiting middleware
  */
-export function setupRateLimitingMiddleware(app: Application, middlewareConfig: MiddlewareConfig): void {
+export function setupRateLimitingMiddleware(
+  app: Application,
+  middlewareConfig: MiddlewareConfig,
+): void {
   if (middlewareConfig.enableRateLimit) {
     const limiter = createRateLimiter();
     app.use(limiter);
@@ -159,14 +168,11 @@ export function setupRequestTrackingMiddleware(app: Application): void {
 /**
  * Setup telemetry middleware
  */
-export function setupTelemetryMiddleware(app: Application, middlewareConfig: MiddlewareConfig): void {
+export function setupTelemetryMiddleware(
+  app: Application,
+  middlewareConfig: MiddlewareConfig,
+): void {
   if (middlewareConfig.enableTelemetry) {
-    const telemetryConfig = {
-      enabled: config.TELEMETRY_ENABLED,
-      serviceName: config.TELEMETRY_SERVICE_NAME,
-      serviceVersion: config.TELEMETRY_SERVICE_VERSION,
-      environment: config.TELEMETRY_ENVIRONMENT,
-    };
     app.use(contextPropagationMiddleware);
   }
 }

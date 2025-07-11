@@ -60,24 +60,37 @@ export class MessageRouter {
 
       // Route based on message type
       switch (message.type) {
-        case 'auth':
+        case WSMessageType.AUTH:
           await this.handleAuthMessage(ws, connectionId, message, connectionManager, authHandler);
           break;
 
-        case 'request':
-          await this.handleRequestMessage(ws, connectionId, message, connectionManager, authHandler);
+        case WSMessageType.REQUEST:
+          await this.handleRequestMessage(
+            ws,
+            connectionId,
+            message,
+            connectionManager,
+            authHandler,
+          );
           break;
 
-        case 'subscribe':
-        case 'unsubscribe':
-          await this.handleSubscriptionMessage(ws, connectionId, message, connectionManager, eventHandler, authHandler);
+        case WSMessageType.SUBSCRIBE:
+        case WSMessageType.UNSUBSCRIBE:
+          await this.handleSubscriptionMessage(
+            ws,
+            connectionId,
+            message,
+            connectionManager,
+            eventHandler,
+            authHandler,
+          );
           break;
 
-        case 'ping':
+        case WSMessageType.PING:
           await this.handlePingMessage(ws, connectionId, message);
           break;
 
-        case 'pong':
+        case WSMessageType.PONG:
           await this.handlePongMessage(connectionId, message);
           break;
 
@@ -87,7 +100,7 @@ export class MessageRouter {
             type: message.type,
             messageId: message.id,
           });
-          
+
           this.sendErrorMessage(ws, message.id, {
             code: 'UNKNOWN_MESSAGE_TYPE',
             message: `Unknown message type: ${message.type}`,
@@ -95,7 +108,7 @@ export class MessageRouter {
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown routing error';
-      
+
       this.logger.error('Message routing error', {
         connectionId,
         messageType: message.type,
@@ -133,7 +146,12 @@ export class MessageRouter {
     connectionManager: ConnectionManager,
     authHandler: AuthenticationHandler,
   ): Promise<void> {
-    const responseMessage = await authHandler.handleAuthentication(ws, connectionId, message, connectionManager);
+    const responseMessage = await authHandler.handleAuthentication(
+      ws,
+      connectionId,
+      message,
+      connectionManager,
+    );
     this.sendMessage(ws, responseMessage);
   }
 
@@ -208,9 +226,9 @@ export class MessageRouter {
     }
 
     try {
-      if (message.type === 'subscribe') {
+      if (message.type === WSMessageType.SUBSCRIBE) {
         const success = await eventHandler.subscribe(connectionId, message.topic, message.filters);
-        
+
         if (success) {
           this.sendMessage(ws, {
             type: WSMessageType.EVENT,
@@ -230,7 +248,7 @@ export class MessageRouter {
         }
       } else {
         const success = eventHandler.unsubscribe(connectionId, message.topic);
-        
+
         if (success) {
           this.sendMessage(ws, {
             type: WSMessageType.EVENT,
@@ -266,7 +284,7 @@ export class MessageRouter {
     message: WSPingPongMessage,
   ): Promise<void> {
     this.logger.debug('Ping received', { connectionId });
-    
+
     this.sendMessage(ws, {
       type: WSMessageType.PONG,
       id: message.id,
@@ -277,10 +295,7 @@ export class MessageRouter {
   /**
    * Handle pong message
    */
-  private async handlePongMessage(
-    connectionId: string,
-    message: WSPingPongMessage,
-  ): Promise<void> {
+  private async handlePongMessage(connectionId: string, message: WSPingPongMessage): Promise<void> {
     this.logger.debug('Pong received', { connectionId, messageId: message.id });
     // Pong messages are handled by updating lastActivity in connectionManager
   }

@@ -67,7 +67,9 @@ export type ProxyConfig = z.infer<typeof proxyConfigSchema>;
  */
 export const proxyPoolConfigSchema = z.object({
   proxies: z.array(proxyConfigSchema).min(1),
-  strategy: z.enum(['round-robin', 'random', 'least-used', 'priority', 'health-based']).default('round-robin'),
+  strategy: z
+    .enum(['round-robin', 'random', 'least-used', 'priority', 'health-based'])
+    .default('round-robin'),
   healthCheckEnabled: z.boolean().default(true),
   healthCheckInterval: z.number().int().positive().default(300000), // 5 minutes
   failoverEnabled: z.boolean().default(true),
@@ -145,22 +147,22 @@ export function validateProxyUrl(url: string): { valid: boolean; error?: string 
   try {
     const parsed = new URL(url);
     const validProtocols = ['http:', 'https:', 'socks4:', 'socks5:'];
-    
+
     if (!validProtocols.includes(parsed.protocol)) {
       return { valid: false, error: `Invalid protocol: ${parsed.protocol}` };
     }
-    
+
     if (!parsed.hostname) {
       return { valid: false, error: 'Missing hostname' };
     }
-    
+
     const port = parsed.port ? parseInt(parsed.port, 10) : null;
     if (port !== null && (isNaN(port) || port < 1 || port > 65535)) {
       return { valid: false, error: `Invalid port: ${parsed.port}` };
     }
-    
+
     return { valid: true };
-  } catch (error) {
+  } catch {
     return { valid: false, error: 'Invalid proxy URL format' };
   }
 }
@@ -171,13 +173,13 @@ export function validateProxyUrl(url: string): { valid: boolean; error?: string 
  */
 export function formatProxyUrl(config: ProxyConfig): string {
   let url = `${config.protocol}://`;
-  
+
   if (config.auth) {
     url += `${encodeURIComponent(config.auth.username)}:${encodeURIComponent(config.auth.password)}@`;
   }
-  
+
   url += `${config.host}:${config.port}`;
-  
+
   return url;
 }
 
@@ -187,13 +189,33 @@ export function formatProxyUrl(config: ProxyConfig): string {
  */
 export function shouldBypassProxy(url: string, bypassList: string[]): boolean {
   const targetUrl = new URL(url);
-  
+
   for (const pattern of bypassList) {
     // Handle wildcard patterns
     if (pattern.includes('*')) {
-      const regex = new RegExp(pattern.replace(/\*/g, '.*'));
-      if (regex.test(targetUrl.hostname)) {
-        return true;
+      try {
+        // Simple wildcard matching without regex
+        const parts = pattern.split('*');
+        let matches = true;
+        let lastIndex = 0;
+        for (let i = 0; i < parts.length; i++) {
+          const part = parts[i];
+          if (!part || part === '') continue; // Empty part from consecutive *
+          const index = targetUrl.hostname.indexOf(part, lastIndex);
+          if (index === -1) {
+            matches = false;
+            break;
+          }
+          lastIndex = index + part.length;
+        }
+        if (matches) {
+          return true;
+        }
+      } catch {
+        // Fallback to exact match if regex fails
+        if (targetUrl.hostname === pattern || targetUrl.host === pattern) {
+          return true;
+        }
       }
     }
     // Handle exact matches
@@ -205,7 +227,7 @@ export function shouldBypassProxy(url: string, bypassList: string[]): boolean {
       return true;
     }
   }
-  
+
   return false;
 }
 
@@ -219,7 +241,7 @@ function isIpInRange(ip: string, range: string): boolean {
   try {
     const [rangeIp, rangeMask] = range.split('/');
     if (!rangeIp || !rangeMask) return false;
-    
+
     // For now, just check if the IP starts with the same prefix
     const maskBits = parseInt(rangeMask, 10);
     if (maskBits === 8) {
@@ -232,6 +254,6 @@ function isIpInRange(ip: string, range: string): boolean {
   } catch {
     return false;
   }
-  
+
   return false;
 }

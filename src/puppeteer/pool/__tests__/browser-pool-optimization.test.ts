@@ -4,15 +4,29 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
-import { EventEmitter } from 'events';
 import type { Browser, Page } from 'puppeteer';
 
 // Import optimization components
-import { BrowserPoolScaler, ScalingDecision, DEFAULT_SCALING_STRATEGY } from '../browser-pool-scaling.js';
-import { BrowserPoolResourceManager, DEFAULT_RESOURCE_CONFIG } from '../browser-pool-resource-manager.js';
-import { BrowserPoolRecycler, RecyclingStrategy, DEFAULT_RECYCLING_CONFIG } from '../browser-pool-recycler.js';
-import { CircuitBreaker, CircuitBreakerState, DEFAULT_CIRCUIT_BREAKER_CONFIG } from '../browser-pool-circuit-breaker.js';
-import { BrowserPoolPerformanceMonitor, PerformanceMetricType, DEFAULT_PERFORMANCE_CONFIG } from '../browser-pool-performance-monitor.js';
+import {
+  BrowserPoolScaler,
+  ScalingDecision,
+  DEFAULT_SCALING_STRATEGY,
+} from '../browser-pool-scaling.js';
+import {
+  BrowserPoolResourceManager,
+  DEFAULT_RESOURCE_CONFIG,
+} from '../browser-pool-resource-manager.js';
+import { BrowserPoolRecycler, DEFAULT_RECYCLING_CONFIG } from '../browser-pool-recycler.js';
+import {
+  CircuitBreaker,
+  CircuitBreakerState,
+  DEFAULT_CIRCUIT_BREAKER_CONFIG,
+} from '../browser-pool-circuit-breaker.js';
+import {
+  BrowserPoolPerformanceMonitor,
+  PerformanceMetricType,
+  DEFAULT_PERFORMANCE_CONFIG,
+} from '../browser-pool-performance-monitor.js';
 import { OptimizedBrowserPool, DEFAULT_OPTIMIZATION_CONFIG } from '../browser-pool-optimized.js';
 
 // Mock external dependencies
@@ -97,7 +111,7 @@ describe('BrowserPoolScaler', () => {
   it('should start and stop scaling monitor', () => {
     scaler.start();
     expect(scaler.getStrategy().enabled).toBe(true);
-    
+
     scaler.stop();
     // Should stop without errors
   });
@@ -105,9 +119,9 @@ describe('BrowserPoolScaler', () => {
   it('should evaluate scaling up when utilization is high', () => {
     mockMetrics.utilizationPercentage = 85;
     const options = { maxBrowsers: 10 };
-    
+
     const decision = scaler.evaluateScaling(mockMetrics, mockBrowsers, options);
-    
+
     expect(decision.decision).toBe(ScalingDecision.SCALE_UP);
     expect(decision.targetSize).toBeGreaterThan(mockBrowsers.size);
   });
@@ -116,9 +130,9 @@ describe('BrowserPoolScaler', () => {
     mockMetrics.utilizationPercentage = 20;
     mockMetrics.queue.queueLength = 0;
     const options = { maxBrowsers: 10 };
-    
+
     const decision = scaler.evaluateScaling(mockMetrics, mockBrowsers, options);
-    
+
     expect(decision.decision).toBe(ScalingDecision.SCALE_DOWN);
   });
 
@@ -126,9 +140,9 @@ describe('BrowserPoolScaler', () => {
     mockMetrics.utilizationPercentage = 95;
     mockMetrics.queue.queueLength = 15;
     const options = { maxBrowsers: 10 };
-    
+
     const decision = scaler.evaluateScaling(mockMetrics, mockBrowsers, options);
-    
+
     expect(decision.decision).toBe(ScalingDecision.EMERGENCY_SCALE_UP);
     expect(decision.confidence).toBeGreaterThan(90);
   });
@@ -136,7 +150,7 @@ describe('BrowserPoolScaler', () => {
   it('should update strategy configuration', () => {
     const newStrategy = { targetUtilization: 60, maxScaleStep: 2 };
     scaler.updateStrategy(newStrategy);
-    
+
     const strategy = scaler.getStrategy();
     expect(strategy.targetUtilization).toBe(60);
     expect(strategy.maxScaleStep).toBe(2);
@@ -148,7 +162,7 @@ describe('BrowserPoolScaler', () => {
       mockMetrics.utilizationPercentage = 50 + i * 2; // Increasing trend
       scaler.evaluateScaling(mockMetrics, mockBrowsers, { maxBrowsers: 10 });
     }
-    
+
     const decision = scaler.evaluateScaling(mockMetrics, mockBrowsers, { maxBrowsers: 10 });
     expect(decision.confidence).toBeGreaterThan(0);
   });
@@ -172,7 +186,7 @@ describe('BrowserPoolResourceManager', () => {
   it('should start and stop resource monitoring', async () => {
     await resourceManager.start();
     expect(resourceManager.getSystemResources()).toBeDefined();
-    
+
     resourceManager.stop();
     // Should stop without errors
   });
@@ -188,14 +202,14 @@ describe('BrowserPoolResourceManager', () => {
     };
 
     await resourceManager.optimizeBrowser(mockBrowser, mockInstance);
-    
+
     // Should complete without errors
-    expect(mockBrowser.pages).toHaveBeenCalled();
+    expect(mockInstance.executeSafely).toHaveBeenCalledWith(expect.any(Function));
   });
 
   it('should evaluate browser recycling based on resource usage', () => {
     const result = resourceManager.shouldRecycleBrowser('test-browser');
-    
+
     expect(result).toHaveProperty('shouldRecycle');
     expect(result).toHaveProperty('reason');
     expect(result).toHaveProperty('priority');
@@ -204,17 +218,17 @@ describe('BrowserPoolResourceManager', () => {
   it('should update configuration', () => {
     const newConfig = { intervalMs: 15000, enableGarbageCollection: false };
     resourceManager.updateConfig(newConfig);
-    
+
     // Configuration should be updated
     expect(true).toBe(true); // Placeholder assertion
   });
 
   it('should handle system resource monitoring', async () => {
     await resourceManager.start();
-    
+
     // Allow some time for monitoring
-    await new Promise(resolve => setTimeout(resolve, 100));
-    
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
     const systemResources = resourceManager.getSystemResources();
     expect(systemResources).toBeDefined();
   });
@@ -229,7 +243,7 @@ describe('BrowserPoolRecycler', () => {
     recycler = new BrowserPoolRecycler(DEFAULT_RECYCLING_CONFIG);
     mockBrowsers = new Map();
     mockResourceUsage = new Map();
-    
+
     // Add mock browser instance
     const mockInstance = {
       id: 'test-browser',
@@ -240,7 +254,7 @@ describe('BrowserPoolRecycler', () => {
       pageCount: 5,
       state: 'active',
     };
-    
+
     mockBrowsers.set('test-browser', mockInstance);
     mockResourceUsage.set('test-browser', {
       browserId: 'test-browser',
@@ -269,10 +283,10 @@ describe('BrowserPoolRecycler', () => {
 
   it('should evaluate browsers for recycling', () => {
     const candidates = recycler.evaluateBrowsers(mockBrowsers, mockResourceUsage);
-    
+
     expect(candidates).toBeInstanceOf(Array);
     expect(candidates.length).toBeGreaterThanOrEqual(0);
-    
+
     if (candidates.length > 0) {
       expect(candidates[0]).toHaveProperty('browserId');
       expect(candidates[0]).toHaveProperty('score');
@@ -284,9 +298,9 @@ describe('BrowserPoolRecycler', () => {
   it('should evaluate single browser for recycling', () => {
     const instance = mockBrowsers.get('test-browser');
     const resourceUsage = mockResourceUsage.get('test-browser');
-    
+
     const candidate = recycler.evaluateBrowser(instance, resourceUsage);
-    
+
     expect(candidate).toHaveProperty('browserId', 'test-browser');
     expect(candidate).toHaveProperty('score');
     expect(candidate.score).toBeGreaterThanOrEqual(0);
@@ -295,16 +309,16 @@ describe('BrowserPoolRecycler', () => {
 
   it('should execute recycling for candidates', async () => {
     const candidates = recycler.evaluateBrowsers(mockBrowsers, mockResourceUsage);
-    
+
     // Force a high score candidate
     if (candidates.length > 0) {
       candidates[0].score = 95;
       candidates[0].urgency = 'critical';
     }
-    
+
     const mockRecycleCallback = jest.fn(() => Promise.resolve());
     const events = await recycler.executeRecycling(candidates, mockRecycleCallback);
-    
+
     expect(events).toBeInstanceOf(Array);
     if (candidates.length > 0 && candidates[0].score >= 80) {
       expect(mockRecycleCallback).toHaveBeenCalled();
@@ -313,14 +327,14 @@ describe('BrowserPoolRecycler', () => {
 
   it('should update health metrics', () => {
     recycler.updateHealthMetrics('test-browser', { healthy: true, responsive: true });
-    
+
     // Should update without errors
     expect(true).toBe(true);
   });
 
   it('should get recycling statistics', () => {
     const stats = recycler.getRecyclingStats();
-    
+
     expect(stats).toHaveProperty('totalRecycled');
     expect(stats).toHaveProperty('successRate');
     expect(stats).toHaveProperty('avgExecutionTime');
@@ -331,7 +345,7 @@ describe('BrowserPoolRecycler', () => {
   it('should update recycling configuration', () => {
     const newConfig = { recyclingThreshold: 70, maxBatchSize: 5 };
     recycler.updateConfig(newConfig);
-    
+
     // Configuration should be updated
     expect(true).toBe(true);
   });
@@ -356,7 +370,7 @@ describe('CircuitBreaker', () => {
   it('should execute successful operations', async () => {
     const operation = jest.fn(() => Promise.resolve('success'));
     const result = await circuitBreaker.execute(operation);
-    
+
     expect(result.success).toBe(true);
     expect(result.result).toBe('success');
     expect(operation).toHaveBeenCalled();
@@ -365,19 +379,19 @@ describe('CircuitBreaker', () => {
   it('should handle failed operations', async () => {
     const operation = jest.fn(() => Promise.reject(new Error('test error')));
     const result = await circuitBreaker.execute(operation);
-    
+
     expect(result.success).toBe(false);
     expect(result.error).toBeInstanceOf(Error);
   });
 
   it('should open circuit after failure threshold', async () => {
     const operation = jest.fn(() => Promise.reject(new Error('test error')));
-    
+
     // Execute enough failures to trigger circuit opening
     for (let i = 0; i < 10; i++) {
       await circuitBreaker.execute(operation);
     }
-    
+
     const metrics = circuitBreaker.getMetrics();
     expect(metrics.state).toBe(CircuitBreakerState.OPEN);
   });
@@ -385,12 +399,12 @@ describe('CircuitBreaker', () => {
   it('should use fallback when circuit is open', async () => {
     const operation = jest.fn(() => Promise.reject(new Error('test error')));
     const fallback = jest.fn(() => Promise.resolve('fallback'));
-    
+
     // Force circuit to open
     circuitBreaker.forceState(CircuitBreakerState.OPEN);
-    
+
     const result = await circuitBreaker.execute(operation, fallback);
-    
+
     expect(result.success).toBe(true);
     expect(result.result).toBe('fallback');
     expect(fallback).toHaveBeenCalled();
@@ -398,7 +412,7 @@ describe('CircuitBreaker', () => {
 
   it('should provide circuit metrics', () => {
     const metrics = circuitBreaker.getMetrics();
-    
+
     expect(metrics).toHaveProperty('state');
     expect(metrics).toHaveProperty('failureCount');
     expect(metrics).toHaveProperty('successCount');
@@ -409,7 +423,7 @@ describe('CircuitBreaker', () => {
   it('should reset circuit state', () => {
     circuitBreaker.forceState(CircuitBreakerState.OPEN);
     circuitBreaker.reset();
-    
+
     const metrics = circuitBreaker.getMetrics();
     expect(metrics.state).toBe(CircuitBreakerState.CLOSED);
   });
@@ -417,7 +431,7 @@ describe('CircuitBreaker', () => {
   it('should update configuration', () => {
     const newConfig = { failureThreshold: 3, timeout: 60000 };
     circuitBreaker.updateConfig(newConfig);
-    
+
     // Configuration should be updated
     expect(true).toBe(true);
   });
@@ -445,12 +459,8 @@ describe('BrowserPoolPerformanceMonitor', () => {
   });
 
   it('should record performance metrics', () => {
-    performanceMonitor.recordMetric(
-      PerformanceMetricType.LATENCY,
-      1500,
-      { operation: 'test' }
-    );
-    
+    performanceMonitor.recordMetric(PerformanceMetricType.LATENCY, 1500, { operation: 'test' });
+
     const metrics = performanceMonitor.getMetrics(PerformanceMetricType.LATENCY);
     expect(metrics.size).toBeGreaterThan(0);
   });
@@ -460,9 +470,9 @@ describe('BrowserPoolPerformanceMonitor', () => {
     performanceMonitor.recordMetric(
       PerformanceMetricType.LATENCY,
       3000, // Above warning threshold of 1000ms
-      { operation: 'test' }
+      { operation: 'test' },
     );
-    
+
     const alerts = performanceMonitor.getActiveAlerts();
     expect(alerts.length).toBeGreaterThan(0);
   });
@@ -472,10 +482,10 @@ describe('BrowserPoolPerformanceMonitor', () => {
     for (let i = 0; i < 10; i++) {
       performanceMonitor.recordMetric(PerformanceMetricType.LATENCY, 500);
     }
-    
+
     // Record anomalous metric
     performanceMonitor.recordMetric(PerformanceMetricType.LATENCY, 5000);
-    
+
     const anomalies = performanceMonitor.getAnomalies();
     expect(anomalies.length).toBeGreaterThan(0);
   });
@@ -483,9 +493,9 @@ describe('BrowserPoolPerformanceMonitor', () => {
   it('should generate performance summary', () => {
     performanceMonitor.recordMetric(PerformanceMetricType.LATENCY, 1000);
     performanceMonitor.recordMetric(PerformanceMetricType.THROUGHPUT, 10);
-    
+
     const summary = performanceMonitor.getPerformanceSummary();
-    
+
     expect(summary).toHaveProperty('period');
     expect(summary).toHaveProperty('metrics');
     expect(summary).toHaveProperty('healthScore');
@@ -495,14 +505,14 @@ describe('BrowserPoolPerformanceMonitor', () => {
   it('should acknowledge and resolve alerts', () => {
     // Generate an alert
     performanceMonitor.recordMetric(PerformanceMetricType.LATENCY, 3000);
-    
+
     const alerts = performanceMonitor.getActiveAlerts();
     if (alerts.length > 0) {
       const alertId = alerts[0].id;
-      
+
       const acknowledged = performanceMonitor.acknowledgeAlert(alertId);
       expect(acknowledged).toBe(true);
-      
+
       const resolved = performanceMonitor.resolveAlert(alertId);
       expect(resolved).toBe(true);
     }
@@ -511,7 +521,7 @@ describe('BrowserPoolPerformanceMonitor', () => {
   it('should update configuration', () => {
     const newConfig = { collectionInterval: 10000, alertingEnabled: false };
     performanceMonitor.updateConfig(newConfig);
-    
+
     // Configuration should be updated
     expect(true).toBe(true);
   });
@@ -523,7 +533,7 @@ describe('OptimizedBrowserPool', () => {
   beforeEach(() => {
     optimizedPool = new OptimizedBrowserPool(
       { maxBrowsers: 5, maxPagesPerBrowser: 10 },
-      DEFAULT_OPTIMIZATION_CONFIG
+      DEFAULT_OPTIMIZATION_CONFIG,
     );
   });
 
@@ -534,16 +544,16 @@ describe('OptimizedBrowserPool', () => {
   it('should initialize with optimization features', async () => {
     // Mock the parent class methods
     jest.spyOn(optimizedPool, 'initialize').mockResolvedValue(undefined);
-    
+
     await optimizedPool.initialize();
-    
+
     const status = optimizedPool.getOptimizationStatus();
     expect(status.enabled).toBe(true);
   });
 
   it('should provide optimization status', () => {
     const status = optimizedPool.getOptimizationStatus();
-    
+
     expect(status).toHaveProperty('enabled');
     expect(status).toHaveProperty('scalingActive');
     expect(status).toHaveProperty('resourceMonitoringActive');
@@ -566,17 +576,28 @@ describe('OptimizedBrowserPool', () => {
       avgBrowserLifetime: 3600000,
       utilizationPercentage: 50,
       lastHealthCheck: new Date(),
-      queue: { queueLength: 0, averageWaitTime: 0, maxWaitTime: 0, totalQueued: 0, totalDequeued: 0 },
+      queue: {
+        queueLength: 0,
+        averageWaitTime: 0,
+        maxWaitTime: 0,
+        totalQueued: 0,
+        totalDequeued: 0,
+      },
       errors: { totalErrors: 0, errorRate: 0, recoverySuccesses: 0, recoveryFailures: 0 },
       avgPageCreationTime: 1000,
       avgPageDestructionTime: 500,
       healthCheck: { avgDuration: 100, lastDuration: 100, successRate: 100, totalChecks: 10 },
-      resources: { totalCpuUsage: 30, totalMemoryUsage: 1024, avgCpuPerBrowser: 15, avgMemoryPerBrowser: 512 },
+      resources: {
+        totalCpuUsage: 30,
+        totalMemoryUsage: 1024,
+        avgCpuPerBrowser: 15,
+        avgMemoryPerBrowser: 512,
+      },
       timeSeries: { utilizationHistory: [], errorRateHistory: [], queueLengthHistory: [] },
     });
-    
+
     const metrics = optimizedPool.getExtendedMetrics();
-    
+
     expect(metrics).toHaveProperty('totalBrowsers');
     expect(metrics).toHaveProperty('optimization');
   });
@@ -587,16 +608,16 @@ describe('OptimizedBrowserPool', () => {
       optimizationInterval: 60000,
       scaling: { enabled: false },
     };
-    
+
     await optimizedPool.updateOptimizationConfig(newConfig);
-    
+
     const status = optimizedPool.getOptimizationStatus();
     expect(status.autoOptimizationActive).toBe(false);
   });
 
   it('should force optimization check', async () => {
     await optimizedPool.forceOptimizationCheck();
-    
+
     // Should complete without errors
     expect(true).toBe(true);
   });
@@ -611,9 +632,9 @@ describe('OptimizedBrowserPool', () => {
       useCount: 1,
       pageCount: 0,
     });
-    
+
     const browser = await optimizedPool.acquireBrowser('test-session');
-    
+
     expect(browser).toHaveProperty('id');
     expect(browser).toHaveProperty('browser');
   });
@@ -621,9 +642,9 @@ describe('OptimizedBrowserPool', () => {
   it('should handle page creation with optimization', async () => {
     // Mock the parent class method
     jest.spyOn(optimizedPool, 'createPage').mockResolvedValue(mockPage);
-    
+
     const page = await optimizedPool.createPage('test-browser', 'test-session');
-    
+
     expect(page).toBeDefined();
   });
 
@@ -632,7 +653,7 @@ describe('OptimizedBrowserPool', () => {
       expect(event).toHaveProperty('decision');
       done();
     });
-    
+
     // Trigger a scaling action event
     optimizedPool.emit('optimization-scaling-action', { decision: 'scale_up' });
   });
@@ -642,38 +663,38 @@ describe('Integration Tests', () => {
   it('should integrate all optimization components', async () => {
     const pool = new OptimizedBrowserPool(
       { maxBrowsers: 3, maxPagesPerBrowser: 5 },
-      { 
+      {
         enabled: true,
         autoOptimization: true,
         optimizationInterval: 1000,
-      }
+      },
     );
-    
+
     // Mock initialization
     jest.spyOn(pool, 'initialize').mockResolvedValue(undefined);
-    
+
     await pool.initialize();
-    
+
     const status = pool.getOptimizationStatus();
     expect(status.enabled).toBe(true);
-    
+
     await pool.shutdown();
   });
 
   it('should handle optimization disabled gracefully', async () => {
     const pool = new OptimizedBrowserPool(
       { maxBrowsers: 3, maxPagesPerBrowser: 5 },
-      { enabled: false }
+      { enabled: false },
     );
-    
+
     // Mock initialization
     jest.spyOn(pool, 'initialize').mockResolvedValue(undefined);
-    
+
     await pool.initialize();
-    
+
     const status = pool.getOptimizationStatus();
     expect(status.enabled).toBe(false);
-    
+
     await pool.shutdown();
   });
 });
@@ -681,12 +702,12 @@ describe('Integration Tests', () => {
 describe('Error Handling', () => {
   it('should handle scaler errors gracefully', () => {
     const scaler = new BrowserPoolScaler(DEFAULT_SCALING_STRATEGY);
-    
+
     // Test with invalid metrics
     const invalidMetrics = null as any;
     const browsers = new Map();
     const options = { maxBrowsers: 10 };
-    
+
     expect(() => {
       scaler.evaluateScaling(invalidMetrics, browsers, options);
     }).not.toThrow();
@@ -697,28 +718,28 @@ describe('Error Handling', () => {
       ...DEFAULT_RESOURCE_CONFIG,
       enabled: true,
     });
-    
+
     // Test with invalid browser
     const invalidBrowser = null as any;
     const invalidInstance = { id: 'test', browser: invalidBrowser };
-    
+
     await expect(
-      resourceManager.optimizeBrowser(invalidBrowser, invalidInstance)
+      resourceManager.optimizeBrowser(invalidBrowser, invalidInstance),
     ).rejects.toThrow();
   });
 
   it('should handle circuit breaker errors gracefully', async () => {
     const circuitBreaker = new CircuitBreaker('test', DEFAULT_CIRCUIT_BREAKER_CONFIG);
-    
+
     const faultyOperation = () => {
       throw new Error('Simulated error');
     };
-    
+
     const result = await circuitBreaker.execute(faultyOperation);
-    
+
     expect(result.success).toBe(false);
     expect(result.error).toBeInstanceOf(Error);
-    
+
     circuitBreaker.destroy();
   });
 });

@@ -43,12 +43,14 @@ export class SystemResourceMonitor implements ISystemResourceMonitor {
     await this.update();
 
     // Set up interval
-    this.monitoringInterval = setInterval(async () => {
-      try {
-        await this.update();
-      } catch (error) {
-        logger.error({ error }, 'Error updating system resources');
-      }
+    this.monitoringInterval = setInterval(() => {
+      void (async () => {
+        try {
+          await this.update();
+        } catch (error) {
+          logger.error({ error }, 'Error updating system resources');
+        }
+      })();
     }, this.intervalMs);
   }
 
@@ -98,7 +100,7 @@ export class SystemResourceMonitor implements ISystemResourceMonitor {
           cpuUsagePercent: cpuUsagePercent.toFixed(1),
           processCount,
         },
-        'System resources updated'
+        'System resources updated',
       );
     } catch (error) {
       logger.error({ error }, 'Error updating system resources');
@@ -127,11 +129,11 @@ export class SystemResourceMonitor implements ISystemResourceMonitor {
     try {
       const os = await import('os');
       const cpus = os.cpus();
-      
+
       // Simple CPU usage calculation
       let totalIdle = 0;
       let totalTick = 0;
-      
+
       for (const cpu of cpus) {
         for (const type in cpu.times) {
           totalTick += cpu.times[type as keyof typeof cpu.times];

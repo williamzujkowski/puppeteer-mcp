@@ -3,13 +3,13 @@
  * @module tests/integration/proxy/proxy-integration
  */
 
-import { describe, it, expect, beforeAll, afterAll, jest } from '@jest/globals';
+import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 import { BrowserPool } from '../../../src/puppeteer/pool/browser-pool.js';
 import { contextStore } from '../../../src/store/context-store.js';
 import { proxyManager } from '../../../src/puppeteer/proxy/proxy-manager.js';
 import { proxyMonitor } from '../../../src/puppeteer/proxy/proxy-monitoring.js';
 import { createProxyBrowserContext } from '../../../src/puppeteer/proxy/proxy-context-integration.js';
-import type { ProxyConfig, ContextProxyConfig } from '../../../src/puppeteer/types/proxy.js';
+import type { ContextProxyConfig } from '../../../src/puppeteer/types/proxy.js';
 import { Server } from 'http';
 import { createServer } from 'http';
 import { AddressInfo } from 'net';
@@ -51,7 +51,7 @@ class MockProxyServer {
 
       const decoded = Buffer.from(credentials, 'base64').toString();
       const [user, pass] = decoded.split(':');
-      
+
       if (user !== this.username || pass !== this.password) {
         res.writeHead(407);
         res.end();
@@ -97,7 +97,7 @@ describe('Proxy Integration', () => {
     // Start mock proxy servers
     mockProxy = new MockProxyServer();
     mockProxyWithAuth = new MockProxyServer(true, 'testuser', 'testpass');
-    
+
     const proxyPort = await mockProxy.start();
     const authProxyPort = await mockProxyWithAuth.start();
 
@@ -109,7 +109,7 @@ describe('Proxy Integration', () => {
         args: ['--no-sandbox', '--disable-setuid-sandbox'],
       },
     });
-    
+
     await browserPool.initialize();
 
     // Initialize proxy manager
@@ -343,7 +343,8 @@ describe('Proxy Integration', () => {
 
       const result = await proxyManager.getProxyForContext('error-test-1', contextConfig);
       expect(result).not.toBeNull();
-      const originalProxyId = result?.proxyId!;
+      const originalProxyId = result?.proxyId ?? '';
+      expect(originalProxyId).toBeTruthy();
 
       // Simulate errors to trigger rotation
       for (let i = 0; i < 3; i++) {
@@ -357,7 +358,7 @@ describe('Proxy Integration', () => {
 
       // Check that proxy is marked unhealthy
       const health = proxyManager.getHealthStatus();
-      const proxyHealth = health.find(h => h.proxyId === originalProxyId);
+      const proxyHealth = health.find((h) => h.proxyId === originalProxyId);
       expect(proxyHealth?.healthy).toBe(false);
 
       // Clean up
@@ -375,7 +376,7 @@ describe('Proxy Integration', () => {
     it('should track health status', async () => {
       const healthStatuses = proxyManager.getHealthStatus();
       expect(healthStatuses.length).toBeGreaterThan(0);
-      
+
       for (const status of healthStatuses) {
         expect(status.proxyId).toBeDefined();
         expect(typeof status.healthy).toBe('boolean');
@@ -385,12 +386,12 @@ describe('Proxy Integration', () => {
 
     it('should start and stop monitoring', async () => {
       await proxyMonitor.start();
-      
+
       const statusBefore = proxyMonitor.getStatus();
       expect(statusBefore.running).toBe(true);
 
       await proxyMonitor.stop();
-      
+
       const statusAfter = proxyMonitor.getStatus();
       expect(statusAfter.running).toBe(false);
     });

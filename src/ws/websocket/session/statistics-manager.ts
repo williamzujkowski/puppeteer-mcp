@@ -6,6 +6,7 @@
  */
 
 import type { SessionInfo, SessionStats } from './types.js';
+import { SessionState } from './types.js';
 import type { SessionStateManager } from './state-manager.js';
 import type { SessionEventEmitter } from './event-emitter.js';
 import type { pino } from 'pino';
@@ -26,12 +27,15 @@ export interface ExtendedSessionStats extends SessionStats {
  * @nist si-4 "Information system monitoring"
  */
 export class SessionStatisticsManager {
-  private sessionMetrics: Map<string, {
-    createdAt: number;
-    terminatedAt?: number;
-    userId: string;
-  }> = new Map();
-  
+  private sessionMetrics: Map<
+    string,
+    {
+      createdAt: number;
+      terminatedAt?: number;
+      userId: string;
+    }
+  > = new Map();
+
   private peakConcurrentSessions = 0;
   private sessionCreationTimes: number[] = [];
   private sessionTerminationTimes: number[] = [];
@@ -49,19 +53,12 @@ export class SessionStatisticsManager {
    */
   getSessionStats(): SessionStats {
     const sessions = this.stateManager.getAllSessions();
-    
-    const activeSessions = sessions.filter(
-      session => session.state !== 'terminated',
-    );
 
-    const totalConnections = sessions.reduce(
-      (sum, session) => sum + session.connectionIds.size,
-      0,
-    );
+    const activeSessions = sessions.filter((session) => session.state !== SessionState.TERMINATED);
 
-    const averageConnections = sessions.length > 0 
-      ? totalConnections / sessions.length 
-      : 0;
+    const totalConnections = sessions.reduce((sum, session) => sum + session.connectionIds.size, 0);
+
+    const averageConnections = sessions.length > 0 ? totalConnections / sessions.length : 0;
 
     const sessionsPerUser = this.calculateSessionsPerUser(sessions);
     const sessionsByState = this.stateManager.getSessionCountByState();
@@ -84,17 +81,20 @@ export class SessionStatisticsManager {
     const now = Date.now();
 
     // Calculate average session duration
-    const completedSessions = Array.from(this.sessionMetrics.values())
-      .filter(m => m.terminatedAt);
-    
-    const averageSessionDuration = completedSessions.length > 0
-      ? completedSessions.reduce((sum, m) => sum + (m.terminatedAt! - m.createdAt), 0) / completedSessions.length
-      : 0;
+    const completedSessions = Array.from(this.sessionMetrics.values()).filter(
+      (m) => m.terminatedAt,
+    );
+
+    const averageSessionDuration =
+      completedSessions.length > 0
+        ? completedSessions.reduce((sum, m) => sum + (m.terminatedAt! - m.createdAt), 0) /
+          completedSessions.length
+        : 0;
 
     // Calculate rates (per minute)
     const oneMinuteAgo = now - 60000;
-    const recentCreations = this.sessionCreationTimes.filter(t => t > oneMinuteAgo).length;
-    const recentTerminations = this.sessionTerminationTimes.filter(t => t > oneMinuteAgo).length;
+    const recentCreations = this.sessionCreationTimes.filter((t) => t > oneMinuteAgo).length;
+    const recentTerminations = this.sessionTerminationTimes.filter((t) => t > oneMinuteAgo).length;
 
     // Calculate top users
     const userMetrics = this.calculateUserMetrics();
@@ -122,7 +122,7 @@ export class SessionStatisticsManager {
    */
   exportStatistics(): Record<string, unknown> {
     const stats = this.getExtendedStats();
-    
+
     return {
       timestamp: new Date().toISOString(),
       summary: {
@@ -154,14 +154,15 @@ export class SessionStatisticsManager {
     this.sessionCreationTimes = [];
     this.sessionTerminationTimes = [];
     this.peakConcurrentSessions = 0;
-    
+
     this.logger.info('Session statistics reset');
   }
 
   /**
    * Clean up old metrics
    */
-  cleanupOldMetrics(maxAge: number = 86400000): void { // Default 24 hours
+  cleanupOldMetrics(maxAge: number = 86400000): void {
+    // Default 24 hours
     const now = Date.now();
     const cutoff = now - maxAge;
 
@@ -173,8 +174,8 @@ export class SessionStatisticsManager {
     }
 
     // Clean up timing arrays
-    this.sessionCreationTimes = this.sessionCreationTimes.filter(t => t > cutoff);
-    this.sessionTerminationTimes = this.sessionTerminationTimes.filter(t => t > cutoff);
+    this.sessionCreationTimes = this.sessionCreationTimes.filter((t) => t > cutoff);
+    this.sessionTerminationTimes = this.sessionTerminationTimes.filter((t) => t > cutoff);
 
     this.logger.debug('Cleaned up old session metrics', {
       remainingMetrics: this.sessionMetrics.size,
@@ -209,9 +210,10 @@ export class SessionStatisticsManager {
    * Update peak concurrent sessions
    */
   private updatePeakSessions(): void {
-    const currentActive = this.stateManager.getAllSessions()
-      .filter(s => s.state !== 'terminated').length;
-    
+    const currentActive = this.stateManager
+      .getAllSessions()
+      .filter((s) => s.state !== SessionState.TERMINATED).length;
+
     if (currentActive > this.peakConcurrentSessions) {
       this.peakConcurrentSessions = currentActive;
       this.logger.info('New peak concurrent sessions', { peak: this.peakConcurrentSessions });
@@ -221,9 +223,11 @@ export class SessionStatisticsManager {
   /**
    * Calculate sessions per user
    */
-  private calculateSessionsPerUser(sessions: SessionInfo[]): Array<{ userId: string; sessionCount: number }> {
+  private calculateSessionsPerUser(
+    sessions: SessionInfo[],
+  ): Array<{ userId: string; sessionCount: number }> {
     const userSessionCounts = new Map<string, number>();
-    
+
     for (const session of sessions) {
       const count = userSessionCounts.get(session.userId) ?? 0;
       userSessionCounts.set(session.userId, count + 1);
@@ -243,11 +247,11 @@ export class SessionStatisticsManager {
     for (const metrics of this.sessionMetrics.values()) {
       const user = userMetrics.get(metrics.userId) ?? { sessionCount: 0, totalDuration: 0 };
       user.sessionCount++;
-      
+
       if (metrics.terminatedAt) {
         user.totalDuration += metrics.terminatedAt - metrics.createdAt;
       }
-      
+
       userMetrics.set(metrics.userId, user);
     }
 

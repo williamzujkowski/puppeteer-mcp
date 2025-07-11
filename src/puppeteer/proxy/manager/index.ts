@@ -7,11 +7,7 @@
  */
 
 import { EventEmitter } from 'events';
-import type {
-  ProxyConfig,
-  ProxyPoolConfig,
-  ContextProxyConfig,
-} from '../../types/proxy.js';
+import type { ProxyConfig, ProxyPoolConfig, ContextProxyConfig } from '../../types/proxy.js';
 import { shouldBypassProxy } from '../../types/proxy.js';
 import { createLogger } from '../../../utils/logger.js';
 import { AppError } from '../../../core/errors/app-error.js';
@@ -130,10 +126,9 @@ export class ProxyManager extends EventEmitter {
    * Select proxy from pool
    */
   private async selectProxyFromPool(): Promise<ProxyConfig> {
-    const proxyId = await this.poolSelector.selectProxy(
-      this.instanceManager.getAllProxies(),
-      { strategy: this.poolConfig?.strategy }
-    );
+    const proxyId = await this.poolSelector.selectProxy(this.instanceManager.getAllProxies(), {
+      strategy: this.poolConfig?.strategy,
+    });
 
     if (!proxyId) {
       throw new AppError('No available proxies in pool', 503);
@@ -150,20 +145,16 @@ export class ProxyManager extends EventEmitter {
   /**
    * Configure context proxy
    */
-  async configureContextProxy(
-    contextId: string,
-    config: ContextProxyConfig
-  ): Promise<void> {
+  async configureContextProxy(contextId: string, config: ContextProxyConfig): Promise<void> {
     if (!config.enabled) {
       this.contextManager.removeContext(contextId);
       return;
     }
 
     // Select initial proxy
-    const proxyId = await this.poolSelector.selectProxy(
-      this.instanceManager.getAllProxies(),
-      { strategy: this.poolConfig?.strategy }
-    );
+    const proxyId = await this.poolSelector.selectProxy(this.instanceManager.getAllProxies(), {
+      strategy: this.poolConfig?.strategy,
+    });
 
     if (!proxyId) {
       throw new AppError('No available proxies for context', 503);
@@ -173,13 +164,9 @@ export class ProxyManager extends EventEmitter {
 
     // Schedule rotation if enabled
     if (config.rotateOnInterval && config.rotationInterval > 0) {
-      this.contextManager.scheduleRotation(
-        contextId,
-        config.rotationInterval,
-        async () => {
-          await this.rotateContextProxy(contextId, 'scheduled');
-        }
-      );
+      this.contextManager.scheduleRotation(contextId, config.rotationInterval, async () => {
+        await this.rotateContextProxy(contextId, 'scheduled');
+      });
     }
   }
 
@@ -210,17 +197,14 @@ export class ProxyManager extends EventEmitter {
    */
   private async rotateContextProxy(
     contextId: string,
-    reason: 'scheduled' | 'error' | 'health' | 'manual'
+    reason: 'scheduled' | 'error' | 'health' | 'manual',
   ): Promise<void> {
     const currentProxyId = this.contextManager.getContextProxy(contextId);
-    
-    const newProxyId = await this.poolSelector.selectProxy(
-      this.instanceManager.getAllProxies(),
-      {
-        strategy: this.poolConfig?.strategy,
-        excludeProxyIds: currentProxyId ? [currentProxyId] : [],
-      }
-    );
+
+    const newProxyId = await this.poolSelector.selectProxy(this.instanceManager.getAllProxies(), {
+      strategy: this.poolConfig?.strategy,
+      excludeProxyIds: currentProxyId ? [currentProxyId] : [],
+    });
 
     if (!newProxyId) {
       logger.warn({
@@ -248,7 +232,7 @@ export class ProxyManager extends EventEmitter {
         } catch (error) {
           this.recordProxyFailure(
             proxy.id,
-            error instanceof Error ? error.message : 'Health check failed'
+            error instanceof Error ? error.message : 'Health check failed',
           );
         }
       }
@@ -261,12 +245,9 @@ export class ProxyManager extends EventEmitter {
     await checkHealth();
 
     // Schedule periodic checks
-    this.healthCheckInterval = setInterval(
-      () => {
-        void checkHealth();
-      },
-      this.poolConfig?.healthCheckInterval ?? 300000
-    );
+    this.healthCheckInterval = setInterval(() => {
+      void checkHealth();
+    }, this.poolConfig?.healthCheckInterval ?? 300000);
   }
 
   /**
@@ -280,9 +261,7 @@ export class ProxyManager extends EventEmitter {
     totalRequests: number;
     successRate: number;
   } {
-    return this.metricsTracker.getPoolStats(
-      this.instanceManager.getAllProxies()
-    );
+    return this.metricsTracker.getPoolStats(this.instanceManager.getAllProxies());
   }
 
   /**
@@ -298,14 +277,11 @@ export class ProxyManager extends EventEmitter {
   }
 }
 
-// Type assertion for events
-export interface ProxyManager {
+// Typed event emitter methods
+export type TypedProxyManager = ProxyManager & {
   on<K extends keyof ProxyManagerEvents>(
     event: K,
     listener: (data: ProxyManagerEvents[K]) => void,
-  ): this;
-  emit<K extends keyof ProxyManagerEvents>(
-    event: K,
-    data: ProxyManagerEvents[K],
-  ): boolean;
-}
+  ): ProxyManager;
+  emit<K extends keyof ProxyManagerEvents>(event: K, data: ProxyManagerEvents[K]): boolean;
+};

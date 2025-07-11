@@ -48,16 +48,16 @@ describe('SessionManager Backward Compatibility', () => {
 
   describe('API Compatibility', () => {
     it('should have all public methods', () => {
-      expect(sessionManager.start).toBeDefined();
-      expect(sessionManager.stop).toBeDefined();
-      expect(sessionManager.createOrUpdateSession).toBeDefined();
-      expect(sessionManager.removeConnectionFromSession).toBeDefined();
-      expect(sessionManager.removeSession).toBeDefined();
-      expect(sessionManager.getSession).toBeDefined();
-      expect(sessionManager.getUserSessions).toBeDefined();
-      expect(sessionManager.validateSession).toBeDefined();
-      expect(sessionManager.getSessionStats).toBeDefined();
-      expect(sessionManager.cleanupExpiredSessions).toBeDefined();
+      expect(typeof sessionManager.start).toBe('function');
+      expect(typeof sessionManager.stop).toBe('function');
+      expect(typeof sessionManager.createOrUpdateSession).toBe('function');
+      expect(typeof sessionManager.removeConnectionFromSession).toBe('function');
+      expect(typeof sessionManager.removeSession).toBe('function');
+      expect(typeof sessionManager.getSession).toBe('function');
+      expect(typeof sessionManager.getUserSessions).toBe('function');
+      expect(typeof sessionManager.validateSession).toBe('function');
+      expect(typeof sessionManager.getSessionStats).toBe('function');
+      expect(typeof sessionManager.cleanupExpiredSessions).toBe('function');
     });
 
     it('should accept same constructor parameters', () => {
@@ -80,17 +80,12 @@ describe('SessionManager Backward Compatibility', () => {
     });
 
     it('should create session with same parameters', async () => {
-      const result = await sessionManager.createOrUpdateSession(
-        'session1',
-        'user1',
-        'conn1',
-        {
-          roles: ['user'],
-          permissions: ['read'],
-          scopes: ['profile'],
-          metadata: { device: 'desktop' },
-        },
-      );
+      const result = await sessionManager.createOrUpdateSession('session1', 'user1', 'conn1', {
+        roles: ['user'],
+        permissions: ['read'],
+        scopes: ['profile'],
+        metadata: { device: 'desktop' },
+      });
 
       expect(result).toBe(true);
     });
@@ -125,7 +120,7 @@ describe('SessionManager Backward Compatibility', () => {
 
     it('should validate sessions with same behavior', async () => {
       await sessionManager.createOrUpdateSession('session1', 'user1', 'conn1');
-      
+
       const isValid = await sessionManager.validateSession('session1', mockConnectionManager);
       expect(isValid).toBe(true);
 
