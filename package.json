@@ -129,7 +129,7 @@
     "@opentelemetry/instrumentation-http": "^0.56.0",
     "@opentelemetry/instrumentation-express": "^0.46.0",
     "@opentelemetry/instrumentation-grpc": "^0.56.0",
-    "@opentelemetry/instrumentation-ioredis": "^0.46.0",
+    "@opentelemetry/instrumentation-ioredis": "^0.51.0",
     "@opentelemetry/exporter-trace-otlp-http": "^0.56.0",
     "@opentelemetry/exporter-metrics-otlp-http": "^0.56.0",
     "@opentelemetry/exporter-jaeger": "^1.29.0",
