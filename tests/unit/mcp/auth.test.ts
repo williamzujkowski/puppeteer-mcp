@@ -34,8 +34,8 @@ jest.mock('../../../src/core/config.js', () => ({
   config: {
     JWT_SECRET: 'test-secret-key-for-testing-only-32-chars-long!!',
     JWT_ALGORITHM: 'HS256',
-    JWT_EXPIRY: '15m',
-    JWT_REFRESH_EXPIRY: '7d',
+    JWT_EXPIRES_IN: '15m',
+    JWT_REFRESH_EXPIRES_IN: '7d',
     NODE_ENV: 'test',
   },
 }));

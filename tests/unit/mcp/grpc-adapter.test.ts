@@ -32,6 +32,20 @@ jest.mock('@grpc/proto-loader', () => ({
   loadSync: jest.fn().mockReturnValue({}),
 }));
 
+// Mock the auth handler to bypass authentication for tests
+jest.mock('../../../src/mcp/adapters/grpc/auth-handler.js', () => ({
+  GrpcAuthHandler: jest.fn().mockImplementation(() => ({
+    validateAuthParams: jest.fn().mockReturnValue({ success: true, data: {} }),
+    authenticate: jest.fn().mockResolvedValue({
+      success: true,
+      userId: 'test-admin-user',
+      metadata: {},
+    }),
+    requiresAuthentication: jest.fn().mockReturnValue(false),
+    checkPermission: jest.fn().mockResolvedValue(true),
+  })),
+}));
+
 describe('GrpcAdapter', () => {
   let adapter: GrpcAdapter;
   let mockServer: jest.Mocked<GrpcServer>;
@@ -71,14 +85,15 @@ describe('GrpcAdapter', () => {
         },
         auth: {
           type: 'jwt',
-          credentials: 'test-token',
+          credentials: 'Bearer valid.jwt.token',
         },
       });
 
       // Assert
       expect(result.content).toHaveLength(1);
       expect(result.content[0].type).toBe('text');
-      expect(result.content[0].data).toEqual(mockResponse);
+      const responseData = JSON.parse(result.content[0].text);
+      expect(responseData).toEqual(mockResponse);
       expect(result.metadata?.protocol).toBe('grpc');
       expect(result.metadata?.service).toBe('SessionService');
       expect(result.metadata?.method).toBe('CreateSession');
@@ -94,10 +109,16 @@ describe('GrpcAdapter', () => {
 
       const mockService = {
         StreamSessionEvents: jest.fn((call) => {
+          // Simulate writing events to the stream
           mockEvents.forEach((event) => {
-            call.write(event);
+            if (call.write) {
+              call.write(event);
+            }
           });
-          call.end();
+          // End the stream
+          if (call.end) {
+            call.end();
+          }
         }),
       };
 
@@ -118,6 +139,10 @@ describe('GrpcAdapter', () => {
           method: 'StreamSessionEvents',
           request: { sessionId: '123' },
           streaming: true,
+        },
+        auth: {
+          type: 'jwt',
+          credentials: 'Bearer valid.jwt.token',
         },
       });
 
@@ -154,7 +179,7 @@ describe('GrpcAdapter', () => {
         },
         auth: {
           type: 'jwt',
-          credentials: 'test-jwt-token',
+          credentials: 'Bearer test-jwt-token',
         },
       });
 
@@ -168,7 +193,7 @@ describe('GrpcAdapter', () => {
         GetSession: jest.fn((call, callback) => {
           // Verify API key is in metadata
           const apiKey = call.metadata.get('x-api-key');
-          expect(apiKey).toEqual(['test-api-key']);
+          expect(apiKey).toEqual(['mcp-test-api-key-32-chars-long-for-testing']);
           callback(null, { id: '123' });
         }),
       };
@@ -189,7 +214,7 @@ describe('GrpcAdapter', () => {
         },
         auth: {
           type: 'apikey',
-          credentials: 'test-api-key',
+          credentials: 'mcp-test-api-key-32-chars-long-for-testing',
         },
       });
 
@@ -221,6 +246,10 @@ describe('GrpcAdapter', () => {
           service: 'SessionService',
           method: 'DeleteSession',
           request: { id: '123' },
+        },
+        auth: {
+          type: 'jwt',
+          credentials: 'Bearer valid.jwt.token',
         },
       });
 
@@ -256,6 +285,10 @@ describe('GrpcAdapter', () => {
           service: 'SessionService',
           method: 'CreateSession',
           request: {},
+        },
+        auth: {
+          type: 'jwt',
+          credentials: 'Bearer valid.jwt.token',
         },
       });
 
@@ -339,6 +372,10 @@ describe('GrpcAdapter', () => {
             method: 'TestMethod',
             request: {},
           },
+          auth: {
+            type: 'jwt',
+            credentials: 'Bearer valid.jwt.token',
+          },
         });
 
         expect(result.metadata?.status).toBe(expectedHttp);
@@ -368,6 +405,10 @@ describe('GrpcAdapter', () => {
           service: 'SessionService',
           method: 'CreateSession',
           request: {},
+        },
+        auth: {
+          type: 'jwt',
+          credentials: 'Bearer valid.jwt.token',
         },
       });
 

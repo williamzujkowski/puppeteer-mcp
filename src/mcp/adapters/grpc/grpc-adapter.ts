@@ -12,7 +12,12 @@ import * as grpc from '@grpc/grpc-js';
 import { logSecurityEvent, SecurityEventType } from '../../../utils/logger.js';
 import type { ProtocolAdapter, MCPResponse, AuthParams } from '../adapter.interface.js';
 import type { GrpcServer } from '../../../grpc/server.js';
-import type { ExecuteRequestParams, GrpcCapabilities, GrpcResponse } from './types.js';
+import type {
+  ExecuteRequestParams,
+  GrpcCapabilities,
+  GrpcResponse,
+  GrpcOperation,
+} from './types.js';
 import { GrpcOperationSchema } from './types.js';
 import { GrpcConnectionManager } from './connection-manager.js';
 import { GrpcServiceMethodHandler } from './service-handler.js';
@@ -192,7 +197,7 @@ export class GrpcAdapter implements ProtocolAdapter {
    * Execute an authenticated gRPC call
    */
   private async executeAuthenticatedCall(
-    operation: { service: string; method: string },
+    operation: GrpcOperation,
     metadata: grpc.Metadata,
     params: ExecuteRequestParams,
     auth?: AuthParams,
@@ -206,8 +211,8 @@ export class GrpcAdapter implements ProtocolAdapter {
     return this.serviceHandler.executeGrpcCall(
       {
         ...operation,
-        streaming: false,
-        service: operation.service as 'SessionService' | 'ContextService' | 'HealthService',
+        streaming: operation.streaming ?? false,
+        service: operation.service,
       },
       metadata,
     );
