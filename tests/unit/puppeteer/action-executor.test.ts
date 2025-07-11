@@ -106,10 +106,10 @@ describe('BrowserActionExecutor', () => {
     it('should return true for supported actions', () => {
       // The modular executor supports various actions through different executors
       const supportedActions = executor.getSupportedActions();
-      
+
       // Check that navigate is supported (from NavigationExecutor)
       expect(executor.isActionSupported('navigate')).toBe(true);
-      
+
       // For other actions, check if they exist in the supported list
       if (supportedActions.includes('click')) {
         expect(executor.isActionSupported('click')).toBe(true);
@@ -256,8 +256,10 @@ describe('BrowserActionExecutor', () => {
   describe('execute', () => {
     beforeEach(async () => {
       // Mock PageManager to return our mock page
-      const { PageManager } = await import('../../../src/puppeteer/interfaces/page-manager.interface.js');
-      (PageManager.getInstance as jest.MockedFunction<typeof PageManager.getInstance>).mockReturnValue({
+      const { PageManager } = await import(
+        '../../../src/puppeteer/interfaces/page-manager.interface.js'
+      );
+      (PageManager.getInstance as jest.MockedFunction<any>).mockReturnValue({
         getPage: jest.fn().mockResolvedValue(mockPage),
         createPage: jest.fn().mockResolvedValue(mockPage),
         closePage: jest.fn(),
@@ -286,9 +288,6 @@ describe('BrowserActionExecutor', () => {
 
       // The modular executor handles navigation internally
       // We verify the result rather than specific handler calls
-      if (!result.success) {
-        console.log('Execute failed with error:', result.error);
-      }
       expect(result.success).toBe(true);
       expect(result.actionType).toBe('navigate');
     });
@@ -363,8 +362,10 @@ describe('BrowserActionExecutor', () => {
   describe('executeBatch', () => {
     beforeEach(async () => {
       // Mock PageManager to return our mock page
-      const { PageManager } = await import('../../../src/puppeteer/interfaces/page-manager.interface.js');
-      (PageManager.getInstance as jest.MockedFunction<typeof PageManager.getInstance>).mockReturnValue({
+      const { PageManager } = await import(
+        '../../../src/puppeteer/interfaces/page-manager.interface.js'
+      );
+      (PageManager.getInstance as jest.MockedFunction<any>).mockReturnValue({
         getPage: jest.fn().mockResolvedValue(mockPage),
         createPage: jest.fn().mockResolvedValue(mockPage),
         closePage: jest.fn(),

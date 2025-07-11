@@ -6,6 +6,21 @@
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
 import type { Browser, Page } from 'puppeteer';
 
+// Mock Node.js modules that cause issues in Jest
+jest.mock('os', () => ({
+  homedir: jest.fn(() => '/home/test'),
+  platform: jest.fn(() => 'linux'),
+  arch: jest.fn(() => 'x64'),
+  tmpdir: jest.fn(() => '/tmp'),
+}));
+
+// Mock puppeteer to prevent environment issues
+jest.mock('puppeteer', () => ({
+  launch: jest.fn(),
+  executablePath: jest.fn(() => '/usr/bin/chromium'),
+  defaultArgs: jest.fn(() => ['--no-sandbox']),
+}));
+
 // Import optimization components
 import {
   BrowserPoolScaler,

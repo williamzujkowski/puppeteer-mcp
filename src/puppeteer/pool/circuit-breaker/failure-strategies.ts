@@ -5,7 +5,7 @@
  */
 
 import { CircuitBreakerConfig, CircuitBreakerState } from './types.js';
-import { BaseFailureDetectionStrategy } from './failure-detection.js';
+import { BaseFailureDetectionStrategy } from './base-failure-strategy.js';
 import { createLogger } from '../../../utils/logger.js';
 
 const logger = createLogger('circuit-breaker-strategies');
