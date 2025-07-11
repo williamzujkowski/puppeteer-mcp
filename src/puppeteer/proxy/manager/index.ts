@@ -136,12 +136,12 @@ export class ProxyManager extends EventEmitter {
     );
 
     if (!proxyId) {
-      throw new AppError('No available proxies in pool', 'PROXY_POOL_EMPTY');
+      throw new AppError('No available proxies in pool', 503);
     }
 
     const proxy = this.instanceManager.getProxy(proxyId);
     if (!proxy) {
-      throw new AppError('Selected proxy not found', 'PROXY_NOT_FOUND');
+      throw new AppError('Selected proxy not found', 404);
     }
 
     return proxy.config;
@@ -166,7 +166,7 @@ export class ProxyManager extends EventEmitter {
     );
 
     if (!proxyId) {
-      throw new AppError('No available proxies for context', 'PROXY_POOL_EMPTY');
+      throw new AppError('No available proxies for context', 503);
     }
 
     this.contextManager.assignProxy(contextId, proxyId);

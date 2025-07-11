@@ -7,7 +7,7 @@
  */
 
 import { createLogger, logSecurityEvent, SecurityEventType } from '../../../utils/logger.js';
-import type { BrowserPoolOptions } from '../browser-pool-options.js';
+import type { BrowserPoolOptions } from '../../interfaces/browser-pool.interface.js';
 import type { BrowserPoolMetrics as IMetrics } from '../browser-pool-metrics.js';
 import {
   BrowserPoolScalingStrategy,
@@ -20,11 +20,13 @@ import { ScalingMetricsCalculator } from './metrics-calculator.js';
 import { ScalingDecisionMaker } from './decision-maker.js';
 import { IdealSizeCalculator } from './ideal-size-calculator.js';
 
-export {
+export type {
   BrowserPoolScalingStrategy,
   ScalingEvent,
-  ScalingDecision,
   ScalingMetrics,
+};
+export {
+  ScalingDecision,
   DEFAULT_STRATEGIES,
 };
 
@@ -99,10 +101,12 @@ export class BrowserPoolScaling {
     await logSecurityEvent(SecurityEventType.RESOURCE_ACCESS, {
       action: 'browser_pool_scaling',
       resource: 'browser_pool',
-      decision: decision.decision,
-      previousSize: metrics.currentSize,
-      newSize: decision.targetSize,
       reason: decision.reason,
+      metadata: {
+        decision: decision.decision,
+        previousSize: metrics.currentSize,
+        newSize: decision.targetSize,
+      },
     });
 
     logger.info({

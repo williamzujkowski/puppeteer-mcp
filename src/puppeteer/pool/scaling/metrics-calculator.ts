@@ -4,7 +4,7 @@
  * @nist si-4 "Information system monitoring"
  */
 
-import type { BrowserPoolOptions } from '../browser-pool-options.js';
+import type { BrowserPoolOptions } from '../../interfaces/browser-pool.interface.js';
 import type { BrowserPoolMetrics as IMetrics } from '../browser-pool-metrics.js';
 import type { ScalingMetrics, ScalingTrend } from './types.js';
 
@@ -23,7 +23,7 @@ export class ScalingMetricsCalculator {
     const systemMetrics = poolMetrics.getSystemMetrics();
 
     const currentSize = metrics.pool.size;
-    const targetSize = options.maxConcurrency ?? 5;
+    const targetSize = options.maxBrowsers ?? 5;
     const utilization = metrics.pool.utilization;
     const queueLength = metrics.queue.size;
     const errorRate = this.calculateErrorRate(metrics);

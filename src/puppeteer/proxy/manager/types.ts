@@ -51,7 +51,7 @@ export interface ProxyManagerState {
 /**
  * Proxy selection strategy
  */
-export type ProxySelectionStrategy = 'round-robin' | 'least-used' | 'best-health' | 'random';
+export type ProxySelectionStrategy = 'round-robin' | 'least-used' | 'best-health' | 'random' | 'priority' | 'health-based';
 
 /**
  * Pool selection options

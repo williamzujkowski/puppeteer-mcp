@@ -5,7 +5,6 @@
  */
 
 import type { ProxyInstance, PoolSelectionOptions } from './types.js';
-import { ProxyRotationStrategy } from '../proxy-rotation-strategy.js';
 import { createLogger } from '../../../utils/logger.js';
 
 const logger = createLogger('proxy-pool-selector');
@@ -14,11 +13,10 @@ const logger = createLogger('proxy-pool-selector');
  * Handles proxy selection from pool
  */
 export class ProxyPoolSelector {
-  private rotationStrategy: ProxyRotationStrategy;
   private lastSelectedIndex = 0;
 
   constructor() {
-    this.rotationStrategy = new ProxyRotationStrategy('round-robin');
+    // No need for rotation strategy here
   }
 
   /**
@@ -86,10 +84,14 @@ export class ProxyPoolSelector {
         return this.selectLeastUsed(proxies);
       
       case 'best-health':
+      case 'health-based':
         return this.selectBestHealth(proxies);
       
       case 'random':
         return this.selectRandom(proxies);
+      
+      case 'priority':
+        return this.selectByPriority(proxies);
       
       default:
         return this.selectRoundRobin(proxies);
@@ -103,7 +105,7 @@ export class ProxyPoolSelector {
     if (proxies.length === 0) return null;
     
     this.lastSelectedIndex = (this.lastSelectedIndex + 1) % proxies.length;
-    return proxies[this.lastSelectedIndex];
+    return proxies[this.lastSelectedIndex] ?? null;
   }
 
   /**
@@ -124,7 +126,7 @@ export class ProxyPoolSelector {
     if (proxies.length === 0) return null;
     
     const healthyProxies = proxies.filter(p => p.health.healthy);
-    if (healthyProxies.length === 0) return proxies[0];
+    if (healthyProxies.length === 0) return proxies[0] ?? null;
     
     return healthyProxies.reduce((best, current) => {
       const bestScore = this.calculateHealthScore(best);
@@ -140,7 +142,7 @@ export class ProxyPoolSelector {
     if (proxies.length === 0) return null;
     
     const index = Math.floor(Math.random() * proxies.length);
-    return proxies[index];
+    return proxies[index] ?? null;
   }
 
   /**
@@ -158,5 +160,21 @@ export class ProxyPoolSelector {
     const responseTimeScore = Math.max(0, 1 - metrics.averageResponseTime / 10000);
     
     return (successRate * 0.7 + responseTimeScore * 0.3);
+  }
+
+  /**
+   * Select proxy by priority
+   */
+  private selectByPriority(proxies: ProxyInstance[]): ProxyInstance | null {
+    if (proxies.length === 0) return null;
+    
+    // Sort by priority (higher priority first)
+    const sortedByPriority = [...proxies].sort((a, b) => {
+      const priorityA = a.config.priority ?? 50;
+      const priorityB = b.config.priority ?? 50;
+      return priorityB - priorityA;
+    });
+    
+    return sortedByPriority[0] ?? null;
   }
 }

@@ -130,8 +130,8 @@ export class ResourceHistoryManager {
     const trend = this.calculateTrend(history);
 
     // Calculate duration
-    const firstTimestamp = history[0].timestamp.getTime();
-    const lastTimestamp = history[history.length - 1].timestamp.getTime();
+    const firstTimestamp = history[0]?.timestamp.getTime() ?? 0;
+    const lastTimestamp = history[history.length - 1]?.timestamp.getTime() ?? 0;
     const duration = lastTimestamp - firstTimestamp;
 
     return {
