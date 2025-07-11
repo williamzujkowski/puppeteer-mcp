@@ -55,6 +55,7 @@ export class AdaptiveSampler implements Sampler {
       spanName,
       spanKind,
       attributes,
+      _links,
     );
     
     this.traceCount++;
@@ -123,14 +124,16 @@ export class AttributeBasedSampler implements Sampler {
           : String(attrValue) === rule.value;
           
         if (matches) {
-          const sampler = new TraceIdRatioBasedSampler(rule.samplingRate);
-          return sampler.shouldSample(context, traceId, spanName, spanKind, attributes);
+          // Create a temporary sampler with the rule's sampling rate
+          const tempSampler = new TraceIdRatioBasedSampler(rule.samplingRate);
+          // Use a type assertion since we know TraceIdRatioBasedSampler implements Sampler
+          return (tempSampler as Sampler).shouldSample(context, traceId, spanName, spanKind, attributes, _links);
         }
       }
     }
     
     // Fall back to base sampler
-    return this.baseSampler.shouldSample(context, traceId, spanName, spanKind, attributes);
+    return this.baseSampler.shouldSample(context, traceId, spanName, spanKind, attributes, _links);
   }
 
   toString(): string {
@@ -231,7 +234,7 @@ export class PriorityBasedSampler implements Sampler {
     }
     
     // Use base sampler for normal priority
-    return this.baseSampler.shouldSample(context, traceId, spanName, spanKind, attributes);
+    return this.baseSampler.shouldSample(context, traceId, spanName, spanKind, attributes, _links);
   }
 
   toString(): string {

@@ -6,13 +6,10 @@
  */
 
 import { metrics } from '@opentelemetry/api';
-import { ProxyManager } from '../../puppeteer/proxy/proxy-manager.js';
+import { proxyManager } from '../../puppeteer/proxy/proxy-manager-extended.js';
 import { proxyMonitor } from '../../puppeteer/proxy/proxy-monitoring.js';
 
 const meter = metrics.getMeter('puppeteer-mcp-proxy', '1.0.0');
-
-// Create a proxy manager instance for telemetry (or import singleton if available)
-const proxyManager = new ProxyManager();
 
 /**
  * Proxy metrics
@@ -210,7 +207,7 @@ export function initializeProxyTelemetry(): void {
     // Update gauge values - set absolute values for gauges
     proxyMetrics.activeProxies.add(metrics.proxies.length);
 
-    const healthyCount = healthStatuses.filter((h: any) => h.healthy).length;
+    const healthyCount = healthStatuses.filter((h) => h.healthy).length;
     proxyMetrics.healthyProxies.add(healthyCount);
 
     proxyMetrics.activeContexts.add(metrics.contexts.size);

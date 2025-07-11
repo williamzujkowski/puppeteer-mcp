@@ -8,7 +8,7 @@
 import { EventEmitter } from 'events';
 import { createLogger, logSecurityEvent, SecurityEventType } from '../../utils/logger.js';
 import type { ProxyHealthStatus, ProxyMetrics } from '../types/proxy.js';
-import { proxyManager } from './proxy-manager.js';
+import { proxyManager } from './proxy-manager-extended.js';
 
 const logger = createLogger('proxy-monitoring');
 
@@ -141,11 +141,11 @@ export class ProxyMonitor extends EventEmitter {
    */
   private setupEventListeners(): void {
     // Listen to proxy manager events
-    proxyManager.on('proxy:unhealthy', async ({ proxyId, error }) => {
+    proxyManager.on('proxy:unhealthy', async ({ proxyId, error }: { proxyId: string; error: string }) => {
       await this.handleUnhealthyProxy(proxyId, error);
     });
 
-    proxyManager.on('proxy:healthy', ({ proxyId, responseTime }) => {
+    proxyManager.on('proxy:healthy', ({ proxyId, responseTime }: { proxyId: string; responseTime: number }) => {
       logger.debug({
         msg: 'Proxy recovered',
         proxyId,
@@ -153,7 +153,7 @@ export class ProxyMonitor extends EventEmitter {
       });
     });
 
-    proxyManager.on('health:check:complete', async (stats) => {
+    proxyManager.on('health:check:complete', async (stats: { healthy: number; unhealthy: number; total: number }) => {
       await this.evaluatePoolHealth(stats);
     });
   }
@@ -176,7 +176,7 @@ export class ProxyMonitor extends EventEmitter {
         await this.analyzeProxyPerformance(metrics, health);
       }
 
-      // Emit metrics update
+      // Emit metrics update with available data
       this.emit('metrics:updated', { metrics: proxies, timestamp: new Date() });
 
       logger.debug({
@@ -309,7 +309,7 @@ export class ProxyMonitor extends EventEmitter {
       await logSecurityEvent(SecurityEventType.SECURITY_VIOLATION, {
         resource: 'proxy_pool',
         action: 'health_threshold_breach',
-        result: 'warning',
+        result: 'failure',
         metadata: {
           healthyCount: stats.healthy,
           totalCount: stats.total,

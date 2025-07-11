@@ -62,14 +62,20 @@ export class ProxyHealthChecker {
       // Create appropriate agent based on proxy protocol
       const agent = this.createProxyAgent(proxyUrl, config);
 
-      // Perform health check request
-      const response = await fetch(opts.testUrl, {
-        agent,
-        timeout: opts.timeout,
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-        },
-      });
+      // Perform health check request with timeout using AbortController
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), opts.timeout);
+      
+      try {
+        const response = await fetch(opts.testUrl, {
+          agent,
+          signal: controller.signal,
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+          },
+        });
+        
+        clearTimeout(timeoutId);
 
       const endTime = performance.now();
       const responseTime = endTime - startTime;
@@ -96,6 +102,9 @@ export class ProxyHealthChecker {
           statusCode: response.status,
           statusText: response.statusText,
         });
+      }
+      } finally {
+        clearTimeout(timeoutId);
       }
     } catch (error) {
       status.errorCount = 1;
@@ -132,19 +141,23 @@ export class ProxyHealthChecker {
 
       for (let j = 0; j < batchResults.length; j++) {
         const result = batchResults[j];
+        if (!result) continue;
+        
         if (result.status === 'fulfilled') {
-          results.push((result as PromiseFulfilledResult<ProxyHealthStatus>).value);
+          results.push(result.value);
         } else {
           // Create failed status for rejected promise
-          const rejectedResult = result as PromiseRejectedResult;
+          const batchItem = batch[j];
+          if (!batchItem) continue;
+          
           results.push({
-            proxyId: batch[j].id,
+            proxyId: batchItem.id,
             healthy: false,
             lastChecked: new Date(),
             errorCount: 1,
             successCount: 0,
             consecutiveFailures: 1,
-            lastError: rejectedResult.reason instanceof Error ? rejectedResult.reason.message : 'Check failed',
+            lastError: result.reason instanceof Error ? result.reason.message : 'Check failed',
           });
         }
       }
@@ -171,8 +184,7 @@ export class ProxyHealthChecker {
       case 'socks5':
         return new SocksProxyAgent(proxyUrl, {
           timeout: config.connectionTimeout,
-          rejectUnauthorized: config.rejectUnauthorized,
-        });
+        } as any); // SocksProxyAgent options don't include rejectUnauthorized
 
       case 'http':
       case 'https':

@@ -8,7 +8,7 @@
 import type { Browser, BrowserContext, BrowserContextOptions } from 'puppeteer';
 import type { ContextProxyConfig, ProxyConfig } from '../types/proxy.js';
 import { formatProxyUrl } from '../types/proxy.js';
-import { proxyManager } from './proxy-manager.js';
+import { proxyManager } from './proxy-manager-extended.js';
 import { createLogger, logSecurityEvent, SecurityEventType } from '../../utils/logger.js';
 import { AppError } from '../../core/errors/app-error.js';
 import { validateContextProxyConfig } from './proxy-validation.js';
@@ -81,13 +81,13 @@ export async function createProxyBrowserContext(
           msg: 'Creating browser context with proxy',
           contextId,
           proxyId,
-          proxyProtocol: proxyUrl.split('://')[0],
+          proxyProtocol: proxyUrl ? proxyUrl.split('://')[0] : undefined,
         });
       }
     }
 
     // Create the browser context
-    const context = await browser.createIncognitoBrowserContext(contextOptions);
+    const context = await browser.createBrowserContext(contextOptions);
 
     // Set up proxy error handling
     if (proxyId && options.proxyConfig) {
@@ -204,7 +204,7 @@ function setupProxyErrorHandling(
             await proxyManager.handleProxySuccess(
               contextId,
               proxyId,
-              timing.requestTime,
+              timing.requestTime || 0
             );
           }
         }
