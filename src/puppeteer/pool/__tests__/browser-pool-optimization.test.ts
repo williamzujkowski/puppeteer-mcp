@@ -30,7 +30,7 @@ import {
 import { OptimizedBrowserPool, DEFAULT_OPTIMIZATION_CONFIG } from '../browser-pool-optimized.js';
 
 // Mock external dependencies
-jest.mock('../../utils/logger.js', () => ({
+jest.mock('../../../utils/logger.js', () => ({
   createLogger: jest.fn(() => ({
     info: jest.fn(),
     warn: jest.fn(),

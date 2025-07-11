@@ -273,6 +273,7 @@ jobs:
 
       - name: Generate getting started guide
         run: |
+          mkdir -p docs/guides
           cat > docs/guides/getting-started.md << 'EOF'
           # Getting Started with Puppeteer MCP
 
