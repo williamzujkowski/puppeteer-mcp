@@ -27,7 +27,7 @@ export type AlertListener = (alert: ResourceAlert) => void;
 export class ResourceAlertManager extends EventEmitter {
   private activeAlerts: Map<string, ResourceAlert> = new Map();
   private thresholds: ResourceThresholds;
-  private listeners: Set<AlertListener> = new Set();
+  private alertListeners: Set<AlertListener> = new Set();
 
   constructor(thresholds: ResourceThresholds) {
     super();
@@ -46,14 +46,14 @@ export class ResourceAlertManager extends EventEmitter {
    * Subscribe to alerts
    */
   subscribe(listener: AlertListener): void {
-    this.listeners.add(listener);
+    this.alertListeners.add(listener);
   }
 
   /**
    * Unsubscribe from alerts
    */
   unsubscribe(listener: AlertListener): void {
-    this.listeners.delete(listener);
+    this.alertListeners.delete(listener);
   }
 
   /**
@@ -243,7 +243,7 @@ export class ResourceAlertManager extends EventEmitter {
       );
 
       // Notify listeners
-      this.listeners.forEach(listener => {
+      this.alertListeners.forEach(listener => {
         try {
           listener(alert);
         } catch (error) {

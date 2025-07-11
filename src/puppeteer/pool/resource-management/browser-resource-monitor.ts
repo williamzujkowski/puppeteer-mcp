@@ -133,11 +133,13 @@ export class BrowserResourceMonitor implements IBrowserResourceMonitor {
       // Get process memory and CPU usage
       if (pid > 0) {
         const { stdout } = await execAsync(`ps -p ${pid} -o rss,pcpu,nlwp | tail -1`);
-        const parts = stdout.trim().split(/\s+/);
-        if (parts.length >= 3) {
-          memoryUsage.rss = parseInt(parts[0], 10) * 1024; // Convert KB to bytes
-          cpuUsage.percent = parseFloat(parts[1]);
-          threadCount = parseInt(parts[2], 10);
+        if (stdout) {
+          const parts = stdout.trim().split(/\s+/);
+          if (parts.length >= 3) {
+            memoryUsage.rss = parseInt(parts[0] || '0', 10) * 1024; // Convert KB to bytes
+            cpuUsage.percent = parseFloat(parts[1] || '0');
+            threadCount = parseInt(parts[2] || '0', 10);
+          }
         }
       }
 

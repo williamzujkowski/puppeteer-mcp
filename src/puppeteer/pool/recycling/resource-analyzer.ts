@@ -146,7 +146,7 @@ export class ResourceAnalyzer {
     return (
       memoryUsageMB > maxMemoryMB ||
       resourceUsage.cpuUsage.percent > maxCpuPercent ||
-      false // TODO: handleCount check when available
+      resourceUsage.openHandles > maxHandles
     );
   }
 

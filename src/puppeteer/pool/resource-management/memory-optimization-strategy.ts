@@ -194,7 +194,7 @@ export class MemoryOptimizationStrategy implements IResourceOptimizationStrategy
         const pagesToClose = pages.length - Math.floor(this.config.maxPageMemoryMB / 50);
         for (let i = 0; i < pagesToClose && i < pages.length - 1; i++) {
           try {
-            await pages[i].close();
+            await pages[i]?.close();
             optimizationsApplied.push(`closed-page-${i}`);
           } catch (error) {
             errors.push(`Failed to close page ${i}: ${error}`);

@@ -131,7 +131,7 @@ export class MonitoringOrchestrator extends EventEmitter {
 
     this.emit(ResourceEventType.RESOURCES_MONITORED, {
       systemResources: this.components.systemMonitor.getResources(),
-      browserCount: this.components.browserMonitor.getResources().size,
+      browserCount: this.components.browserMonitor.getResources()?.size ?? 0,
       alertCount: this.components.alertManager.getActiveAlerts().size,
     });
   }

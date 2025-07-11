@@ -106,12 +106,12 @@ export class CpuOptimizationStrategy implements IResourceOptimizationStrategy {
             const originalSetTimeout = window.setTimeout;
             const originalSetInterval = window.setInterval;
             
-            window.setTimeout = function(fn: any, delay: any) {
+            (window as any).setTimeout = function(fn: any, delay: any) {
               // Round delays to nearest 100ms to reduce timer precision
               return originalSetTimeout(fn, Math.max(100, Math.round(delay / 100) * 100));
             };
             
-            window.setInterval = function(fn: any, delay: any) {
+            (window as any).setInterval = function(fn: any, delay: any) {
               // Minimum interval of 100ms
               return originalSetInterval(fn, Math.max(100, delay));
             };
@@ -158,10 +158,10 @@ export class CpuOptimizationStrategy implements IResourceOptimizationStrategy {
           // Override requestAnimationFrame to reduce frequency
           const originalRAF = window.requestAnimationFrame;
           let lastTime = 0;
-          window.requestAnimationFrame = function(callback: any) {
+          (window as any).requestAnimationFrame = function(callback: any) {
             const now = Date.now();
             if (now - lastTime < 50) { // Max 20fps
-              return originalRAF(() => window.requestAnimationFrame(callback));
+              return originalRAF(() => (window as any).requestAnimationFrame(callback));
             }
             lastTime = now;
             return originalRAF(callback);
@@ -202,7 +202,7 @@ export class CpuOptimizationStrategy implements IResourceOptimizationStrategy {
         const pagesToClose = pages.length - this.config.maxConcurrentRequests;
         for (let i = 0; i < pagesToClose; i++) {
           try {
-            await pages[i].close();
+            await pages[i]?.close();
             optimizationsApplied.push(`closed-excess-page-${i}`);
           } catch (error) {
             errors.push(`Failed to close excess page ${i}: ${error}`);
