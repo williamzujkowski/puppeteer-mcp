@@ -35,8 +35,8 @@ describe('SessionMigration', () => {
   describe('migrate', () => {
     it('should migrate all sessions from source to target', async () => {
       // Create test sessions in source store
-      const id1 = await sourceStore.create(sessionData);
-      const id2 = await sourceStore.create({ ...sessionData, userId: 'user2', username: 'user2' });
+      await sourceStore.create(sessionData);
+      await sourceStore.create({ ...sessionData, userId: 'user2', username: 'user2' });
 
       const stats = await migration.migrate(sourceStore, targetStore);
 
@@ -49,15 +49,15 @@ describe('SessionMigration', () => {
       // Get all sessions from target to see what was migrated
       const targetSessions = await targetStore.getByUserId(sessionData.userId);
       const targetSessions2 = await targetStore.getByUserId('user2');
-      
+
       // Should have migrated both sessions
       expect(targetSessions.length + targetSessions2.length).toBe(2);
-      
+
       // Verify the first user's session
-      const migratedUser1 = targetSessions.find(s => s.data.username === 'testuser');
+      const migratedUser1 = targetSessions.find((s) => s.data.username === 'testuser');
       expect(migratedUser1).toBeDefined();
       expect(migratedUser1?.data.username).toBe('testuser');
-      
+
       // Verify the second user's session
       const migratedUser2 = targetSessions2[0];
       expect(migratedUser2).toBeDefined();
@@ -228,11 +228,11 @@ describe('SessionMigration', () => {
       // After migration, the session count should match even if IDs are different
       expect(validation.sourceSessions).toBe(2);
       expect(validation.targetSessions).toBe(2);
-      
+
       // The validation checks session IDs, but migration creates new IDs
       // So validation will fail even though migration was successful
       expect(stats.migratedSessions).toBe(2);
-      
+
       // Since IDs don't match after migration, validation will show missing/extra sessions
       expect(validation.valid).toBe(false);
       expect(validation.missingSessions).toHaveLength(2); // Original IDs missing
@@ -241,7 +241,7 @@ describe('SessionMigration', () => {
 
     it('should detect missing sessions in target', async () => {
       const id1 = await sourceStore.create(sessionData);
-      const id2 = await sourceStore.create({ ...sessionData, userId: 'user2', username: 'user2' });
+      await sourceStore.create({ ...sessionData, userId: 'user2', username: 'user2' });
 
       // Only migrate one session manually
       const session1 = await sourceStore.get(id1);
@@ -262,7 +262,7 @@ describe('SessionMigration', () => {
       // Migrate the one session
       const session1 = await sourceStore.get(id1);
       if (session1) (targetStore as any).sessions.set(id1, session1);
-      
+
       // Add an extra session to target
       await targetStore.create({ ...sessionData, userId: 'user2', username: 'user2' });
 
