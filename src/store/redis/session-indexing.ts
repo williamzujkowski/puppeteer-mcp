@@ -26,10 +26,7 @@ export class SessionIndexing {
   /**
    * Search sessions by pattern
    */
-  async searchSessions(
-    client: RedisClient, 
-    query: SessionQuery
-  ): Promise<Session[]> {
+  async searchSessions(client: RedisClient, query: SessionQuery): Promise<Session[]> {
     try {
       let sessionIds: string[] = [];
 
@@ -40,11 +37,11 @@ export class SessionIndexing {
       } else if (query.pattern) {
         // Search by pattern
         const keys = await client.keys(`${this.SESSION_KEY_PREFIX}${query.pattern}`);
-        sessionIds = keys.map(key => key.replace(this.SESSION_KEY_PREFIX, ''));
+        sessionIds = keys.map((key) => key.replace(this.SESSION_KEY_PREFIX, ''));
       } else {
         // Get all session keys
         const keys = await client.keys(`${this.SESSION_KEY_PREFIX}*`);
-        sessionIds = keys.map(key => key.replace(this.SESSION_KEY_PREFIX, ''));
+        sessionIds = keys.map((key) => key.replace(this.SESSION_KEY_PREFIX, ''));
       }
 
       // Get actual sessions
@@ -72,10 +69,7 @@ export class SessionIndexing {
   /**
    * Get sessions by username pattern
    */
-  async getSessionsByUsername(
-    client: RedisClient,
-    usernamePattern: string
-  ): Promise<Session[]> {
+  async getSessionsByUsername(client: RedisClient, usernamePattern: string): Promise<Session[]> {
     try {
       const allSessionKeys = await client.keys(`${this.SESSION_KEY_PREFIX}*`);
       const matchingSessions: Session[] = [];
@@ -83,7 +77,7 @@ export class SessionIndexing {
       for (const key of allSessionKeys) {
         const sessionId = key.replace(this.SESSION_KEY_PREFIX, '');
         const session = await this.sessionOps.getSession(client, sessionId);
-        
+
         if (session && this.matchesPattern(session.data.username, usernamePattern)) {
           matchingSessions.push(session);
         }
@@ -107,7 +101,7 @@ export class SessionIndexing {
       for (const key of allSessionKeys) {
         const sessionId = key.replace(this.SESSION_KEY_PREFIX, '');
         const session = await this.sessionOps.getSession(client, sessionId);
-        
+
         if (session && new Date(session.data.expiresAt) > new Date()) {
           activeSessions.push(session);
         }
@@ -139,11 +133,11 @@ export class SessionIndexing {
       for (const key of allSessionKeys) {
         const sessionId = key.replace(this.SESSION_KEY_PREFIX, '');
         const session = await this.sessionOps.getSession(client, sessionId);
-        
+
         if (session) {
           total++;
           const isActive = new Date(session.data.expiresAt) > new Date();
-          
+
           if (isActive) {
             active++;
           } else {
@@ -167,7 +161,7 @@ export class SessionIndexing {
    */
   async getExpiringSessionsSoon(
     client: RedisClient,
-    withinMinutes: number = 30
+    withinMinutes: number = 30,
   ): Promise<Session[]> {
     try {
       const allSessionKeys = await client.keys(`${this.SESSION_KEY_PREFIX}*`);
@@ -177,7 +171,7 @@ export class SessionIndexing {
       for (const key of allSessionKeys) {
         const sessionId = key.replace(this.SESSION_KEY_PREFIX, '');
         const session = await this.sessionOps.getSession(client, sessionId);
-        
+
         if (session) {
           const expiryTime = new Date(session.data.expiresAt);
           if (expiryTime <= thresholdTime && expiryTime > new Date()) {
@@ -204,11 +198,47 @@ export class SessionIndexing {
    * Check if string matches pattern (simple wildcard support)
    */
   private matchesPattern(value: string, pattern: string): boolean {
-    const regex = new RegExp(
-      pattern.replace(/\*/g, '.*').replace(/\?/g, '.'), 
-      'i'
-    );
-    return regex.test(value);
+    // Convert pattern to lowercase for case-insensitive matching
+    const lowerValue = value.toLowerCase();
+    const lowerPattern = pattern.toLowerCase();
+
+    // Simple wildcard matching without RegExp
+    let valueIndex = 0;
+    let patternIndex = 0;
+
+    while (patternIndex < lowerPattern.length && valueIndex < lowerValue.length) {
+      if (lowerPattern[patternIndex] === '*') {
+        // Skip consecutive asterisks
+        while (patternIndex < lowerPattern.length && lowerPattern[patternIndex] === '*') {
+          patternIndex++;
+        }
+        if (patternIndex === lowerPattern.length) return true;
+
+        // Find next matching character
+        while (
+          valueIndex < lowerValue.length &&
+          lowerValue[valueIndex] !== lowerPattern[patternIndex] &&
+          lowerPattern[patternIndex] !== '?'
+        ) {
+          valueIndex++;
+        }
+      } else if (
+        lowerPattern[patternIndex] === '?' ||
+        lowerPattern[patternIndex] === lowerValue[valueIndex]
+      ) {
+        patternIndex++;
+        valueIndex++;
+      } else {
+        return false;
+      }
+    }
+
+    // Handle trailing asterisks
+    while (patternIndex < lowerPattern.length && lowerPattern[patternIndex] === '*') {
+      patternIndex++;
+    }
+
+    return patternIndex === lowerPattern.length && valueIndex === lowerValue.length;
   }
 
   /**
@@ -258,14 +288,11 @@ export class SessionIndexing {
   /**
    * Create index entries for faster searching
    */
-  async createSessionIndex(
-    client: RedisClient,
-    session: Session
-  ): Promise<void> {
+  async createSessionIndex(client: RedisClient, session: Session): Promise<void> {
     try {
       const indexKey = `${this.SESSION_INDEX_PREFIX}user:${session.data.userId}`;
       await client.sadd(indexKey, session.id);
-      
+
       // Set TTL on index to match session expiry
       const ttl = Math.ceil((new Date(session.data.expiresAt).getTime() - Date.now()) / 1000);
       if (ttl > 0) {
@@ -279,10 +306,7 @@ export class SessionIndexing {
   /**
    * Remove session from indices
    */
-  async removeFromIndex(
-    client: RedisClient,
-    session: Session
-  ): Promise<void> {
+  async removeFromIndex(client: RedisClient, session: Session): Promise<void> {
     try {
       const indexKey = `${this.SESSION_INDEX_PREFIX}user:${session.data.userId}`;
       await client.srem(indexKey, session.id);

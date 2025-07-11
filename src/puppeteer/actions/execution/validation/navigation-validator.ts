@@ -48,13 +48,13 @@ export class NavigationValidator extends BaseValidator {
 
     // Validate URL
     this.validateUrl(navAction, errors, warnings);
-    
+
     // Validate wait until option
     this.validateWaitUntil(navAction, errors);
-    
+
     // Validate referrer
     this.validateReferrer(navAction, errors);
-    
+
     // Validate headers
     this.validateHeaders(navAction, warnings);
 
@@ -79,7 +79,7 @@ export class NavigationValidator extends BaseValidator {
   private validateUrl(
     action: NavigateAction,
     errors: ValidationError[],
-    warnings: ValidationError[]
+    warnings: ValidationError[],
   ): void {
     // Check required URL
     if (!this.validateRequiredString(action.url, 'url', errors, 'MISSING_URL')) {
@@ -88,37 +88,41 @@ export class NavigationValidator extends BaseValidator {
 
     try {
       const url = new URL(action.url);
-      
+
       // Check for dangerous protocols
-      if (DANGEROUS_PROTOCOLS.some(protocol => url.protocol === protocol)) {
+      if (DANGEROUS_PROTOCOLS.some((protocol) => url.protocol === protocol)) {
         this.addError(
           errors,
           'url',
           `Dangerous URL protocol detected: ${url.protocol}`,
-          'DANGEROUS_URL_PROTOCOL'
+          'DANGEROUS_URL_PROTOCOL',
         );
       }
-      
+
       // Warn about local file access
       if (url.protocol === 'file:') {
         this.addWarning(
           warnings,
           'url',
           'Local file access may have security implications',
-          'LOCAL_FILE_ACCESS'
+          'LOCAL_FILE_ACCESS',
         );
       }
-      
+
       // Warn about non-HTTPS URLs
-      if (url.protocol === 'http:' && url.hostname !== 'localhost' && url.hostname !== '127.0.0.1') {
+      if (
+        url.protocol === 'http:' &&
+        url.hostname !== 'localhost' &&
+        url.hostname !== '127.0.0.1'
+      ) {
         this.addWarning(
           warnings,
           'url',
           'Non-HTTPS URL may have security implications',
-          'INSECURE_PROTOCOL'
+          'INSECURE_PROTOCOL',
         );
       }
-    } catch (error) {
+    } catch {
       this.addError(errors, 'url', 'Invalid URL format', 'INVALID_URL');
     }
   }
@@ -135,7 +139,7 @@ export class NavigationValidator extends BaseValidator {
         'waitUntil',
         VALID_WAIT_UNTIL,
         errors,
-        'INVALID_WAIT_UNTIL'
+        'INVALID_WAIT_UNTIL',
       );
     }
   }
@@ -163,14 +167,14 @@ export class NavigationValidator extends BaseValidator {
   private validateHeaders(action: NavigateAction, warnings: ValidationError[]): void {
     if (action.headers) {
       const suspiciousHeaders = ['cookie', 'authorization', 'x-api-key'];
-      
+
       for (const header of Object.keys(action.headers)) {
         if (suspiciousHeaders.includes(header.toLowerCase())) {
           this.addWarning(
             warnings,
             'headers',
             `Sensitive header detected: ${header}`,
-            'SENSITIVE_HEADER'
+            'SENSITIVE_HEADER',
           );
         }
       }

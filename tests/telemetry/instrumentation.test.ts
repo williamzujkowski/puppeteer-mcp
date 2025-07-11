@@ -5,8 +5,14 @@
 
 import { initializeTelemetry, shutdownTelemetry } from '../../src/telemetry/index.js';
 import { instrumentSessionStore } from '../../src/telemetry/instrumentations/session.js';
-import { instrumentBrowser, instrumentPage } from '../../src/telemetry/instrumentations/puppeteer.js';
-import { recordSecurityEvent, wrapAuthentication } from '../../src/telemetry/instrumentations/security.js';
+import {
+  instrumentBrowser,
+  instrumentPage,
+} from '../../src/telemetry/instrumentations/puppeteer.js';
+import {
+  recordSecurityEvent,
+  wrapAuthentication,
+} from '../../src/telemetry/instrumentations/security.js';
 import { InMemorySessionStore } from '../../src/store/in-memory-session-store.js';
 import { SecurityEventType } from '../../src/utils/logger.js';
 import { logger } from '../../src/utils/logger.js';
@@ -31,7 +37,7 @@ describe('Telemetry Instrumentations', () => {
 
     it('should instrument create method', async () => {
       const session = await store.create('test-user', { role: 'user' });
-      
+
       expect(session).toBeDefined();
       expect(session.userId).toBe('test-user');
       expect(session.id).toBeTruthy();
@@ -40,7 +46,7 @@ describe('Telemetry Instrumentations', () => {
     it('should instrument get method', async () => {
       const created = await store.create('test-user');
       const retrieved = await store.get(created.id);
-      
+
       expect(retrieved).toBeDefined();
       expect(retrieved?.id).toBe(created.id);
     });
@@ -48,9 +54,9 @@ describe('Telemetry Instrumentations', () => {
     it('should instrument delete method', async () => {
       const session = await store.create('test-user');
       const deleted = await store.delete(session.id);
-      
+
       expect(deleted).toBe(true);
-      
+
       const retrieved = await store.get(session.id);
       expect(retrieved).toBeNull();
     });
@@ -58,7 +64,7 @@ describe('Telemetry Instrumentations', () => {
     it('should instrument listByUserId method', async () => {
       await store.create('test-user');
       await store.create('test-user');
-      
+
       const sessions = await store.listByUserId('test-user');
       expect(sessions).toHaveLength(2);
     });
@@ -73,7 +79,7 @@ describe('Telemetry Instrumentations', () => {
         ip: '127.0.0.1',
         userAgent: 'test-agent',
       });
-      
+
       // Event should be recorded without throwing
       expect(true).toBe(true);
     });
@@ -82,12 +88,12 @@ describe('Telemetry Instrumentations', () => {
       const authFunction = async (username: string, password: string): Promise<boolean> => {
         return username === 'admin' && password === 'password';
       };
-      
+
       const wrappedAuth = wrapAuthentication(authFunction, 'password');
-      
+
       const successResult = await wrappedAuth('admin', 'password');
       expect(successResult).toBe(true);
-      
+
       await expect(wrappedAuth('admin', 'wrong')).resolves.toBe(false);
     });
 
@@ -95,9 +101,9 @@ describe('Telemetry Instrumentations', () => {
       const authFunction = async (): Promise<boolean> => {
         throw new Error('Database connection failed');
       };
-      
+
       const wrappedAuth = wrapAuthentication(authFunction, 'password');
-      
+
       await expect(wrappedAuth()).rejects.toThrow('Database connection failed');
     });
   });
@@ -116,12 +122,12 @@ describe('Telemetry Instrumentations', () => {
         }),
         close: jest.fn().mockResolvedValue(undefined),
       } as unknown as Browser;
-      
+
       const instrumentedBrowser = instrumentBrowser(mockBrowser);
-      
-      expect(instrumentedBrowser.newPage).toBeDefined();
-      expect(instrumentedBrowser.createBrowserContext).toBeDefined();
-      expect(instrumentedBrowser.close).toBeDefined();
+
+      expect('newPage' in instrumentedBrowser).toBe(true);
+      expect('createBrowserContext' in instrumentedBrowser).toBe(true);
+      expect('close' in instrumentedBrowser).toBe(true);
     });
 
     it('should instrument page methods', () => {
@@ -136,14 +142,14 @@ describe('Telemetry Instrumentations', () => {
         pdf: jest.fn().mockResolvedValue(Buffer.from('pdf')),
         close: jest.fn().mockResolvedValue(undefined),
       } as unknown as Page;
-      
+
       const instrumentedPage = instrumentPage(mockPage);
-      
-      expect(instrumentedPage.goto).toBeDefined();
-      expect(instrumentedPage.evaluate).toBeDefined();
-      expect(instrumentedPage.screenshot).toBeDefined();
-      expect(instrumentedPage.pdf).toBeDefined();
-      expect(instrumentedPage.close).toBeDefined();
+
+      expect('goto' in instrumentedPage).toBe(true);
+      expect('evaluate' in instrumentedPage).toBe(true);
+      expect('screenshot' in instrumentedPage).toBe(true);
+      expect('pdf' in instrumentedPage).toBe(true);
+      expect('close' in instrumentedPage).toBe(true);
     });
   });
 });

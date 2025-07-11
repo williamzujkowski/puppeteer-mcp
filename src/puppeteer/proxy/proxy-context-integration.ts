@@ -7,7 +7,7 @@
 
 import type { Browser, BrowserContext, BrowserContextOptions } from 'puppeteer';
 import type { ContextProxyConfig, ProxyConfig } from '../types/proxy.js';
-import { formatProxyUrl } from '../types/proxy.js';
+import { formatProxyUrl, ProxyProtocol } from '../types/proxy.js';
 import { proxyManager } from './proxy-manager-extended.js';
 import { createLogger, logSecurityEvent, SecurityEventType } from '../../utils/logger.js';
 import { AppError } from '../../core/errors/app-error.js';
@@ -52,10 +52,7 @@ export async function createProxyBrowserContext(
     if (options.proxyConfig) {
       const validation = await validateContextProxyConfig(options.proxyConfig);
       if (!validation.valid) {
-        throw new AppError(
-          `Invalid proxy configuration: ${validation.errors.join(', ')}`,
-          400,
-        );
+        throw new AppError(`Invalid proxy configuration: ${validation.errors.join(', ')}`, 400);
       }
     }
 
@@ -69,7 +66,7 @@ export async function createProxyBrowserContext(
     // Get proxy configuration if enabled
     if (options.proxyConfig?.enabled) {
       const proxyInfo = await proxyManager.getProxyForContext(contextId, options.proxyConfig);
-      
+
       if (proxyInfo) {
         proxyId = proxyInfo.proxyId;
         proxyUrl = proxyInfo.url;
@@ -153,64 +150,76 @@ function setupProxyErrorHandling(
   config: ContextProxyConfig,
 ): void {
   // Monitor page creation to set up error handlers
-  context.on('targetcreated', async (target) => {
-    if (target.type() === 'page') {
-      const page = await target.page();
-      if (!page) return;
+  context.on(
+    'targetcreated',
+    (target) =>
+      void (async () => {
+        if (String(target.type()) === 'page') {
+          const page = await target.page();
+          if (!page) return;
 
-      // Set up request failure monitoring
-      page.on('requestfailed', async (request) => {
-        const failure = request.failure();
-        if (failure && isProxyError(failure.errorText)) {
-          logger.warn({
-            msg: 'Proxy-related request failure',
-            contextId,
-            proxyId,
-            url: request.url(),
-            error: failure.errorText,
-          });
+          // Set up request failure monitoring
+          page.on(
+            'requestfailed',
+            (request) =>
+              void (async () => {
+                const failure = request.failure();
+                if (failure && isProxyError(failure.errorText)) {
+                  logger.warn({
+                    msg: 'Proxy-related request failure',
+                    contextId,
+                    proxyId,
+                    url: request.url(),
+                    error: failure.errorText,
+                  });
 
-          // Report error to proxy manager
-          await proxyManager.handleProxyError(
-            contextId,
-            proxyId,
-            new Error(failure.errorText),
-            config,
+                  // Report error to proxy manager
+                  await proxyManager.handleProxyError(
+                    contextId,
+                    proxyId,
+                    new Error(failure.errorText),
+                    config,
+                  );
+                }
+              })(),
+          );
+
+          // Set up response monitoring for proxy errors
+          page.on(
+            'response',
+            (response) =>
+              void (async () => {
+                if (response.status() === 407) {
+                  // Proxy Authentication Required
+                  logger.error({
+                    msg: 'Proxy authentication failure',
+                    contextId,
+                    proxyId,
+                    url: response.url(),
+                  });
+
+                  await proxyManager.handleProxyError(
+                    contextId,
+                    proxyId,
+                    new Error('Proxy authentication required'),
+                    config,
+                  );
+                } else if (response.status() >= 200 && response.status() < 300) {
+                  // Successful response through proxy
+                  const timing = response.timing();
+                  if (timing) {
+                    await proxyManager.handleProxySuccess(
+                      contextId,
+                      proxyId,
+                      timing.requestTime || 0,
+                    );
+                  }
+                }
+              })(),
           );
         }
-      });
-
-      // Set up response monitoring for proxy errors
-      page.on('response', async (response) => {
-        if (response.status() === 407) {
-          // Proxy Authentication Required
-          logger.error({
-            msg: 'Proxy authentication failure',
-            contextId,
-            proxyId,
-            url: response.url(),
-          });
-
-          await proxyManager.handleProxyError(
-            contextId,
-            proxyId,
-            new Error('Proxy authentication required'),
-            config,
-          );
-        } else if (response.status() >= 200 && response.status() < 300) {
-          // Successful response through proxy
-          const timing = response.timing();
-          if (timing) {
-            await proxyManager.handleProxySuccess(
-              contextId,
-              proxyId,
-              timing.requestTime || 0
-            );
-          }
-        }
-      });
-    }
-  });
+      })(),
+  );
 }
 
 /**
@@ -242,10 +251,7 @@ export async function updateContextProxy(
     // Validate new proxy configuration
     const validation = await validateContextProxyConfig(newProxyConfig);
     if (!validation.valid) {
-      throw new AppError(
-        `Invalid proxy configuration: ${validation.errors.join(', ')}`,
-        400,
-      );
+      throw new AppError(`Invalid proxy configuration: ${validation.errors.join(', ')}`, 400);
     }
 
     // Note: Puppeteer doesn't support changing proxy of existing context
@@ -259,7 +265,7 @@ export async function updateContextProxy(
     // Get new proxy configuration
     if (newProxyConfig.enabled) {
       const proxyInfo = await proxyManager.getProxyForContext(contextId, newProxyConfig);
-      
+
       if (proxyInfo) {
         logger.info({
           msg: 'New proxy assigned to context',
@@ -353,7 +359,7 @@ export function formatProxyForPuppeteer(config: ProxyConfig): string {
   let url = formatProxyUrl(config);
 
   // Handle SOCKS proxies - Puppeteer expects socks5:// for both socks4 and socks5
-  if (config.protocol === 'socks4' || config.protocol === 'socks5') {
+  if (config.protocol === ProxyProtocol.SOCKS4 || config.protocol === ProxyProtocol.SOCKS5) {
     url = url.replace(/^socks[45]:\/\//, 'socks5://');
   }
 

@@ -37,15 +37,21 @@ export class OptimizationEngine extends EventEmitter {
     private performanceMonitor: BrowserPoolPerformanceMonitor,
     _optimizationEnabled: boolean,
     _lastOptimizationCheck: Date,
-    _optimizationActions: { value: number }
+    _optimizationActions: { value: number },
   ) {
     super();
-    
+
     this.checks = new OptimizationChecks(
-      optimizationConfig, scaler, resourceManager, recycler, 
-      performanceMonitor, _optimizationEnabled, _lastOptimizationCheck, _optimizationActions
+      optimizationConfig,
+      scaler,
+      resourceManager,
+      recycler,
+      performanceMonitor,
+      _optimizationEnabled,
+      _lastOptimizationCheck,
+      _optimizationActions,
     );
-    
+
     this.events = new OptimizationEvents(scaler, resourceManager, recycler, performanceMonitor);
     this.setupEventForwarding();
   }
@@ -67,7 +73,7 @@ export class OptimizationEngine extends EventEmitter {
         aggressiveScaling: newConfig.scaling.aggressiveScaling || false,
         memoryThreshold: newConfig.scaling.memoryThreshold || 85,
         cpuThreshold: newConfig.scaling.cpuThreshold || 85,
-        ...newConfig.scaling
+        ...newConfig.scaling,
       };
       this.scaler.updateStrategy(completeStrategy);
     }
@@ -91,7 +97,7 @@ export class OptimizationEngine extends EventEmitter {
   async startOptimizationComponents(): Promise<void> {
     // Note: BrowserPoolScaling doesn't have a start method
     // It's always active when created
-    
+
     // Start resource manager
     if (this.optimizationConfig.resourceMonitoring.enabled) {
       await this.resourceManager.start();
@@ -115,14 +121,14 @@ export class OptimizationEngine extends EventEmitter {
    */
   async stopOptimizationComponents(): Promise<void> {
     // Note: BrowserPoolScaling doesn't have a stop method
-    
+
     this.resourceManager.stop();
-    
+
     // Stop recycler (if it has a stop method)
     if ('stop' in this.recycler) {
       (this.recycler as any).stop();
     }
-    
+
     this.performanceMonitor.stop();
     this.circuitBreakers.destroy();
 
@@ -132,19 +138,17 @@ export class OptimizationEngine extends EventEmitter {
   /**
    * Start optimization monitoring
    */
-  startOptimizationMonitoring(
-    performOptimizationCheck: () => Promise<void>
-  ): void {
+  startOptimizationMonitoring(performOptimizationCheck: () => Promise<void>): void {
     this.optimizationTimer = setInterval(
-      () => performOptimizationCheck(),
-      this.optimizationConfig.optimizationInterval
+      () => void performOptimizationCheck(),
+      this.optimizationConfig.optimizationInterval,
     );
 
     logger.info(
       {
         interval: this.optimizationConfig.optimizationInterval,
       },
-      'Optimization monitoring started'
+      'Optimization monitoring started',
     );
   }
 
@@ -166,9 +170,13 @@ export class OptimizationEngine extends EventEmitter {
   async performOptimizationCheck(
     getBrowsersInternal: () => Map<string, InternalBrowserInstance>,
     getExtendedMetrics: () => ExtendedPoolMetrics,
-    recycleBrowser: (browserId: string) => Promise<void>
+    recycleBrowser: (browserId: string) => Promise<void>,
   ): Promise<void> {
-    await this.checks.performOptimizationCheck(getBrowsersInternal, getExtendedMetrics, recycleBrowser);
+    await this.checks.performOptimizationCheck(
+      getBrowsersInternal,
+      getExtendedMetrics,
+      recycleBrowser,
+    );
   }
 
   /**
@@ -176,11 +184,21 @@ export class OptimizationEngine extends EventEmitter {
    */
   private setupEventForwarding(): void {
     // Forward all events from the events module
-    this.events.on('optimization-scaling-action', (event) => this.emit('optimization-scaling-action', event));
-    this.events.on('optimization-resource-alert', (alert) => this.emit('optimization-resource-alert', alert));
-    this.events.on('optimization-browsers-recycled', (events) => this.emit('optimization-browsers-recycled', events));
-    this.events.on('optimization-performance-alert', (alert) => this.emit('optimization-performance-alert', alert));
-    this.events.on('optimization-recommendation', (recommendation) => this.emit('optimization-recommendation', recommendation));
+    this.events.on('optimization-scaling-action', (event) =>
+      this.emit('optimization-scaling-action', event),
+    );
+    this.events.on('optimization-resource-alert', (alert) =>
+      this.emit('optimization-resource-alert', alert),
+    );
+    this.events.on('optimization-browsers-recycled', (events) =>
+      this.emit('optimization-browsers-recycled', events),
+    );
+    this.events.on('optimization-performance-alert', (alert) =>
+      this.emit('optimization-performance-alert', alert),
+    );
+    this.events.on('optimization-recommendation', (recommendation) =>
+      this.emit('optimization-recommendation', recommendation),
+    );
     this.events.on('metrics-collection-requested', () => this.emit('metrics-collection-requested'));
   }
 }

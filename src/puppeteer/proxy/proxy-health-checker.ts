@@ -9,7 +9,7 @@ import fetch from 'node-fetch';
 import { SocksProxyAgent } from 'socks-proxy-agent';
 import { HttpsProxyAgent } from 'https-proxy-agent';
 import type { ProxyConfig, ProxyHealthStatus } from '../types/proxy.js';
-import { formatProxyUrl } from '../types/proxy.js';
+import { formatProxyUrl, ProxyProtocol } from '../types/proxy.js';
 import { createLogger } from '../../utils/logger.js';
 import { performance } from 'perf_hooks';
 
@@ -58,14 +58,14 @@ export class ProxyHealthChecker {
     try {
       const startTime = performance.now();
       const proxyUrl = formatProxyUrl(config);
-      
+
       // Create appropriate agent based on proxy protocol
       const agent = this.createProxyAgent(proxyUrl, config);
 
       // Perform health check request with timeout using AbortController
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), opts.timeout);
-      
+
       try {
         const response = await fetch(opts.testUrl, {
           agent,
@@ -74,35 +74,35 @@ export class ProxyHealthChecker {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
           },
         });
-        
+
         clearTimeout(timeoutId);
 
-      const endTime = performance.now();
-      const responseTime = endTime - startTime;
+        const endTime = performance.now();
+        const responseTime = endTime - startTime;
 
-      if (response.ok) {
-        status.healthy = true;
-        status.responseTime = responseTime;
-        status.successCount = 1;
+        if (response.ok) {
+          status.healthy = true;
+          status.responseTime = responseTime;
+          status.successCount = 1;
 
-        logger.debug({
-          msg: 'Proxy health check passed',
-          proxyId,
-          responseTime,
-          statusCode: response.status,
-        });
-      } else {
-        status.lastError = `HTTP ${response.status}: ${response.statusText}`;
-        status.errorCount = 1;
-        status.consecutiveFailures = 1;
+          logger.debug({
+            msg: 'Proxy health check passed',
+            proxyId,
+            responseTime,
+            statusCode: response.status,
+          });
+        } else {
+          status.lastError = `HTTP ${response.status}: ${response.statusText}`;
+          status.errorCount = 1;
+          status.consecutiveFailures = 1;
 
-        logger.warn({
-          msg: 'Proxy health check failed',
-          proxyId,
-          statusCode: response.status,
-          statusText: response.statusText,
-        });
-      }
+          logger.warn({
+            msg: 'Proxy health check failed',
+            proxyId,
+            statusCode: response.status,
+            statusText: response.statusText,
+          });
+        }
       } finally {
         clearTimeout(timeoutId);
       }
@@ -142,14 +142,14 @@ export class ProxyHealthChecker {
       for (let j = 0; j < batchResults.length; j++) {
         const result = batchResults[j];
         if (!result) continue;
-        
+
         if (result.status === 'fulfilled') {
           results.push(result.value);
         } else {
           // Create failed status for rejected promise
           const batchItem = batch[j];
           if (!batchItem) continue;
-          
+
           results.push({
             proxyId: batchItem.id,
             healthy: false,
@@ -180,14 +180,14 @@ export class ProxyHealthChecker {
    */
   private createProxyAgent(proxyUrl: string, config: ProxyConfig): any {
     switch (config.protocol) {
-      case 'socks4':
-      case 'socks5':
+      case ProxyProtocol.SOCKS4:
+      case ProxyProtocol.SOCKS5:
         return new SocksProxyAgent(proxyUrl, {
           timeout: config.connectionTimeout,
         } as any); // SocksProxyAgent options don't include rejectUnauthorized
 
-      case 'http':
-      case 'https':
+      case ProxyProtocol.HTTP:
+      case ProxyProtocol.HTTPS:
       default:
         return new HttpsProxyAgent(proxyUrl, {
           timeout: config.connectionTimeout,
@@ -215,7 +215,7 @@ export class ProxyHealthChecker {
     await check();
 
     // Set up interval
-    const intervalId = setInterval(check, interval);
+    const intervalId = setInterval(() => void check(), interval);
 
     // Return cleanup function
     return () => clearInterval(intervalId);
@@ -257,7 +257,9 @@ export class ProxyHealthChecker {
           errors.push(`Proxy connectivity test failed: ${status.lastError}`);
         }
       } catch (error) {
-        errors.push(`Proxy validation error: ${error instanceof Error ? error.message : 'Unknown'}`);
+        errors.push(
+          `Proxy validation error: ${error instanceof Error ? error.message : 'Unknown'}`,
+        );
       }
     }
 
@@ -271,9 +273,7 @@ export class ProxyHealthChecker {
    * Get recommended health check interval based on proxy performance
    * @nist si-4 "Information system monitoring"
    */
-  getRecommendedCheckInterval(
-    recentStatuses: ProxyHealthStatus[],
-  ): number {
+  getRecommendedCheckInterval(recentStatuses: ProxyHealthStatus[]): number {
     if (recentStatuses.length === 0) {
       return 300000; // Default 5 minutes
     }

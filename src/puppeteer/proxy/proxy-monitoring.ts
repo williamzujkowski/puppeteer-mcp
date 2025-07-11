@@ -87,8 +87,8 @@ export class ProxyMonitor extends EventEmitter {
 
     // Start metrics collection
     await this.collectMetrics();
-    this.metricsInterval = setInterval(async () => {
-      await this.collectMetrics();
+    this.metricsInterval = setInterval(() => {
+      void this.collectMetrics();
     }, this.config.metricsInterval);
 
     logger.info({
@@ -141,21 +141,27 @@ export class ProxyMonitor extends EventEmitter {
    */
   private setupEventListeners(): void {
     // Listen to proxy manager events
-    proxyManager.on('proxy:unhealthy', async ({ proxyId, error }: { proxyId: string; error: string }) => {
-      await this.handleUnhealthyProxy(proxyId, error);
+    proxyManager.on('proxy:unhealthy', ({ proxyId, error }: { proxyId: string; error: string }) => {
+      void this.handleUnhealthyProxy(proxyId, error);
     });
 
-    proxyManager.on('proxy:healthy', ({ proxyId, responseTime }: { proxyId: string; responseTime: number }) => {
-      logger.debug({
-        msg: 'Proxy recovered',
-        proxyId,
-        responseTime,
-      });
-    });
+    proxyManager.on(
+      'proxy:healthy',
+      ({ proxyId, responseTime }: { proxyId: string; responseTime: number }) => {
+        logger.debug({
+          msg: 'Proxy recovered',
+          proxyId,
+          responseTime,
+        });
+      },
+    );
 
-    proxyManager.on('health:check:complete', async (stats: { healthy: number; unhealthy: number; total: number }) => {
-      await this.evaluatePoolHealth(stats);
-    });
+    proxyManager.on(
+      'health:check:complete',
+      (stats: { healthy: number; unhealthy: number; total: number }) => {
+        void this.evaluatePoolHealth(stats);
+      },
+    );
   }
 
   /**
@@ -213,10 +219,8 @@ export class ProxyMonitor extends EventEmitter {
     }
 
     // Check error rate
-    const errorRate = metrics.requestCount > 0 
-      ? metrics.failureCount / metrics.requestCount 
-      : 0;
-    
+    const errorRate = metrics.requestCount > 0 ? metrics.failureCount / metrics.requestCount : 0;
+
     if (errorRate > this.config.performanceThresholds.errorRate) {
       alerts.push({
         metric: 'errorRate',
@@ -382,9 +386,10 @@ export class ProxyMonitor extends EventEmitter {
     const totalFailures = proxies.reduce((sum, p) => sum + p.failureCount, 0);
     const totalErrorRate = totalRequests > 0 ? totalFailures / totalRequests : 0;
 
-    const avgResponseTime = proxies.length > 0
-      ? proxies.reduce((sum, p) => sum + p.averageResponseTime, 0) / proxies.length
-      : 0;
+    const avgResponseTime =
+      proxies.length > 0
+        ? proxies.reduce((sum, p) => sum + p.averageResponseTime, 0) / proxies.length
+        : 0;
 
     return {
       running: this.isRunning,

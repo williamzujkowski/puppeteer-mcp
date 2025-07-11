@@ -44,14 +44,25 @@ export function recordSecurityEvent(attributes: SecurityEventAttributes): void {
       'security.user_agent': attributes.userAgent,
     },
   });
-  
+
   // Add custom attributes
   Object.entries(attributes).forEach(([key, value]) => {
-    if (!['eventType', 'userId', 'resource', 'action', 'result', 'reason', 'ip', 'userAgent'].includes(key)) {
+    if (
+      ![
+        'eventType',
+        'userId',
+        'resource',
+        'action',
+        'result',
+        'reason',
+        'ip',
+        'userAgent',
+      ].includes(key)
+    ) {
       span.setAttribute(`security.custom.${key}`, value);
     }
   });
-  
+
   // Set span status based on result
   if (attributes.result === 'failure') {
     span.setStatus({
@@ -61,7 +72,7 @@ export function recordSecurityEvent(attributes: SecurityEventAttributes): void {
   } else {
     span.setStatus({ code: SpanStatusCode.OK });
   }
-  
+
   // Record metrics based on event type
   switch (attributes.eventType) {
     case SecurityEventType.LOGIN_SUCCESS:
@@ -77,29 +88,29 @@ export function recordSecurityEvent(attributes: SecurityEventAttributes): void {
         });
       }
       break;
-      
+
     case SecurityEventType.TOKEN_REFRESH:
     case SecurityEventType.TOKEN_REFRESHED:
       appMetrics.security.authTokensIssued.add(1, { type: 'refresh' });
       break;
-      
+
     case SecurityEventType.TOKEN_REVOKE:
       appMetrics.security.authTokensRevoked.add(1);
       break;
-      
+
     case SecurityEventType.RATE_LIMIT_EXCEEDED:
       appMetrics.puppeteer.apiRateLimitHits.add(1, {
         endpoint: attributes.resource || 'unknown',
       });
       break;
-      
+
     case SecurityEventType.VALIDATION_FAILURE:
       appMetrics.puppeteer.validationErrors.add(1, {
         resource: attributes.resource || 'unknown',
       });
       break;
   }
-  
+
   span.end();
 }
 
@@ -111,7 +122,7 @@ export function wrapAuthentication<T extends (...args: any[]) => Promise<any>>(
   method: string,
 ): T {
   const tracer = getTracer('security');
-  
+
   return (async (...args: Parameters<T>): Promise<ReturnType<T>> => {
     const span = tracer.startSpan(`auth.${method}`, {
       kind: SpanKind.INTERNAL,
@@ -119,30 +130,30 @@ export function wrapAuthentication<T extends (...args: any[]) => Promise<any>>(
         'auth.method': method,
       },
     });
-    
+
     const startTime = Date.now();
-    
+
     try {
       const result = await context.with(trace.setSpan(context.active(), span), async () => {
         return fn(...args);
       });
-      
+
       const duration = Date.now() - startTime;
-      
+
       span.setStatus({ code: SpanStatusCode.OK });
       span.setAttribute('auth.success', true);
       span.setAttribute('auth.duration', duration);
-      
+
       // Record success metrics
       appMetrics.security.authAttemptsTotal.add(1, {
         method,
         success: 'true',
       });
-      
+
       return result;
     } catch (error) {
       const duration = Date.now() - startTime;
-      
+
       span.recordException(error as Error);
       span.setStatus({
         code: SpanStatusCode.ERROR,
@@ -150,7 +161,7 @@ export function wrapAuthentication<T extends (...args: any[]) => Promise<any>>(
       });
       span.setAttribute('auth.success', false);
       span.setAttribute('auth.duration', duration);
-      
+
       // Record failure metrics
       appMetrics.security.authAttemptsTotal.add(1, {
         method,
@@ -160,7 +171,7 @@ export function wrapAuthentication<T extends (...args: any[]) => Promise<any>>(
         method,
         reason: error instanceof Error ? error.message : 'unknown',
       });
-      
+
       throw error;
     } finally {
       span.end();
@@ -177,7 +188,7 @@ export function wrapAuthorization<T extends (...args: any[]) => Promise<boolean>
   action: string,
 ): T {
   const tracer = getTracer('security');
-  
+
   return (async (...args: Parameters<T>): Promise<ReturnType<T>> => {
     const span = tracer.startSpan('authz.check', {
       kind: SpanKind.INTERNAL,
@@ -186,15 +197,15 @@ export function wrapAuthorization<T extends (...args: any[]) => Promise<boolean>
         'authz.action': action,
       },
     });
-    
+
     try {
       const authorized = await context.with(trace.setSpan(context.active(), span), async () => {
         return fn(...args);
       });
-      
+
       span.setAttribute('authz.result', authorized);
       span.setStatus({ code: SpanStatusCode.OK });
-      
+
       // Record security event
       recordSecurityEvent({
         eventType: authorized ? SecurityEventType.ACCESS_GRANTED : SecurityEventType.ACCESS_DENIED,
@@ -202,15 +213,15 @@ export function wrapAuthorization<T extends (...args: any[]) => Promise<boolean>
         action,
         result: authorized ? 'success' : 'failure',
       });
-      
-      return authorized as ReturnType<T>;
+
+      return await Promise.resolve(authorized as ReturnType<T>);
     } catch (error) {
       span.recordException(error as Error);
       span.setStatus({
         code: SpanStatusCode.ERROR,
         message: error instanceof Error ? error.message : 'Authorization check failed',
       });
-      
+
       // Record security event
       recordSecurityEvent({
         eventType: SecurityEventType.ACCESS_DENIED,
@@ -219,7 +230,7 @@ export function wrapAuthorization<T extends (...args: any[]) => Promise<boolean>
         result: 'failure',
         reason: error instanceof Error ? error.message : 'Authorization error',
       });
-      
+
       throw error;
     } finally {
       span.end();
@@ -234,7 +245,7 @@ export function instrumentCsrfValidation(
   validator: (req: Request) => boolean,
 ): (req: Request) => boolean {
   const tracer = getTracer('security');
-  
+
   return (req: Request): boolean => {
     const span = tracer.startSpan('csrf.validate', {
       kind: SpanKind.INTERNAL,
@@ -243,13 +254,13 @@ export function instrumentCsrfValidation(
         'csrf.path': req.path,
       },
     });
-    
+
     try {
       const valid = validator(req);
-      
+
       span.setAttribute('csrf.valid', valid);
       span.setStatus({ code: SpanStatusCode.OK });
-      
+
       if (!valid) {
         // Record security event
         recordSecurityEvent({
@@ -261,7 +272,7 @@ export function instrumentCsrfValidation(
           userAgent: req.headers['user-agent'],
         });
       }
-      
+
       return valid;
     } catch (error) {
       span.recordException(error as Error);
@@ -269,7 +280,7 @@ export function instrumentCsrfValidation(
         code: SpanStatusCode.ERROR,
         message: error instanceof Error ? error.message : 'CSRF validation error',
       });
-      
+
       // Record security event
       recordSecurityEvent({
         eventType: SecurityEventType.CSRF_TOKEN_MISSING,
@@ -280,7 +291,7 @@ export function instrumentCsrfValidation(
         ip: req.ip,
         userAgent: req.headers['user-agent'],
       });
-      
+
       throw error;
     } finally {
       span.end();
@@ -295,7 +306,7 @@ export function instrumentRateLimiter(
   limiter: (req: Request, res: Response, next: NextFunction) => void,
 ): (req: Request, res: Response, next: NextFunction) => void {
   const tracer = getTracer('security');
-  
+
   return (req: Request, res: Response, next: NextFunction): void => {
     const span = tracer.startSpan('ratelimit.check', {
       kind: SpanKind.INTERNAL,
@@ -305,7 +316,7 @@ export function instrumentRateLimiter(
         'ratelimit.ip': req.ip,
       },
     });
-    
+
     // Wrap the next function to detect rate limit hits
     const wrappedNext: NextFunction = (error?: any) => {
       if (error && error.status === 429) {
@@ -314,7 +325,7 @@ export function instrumentRateLimiter(
           code: SpanStatusCode.ERROR,
           message: 'Rate limit exceeded',
         });
-        
+
         // Record security event
         recordSecurityEvent({
           eventType: SecurityEventType.RATE_LIMIT_EXCEEDED,
@@ -328,11 +339,11 @@ export function instrumentRateLimiter(
         span.setAttribute('ratelimit.exceeded', false);
         span.setStatus({ code: SpanStatusCode.OK });
       }
-      
+
       span.end();
       next(error);
     };
-    
+
     context.with(trace.setSpan(context.active(), span), () => {
       limiter(req, res, wrappedNext);
     });

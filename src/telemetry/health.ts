@@ -55,13 +55,13 @@ export async function checkTelemetryHealth(): Promise<TelemetryHealth> {
   const config = getTelemetryConfig();
   const errors: string[] = [];
   const warnings: string[] = [];
-  
+
   // Check initialization
   const initialized = isTelemetryInitialized();
   if (!initialized && config.enabled) {
     errors.push('Telemetry is enabled but not initialized');
   }
-  
+
   // Check exporters
   let exporterHealth = { traces: false, metrics: false, errors: [] as string[] };
   if (initialized) {
@@ -71,7 +71,7 @@ export async function checkTelemetryHealth(): Promise<TelemetryHealth> {
       errors.push(`Failed to check exporter health: ${error}`);
     }
   }
-  
+
   // Check resource
   let resourceHealth = { healthy: false, warnings: [] as string[], attributes: {} };
   if (initialized) {
@@ -86,11 +86,11 @@ export async function checkTelemetryHealth(): Promise<TelemetryHealth> {
       warnings.push(`Failed to check resource health: ${error}`);
     }
   }
-  
+
   // Aggregate errors and warnings
   errors.push(...exporterHealth.errors);
   warnings.push(...resourceHealth.warnings);
-  
+
   // Determine overall status
   let status: 'healthy' | 'degraded' | 'unhealthy' = 'healthy';
   if (errors.length > 0) {
@@ -98,7 +98,7 @@ export async function checkTelemetryHealth(): Promise<TelemetryHealth> {
   } else if (warnings.length > 0 || !exporterHealth.traces || !exporterHealth.metrics) {
     status = 'degraded';
   }
-  
+
   const health: TelemetryHealth = {
     initialized,
     enabled: config.enabled,
@@ -123,7 +123,7 @@ export async function checkTelemetryHealth(): Promise<TelemetryHealth> {
     warnings,
     lastCheck: new Date().toISOString(),
   };
-  
+
   return health;
 }
 
@@ -153,7 +153,7 @@ export interface TelemetryDiagnostics {
 export async function getTelemetryDiagnostics(): Promise<TelemetryDiagnostics> {
   const health = await checkTelemetryHealth();
   const config = getTelemetryConfig();
-  
+
   const diagnostics: TelemetryDiagnostics = {
     health,
     performance: {
@@ -167,7 +167,7 @@ export async function getTelemetryDiagnostics(): Promise<TelemetryDiagnostics> {
       instrumentations: config.instrumentations,
     },
   };
-  
+
   return diagnostics;
 }
 
@@ -177,10 +177,9 @@ export async function getTelemetryDiagnostics(): Promise<TelemetryDiagnostics> {
 export async function telemetryHealthHandler(_req: any, res: any): Promise<void> {
   try {
     const health = await checkTelemetryHealth();
-    
-    const statusCode = health.status === 'healthy' ? 200 : 
-                      health.status === 'degraded' ? 200 : 503;
-    
+
+    const statusCode = health.status === 'healthy' ? 200 : health.status === 'degraded' ? 200 : 503;
+
     res.status(statusCode).json({
       status: health.status,
       telemetry: health,
@@ -199,12 +198,12 @@ export async function telemetryHealthHandler(_req: any, res: any): Promise<void>
  */
 export function isTelemetryReady(): boolean {
   const config = getTelemetryConfig();
-  
+
   // If telemetry is disabled, it's always ready
   if (!config.enabled) {
     return true;
   }
-  
+
   // Check if initialized
   return isTelemetryInitialized();
 }
@@ -214,17 +213,17 @@ export function isTelemetryReady(): boolean {
  */
 export async function isTelemetryAlive(): Promise<boolean> {
   const config = getTelemetryConfig();
-  
+
   // If telemetry is disabled, it's always alive
   if (!config.enabled) {
     return true;
   }
-  
+
   // Check if initialized
   if (!isTelemetryInitialized()) {
     return false;
   }
-  
+
   try {
     // Try to flush data as a liveness check
     await flushTelemetry();
@@ -239,34 +238,43 @@ export async function isTelemetryAlive(): Promise<boolean> {
  * Monitor telemetry health periodically
  */
 export function startTelemetryHealthMonitoring(intervalMs: number = 60000): NodeJS.Timer {
-  return setInterval(async () => {
-    try {
-      const health = await checkTelemetryHealth();
-      
-      if (health.status === 'unhealthy') {
-        logger.error({
-          health,
-        }, 'Telemetry health check failed');
-      } else if (health.status === 'degraded') {
-        logger.warn({
-          health,
-        }, 'Telemetry health degraded');
-      }
-      
-      // Record health metrics
-      const meter = metrics.getMeter('telemetry-health');
-      const healthGauge = meter.createObservableGauge('telemetry_health_status', {
-        description: 'Telemetry health status (1=healthy, 0=unhealthy)',
-      });
-      
-      healthGauge.addCallback((result) => {
-        result.observe(health.status === 'healthy' ? 1 : 0, {
-          status: health.status,
-        });
-      });
-      
-    } catch (error) {
-      logger.error({ error }, 'Error monitoring telemetry health');
-    }
-  }, intervalMs);
+  return setInterval(
+    () =>
+      void (async () => {
+        try {
+          const health = await checkTelemetryHealth();
+
+          if (health.status === 'unhealthy') {
+            logger.error(
+              {
+                health,
+              },
+              'Telemetry health check failed',
+            );
+          } else if (health.status === 'degraded') {
+            logger.warn(
+              {
+                health,
+              },
+              'Telemetry health degraded',
+            );
+          }
+
+          // Record health metrics
+          const meter = metrics.getMeter('telemetry-health');
+          const healthGauge = meter.createObservableGauge('telemetry_health_status', {
+            description: 'Telemetry health status (1=healthy, 0=unhealthy)',
+          });
+
+          healthGauge.addCallback((result) => {
+            result.observe(health.status === 'healthy' ? 1 : 0, {
+              status: health.status,
+            });
+          });
+        } catch (error) {
+          logger.error({ error }, 'Error monitoring telemetry health');
+        }
+      })(),
+    intervalMs,
+  );
 }

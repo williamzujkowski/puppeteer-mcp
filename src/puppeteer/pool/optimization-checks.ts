@@ -14,6 +14,7 @@ import type { BrowserPoolPerformanceMonitor } from './browser-pool-performance-m
 import type { ExtendedPoolMetrics } from './browser-pool-metrics.js';
 import type { OptimizationConfig } from './optimization-config.js';
 import { PerformanceMetricType } from './performance/types/performance-monitor.types.js';
+import { ScalingDecision } from './scaling/types.js';
 
 const logger = createLogger('optimization-checks');
 
@@ -31,7 +32,7 @@ export class OptimizationChecks {
     private performanceMonitor: BrowserPoolPerformanceMonitor,
     private optimizationEnabled: boolean,
     private lastOptimizationCheck: Date,
-    optimizationActions: { value: number }
+    optimizationActions: { value: number },
   ) {
     this.optimizationActions = optimizationActions;
   }
@@ -49,18 +50,19 @@ export class OptimizationChecks {
   async performOptimizationCheck(
     getBrowsersInternal: () => Map<string, InternalBrowserInstance>,
     getExtendedMetrics: () => ExtendedPoolMetrics,
-    recycleBrowser: (browserId: string) => Promise<void>
+    recycleBrowser: (browserId: string) => Promise<void>,
   ): Promise<void> {
     if (!this.optimizationEnabled) {
       return;
     }
 
     this.lastOptimizationCheck = new Date();
-    
+
     try {
       const browsers = getBrowsersInternal();
       const metrics = getExtendedMetrics();
-      const resourceUsage = this.resourceManager.getBrowserResources() as Map<string, any> || new Map<string, any>();
+      const resourceUsage =
+        (this.resourceManager.getBrowserResources() as Map<string, any>) || new Map<string, any>();
 
       // Check for scaling opportunities
       if (this.optimizationConfig.scaling.enabled) {
@@ -79,26 +81,22 @@ export class OptimizationChecks {
 
       // Record throughput metrics
       const throughput = this.calculateThroughput(metrics);
-      this.performanceMonitor.recordMetric(
-        PerformanceMetricType.THROUGHPUT,
-        throughput,
-        { timestamp: new Date() }
-      );
+      this.performanceMonitor.recordMetric(PerformanceMetricType.THROUGHPUT, throughput, {
+        timestamp: new Date(),
+      });
 
       // Record utilization metrics
       this.performanceMonitor.recordMetric(
         PerformanceMetricType.RESOURCE_UTILIZATION,
         metrics.utilizationPercentage,
-        { timestamp: new Date() }
+        { timestamp: new Date() },
       );
-
     } catch (error) {
       logger.error({ error }, 'Error during optimization check');
-      this.performanceMonitor.recordMetric(
-        PerformanceMetricType.ERROR_RATE,
-        1,
-        { operation: 'optimization_check', error: error instanceof Error ? error.message : String(error) }
-      );
+      this.performanceMonitor.recordMetric(PerformanceMetricType.ERROR_RATE, 1, {
+        operation: 'optimization_check',
+        error: error instanceof Error ? error.message : String(error),
+      });
     }
   }
 
@@ -108,7 +106,7 @@ export class OptimizationChecks {
   private async checkScalingOpportunities(
     browsers: Map<string, InternalBrowserInstance>,
     metrics: ExtendedPoolMetrics,
-    getOptionsInternal?: () => BrowserPoolOptions
+    getOptionsInternal?: () => BrowserPoolOptions,
   ): Promise<{ decision: string; targetSize: number; reason: string; confidence: number } | null> {
     const options = getOptionsInternal?.() || {
       maxBrowsers: 10,
@@ -147,18 +145,20 @@ export class OptimizationChecks {
         averagePageCreationTime: metrics.avgPageCreationTime || 0,
         averageQueueWaitTime: metrics.queue?.averageWaitTime || 0,
         errorRate: metrics.errors?.errorRate || 0,
-        recoverySuccessRate: (metrics.errors?.recoverySuccesses || 0) / Math.max(1, (metrics.errors?.recoverySuccesses || 0) + (metrics.errors?.recoveryFailures || 0)),
+        recoverySuccessRate:
+          (metrics.errors?.recoverySuccesses || 0) /
+          Math.max(
+            1,
+            (metrics.errors?.recoverySuccesses || 0) + (metrics.errors?.recoveryFailures || 0),
+          ),
         cpuUsage: metrics.resources?.avgCpuPerBrowser || 0,
         memoryUsage: metrics.resources?.avgMemoryPerBrowser || 0,
       }),
     } as any;
 
-    const scalingDecision = await this.scaler.evaluateScaling(
-      mockMetrics,
-      options
-    );
+    const scalingDecision = await this.scaler.evaluateScaling(mockMetrics, options);
 
-    if (scalingDecision && scalingDecision.decision !== 'maintain') {
+    if (scalingDecision && scalingDecision.decision !== ScalingDecision.MAINTAIN) {
       logger.info(
         {
           decision: scalingDecision.decision,
@@ -167,7 +167,7 @@ export class OptimizationChecks {
           reason: scalingDecision.reason,
           confidence: scalingDecision.confidence,
         },
-        'Scaling action recommended'
+        'Scaling action recommended',
       );
 
       this.optimizationActions.value++;
@@ -191,7 +191,7 @@ export class OptimizationChecks {
   private async checkRecyclingOpportunities(
     browsers: Map<string, InternalBrowserInstance>,
     resourceUsage: Map<string, any>,
-    recycleBrowser: (browserId: string) => Promise<void>
+    recycleBrowser: (browserId: string) => Promise<void>,
   ): Promise<any[]> {
     const candidates = this.recycler.evaluateBrowsers(browsers, resourceUsage);
 
@@ -199,15 +199,12 @@ export class OptimizationChecks {
       logger.info(
         {
           candidates: candidates.length,
-          criticalCandidates: candidates.filter(c => c.urgency === 'critical').length,
+          criticalCandidates: candidates.filter((c) => c.urgency === 'critical').length,
         },
-        'Recycling candidates found'
+        'Recycling candidates found',
       );
 
-      const recyclingEvents = await this.recycler.executeRecycling(
-        candidates,
-        recycleBrowser
-      );
+      const recyclingEvents = await this.recycler.executeRecycling(candidates, recycleBrowser);
 
       if (recyclingEvents.length > 0) {
         this.optimizationActions.value += recyclingEvents.length;
@@ -225,11 +222,11 @@ export class OptimizationChecks {
     // Simple throughput calculation based on active browsers and their efficiency
     const activeBrowsers = metrics.activeBrowsers;
     const averagePageCreationTime = metrics.avgPageCreationTime;
-    
+
     if (averagePageCreationTime > 0) {
       return (activeBrowsers * 1000) / averagePageCreationTime; // Operations per second
     }
-    
+
     return activeBrowsers;
   }
 }

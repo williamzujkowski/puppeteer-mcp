@@ -34,7 +34,7 @@ export class ResourceTracker {
 
   constructor(
     private sessionStore: SessionStore,
-    logger?: pino.Logger
+    logger?: pino.Logger,
   ) {
     this.logger = logger ?? pino({ level: 'info' });
   }
@@ -44,15 +44,15 @@ export class ResourceTracker {
    */
   async getResourceUsage(): Promise<ResourceUsage> {
     const memoryUsage = process.memoryUsage();
-    
+
     return {
       memory: {
         heapUsed: memoryUsage.heapUsed,
         heapTotal: memoryUsage.heapTotal,
         external: memoryUsage.external,
-        rss: memoryUsage.rss
+        rss: memoryUsage.rss,
       },
-      sessions: await this.getSessionResourceUsage()
+      sessions: await this.getSessionResourceUsage(),
     };
   }
 
@@ -76,7 +76,7 @@ export class ResourceTracker {
   private async getRedisSessionUsage(): Promise<ResourceUsage['sessions']> {
     const redisStore = this.sessionStore as any;
     const { redis, client } = redisStore.getStore();
-    
+
     if (!redis || !client) {
       return { count: 0, avgSize: 0, totalSize: 0 };
     }
@@ -87,11 +87,11 @@ export class ResourceTracker {
     // Sample sessions to estimate average size
     const sampleSize = Math.min(10, count);
     let sampledSize = 0;
-    
+
     for (let i = 0; i < sampleSize; i++) {
       const key = sessionKeys[i];
       if (key) {
-        const value = await client.get(key) as string | null;
+        const value = (await client.get(key)) as string | null;
         if (value) {
           sampledSize += Buffer.byteLength(value, 'utf8');
         }
@@ -109,22 +109,19 @@ export class ResourceTracker {
    */
   async updateRedisMetrics(): Promise<RedisMetrics | undefined> {
     const redisClient = getRedisClient();
-    
+
     if (!redisClient || !isRedisAvailable()) {
       return { available: false };
     }
 
     try {
-      const [info, keyCount] = await Promise.all([
-        redisClient.info(),
-        redisClient.dbsize()
-      ]);
-      
+      const [info, keyCount] = await Promise.all([redisClient.info(), redisClient.dbsize()]);
+
       return {
         available: true,
         keyCount,
         memoryUsage: this.parseInfoValue(info, 'used_memory'),
-        connections: this.parseInfoValue(info, 'connected_clients')
+        connections: this.parseInfoValue(info, 'connected_clients'),
       };
     } catch (error) {
       this.logger.error({ error }, 'Failed to update Redis metrics');
@@ -137,8 +134,17 @@ export class ResourceTracker {
    */
   private parseInfoValue(info: string | undefined, key: string): number | undefined {
     if (!info) return undefined;
-    const match = info.match(new RegExp(`${key}:(\\d+)`));
-    return match?.[1] ? parseInt(match[1], 10) : undefined;
+    // Use indexOf and substring to avoid dynamic RegExp
+    const searchKey = `${key}:`;
+    const index = info.indexOf(searchKey);
+    if (index === -1) return undefined;
+
+    const start = index + searchKey.length;
+    const endIndex = info.indexOf('\n', start);
+    const value = endIndex === -1 ? info.substring(start) : info.substring(start, endIndex);
+    const numValue = parseInt(value.trim(), 10);
+
+    return isNaN(numValue) ? undefined : numValue;
   }
 
   /**
@@ -147,7 +153,7 @@ export class ResourceTracker {
   async updateStoreMetrics(): Promise<Partial<StoreMetrics>> {
     const updates: Partial<StoreMetrics> = {
       type: this.sessionStore.constructor.name,
-      available: true
+      available: true,
     };
 
     try {
@@ -155,15 +161,15 @@ export class ResourceTracker {
       if (this.sessionStore.constructor.name === 'RedisSessionStore') {
         const redisStore = this.sessionStore as any;
         const { redis, client } = redisStore.getStore();
-        
+
         if (redis && client) {
           const sessionKeys = await client.keys(`${redisStore.SESSION_KEY_PREFIX}*`);
           updates.totalSessions = sessionKeys.length;
-          
+
           // Count active sessions (non-expired)
           let activeSessions = 0;
           let expiredSessions = 0;
-          
+
           for (const key of sessionKeys) {
             const ttl = await client.ttl(key);
             if (ttl > 0) {
@@ -175,7 +181,7 @@ export class ResourceTracker {
               expiredSessions++;
             }
           }
-          
+
           updates.activeSessions = activeSessions;
           updates.expiredSessions = expiredSessions;
         }
@@ -193,7 +199,7 @@ export class ResourceTracker {
    */
   checkResourceLimits(
     maxMemoryMB: number = 1024,
-    _maxSessions: number = 10000
+    _maxSessions: number = 10000,
   ): { withinLimits: boolean; warnings: string[] } {
     const warnings: string[] = [];
     let withinLimits = true;
@@ -221,10 +227,10 @@ export class ResourceTracker {
     const memoryUsage = process.memoryUsage();
     const maxHeap = memoryUsage.heapTotal;
     const usedHeap = memoryUsage.heapUsed;
-    
+
     return {
       memory: maxHeap > 0 ? (usedHeap / maxHeap) * 100 : 0,
-      sessions: 0 // Would need max session limit to calculate
+      sessions: 0, // Would need max session limit to calculate
     };
   }
 }

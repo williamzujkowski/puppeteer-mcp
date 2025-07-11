@@ -34,7 +34,12 @@ interface ProxyForRotation {
 /**
  * Rotation strategy type
  */
-export type RotationStrategy = 'round-robin' | 'random' | 'least-used' | 'priority' | 'health-based';
+export type RotationStrategy =
+  | 'round-robin'
+  | 'random'
+  | 'least-used'
+  | 'priority'
+  | 'health-based';
 
 /**
  * Proxy rotation strategy implementation
@@ -182,7 +187,8 @@ export class ProxyRotationStrategy {
     if (healthyProxies.length === 0) {
       // If no healthy proxies, fall back to least failed
       return proxies.reduce((best, current) => {
-        const currentFailureRate = current.metrics.failureCount / Math.max(1, current.metrics.requestCount);
+        const currentFailureRate =
+          current.metrics.failureCount / Math.max(1, current.metrics.requestCount);
         const bestFailureRate = best.metrics.failureCount / Math.max(1, best.metrics.requestCount);
         return currentFailureRate < bestFailureRate ? current : best;
       });
@@ -241,23 +247,25 @@ export class ProxyRotationStrategy {
         stats.nextIndex = (this.lastSelectedIndex + 1) % proxies.length;
         break;
 
-      case 'least-used':
-        const leastUsed = proxies.reduce((min, p) => 
-          p.metrics.requestCount < min ? p.metrics.requestCount : min, 
-          Infinity
+      case 'least-used': {
+        const leastUsed = proxies.reduce(
+          (min, p) => (p.metrics.requestCount < min ? p.metrics.requestCount : min),
+          Infinity,
         );
         stats.minimumUsageCount = leastUsed;
         break;
+      }
 
-      case 'priority':
+      case 'priority': {
         const priorities = proxies.map((p) => p.config.priority);
         stats.priorityRange = {
           min: Math.min(...priorities),
           max: Math.max(...priorities),
         };
         break;
+      }
 
-      case 'health-based':
+      case 'health-based': {
         const scores = proxies.map((p) => ({
           id: p.id,
           name: p.config.name,
@@ -265,6 +273,7 @@ export class ProxyRotationStrategy {
         }));
         stats.healthScores = scores.sort((a, b) => b.score - a.score).slice(0, 5); // Top 5
         break;
+      }
     }
 
     return stats;
@@ -287,11 +296,11 @@ export class ProxyRotationStrategy {
     const responseTimes = proxies
       .filter((p) => p.health.responseTime)
       .map((p) => p.health.responseTime!);
-    
+
     const avgResponseTime = responseTimes.reduce((a, b) => a + b, 0) / responseTimes.length || 0;
     const responseTimeStdDev = Math.sqrt(
-      responseTimes.reduce((sum, time) => sum + Math.pow(time - avgResponseTime, 2), 0) / 
-      responseTimes.length || 1
+      responseTimes.reduce((sum, time) => sum + Math.pow(time - avgResponseTime, 2), 0) /
+        responseTimes.length || 1,
     );
 
     // Check priority distribution

@@ -91,7 +91,7 @@ export class SessionLifecycleManager {
   ): Promise<SessionInfo | null> {
     try {
       // Check if user can create session
-      if (!await this.canUserCreateSession(userId)) {
+      if (!(await this.canUserCreateSession(userId))) {
         await this.securityLogger.logSessionLimitExceeded(userId, this.options.maxSessionsPerUser);
         return null;
       }
@@ -204,8 +204,8 @@ export class SessionLifecycleManager {
    */
   private startCleanup(): void {
     const interval = this.options.cleanupInterval ?? 60000; // Default 1 minute
-    this.cleanupInterval = setInterval(async () => {
-      await this.cleanupExpiredSessions();
+    this.cleanupInterval = setInterval(() => {
+      void this.cleanupExpiredSessions();
     }, interval);
   }
 }
