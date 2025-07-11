@@ -88,7 +88,7 @@ jobs:
       - name: Generate API reference from OpenAPI
         run: |
           # Generate OpenAPI spec from code
-          cat > generate-openapi.js << 'EOF'
+          cat > generate-openapi.cjs << 'EOF'
           const fs = require('fs');
           const path = require('path');
 
@@ -154,7 +154,7 @@ jobs:
           );
           EOF
 
-          node generate-openapi.js
+          node generate-openapi.cjs
 
           # Generate documentation from OpenAPI spec
           npx @redocly/openapi-cli bundle docs/api/openapi.json -o docs/api/openapi-bundled.json
@@ -173,7 +173,7 @@ jobs:
       - name: Update API examples
         run: |
           # Extract code examples from tests
-          cat > extract-examples.js << 'EOF'
+          cat > extract-examples.cjs << 'EOF'
           const fs = require('fs');
           const path = require('path');
           const glob = require('glob');
@@ -231,7 +231,7 @@ jobs:
           EOF
 
           mkdir -p docs/api/examples
-          node extract-examples.js || echo "Examples extracted"
+          node extract-examples.cjs || echo "Examples extracted"
 
       - name: Upload API documentation
         uses: actions/upload-artifact@v4
@@ -498,7 +498,7 @@ jobs:
       - name: Generate sitemap
         run: |
           cd starlight-docs
-          cat > generate-sitemap.js << 'EOF'
+          cat > generate-sitemap.cjs << 'EOF'
           const fs = require('fs');
           const path = require('path');
           const glob = require('glob');
@@ -530,7 +530,7 @@ jobs:
           console.log('Sitemap generated successfully');
           EOF
 
-          node generate-sitemap.js
+          node generate-sitemap.cjs
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
