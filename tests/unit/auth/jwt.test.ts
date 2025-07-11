@@ -18,8 +18,8 @@ import jwt from 'jsonwebtoken';
 jest.mock('../../../src/core/config.js', () => ({
   config: {
     JWT_SECRET: 'test-secret-key-for-testing-only-32-chars-long!!',
-    JWT_EXPIRY: '1h',
-    JWT_REFRESH_EXPIRY: '7d',
+    JWT_EXPIRES_IN: '1h',
+    JWT_REFRESH_EXPIRES_IN: '7d',
     JWT_ALGORITHM: 'HS256',
   },
 }));

@@ -7,7 +7,6 @@
  */
 
 import jwt from 'jsonwebtoken';
-import type { StringValue } from 'ms';
 import { z } from 'zod';
 import { config } from '../core/config.js';
 import { AppError } from '../core/errors/app-error.js';
@@ -44,7 +43,7 @@ export interface TokenPair {
  */
 export const generateToken = (
   payload: Omit<JWTPayload, 'iat' | 'exp'>,
-  expiresIn: StringValue | number = config.JWT_EXPIRES_IN as StringValue,
+  expiresIn: string | number = config.JWT_EXPIRES_IN as string,
 ): string => {
   const signOptions: jwt.SignOptions = {
     algorithm: config.JWT_ALGORITHM as jwt.Algorithm,
@@ -71,7 +70,7 @@ export const generateTokenPair = (
       sessionId,
       type: 'access',
     },
-    config.JWT_EXPIRES_IN as StringValue,
+    config.JWT_EXPIRES_IN as string,
   );
 
   const refreshToken = generateToken(
@@ -82,7 +81,7 @@ export const generateTokenPair = (
       sessionId,
       type: 'refresh',
     },
-    config.JWT_REFRESH_EXPIRES_IN as StringValue,
+    config.JWT_REFRESH_EXPIRES_IN as string,
   );
 
   // Calculate expiry in seconds
