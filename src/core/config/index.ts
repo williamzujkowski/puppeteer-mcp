@@ -109,6 +109,36 @@ export function isTest(): boolean {
   return config.NODE_ENV === 'test';
 }
 
+// Validate production configuration
+export function validateProductionConfig(): void {
+  if (!isProduction()) {
+    return;
+  }
+
+  // In production, ensure critical security settings
+  const criticalErrors: string[] = [];
+
+  if (!config.JWT_SECRET || config.JWT_SECRET.length < 32) {
+    criticalErrors.push('JWT_SECRET must be set to a secure value (at least 32 characters)');
+  }
+
+  if (!config.SESSION_SECRET || config.SESSION_SECRET.length < 32) {
+    criticalErrors.push('SESSION_SECRET must be set to a secure value (at least 32 characters)');
+  }
+
+  if (!config.TLS_ENABLED) {
+    criticalErrors.push('TLS must be enabled in production (TLS_ENABLED=true)');
+  }
+
+  if (!config.CORS_ORIGIN || config.CORS_ORIGIN === '*') {
+    criticalErrors.push('CORS_ORIGIN must be set to specific origins in production');
+  }
+
+  if (criticalErrors.length > 0) {
+    throw new Error(`Production configuration validation failed:\n${criticalErrors.join('\n')}`);
+  }
+}
+
 // Re-export all schemas and parsers for testing
 export * from './schemas.js';
 export * from './parsers.js';

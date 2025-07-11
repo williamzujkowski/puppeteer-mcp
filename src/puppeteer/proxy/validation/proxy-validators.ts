@@ -23,7 +23,7 @@ export class SchemaValidator<T> extends BaseValidator<T> {
     try {
       const parsed = this.schema.parse(context.config);
       // Update config with parsed value
-      Object.assign(context.config, parsed);
+      Object.assign(context.config as Record<string, unknown>, parsed);
     } catch (error) {
       if (error instanceof z.ZodError) {
         context.errors.push(...error.errors.map((e) => `${e.path.join('.')}: ${e.message}`));

@@ -13,7 +13,7 @@ import { startWebSocketServer } from './websocket-server.js';
 import { startMcpServer, isMcpModeEnabled } from './mcp-server.js';
 import { createServerDependencies } from './service-registry.js';
 import { validateServerConfig } from './server-config.js';
-import { performHealthCheck, startHealthMonitoring, setHealthMonitoringInterval } from './health-monitor.js';
+import { performHealthCheck, startHealthMonitoring } from './health-monitor.js';
 import { setupAllProcessHandlers } from './graceful-shutdown.js';
 import { 
   ServerComponents, 
@@ -70,11 +70,15 @@ export class PuppeteerMcpServer {
       // Create gRPC server
       const grpcServer = createGrpcServerInstance(logger, sessionStore);
 
+      // Start WebSocket server after HTTP server needs to be created
+      const wsServer = startWebSocketServer(logger, sessionStore, server, serverConfig);
+      
       // Store components for lifecycle management
       this.components = {
         app,
         server,
         grpcServer,
+        wsServer,
       };
 
       // Setup process handlers for graceful shutdown
@@ -87,10 +91,6 @@ export class PuppeteerMcpServer {
         serverConfig.host, 
         logger
       );
-
-      // Start WebSocket server after HTTP server is listening
-      const wsServer = startWebSocketServer(logger, sessionStore, server, serverConfig);
-      this.components.wsServer = wsServer;
 
       // Start gRPC server
       await startGrpcServer(grpcServer, serverConfig, logger);
@@ -105,7 +105,6 @@ export class PuppeteerMcpServer {
         sessionStore,
         logger,
       });
-      setHealthMonitoringInterval(this.healthMonitoringInterval);
 
       // Perform initial health check
       const healthStatus = await performHealthCheck(
@@ -179,7 +178,7 @@ export class PuppeteerMcpServer {
     try {
       if (!this.dependencies) return;
 
-      const eventData = {
+      const eventData: Record<string, unknown> = {
         result: error !== undefined ? 'failure' : 'success',
         ...(error !== undefined && {
           reason: error instanceof Error ? error.message : 'Unknown error',

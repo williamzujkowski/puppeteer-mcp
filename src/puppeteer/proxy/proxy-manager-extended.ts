@@ -6,7 +6,7 @@
  */
 
 import { ProxyManager } from './manager/index.js';
-import type { ProxyConfig, ContextProxyConfig, ProxyMetrics, ProxyHealthStatus } from '../types/proxy.js';
+import type { ContextProxyConfig, ProxyMetrics, ProxyHealthStatus } from '../types/proxy.js';
 import { formatProxyUrl } from '../types/proxy.js';
 
 /**
@@ -20,7 +20,7 @@ export class ExtendedProxyManager extends ProxyManager {
    */
   async getProxyForContext(
     contextId: string,
-    config: ContextProxyConfig
+    _config: ContextProxyConfig
   ): Promise<{ proxyId: string; url: string } | null> {
     const proxy = await this.getProxyForUrl('', contextId);
     if (!proxy) {
@@ -68,7 +68,7 @@ export class ExtendedProxyManager extends ProxyManager {
   /**
    * Check if URL should use proxy
    */
-  shouldUseProxy(url: string, contextId: string): boolean {
+  shouldUseProxy(_url: string, contextId: string): boolean {
     // Simple implementation - use proxy if context has one assigned
     return this.contextProxyMap.has(contextId);
   }
@@ -77,10 +77,10 @@ export class ExtendedProxyManager extends ProxyManager {
    * Handle proxy error (wrapper for recordProxyFailure)
    */
   async handleProxyError(
-    contextId: string,
+    _contextId: string,
     proxyId: string,
     error: Error,
-    config: ContextProxyConfig
+    _config: ContextProxyConfig
   ): Promise<void> {
     this.recordProxyFailure(proxyId, error.message);
   }
@@ -89,7 +89,7 @@ export class ExtendedProxyManager extends ProxyManager {
    * Handle proxy success (wrapper for recordProxySuccess)
    */
   async handleProxySuccess(
-    contextId: string,
+    _contextId: string,
     proxyId: string,
     responseTime: number
   ): Promise<void> {

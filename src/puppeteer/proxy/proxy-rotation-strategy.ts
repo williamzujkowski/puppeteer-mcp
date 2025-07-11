@@ -75,7 +75,7 @@ export class ProxyRotationStrategy {
     }
 
     if (proxies.length === 1) {
-      return proxies[0];
+      return proxies[0] as ProxyForRotation;
     }
 
     let selected: ProxyForRotation;
@@ -121,7 +121,7 @@ export class ProxyRotationStrategy {
    */
   private selectRoundRobin(proxies: ProxyForRotation[]): ProxyForRotation {
     this.lastSelectedIndex = (this.lastSelectedIndex + 1) % proxies.length;
-    return proxies[this.lastSelectedIndex];
+    return proxies[this.lastSelectedIndex] as ProxyForRotation;
   }
 
   /**
@@ -130,7 +130,7 @@ export class ProxyRotationStrategy {
    */
   private selectRandom(proxies: ProxyForRotation[]): ProxyForRotation {
     const randomIndex = Math.floor(Math.random() * proxies.length);
-    return proxies[randomIndex];
+    return proxies[randomIndex] as ProxyForRotation;
   }
 
   /**
@@ -168,7 +168,7 @@ export class ProxyRotationStrategy {
       return a.metrics.requestCount - b.metrics.requestCount;
     });
 
-    return sorted[0];
+    return sorted[0]!;
   }
 
   /**

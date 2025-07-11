@@ -58,4 +58,4 @@ export type {
 } from './types.js';
 
 // Legacy exports for backward compatibility
-export { createServerDependencies as createServerConfig } from './service-registry.js';
+export { createServerDependencies as createServerDependencies2 } from './service-registry.js';

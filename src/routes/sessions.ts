@@ -89,7 +89,9 @@ export const createSessionRoutes = (sessionStore: SessionStore): Router => {
    * Admin: Get all active sessions
    * GET /v1/sessions
    */
-  router.get('/', authMiddleware, requireRoles('admin'), handleListAllSessions);
+  router.get('/', authMiddleware, requireRoles('admin'), (req, res, next) => {
+    void handleListAllSessions(req, res, next, sessionStore);
+  });
 
   /**
    * Admin: Terminate any session

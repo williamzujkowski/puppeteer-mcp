@@ -11,7 +11,6 @@ import { config } from '../core/config.js';
 import type { 
   SpanExporter, 
   ReadableSpan, 
-  BatchSpanProcessorConfig,
   SpanProcessor 
 } from '@opentelemetry/sdk-trace-node';
 import type { 
@@ -199,6 +198,16 @@ export function getTelemetryConfig(): TelemetryConfig {
       logLevel: getLogLevel(config.TELEMETRY_LOG_LEVEL),
     },
   };
+}
+
+/**
+ * Batch span processor configuration interface
+ */
+export interface BatchSpanProcessorConfig {
+  maxQueueSize?: number;
+  maxExportBatchSize?: number;
+  scheduledDelayMillis?: number;
+  exportTimeoutMillis?: number;
 }
 
 /**

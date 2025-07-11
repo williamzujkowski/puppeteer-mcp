@@ -7,6 +7,7 @@
  */
 
 import type { ProxyConfig } from '../../types/proxy.js';
+import { ProxyProtocol } from '../../types/proxy.js';
 
 /**
  * Sanitize proxy configuration for logging
@@ -86,7 +87,7 @@ export function validateProxyCredentials(
 export function generateSecureProxyConfig(
   host: string,
   port: number,
-  protocol: ProxyConfig['protocol'] = 'http',
+  protocol: ProxyConfig['protocol'] = ProxyProtocol.HTTP,
 ): Partial<ProxyConfig> {
   return {
     protocol,

@@ -20,7 +20,8 @@ import {
   createCSRFProtection,
 } from '../core/middleware/security-headers.js';
 import { createRateLimiter } from '../core/middleware/rate-limiter.js';
-import { requestContextMiddleware, contextPropagationMiddleware } from '../utils/logger.js';
+import { requestContextMiddleware } from '../utils/logger.js';
+import { contextPropagationMiddleware } from '../telemetry/context.js';
 import { MiddlewareConfig } from './types.js';
 import { getTrustProxyConfig } from './server-config.js';
 
@@ -160,7 +161,13 @@ export function setupRequestTrackingMiddleware(app: Application): void {
  */
 export function setupTelemetryMiddleware(app: Application, middlewareConfig: MiddlewareConfig): void {
   if (middlewareConfig.enableTelemetry) {
-    app.use(contextPropagationMiddleware(config));
+    const telemetryConfig = {
+      enabled: config.TELEMETRY_ENABLED,
+      serviceName: config.TELEMETRY_SERVICE_NAME,
+      serviceVersion: config.TELEMETRY_SERVICE_VERSION,
+      environment: config.TELEMETRY_ENVIRONMENT,
+    };
+    app.use(contextPropagationMiddleware(telemetryConfig as any));
   }
 }
 

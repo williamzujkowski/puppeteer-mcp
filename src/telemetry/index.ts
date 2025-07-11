@@ -383,3 +383,4 @@ export { contextPropagationMiddleware } from './context.js';
 export { createCorrelatedLogger, CorrelatedLogger } from './correlation.js';
 export * from './metrics/index.js';
 export * from './instrumentations/index.js';
+export { createBrowserPoolMetrics } from './metrics/browser-pool/index.js';
