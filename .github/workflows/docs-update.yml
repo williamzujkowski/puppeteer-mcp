@@ -61,7 +61,7 @@ jobs:
           # Create TypeDoc configuration
           cat > typedoc.json << 'EOF'
           {
-            "entryPoints": ["src/index.ts"],
+            "entryPoints": ["src/server.ts"],
             "out": "docs/api/generated",
             "plugin": ["typedoc-plugin-markdown"],
             "theme": "markdown",
