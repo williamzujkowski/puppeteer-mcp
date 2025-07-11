@@ -74,6 +74,12 @@ describe('RedisSessionStore', () => {
     await store.destroy();
   });
 
+  afterAll(async () => {
+    // Clean up all InMemorySessionStore instances to prevent memory leaks
+    const { InMemorySessionStore } = await import('../../../src/store/in-memory-session-store.js');
+    await InMemorySessionStore.cleanupAll();
+  });
+
   describe('create', () => {
     it('should create a new session in Redis', async () => {
       const id = await store.create(sessionData);

@@ -25,12 +25,15 @@ export class InMemorySessionStore implements SessionStore {
     this.logger = logger ?? pino({ level: 'info' });
 
     // Start cleanup interval for expired sessions
-    this.cleanupInterval = setInterval(() => {
-      void this.deleteExpired();
-    }, 60000); // Run every minute
+    // Skip interval creation in test environment to prevent memory leaks
+    if (process.env.NODE_ENV !== 'test') {
+      this.cleanupInterval = setInterval(() => {
+        void this.deleteExpired();
+      }, 60000); // Run every minute
 
-    // Make sure the interval doesn't keep the process alive
-    this.cleanupInterval.unref();
+      // Make sure the interval doesn't keep the process alive
+      this.cleanupInterval.unref();
+    }
 
     // Track this instance
     InMemorySessionStore.instances.add(this);
