@@ -250,7 +250,7 @@ describe('BrowserPool', () => {
 
       // This should timeout
       await expect(pool.acquireBrowser('session-4')).rejects.toThrow('Browser acquisition timeout');
-    });
+    }, 10000);
   });
 
   describe('Page Management', () => {

@@ -225,6 +225,11 @@ export class RedisSessionStore implements SessionStore {
    * Start cleanup interval for expired sessions
    */
   private startCleanupInterval(): void {
+    // Skip interval creation in test environment to prevent memory leaks
+    if (process.env.NODE_ENV === 'test') {
+      return;
+    }
+
     this.cleanupInterval = setInterval(() => {
       void this.deleteExpired().catch((error) => {
         this.logger.error({ error }, 'Failed to clean up expired sessions');

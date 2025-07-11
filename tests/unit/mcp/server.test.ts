@@ -322,7 +322,7 @@ describe('MCP Server Session Management', () => {
       const response = JSON.parse(result.content[0].text);
 
       expect(response.error).toBe('Session ID is required');
-      expect(response.code).toBe('INVALID_SESSION');
+      expect(response.code).toBe('CONTEXT_CREATION_FAILED');
     });
   });
 

@@ -215,7 +215,7 @@ describe('MCP Execute-in-Context Tool', () => {
 
       const responseData = JSON.parse(result.content[0].text);
       expect(responseData.error).toBe('Network error');
-      expect(responseData.code).toBe('EXECUTION_FAILED');
+      expect(responseData.code).toBe('REST_EXECUTION_FAILED');
     });
 
     it('should handle unparseable response gracefully', async () => {

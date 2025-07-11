@@ -42,6 +42,9 @@ export class BrowserDomainError extends EnhancedAppError {
 
     super({ message, context, statusCode: 500, isOperational: true, details: browserInfo });
     this.name = 'BrowserDomainError';
+
+    // Ensure proper prototype chain for instanceof checks
+    Object.setPrototypeOf(this, BrowserDomainError.prototype);
   }
 }
 

@@ -286,7 +286,7 @@ describe('Comprehensive Error System Tests', () => {
       expect(error).toBeInstanceOf(ValidationDomainError);
       expect(error.statusCode).toBe(400);
       expect(error.errorContext.errorCode).toBe('VALIDATION_REQUIRED');
-      expect(error.getTechnicalDetails().field).toBe('username');
+      expect(error.getTechnicalDetails().validationErrors[0].field).toBe('username');
     });
 
     it('should use default context when set', () => {

@@ -43,6 +43,9 @@ export class AuthenticationDomainError extends EnhancedAppError {
 
     super({ message, context, statusCode: 401, isOperational: true, details: technicalDetails });
     this.name = 'AuthenticationDomainError';
+
+    // Ensure proper prototype chain for instanceof checks
+    Object.setPrototypeOf(this, AuthenticationDomainError.prototype);
   }
 }
 
@@ -76,5 +79,8 @@ export class AuthorizationDomainError extends EnhancedAppError {
 
     super({ message, context, statusCode: 403, isOperational: true });
     this.name = 'AuthorizationDomainError';
+
+    // Ensure proper prototype chain for instanceof checks
+    Object.setPrototypeOf(this, AuthorizationDomainError.prototype);
   }
 }

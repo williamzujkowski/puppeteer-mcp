@@ -49,5 +49,8 @@ export class ValidationDomainError extends EnhancedAppError {
       details: { validationErrors },
     });
     this.name = 'ValidationDomainError';
+
+    // Ensure proper prototype chain for instanceof checks
+    Object.setPrototypeOf(this, ValidationDomainError.prototype);
   }
 }

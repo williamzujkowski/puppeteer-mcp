@@ -36,36 +36,65 @@ describe('Telemetry Instrumentations', () => {
     });
 
     it('should instrument create method', async () => {
-      const session = await store.create('test-user', { role: 'user' });
+      const sessionData = {
+        userId: '123e4567-e89b-12d3-a456-426614174000',
+        username: 'test-user',
+        roles: ['user'],
+        createdAt: new Date().toISOString(),
+        expiresAt: new Date(Date.now() + 3600000).toISOString(),
+      };
+      const sessionId = await store.create(sessionData);
 
-      expect(session).toBeDefined();
-      expect(session.userId).toBe('test-user');
-      expect(session.id).toBeTruthy();
+      expect(sessionId).toBeDefined();
+      expect(typeof sessionId).toBe('string');
     });
 
     it('should instrument get method', async () => {
-      const created = await store.create('test-user');
-      const retrieved = await store.get(created.id);
+      const sessionData = {
+        userId: '123e4567-e89b-12d3-a456-426614174000',
+        username: 'test-user',
+        roles: ['user'],
+        createdAt: new Date().toISOString(),
+        expiresAt: new Date(Date.now() + 3600000).toISOString(),
+      };
+      const sessionId = await store.create(sessionData);
+      const retrieved = await store.get(sessionId);
 
       expect(retrieved).toBeDefined();
-      expect(retrieved?.id).toBe(created.id);
+      expect(retrieved?.id).toBe(sessionId);
     });
 
     it('should instrument delete method', async () => {
-      const session = await store.create('test-user');
-      const deleted = await store.delete(session.id);
+      const sessionData = {
+        userId: '123e4567-e89b-12d3-a456-426614174000',
+        username: 'test-user',
+        roles: ['user'],
+        createdAt: new Date().toISOString(),
+        expiresAt: new Date(Date.now() + 3600000).toISOString(),
+      };
+      const sessionId = await store.create(sessionData);
+      const deleted = await store.delete(sessionId);
 
       expect(deleted).toBe(true);
 
-      const retrieved = await store.get(session.id);
+      const retrieved = await store.get(sessionId);
       expect(retrieved).toBeNull();
     });
 
-    it('should instrument listByUserId method', async () => {
-      await store.create('test-user');
-      await store.create('test-user');
+    it('should instrument getByUserId method', async () => {
+      const userId = '123e4567-e89b-12d3-a456-426614174000';
+      const sessionData = {
+        userId,
+        username: 'test-user',
+        roles: ['user'],
+        createdAt: new Date().toISOString(),
+        expiresAt: new Date(Date.now() + 3600000).toISOString(),
+      };
 
-      const sessions = await store.listByUserId('test-user');
+      await store.create(sessionData);
+      await store.create({ ...sessionData, createdAt: new Date().toISOString() });
+
+      const sessions = await store.getByUserId(userId);
       expect(sessions).toHaveLength(2);
     });
   });

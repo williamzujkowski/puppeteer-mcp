@@ -37,7 +37,7 @@ export class EnhancedAppError extends AppError {
 
     super(
       message,
-      statusCode ?? context.context?.statusCode ?? 500,
+      statusCode ?? context?.context?.statusCode ?? 500,
       isOperational ?? true,
       details,
     );
