@@ -281,7 +281,7 @@ export class ModularBrowserActionExecutor implements ActionExecutor {
    * @param sessionId - Session identifier
    * @returns Session metrics
    */
-  getSessionMetrics(sessionId: string): ActionMetrics[] {
+  getSessionMetrics(sessionId: string): CollectorActionMetrics[] {
     return this.components.metricsCollector.getSessionMetrics(sessionId);
   }
 
