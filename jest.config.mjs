@@ -5,6 +5,10 @@ export default {
   extensionsToTreatAsEsm: ['.ts'],
   moduleNameMapper: {
     '^(\\.{1,2}/.*)\\.js$': '$1',
+    // Mock ESM packages to avoid import issues
+    'node-fetch': '<rootDir>/tests/__mocks__/node-fetch.js',
+    'socks-proxy-agent': '<rootDir>/tests/__mocks__/socks-proxy-agent.js',
+    'https-proxy-agent': '<rootDir>/tests/__mocks__/https-proxy-agent.js',
     // Handle .js extensions first for path aliases
     '^@core/(.*)\\.js$': '<rootDir>/src/core/$1',
     '^@store/(.*)\\.js$': '<rootDir>/src/store/$1',
@@ -40,7 +44,7 @@ export default {
     ],
   },
   transformIgnorePatterns: [
-    'node_modules/(?!(node-fetch|data-uri-to-buffer|fetch-blob|formdata-polyfill))'
+    'node_modules/(?!(node-fetch|data-uri-to-buffer|fetch-blob|formdata-polyfill|https-proxy-agent|socks-proxy-agent|@types/))'
   ],
   roots: ['<rootDir>/src', '<rootDir>/tests'],
   testMatch: ['**/__tests__/**/*.+(ts|tsx|js)', '**/?(*.)+(spec|test).+(ts|tsx|js)'],

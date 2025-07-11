@@ -119,7 +119,25 @@ describe('SessionManager Backward Compatibility', () => {
     });
 
     it('should validate sessions with same behavior', async () => {
-      await sessionManager.createOrUpdateSession('session1', 'user1', 'conn1');
+      const createResult = await sessionManager.createOrUpdateSession(
+        'session1',
+        'user1',
+        'conn1',
+        {
+          roles: ['user'], // Add roles to pass permission validation
+        },
+      );
+      expect(createResult).toBe(true); // Session creation should succeed
+
+      // Add small delay to allow state transitions to complete
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      // Check session exists
+      const session = sessionManager.getSession('session1');
+      expect(session).toBeDefined();
+      expect(session?.sessionId).toBe('session1');
+      expect(session?.connectionIds.size).toBe(1);
+      expect(session?.connectionIds.has('conn1')).toBe(true);
 
       const isValid = await sessionManager.validateSession('session1', mockConnectionManager);
       expect(isValid).toBe(true);
