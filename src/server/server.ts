@@ -28,7 +28,7 @@ import { ServerError } from './server-config.js';
 export class PuppeteerMcpServer {
   private components?: ServerComponents;
   private dependencies?: ServerDependencies;
-  private healthMonitoringInterval?: NodeJS.Timeout;
+  private _healthMonitoringInterval?: NodeJS.Timeout;
 
   /**
    * Initialize the server
@@ -99,7 +99,7 @@ export class PuppeteerMcpServer {
       startMcpServer(logger);
 
       // Start health monitoring
-      this.healthMonitoringInterval = startHealthMonitoring({
+      this._healthMonitoringInterval = startHealthMonitoring({
         components: this.components,
         browserPool,
         sessionStore,

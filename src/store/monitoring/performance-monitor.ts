@@ -31,13 +31,13 @@ export interface PerformanceMetrics {
  * Performance monitor for session operations
  */
 export class PerformanceMonitor {
-  private logger: pino.Logger;
+  private _logger: pino.Logger;
   private latencyBuckets: number[] = [];
   private operationTimestamps: number[] = [];
   private readonly bucketSize = 1000; // Keep last 1000 operations
 
   constructor(logger?: pino.Logger) {
-    this.logger = logger ?? pino({ level: 'info' });
+    this._logger = logger ?? pino({ level: 'info' });
   }
 
   /**
@@ -110,11 +110,13 @@ export class PerformanceMonitor {
     let peak = 0;
     for (let i = 0; i < this.operationTimestamps.length; i++) {
       const windowStart = this.operationTimestamps[i];
-      const windowEnd = windowStart + 1000;
-      const opsInWindow = this.operationTimestamps.filter(
-        ts => ts >= windowStart && ts < windowEnd
-      ).length;
-      peak = Math.max(peak, opsInWindow);
+      if (windowStart !== undefined) {
+        const windowEnd = windowStart + 1000;
+        const opsInWindow = this.operationTimestamps.filter(
+          ts => ts >= windowStart && ts < windowEnd
+        ).length;
+        peak = Math.max(peak, opsInWindow);
+      }
     }
     return peak;
   }

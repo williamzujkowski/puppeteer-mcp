@@ -17,7 +17,7 @@ import { pino } from 'pino';
  * Metrics collector for session operations
  */
 export class MetricsCollector extends EventEmitter {
-  private logger: pino.Logger;
+  private _logger: pino.Logger;
   private metrics: SessionMetrics;
 
   constructor(
@@ -25,7 +25,7 @@ export class MetricsCollector extends EventEmitter {
     logger?: pino.Logger
   ) {
     super();
-    this.logger = logger ?? pino({ level: 'info' });
+    this._logger = logger ?? pino({ level: 'info' });
     this.metrics = this.initializeMetrics(storeType);
   }
 

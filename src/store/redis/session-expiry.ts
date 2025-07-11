@@ -4,7 +4,7 @@
  * @nist ac-12 "Session termination"
  */
 
-import type { Session, SessionData } from '../../types/session.js';
+import type { Session } from '../../types/session.js';
 import type { RedisClient, StoreLogger } from './types.js';
 
 /**

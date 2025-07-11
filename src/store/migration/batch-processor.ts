@@ -19,11 +19,11 @@ import { MigrationMetrics } from './migration-metrics.js';
  * Batch processor for session migration
  */
 export class BatchProcessor {
-  private logger: pino.Logger;
+  private _logger: pino.Logger;
   private metrics: MigrationMetrics;
 
   constructor(logger: pino.Logger) {
-    this.logger = logger;
+    this._logger = logger;
     this.metrics = new MigrationMetrics(logger);
   }
 

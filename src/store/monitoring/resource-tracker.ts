@@ -116,7 +116,7 @@ export class ResourceTracker {
 
     try {
       const [info, keyCount] = await Promise.all([
-        redisClient.info(),
+        redisClient.info() as Promise<string>,
         redisClient.dbsize()
       ]);
       
@@ -135,9 +135,10 @@ export class ResourceTracker {
   /**
    * Parse value from Redis info string
    */
-  private parseInfoValue(info: string, key: string): number | undefined {
+  private parseInfoValue(info: string | undefined, key: string): number | undefined {
+    if (!info) return undefined;
     const match = info.match(new RegExp(`${key}:(\\d+)`));
-    return match ? parseInt(match[1], 10) : undefined;
+    return match && match[1] ? parseInt(match[1], 10) : undefined;
   }
 
   /**
@@ -192,7 +193,7 @@ export class ResourceTracker {
    */
   checkResourceLimits(
     maxMemoryMB: number = 1024,
-    maxSessions: number = 10000
+    _maxSessions: number = 10000
   ): { withinLimits: boolean; warnings: string[] } {
     const warnings: string[] = [];
     let withinLimits = true;

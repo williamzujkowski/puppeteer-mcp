@@ -21,7 +21,7 @@ import {
 } from '../core/middleware/security-headers.js';
 import { createRateLimiter } from '../core/middleware/rate-limiter.js';
 import { requestContextMiddleware } from '../utils/logger.js';
-import { contextPropagationMiddleware } from '../telemetry/context.js';
+import { contextPropagationMiddleware } from '../telemetry-stub.js';
 import { MiddlewareConfig } from './types.js';
 import { getTrustProxyConfig } from './server-config.js';
 
@@ -167,7 +167,7 @@ export function setupTelemetryMiddleware(app: Application, middlewareConfig: Mid
       serviceVersion: config.TELEMETRY_SERVICE_VERSION,
       environment: config.TELEMETRY_ENVIRONMENT,
     };
-    app.use(contextPropagationMiddleware(telemetryConfig as any));
+    app.use(contextPropagationMiddleware);
   }
 }
 

@@ -14,11 +14,8 @@ import type {
   SpanProcessor 
 } from '@opentelemetry/sdk-trace-node';
 import type { 
-  PushMetricExporter, 
-  MetricReader, 
   PeriodicExportingMetricReaderOptions 
 } from '@opentelemetry/sdk-metrics';
-import type { TextMapPropagator } from '@opentelemetry/api';
 
 /**
  * Telemetry configuration interface
@@ -104,7 +101,7 @@ function parseResourceAttributes(): Record<string, string | number | boolean> | 
   }
   
   try {
-    return JSON.parse(config.TELEMETRY_RESOURCE_ATTRIBUTES);
+    return config.TELEMETRY_RESOURCE_ATTRIBUTES as Record<string, string | number | boolean>;
   } catch (error) {
     console.error('Failed to parse TELEMETRY_RESOURCE_ATTRIBUTES:', error);
     return undefined;
@@ -142,59 +139,59 @@ export function getTelemetryConfig(): TelemetryConfig {
     environment: config.TELEMETRY_ENVIRONMENT,
     
     tracing: {
-      enabled: config.TELEMETRY_TRACE_ENABLED,
-      samplingRate: config.TELEMETRY_TRACE_SAMPLING_RATE,
-      exporter: config.TELEMETRY_TRACE_EXPORTER,
+      enabled: config.TELEMETRY_ENABLED,
+      samplingRate: config.TELEMETRY_SAMPLING_RATIO,
+      exporter: config.TELEMETRY_EXPORTER_TYPE === 'none' ? 'none' : config.TELEMETRY_EXPORTER_TYPE as 'otlp' | 'jaeger' | 'zipkin' | 'console',
       endpoints: {
-        otlp: config.TELEMETRY_TRACE_OTLP_ENDPOINT,
-        jaeger: config.TELEMETRY_TRACE_JAEGER_ENDPOINT,
-        zipkin: config.TELEMETRY_TRACE_ZIPKIN_ENDPOINT,
+        otlp: config.TELEMETRY_EXPORTER_ENDPOINT || 'http://localhost:4318',
+        jaeger: config.TELEMETRY_EXPORTER_ENDPOINT || 'http://localhost:14268/api/traces',
+        zipkin: config.TELEMETRY_EXPORTER_ENDPOINT || 'http://localhost:9411/api/v2/spans',
       },
     },
     
     metrics: {
-      enabled: config.TELEMETRY_METRICS_ENABLED,
+      enabled: config.TELEMETRY_ENABLED,
       interval: config.TELEMETRY_METRICS_INTERVAL,
-      exporter: config.TELEMETRY_METRICS_EXPORTER,
+      exporter: config.TELEMETRY_EXPORTER_TYPE === 'none' ? 'none' : config.TELEMETRY_EXPORTER_TYPE === 'otlp' ? 'otlp' : 'console',
       endpoints: {
-        otlp: config.TELEMETRY_METRICS_OTLP_ENDPOINT,
-        prometheusPort: config.TELEMETRY_METRICS_PROMETHEUS_PORT,
+        otlp: config.TELEMETRY_EXPORTER_ENDPOINT || 'http://localhost:4318',
+        prometheusPort: 9090,
       },
     },
     
     propagation: {
-      propagators: config.TELEMETRY_PROPAGATORS.split(',').map(p => p.trim()),
-      baggageMaxSize: config.TELEMETRY_BAGGAGE_MAX_SIZE,
+      propagators: config.TELEMETRY_PROPAGATORS,
+      baggageMaxSize: 180,
     },
     
     resource: {
-      detectionEnabled: config.TELEMETRY_RESOURCE_DETECTION,
+      detectionEnabled: true,
       attributes: parseResourceAttributes(),
     },
     
     sampling: {
-      strategy: config.TELEMETRY_SAMPLING_STRATEGY,
-      adaptiveTargetRate: config.TELEMETRY_SAMPLING_ADAPTIVE_TARGET_RATE,
+      strategy: config.TELEMETRY_TRACE_ID_RATIO_BASED ? 'trace_id_ratio' : 'parent_based',
+      adaptiveTargetRate: config.TELEMETRY_SAMPLING_RATIO,
     },
     
     export: {
-      timeout: config.TELEMETRY_EXPORT_TIMEOUT,
-      maxQueueSize: config.TELEMETRY_EXPORT_MAX_QUEUE_SIZE,
-      maxBatchSize: config.TELEMETRY_EXPORT_MAX_BATCH_SIZE,
-      batchDelay: config.TELEMETRY_EXPORT_BATCH_DELAY,
+      timeout: config.TELEMETRY_EXPORTER_TIMEOUT,
+      maxQueueSize: config.TELEMETRY_BATCH_MAX_QUEUE_SIZE,
+      maxBatchSize: config.TELEMETRY_BATCH_MAX_EXPORT_BATCH_SIZE,
+      batchDelay: config.TELEMETRY_BATCH_SCHEDULED_DELAY,
     },
     
     instrumentations: {
-      http: config.TELEMETRY_INSTRUMENT_HTTP,
-      express: config.TELEMETRY_INSTRUMENT_EXPRESS,
-      grpc: config.TELEMETRY_INSTRUMENT_GRPC,
-      redis: config.TELEMETRY_INSTRUMENT_REDIS,
-      ws: config.TELEMETRY_INSTRUMENT_WS,
-      puppeteer: config.TELEMETRY_INSTRUMENT_PUPPETEER,
+      http: config.TELEMETRY_INSTRUMENTATION_HTTP,
+      express: config.TELEMETRY_INSTRUMENTATION_EXPRESS,
+      grpc: config.TELEMETRY_INSTRUMENTATION_GRPC,
+      redis: config.TELEMETRY_INSTRUMENTATION_REDIS,
+      ws: true,
+      puppeteer: true,
     },
     
     debug: {
-      enabled: config.TELEMETRY_DEBUG,
+      enabled: config.TELEMETRY_LOG_LEVEL !== 'none',
       logLevel: getLogLevel(config.TELEMETRY_LOG_LEVEL),
     },
   };
@@ -225,7 +222,7 @@ export function getBatchSpanProcessorConfig(telemetryConfig: TelemetryConfig): B
 /**
  * Get metric reader options
  */
-export function getMetricReaderOptions(telemetryConfig: TelemetryConfig): PeriodicExportingMetricReaderOptions {
+export function getMetricReaderOptions(telemetryConfig: TelemetryConfig): any {
   return {
     exportIntervalMillis: telemetryConfig.metrics.interval,
     exportTimeoutMillis: telemetryConfig.export.timeout,

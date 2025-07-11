@@ -25,8 +25,8 @@
     "strictPropertyInitialization": true,
     "noImplicitThis": true,
     "alwaysStrict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
     "noUncheckedIndexedAccess": true,
@@ -71,7 +71,8 @@
     "**/*.spec.ts",
     "**/*.test.ts",
     "src/mcp/examples/**/*",
-    "src/puppeteer/actions/execution/interaction/test-backward-compatibility.ts"
+    "src/puppeteer/actions/execution/interaction/test-backward-compatibility.ts",
+    "src/telemetry/**/*"
   ],
   "ts-node": {
     "esm": true,

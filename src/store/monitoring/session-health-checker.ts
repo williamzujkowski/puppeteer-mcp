@@ -19,13 +19,13 @@ import { pino } from 'pino';
  * Session health checker
  */
 export class SessionHealthChecker {
-  private logger: pino.Logger;
+  private _logger: pino.Logger;
 
   constructor(
     private sessionStore: SessionStore,
     logger?: pino.Logger
   ) {
-    this.logger = logger ?? pino({ level: 'info' });
+    this._logger = logger ?? pino({ level: 'info' });
   }
 
   /**

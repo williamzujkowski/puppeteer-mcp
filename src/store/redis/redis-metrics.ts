@@ -240,21 +240,36 @@ export class RedisMetricsCollector {
   async generatePerformanceReport(): Promise<{
     summary: RedisMetrics;
     operationBreakdown: Map<string, any>;
-    anomalies: ReturnType<typeof this.detectAnomalies>;
+    anomalies: Array<{ operation: string; issue: string; severity: 'low' | 'medium' | 'high' }>;
     recommendations: string[];
   }> {
     const summary = await this.getCurrentMetrics();
     const operationBreakdown = this.getOperationMetrics();
-    const anomalies = this.detectAnomalies();
+    const rawAnomalies = this.detectAnomalies();
     
     const recommendations: string[] = [];
     
-    if (anomalies.highLatency.length > 0) {
-      recommendations.push(`Optimize high-latency operations: ${anomalies.highLatency.join(', ')}`);
+    if (rawAnomalies.highLatency.length > 0) {
+      recommendations.push(`Optimize high-latency operations: ${rawAnomalies.highLatency.join(', ')}`);
     }
     
-    if (anomalies.highErrorRate.length > 0) {
-      recommendations.push(`Investigate error-prone operations: ${anomalies.highErrorRate.join(', ')}`);
+    if (rawAnomalies.highErrorRate.length > 0) {
+      recommendations.push(`Investigate error-prone operations: ${rawAnomalies.highErrorRate.join(', ')}`);
+    }
+    
+    // Convert anomalies to expected format
+    const anomalies: Array<{ operation: string; issue: string; severity: 'low' | 'medium' | 'high' }> = [];
+    
+    for (const op of rawAnomalies.highLatency) {
+      anomalies.push({ operation: op, issue: 'High latency', severity: 'high' });
+    }
+    
+    for (const op of rawAnomalies.highErrorRate) {
+      anomalies.push({ operation: op, issue: 'High error rate', severity: 'high' });
+    }
+    
+    for (const op of rawAnomalies.lowThroughput) {
+      anomalies.push({ operation: op, issue: 'Low throughput', severity: 'medium' });
     }
     
     // Add more recommendations based on metrics

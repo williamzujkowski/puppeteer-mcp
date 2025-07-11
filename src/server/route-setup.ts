@@ -10,7 +10,7 @@ import { Logger } from 'pino';
 import { config } from '../core/config.js';
 import { createCSRFTokenEndpoint } from '../core/middleware/security-headers.js';
 import { RateLimitPresets } from '../core/middleware/rate-limiter.js';
-import { telemetryHealthHandler } from '../telemetry/health.js';
+import { telemetryHealthHandler } from '../telemetry-stub.js';
 import { createHealthRouter } from '../routes/health.js';
 import { createSessionRoutes } from '../routes/sessions.js';
 import { createContextRoutes } from '../routes/contexts.js';

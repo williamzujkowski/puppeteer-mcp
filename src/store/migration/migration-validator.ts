@@ -81,10 +81,10 @@ export class MigrationValidator {
  * Standard restore strategy implementation
  */
 export class StandardRestoreStrategy implements RestoreStrategy {
-  private logger: pino.Logger;
+  private _logger: pino.Logger;
 
   constructor(logger: pino.Logger) {
-    this.logger = logger;
+    this._logger = logger;
   }
 
   /**

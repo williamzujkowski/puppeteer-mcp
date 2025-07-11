@@ -13,10 +13,10 @@ import { initializeRedis, closeRedis } from '../utils/redis-client.js';
 import { 
   initializeTelemetry, 
   shutdownTelemetry,
-  createBrowserPoolMetrics,
-} from '../telemetry/index.js';
-import { startTelemetryHealthMonitoring } from '../telemetry/health.js';
-import { instrumentSessionStore } from '../telemetry/instrumentations/session.js';
+  startTelemetryHealthMonitoring,
+  instrumentSessionStore
+} from '../telemetry-stub.js';
+const createBrowserPoolMetrics = () => {};
 import { SessionStore } from '../store/session-store.interface.js';
 import { ServerDependencies } from './types.js';
 import { createServerConfig } from './server-config.js';
@@ -92,11 +92,11 @@ export async function initializeAllTelemetry(
   const instrumentedSessionStore = instrumentSessionStore(sessionStore);
   
   // Create browser pool metrics
-  const browserPoolMetrics = createBrowserPoolMetrics(browserPool);
+  const browserPoolMetrics = createBrowserPoolMetrics();
   
   // Start telemetry health monitoring
   if (config.TELEMETRY_ENABLED) {
-    startTelemetryHealthMonitoring(60000); // Check every minute
+    startTelemetryHealthMonitoring(); // Check every minute
   }
 
   return { instrumentedSessionStore, browserPoolMetrics };

@@ -181,7 +181,12 @@ export class RedisHealthMonitor {
    */
   getHealthReport(): {
     current: RedisHealthResult;
-    trends: ReturnType<typeof this.getHealthTrends>;
+    trends: {
+      averageLatency: number;
+      successRate: number;
+      recentFailures: number;
+      availabilityPercentage: number;
+    };
     isDegraded: boolean;
     recommendations: string[];
   } {
@@ -190,7 +195,7 @@ export class RedisHealthMonitor {
       error: 'No health data available'
     };
     
-    const trends = this.getHealthTrends();
+    const rawTrends = this.getHealthTrends();
     const isDegraded = this.isDegraded();
     
     const recommendations: string[] = [];
@@ -199,17 +204,24 @@ export class RedisHealthMonitor {
       recommendations.push('Check Redis server status and configuration');
     }
     
-    if (trends.averageLatency > 200) {
+    if (rawTrends.averageLatency > 200) {
       recommendations.push('Consider Redis performance optimization');
     }
     
-    if (trends.recentFailures > 1) {
+    if (rawTrends.recentFailures > 1) {
       recommendations.push('Investigate connection stability issues');
     }
     
-    if (trends.availability < 99) {
+    if (rawTrends.availability < 99) {
       recommendations.push('Review Redis deployment and monitoring');
     }
+
+    const trends = {
+      averageLatency: rawTrends.averageLatency,
+      successRate: rawTrends.availability / 100,
+      recentFailures: rawTrends.recentFailures,
+      availabilityPercentage: rawTrends.availability
+    };
 
     return {
       current,

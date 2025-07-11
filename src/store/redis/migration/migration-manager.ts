@@ -22,11 +22,11 @@ import type { ValidationOptions } from './validation-service.js';
  * Unified migration manager
  */
 export class MigrationManager {
-  private logger: StoreLogger;
+  private _logger: StoreLogger;
   private factory: MigrationFactory;
 
   constructor(logger: StoreLogger) {
-    this.logger = logger;
+    this._logger = logger;
     this.factory = new MigrationFactory(logger);
   }
 

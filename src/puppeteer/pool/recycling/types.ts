@@ -152,7 +152,6 @@ export interface RecyclingStats {
 /**
  * Default recycling configuration
  */
-// @ts-expect-error - RecyclingReason enum is used in type definition
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 type _RecyclingReasonCheck = RecyclingReason;
 

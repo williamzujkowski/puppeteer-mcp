@@ -39,12 +39,12 @@ export interface TrendAnalysis {
  * Analytics engine for session monitoring
  */
 export class AnalyticsEngine {
-  private logger: pino.Logger;
+  private _logger: pino.Logger;
   private metricsHistory: MetricsHistoryEntry[] = [];
   private startTime: number;
 
   constructor(logger?: pino.Logger) {
-    this.logger = logger ?? pino({ level: 'info' });
+    this._logger = logger ?? pino({ level: 'info' });
     this.startTime = Date.now();
   }
 

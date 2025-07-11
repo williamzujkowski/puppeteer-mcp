@@ -46,7 +46,7 @@ export class SessionStoreMonitor extends EventEmitter {
   private scheduler: MonitoringScheduler;
 
   constructor(
-    private sessionStore: SessionStore,
+    private _sessionStore: SessionStore,
     config: Partial<MonitoringConfig> = {},
     logger?: pino.Logger
   ) {
@@ -56,8 +56,8 @@ export class SessionStoreMonitor extends EventEmitter {
     this.config = mergeConfig(config);
 
     // Initialize sub-components
-    this.healthChecker = new SessionHealthChecker(sessionStore, this.logger);
-    this.metricsCollector = new MetricsCollector(sessionStore.constructor.name, this.logger);
+    this.healthChecker = new SessionHealthChecker(this._sessionStore, this.logger);
+    this.metricsCollector = new MetricsCollector(this._sessionStore.constructor.name, this.logger);
     this.alertManager = new AlertManager(
       this.config.alertThresholds,
       this.config.enableAlerting,
@@ -65,7 +65,7 @@ export class SessionStoreMonitor extends EventEmitter {
     );
     this.analyticsEngine = new AnalyticsEngine(this.logger);
     this.performanceMonitor = new PerformanceMonitor(this.logger);
-    this.resourceTracker = new ResourceTracker(sessionStore, this.logger);
+    this.resourceTracker = new ResourceTracker(this._sessionStore, this.logger);
     this.scheduler = new MonitoringScheduler(this.logger);
 
     this.setupEventHandlers();
@@ -103,7 +103,9 @@ export class SessionStoreMonitor extends EventEmitter {
       interval: this.config.healthCheckInterval,
       immediate: true,
       enabled: true,
-      handler: () => this.performHealthCheck()
+      handler: async () => {
+        await this.performHealthCheck();
+      }
     });
 
     this.scheduler.registerTask({

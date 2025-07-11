@@ -6,7 +6,7 @@
 import { AsyncLocalStorage } from 'async_hooks';
 import type { Response, NextFunction } from 'express';
 import type { RequestContext, AuthenticatedRequest } from './types.js';
-import { getCorrelationIds } from '../../telemetry/context.js';
+import { getCorrelationIds } from '../../telemetry-stub.js';
 
 // AsyncLocalStorage for request context
 const requestContext = new AsyncLocalStorage<RequestContext>();

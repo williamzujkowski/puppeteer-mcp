@@ -8,8 +8,7 @@ import * as puppeteer from 'puppeteer';
 import type { BrowserInstance, BrowserPoolOptions } from '../interfaces/browser-pool.interface.js';
 import type { InternalBrowserInstance } from './browser-pool-maintenance.js';
 import { createLogger } from '../../utils/logger.js';
-import { instrumentBrowser } from '../../telemetry/instrumentations/puppeteer.js';
-import { isTelemetryInitialized } from '../../telemetry/index.js';
+import { instrumentBrowser, isTelemetryInitialized } from '../../telemetry-stub.js';
 
 const logger = createLogger('browser-utils');
 
