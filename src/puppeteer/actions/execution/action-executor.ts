@@ -14,10 +14,11 @@ import type {
   ActionContext,
   ValidationResult,
 } from '../../interfaces/action-executor.interface.js';
+import type { ActionMetrics } from '../../interfaces/action-executor/core.interface.js';
 import type { PageManager } from '../../interfaces/page-manager.interface.js';
 import type { BatchExecutionOptions } from '../batch-executor.js';
 import type { ExecutionConfig } from './coordinator/configuration-manager.js';
-import type { ActionMetrics, AggregatedMetrics } from './coordinator/metrics-collector.js';
+import type { ActionMetrics as CollectorActionMetrics, AggregatedMetrics } from './coordinator/metrics-collector.js';
 import type { PerformanceHints } from './coordinator/performance-optimizer.js';
 import type { RetryConfig } from './types.js';
 import { BatchActionExecutor } from '../batch-executor.js';
