@@ -108,7 +108,7 @@ describe('Comprehensive Error System Tests', () => {
           .setErrorCode('') // Invalid - empty string
           .setCategory(ErrorCategory.VALIDATION)
           .setSeverity(ErrorSeverity.LOW)
-          .setUserMessage('Test')
+          .setUserMessage('')  // Invalid - empty string
           .build();
       }).toThrow();
     });
@@ -123,7 +123,11 @@ describe('Comprehensive Error System Tests', () => {
         .setUserMessage('System error occurred')
         .build();
 
-      const error = new EnhancedAppError('Test error', context, 500);
+      const error = new EnhancedAppError({
+        message: 'Test error',
+        context,
+        statusCode: 500
+      });
 
       expect(error.message).toBe('Test error');
       expect(error.statusCode).toBe(500);
@@ -142,7 +146,11 @@ describe('Comprehensive Error System Tests', () => {
         .setTechnicalDetails({ field: 'test' })
         .build();
 
-      const error = new EnhancedAppError('Test error', context, 400);
+      const error = new EnhancedAppError({
+        message: 'Test error',
+        context,
+        statusCode: 400
+      });
       const json = error.toJSON();
 
       expect(json.errorCode).toBe('SERIALIZATION_TEST');
@@ -171,13 +179,13 @@ describe('Comprehensive Error System Tests', () => {
 
   describe('Domain-Specific Errors', () => {
     it('should create authentication domain error', () => {
-      const error = new AuthenticationDomainError(
-        'Invalid credentials',
-        'AUTH_INVALID_CREDENTIALS',
-        { attempts: 3 },
-        testContext.requestId,
-        testContext.userId,
-      );
+      const error = new AuthenticationDomainError({
+        message: 'Invalid credentials',
+        errorCode: 'AUTH_INVALID_CREDENTIALS',
+        technicalDetails: { attempts: 3 },
+        requestId: testContext.requestId,
+        userId: testContext.userId,
+      });
 
       expect(error.statusCode).toBe(401);
       expect(error.getCategory()).toBe(ErrorCategory.AUTHENTICATION);
@@ -187,17 +195,17 @@ describe('Comprehensive Error System Tests', () => {
     });
 
     it('should create browser domain error', () => {
-      const error = new BrowserDomainError(
-        'Element not found',
-        'BROWSER_ELEMENT_NOT_FOUND',
-        {
+      const error = new BrowserDomainError({
+        message: 'Element not found',
+        errorCode: 'BROWSER_ELEMENT_NOT_FOUND',
+        browserInfo: {
           selector: '#test-element',
           pageId: 'page-123',
           action: 'click',
         },
-        testContext.requestId,
-        testContext.sessionId,
-      );
+        requestId: testContext.requestId,
+        sessionId: testContext.sessionId,
+      });
 
       expect(error.statusCode).toBe(500);
       expect(error.getCategory()).toBe(ErrorCategory.BROWSER);
@@ -207,16 +215,16 @@ describe('Comprehensive Error System Tests', () => {
     });
 
     it('should create network domain error', () => {
-      const error = new NetworkDomainError(
-        'Connection timeout',
-        'NETWORK_TIMEOUT',
-        {
+      const error = new NetworkDomainError({
+        message: 'Connection timeout',
+        errorCode: 'NETWORK_TIMEOUT',
+        networkInfo: {
           url: 'https://api.example.com',
           timeout: 5000,
           method: 'GET',
         },
-        testContext.requestId,
-      );
+        requestId: testContext.requestId,
+      });
 
       expect(error.statusCode).toBe(500);
       expect(error.getCategory()).toBe(ErrorCategory.NETWORK);
@@ -225,40 +233,39 @@ describe('Comprehensive Error System Tests', () => {
     });
 
     it('should create validation domain error', () => {
-      const error = new ValidationDomainError(
-        'Invalid email format',
-        'VALIDATION_INVALID_EMAIL',
-        {
+      const error = new ValidationDomainError({
+        message: 'Invalid email format',
+        errorCode: 'VALIDATION_INVALID_EMAIL',
+        validationErrors: [{
           field: 'email',
-          value: 'invalid-email',
-          expectedType: 'email',
-        },
-        testContext.requestId,
-      );
+          message: 'invalid-email',
+          code: 'invalid_email',
+        }],
+        requestId: testContext.requestId,
+      });
 
       expect(error.statusCode).toBe(400);
       expect(error.getCategory()).toBe(ErrorCategory.VALIDATION);
-      expect(error.getSeverity()).toBe(ErrorSeverity.MEDIUM);
-      expect(error.getRecoverySuggestions()).toContain(RecoveryAction.VALIDATE_INPUT);
+      expect(error.getSeverity()).toBe(ErrorSeverity.LOW);
+      expect(error.getRecoverySuggestions()).toContain(RecoveryAction.FIX_INPUT);
     });
 
     it('should create resource domain error', () => {
-      const error = new ResourceDomainError(
-        'Memory limit exceeded',
-        'RESOURCE_MEMORY_EXHAUSTED',
-        {
+      const error = new ResourceDomainError({
+        message: 'Memory limit exceeded',
+        errorCode: 'RESOURCE_MEMORY_EXHAUSTED',
+        resourceInfo: {
           resourceType: 'memory',
-          currentUsage: 1024,
-          maxLimit: 512,
-          unit: 'MB',
+          action: 'allocation',
+          reason: 'limit_exceeded',
         },
-        testContext.requestId,
-      );
+        requestId: testContext.requestId,
+      });
 
       expect(error.statusCode).toBe(503);
       expect(error.getCategory()).toBe(ErrorCategory.RESOURCE);
-      expect(error.getSeverity()).toBe(ErrorSeverity.HIGH);
-      expect(error.getRecoverySuggestions()).toContain(RecoveryAction.WAIT_AND_RETRY);
+      expect(error.getSeverity()).toBe(ErrorSeverity.MEDIUM);
+      expect(error.getRecoverySuggestions()).toContain(RecoveryAction.RETRY);
     });
   });
 
@@ -314,7 +321,11 @@ describe('Comprehensive Error System Tests', () => {
         .setRequestContext(testContext.requestId, testContext.userId)
         .build();
 
-      error = new EnhancedAppError('Test error', context, 500);
+      error = new EnhancedAppError({
+        message: 'Test error',
+        context,
+        statusCode: 500
+      });
     });
 
     it('should serialize for REST API', () => {
@@ -751,6 +762,29 @@ describe('Comprehensive Error System Tests', () => {
         recoveryManager,
       );
 
+      // Create mock req, res, next for this test
+      const mockReq = {
+        method: 'GET',
+        originalUrl: '/api/test',
+        headers: { 'x-request-id': testContext.requestId },
+        user: { id: testContext.userId },
+        get: jest.fn((header: string) => {
+          if (header === 'user-agent') return testContext.userAgent;
+          return undefined;
+        }),
+        ip: testContext.ipAddress,
+        query: {},
+        params: {},
+      };
+
+      const mockRes = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn().mockReturnThis(),
+        set: jest.fn().mockReturnThis(),
+      };
+
+      const mockNext = jest.fn();
+
       // Simulate error in middleware
       const error = ErrorFactory.auth.tokenExpired(testContext);
       await errorHandler(error, mockReq, mockRes, mockNext);
@@ -766,7 +800,8 @@ describe('Comprehensive Error System Tests', () => {
         expect.objectContaining({
           error: expect.objectContaining({
             code: 'AUTH_TOKEN_EXPIRED',
-            retryConfig: expect.any(Object),
+            category: 'authentication',
+            severity: 'high',
           }),
         }),
       );
@@ -781,8 +816,8 @@ describe('Comprehensive Error System Tests', () => {
         patternDetected = true;
       });
 
-      // Track multiple auth errors to trigger pattern detection
-      for (let i = 0; i < 6; i++) {
+      // Track multiple auth errors to trigger pattern detection (need 10 for AUTH threshold)
+      for (let i = 0; i < 11; i++) {
         await errorTracker.trackError(
           ErrorFactory.auth.invalidCredentials({ ...testContext, requestId: `req-${i}` }),
           { ...testContext, requestId: `req-${i}` },

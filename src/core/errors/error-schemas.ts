@@ -11,10 +11,10 @@ import { ErrorCategory, ErrorSeverity, RecoveryAction } from './error-types.js';
  * Schema for validating error context
  */
 export const ErrorContextSchema = z.object({
-  errorCode: z.string(),
+  errorCode: z.string().min(1, 'Error code cannot be empty'),
   category: z.nativeEnum(ErrorCategory),
   severity: z.nativeEnum(ErrorSeverity),
-  userMessage: z.string(),
+  userMessage: z.string().min(1, 'User message cannot be empty'),
   technicalDetails: z.record(z.unknown()).optional(),
   recoverySuggestions: z.array(z.nativeEnum(RecoveryAction)),
   retryConfig: z
