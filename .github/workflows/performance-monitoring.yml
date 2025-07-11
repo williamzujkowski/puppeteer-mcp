@@ -49,7 +49,7 @@ jobs:
           
       - name: Run startup performance benchmark
         run: |
-          cat > benchmarks/startup-benchmark.js << 'EOF'
+          cat > benchmarks/startup-benchmark.cjs << 'EOF'
           const { performance } = require('perf_hooks');
           const { fork } = require('child_process');
           const path = require('path');
@@ -99,7 +99,7 @@ jobs:
           });
           EOF
           
-          node benchmarks/startup-benchmark.js || echo "Startup benchmark completed"
+          node benchmarks/startup-benchmark.cjs || echo "Startup benchmark completed"
           
       - name: Run browser pool performance benchmark
         run: |
@@ -179,7 +179,7 @@ jobs:
           
       - name: Run memory usage benchmark
         run: |
-          cat > benchmarks/memory-benchmark.js << 'EOF'
+          cat > benchmarks/memory-benchmark.cjs << 'EOF'
           const { performance } = require('perf_hooks');
           const v8 = require('v8');
           
@@ -238,11 +238,11 @@ jobs:
           }).catch(console.error);
           EOF
           
-          node benchmarks/memory-benchmark.js || echo "Memory benchmark completed"
+          node benchmarks/memory-benchmark.cjs || echo "Memory benchmark completed"
           
       - name: Run API response time benchmark
         run: |
-          cat > benchmarks/api-benchmark.js << 'EOF'
+          cat > benchmarks/api-benchmark.cjs << 'EOF'
           const http = require('http');
           const { performance } = require('perf_hooks');
           
@@ -338,7 +338,7 @@ jobs:
           }).catch(console.error);
           EOF
           
-          node benchmarks/api-benchmark.js || echo "API benchmark completed"
+          node benchmarks/api-benchmark.cjs || echo "API benchmark completed"
           
       - name: Analyze benchmark results
         run: |
@@ -526,7 +526,7 @@ jobs:
           
       - name: Update performance history
         run: |
-          cat > update-history.js << 'EOF'
+          cat > update-history.cjs << 'EOF'
           const fs = require('fs');
           
           // Load current results
@@ -582,7 +582,7 @@ jobs:
           }
           EOF
           
-          node update-history.js
+          node update-history.cjs
           
       - name: Generate performance dashboard
         run: |
@@ -609,7 +609,7 @@ jobs:
           
       - name: Check performance thresholds
         run: |
-          cat > check-thresholds.js << 'EOF'
+          cat > check-thresholds.cjs << 'EOF'
           const fs = require('fs');
           
           const report = JSON.parse(
@@ -650,4 +650,4 @@ jobs:
           }
           EOF
           
-          node check-thresholds.js || echo "::warning::Performance thresholds exceeded"
+          node check-thresholds.cjs || echo "::warning::Performance thresholds exceeded"
