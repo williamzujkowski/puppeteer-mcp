@@ -488,7 +488,23 @@ jobs:
         run: |
           # Copy generated API docs to Starlight
           mkdir -p starlight-docs/src/content/docs/api/reference
-          cp -r docs/api/generated/* starlight-docs/src/content/docs/api/reference/ || true
+          
+          # Process TypeDoc generated files - add frontmatter to markdown files
+          for file in docs/api/generated/*.md; do
+            if [ -f "$file" ]; then
+              filename=$(basename "$file")
+              title="${filename%.md}"
+              # Add frontmatter to the file
+              echo "---" > temp_file.md
+              echo "title: \"$title\"" >> temp_file.md
+              echo "description: \"Generated API documentation for $title\"" >> temp_file.md
+              echo "---" >> temp_file.md
+              echo "" >> temp_file.md
+              cat "$file" >> temp_file.md
+              cp temp_file.md "starlight-docs/src/content/docs/api/reference/$filename"
+              rm temp_file.md
+            fi
+          done || true
 
           # Copy guides
           mkdir -p starlight-docs/src/content/docs/guides
