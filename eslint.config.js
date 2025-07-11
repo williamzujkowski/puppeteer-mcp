@@ -57,6 +57,9 @@ export default tseslint.config(
       // Scripts (JavaScript files)
       'scripts/*.js',
 
+      // Test mocks
+      'tests/__mocks__/**',
+
       // Config files that should be ignored
       '*.js',
       '*.mjs',

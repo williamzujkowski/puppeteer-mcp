@@ -302,40 +302,7 @@ export class BrowserExecutor {
    * Create cookie action
    */
   private createCookieAction(command: string, parameters?: Record<string, unknown>): BrowserAction {
-    // Determine operation from command
-    let operation: CookieOperation;
-    if (
-      command.toLowerCase().includes('set') ||
-      (command === 'cookie' && parameters?.operation === 'set')
-    ) {
-      operation = 'set';
-    } else if (
-      command.toLowerCase().includes('get') ||
-      (command === 'cookie' && parameters?.operation === 'get')
-    ) {
-      operation = 'get';
-    } else if (
-      command.toLowerCase().includes('delete') ||
-      (command === 'cookie' && parameters?.operation === 'delete')
-    ) {
-      operation = 'delete';
-    } else if (
-      command.toLowerCase().includes('clear') ||
-      (command === 'cookie' && parameters?.operation === 'clear')
-    ) {
-      operation = 'clear';
-    } else if (parameters?.operation && typeof parameters.operation === 'string') {
-      // Validate operation is one of the allowed values
-      const validOps: CookieOperation[] = ['set', 'get', 'delete', 'clear'];
-      if (validOps.includes(parameters.operation as CookieOperation)) {
-        operation = parameters.operation as CookieOperation;
-      } else {
-        operation = 'get'; // Default fallback
-      }
-    } else {
-      // Default to get if no operation specified
-      operation = 'get';
-    }
+    const operation = this.determineCookieOperation(command, parameters);
 
     return {
       type: 'cookie',
@@ -344,6 +311,48 @@ export class BrowserExecutor {
       cookies: parameters?.cookies as any[] | undefined,
       names: parameters?.names as string[] | undefined,
     };
+  }
+
+  /**
+   * Determine cookie operation from command and parameters
+   */
+  private determineCookieOperation(
+    command: string,
+    parameters?: Record<string, unknown>,
+  ): CookieOperation {
+    // Check if operation is explicitly provided in parameters
+    if (parameters?.operation && typeof parameters.operation === 'string') {
+      return this.validateCookieOperation(parameters.operation);
+    }
+
+    // Determine operation from command string
+    const commandLower = command.toLowerCase();
+    const operationMap: Record<string, CookieOperation> = {
+      set: 'set',
+      get: 'get',
+      delete: 'delete',
+      clear: 'clear',
+    };
+
+    for (const [key, operation] of Object.entries(operationMap)) {
+      if (
+        commandLower.includes(key) ||
+        (command === 'cookie' && parameters?.operation === operation)
+      ) {
+        return operation;
+      }
+    }
+
+    // Default to get if no operation specified
+    return 'get';
+  }
+
+  /**
+   * Validate and return cookie operation
+   */
+  private validateCookieOperation(operation: string): CookieOperation {
+    const validOps: CookieOperation[] = ['set', 'get', 'delete', 'clear'];
+    return validOps.includes(operation as CookieOperation) ? (operation as CookieOperation) : 'get';
   }
 
   /**

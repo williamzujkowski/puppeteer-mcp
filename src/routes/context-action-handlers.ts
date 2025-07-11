@@ -190,7 +190,28 @@ export class ContextActionHandlers {
    * Convert command format to BrowserAction
    */
   private convertCommandToAction(command: string, params?: Record<string, unknown>): BrowserAction {
-    // Map common commands to action types
+    const actionType = this.getActionType(command);
+    const pageId = ''; // Will be set by the executor
+
+    const actionBuilders: Record<string, () => BrowserAction> = {
+      navigate: () => this.buildNavigateAction(pageId, params),
+      click: () => this.buildClickAction(pageId, params),
+      type: () => this.buildTypeAction(pageId, params),
+      wait: () => this.buildWaitAction(pageId, params),
+      screenshot: () => this.buildScreenshotAction(pageId, params),
+      evaluate: () => this.buildEvaluateAction(pageId, params),
+      scroll: () => this.buildScrollAction(pageId, params),
+      content: () => this.buildContentAction(pageId, params),
+    };
+
+    const builder = actionBuilders[actionType];
+    return builder ? builder() : this.buildGenericAction(actionType, pageId, params);
+  }
+
+  /**
+   * Get action type from command
+   */
+  private getActionType(command: string): string {
     const commandMap: Record<string, string> = {
       navigate: 'navigate',
       goto: 'navigate',
@@ -213,99 +234,134 @@ export class ContextActionHandlers {
       content: 'content',
     };
 
-    const actionType = commandMap[command.toLowerCase()] ?? command;
-    const pageId = ''; // Will be set by the executor
+    return commandMap[command.toLowerCase()] ?? command;
+  }
 
-    // Build action based on type
-    switch (actionType) {
-      case 'navigate':
-        return {
-          type: 'navigate',
-          pageId,
-          url: (params?.url as string) ?? (params?.href as string) ?? '',
-          waitUntil:
-            (params?.waitUntil as 'load' | 'domcontentloaded' | 'networkidle0' | 'networkidle2') ??
-            'load',
-        };
+  /**
+   * Build navigate action
+   */
+  private buildNavigateAction(pageId: string, params?: Record<string, unknown>): BrowserAction {
+    return {
+      type: 'navigate',
+      pageId,
+      url: (params?.url as string) ?? (params?.href as string) ?? '',
+      waitUntil:
+        (params?.waitUntil as 'load' | 'domcontentloaded' | 'networkidle0' | 'networkidle2') ??
+        'load',
+    };
+  }
 
-      case 'click':
-        return {
-          type: 'click',
-          pageId,
-          selector: (params?.selector as string) ?? '',
-          button: (params?.button as 'left' | 'right' | 'middle') ?? 'left',
-          clickCount: (params?.clickCount as number) ?? 1,
-          delay: (params?.delay as number) ?? 0,
-        };
+  /**
+   * Build click action
+   */
+  private buildClickAction(pageId: string, params?: Record<string, unknown>): BrowserAction {
+    return {
+      type: 'click',
+      pageId,
+      selector: (params?.selector as string) ?? '',
+      button: (params?.button as 'left' | 'right' | 'middle') ?? 'left',
+      clickCount: (params?.clickCount as number) ?? 1,
+      delay: (params?.delay as number) ?? 0,
+    };
+  }
 
-      case 'type':
-        return {
-          type: 'type',
-          pageId,
-          selector: (params?.selector as string) ?? '',
-          text: (params?.text as string) ?? (params?.value as string) ?? '',
-          delay: (params?.delay as number) ?? 0,
-        };
+  /**
+   * Build type action
+   */
+  private buildTypeAction(pageId: string, params?: Record<string, unknown>): BrowserAction {
+    return {
+      type: 'type',
+      pageId,
+      selector: (params?.selector as string) ?? '',
+      text: (params?.text as string) ?? (params?.value as string) ?? '',
+      delay: (params?.delay as number) ?? 0,
+    };
+  }
 
-      case 'wait':
-        if (params?.selector !== undefined && params.selector !== null) {
-          return {
-            type: 'wait',
-            pageId,
-            waitType: 'selector',
-            selector: params.selector as string,
-            timeout: (params?.timeout as number) ?? 30000,
-          };
-        } else {
-          return {
-            type: 'wait',
-            pageId,
-            waitType: 'timeout',
-            duration: (params?.duration as number) ?? (params?.timeout as number) ?? 1000,
-          };
-        }
-
-      case 'screenshot':
-        return {
-          type: 'screenshot',
-          pageId,
-          fullPage: (params?.fullPage as boolean) ?? false,
-          format: (params?.format as 'png' | 'jpeg' | 'webp') ?? 'png',
-          quality: params?.quality as number | undefined,
-        };
-
-      case 'evaluate':
-        return {
-          type: 'evaluate',
-          pageId,
-          function: (params?.code as string) ?? (params?.script as string) ?? '',
-          args: (params?.args as unknown[]) ?? [],
-        };
-
-      case 'scroll':
-        return {
-          type: 'scroll',
-          pageId,
-          direction: (params?.direction as 'up' | 'down' | 'left' | 'right') ?? 'down',
-          distance: (params?.distance as number) ?? (params?.amount as number) ?? 100,
-        };
-
-      case 'content':
-        return {
-          type: 'content',
-          pageId,
-          selector: params?.selector as string | undefined,
-          timeout: (params?.timeout as number) ?? 30000,
-        };
-
-      default:
-        // Generic action with all parameters
-        return {
-          type: actionType,
-          pageId,
-          ...params,
-        } as BrowserAction;
+  /**
+   * Build wait action
+   */
+  private buildWaitAction(pageId: string, params?: Record<string, unknown>): BrowserAction {
+    if (params?.selector !== undefined && params.selector !== null) {
+      return {
+        type: 'wait',
+        pageId,
+        waitType: 'selector',
+        selector: params.selector as string,
+        timeout: (params?.timeout as number) ?? 30000,
+      };
+    } else {
+      return {
+        type: 'wait',
+        pageId,
+        waitType: 'timeout',
+        duration: (params?.duration as number) ?? (params?.timeout as number) ?? 1000,
+      };
     }
+  }
+
+  /**
+   * Build screenshot action
+   */
+  private buildScreenshotAction(pageId: string, params?: Record<string, unknown>): BrowserAction {
+    return {
+      type: 'screenshot',
+      pageId,
+      fullPage: (params?.fullPage as boolean) ?? false,
+      format: (params?.format as 'png' | 'jpeg' | 'webp') ?? 'png',
+      quality: params?.quality as number | undefined,
+    };
+  }
+
+  /**
+   * Build evaluate action
+   */
+  private buildEvaluateAction(pageId: string, params?: Record<string, unknown>): BrowserAction {
+    return {
+      type: 'evaluate',
+      pageId,
+      function: (params?.code as string) ?? (params?.script as string) ?? '',
+      args: (params?.args as unknown[]) ?? [],
+    };
+  }
+
+  /**
+   * Build scroll action
+   */
+  private buildScrollAction(pageId: string, params?: Record<string, unknown>): BrowserAction {
+    return {
+      type: 'scroll',
+      pageId,
+      direction: (params?.direction as 'up' | 'down' | 'left' | 'right') ?? 'down',
+      distance: (params?.distance as number) ?? (params?.amount as number) ?? 100,
+    };
+  }
+
+  /**
+   * Build content action
+   */
+  private buildContentAction(pageId: string, params?: Record<string, unknown>): BrowserAction {
+    return {
+      type: 'content',
+      pageId,
+      selector: params?.selector as string | undefined,
+      timeout: (params?.timeout as number) ?? 30000,
+    };
+  }
+
+  /**
+   * Build generic action
+   */
+  private buildGenericAction(
+    actionType: string,
+    pageId: string,
+    params?: Record<string, unknown>,
+  ): BrowserAction {
+    return {
+      type: actionType,
+      pageId,
+      ...params,
+    } as BrowserAction;
   }
 
   /**
