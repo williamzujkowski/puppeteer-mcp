@@ -16,7 +16,7 @@ import { getDefaultConfig, createPresetConfigs } from './log-configuration.js';
 import { shouldSkipRequest, shouldSkipResponse } from './log-filters.js';
 import { createTiming, calculateTiming } from './performance-tracker.js';
 import { logRequest, attachRequestLogging } from './request-logger.js';
-import { setupResponseBodyCapture, setupResponseLogging } from './response-logger.js';
+import { setupResponseBodyCapture, logResponse } from './response-logger.js';
 import { setupErrorLogging } from './error-logger.js';
 import { logAuditEvent } from './audit-logger.js';
 
@@ -73,8 +73,8 @@ export const requestResponseLogger = (
       const endTiming = config.highPrecisionTiming === true ? calculateTiming(timing) : timing;
       const responseBody = getResponseBody();
 
-      // Log response
-      setupResponseLogging({
+      // Log response directly
+      logResponse({
         req,
         res,
         requestId,
