@@ -108,7 +108,7 @@ describe('Comprehensive Error System Tests', () => {
           .setErrorCode('') // Invalid - empty string
           .setCategory(ErrorCategory.VALIDATION)
           .setSeverity(ErrorSeverity.LOW)
-          .setUserMessage('')  // Invalid - empty string
+          .setUserMessage('') // Invalid - empty string
           .build();
       }).toThrow();
     });
@@ -126,7 +126,7 @@ describe('Comprehensive Error System Tests', () => {
       const error = new EnhancedAppError({
         message: 'Test error',
         context,
-        statusCode: 500
+        statusCode: 500,
       });
 
       expect(error.message).toBe('Test error');
@@ -149,7 +149,7 @@ describe('Comprehensive Error System Tests', () => {
       const error = new EnhancedAppError({
         message: 'Test error',
         context,
-        statusCode: 400
+        statusCode: 400,
       });
       const json = error.toJSON();
 
@@ -236,11 +236,13 @@ describe('Comprehensive Error System Tests', () => {
       const error = new ValidationDomainError({
         message: 'Invalid email format',
         errorCode: 'VALIDATION_INVALID_EMAIL',
-        validationErrors: [{
-          field: 'email',
-          message: 'invalid-email',
-          code: 'invalid_email',
-        }],
+        validationErrors: [
+          {
+            field: 'email',
+            message: 'invalid-email',
+            code: 'invalid_email',
+          },
+        ],
         requestId: testContext.requestId,
       });
 
@@ -324,7 +326,7 @@ describe('Comprehensive Error System Tests', () => {
       error = new EnhancedAppError({
         message: 'Test error',
         context,
-        statusCode: 500
+        statusCode: 500,
       });
     });
 

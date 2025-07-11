@@ -454,7 +454,7 @@ describe('SessionStoreFactory', () => {
 
       const health = await factory.getHealthStatus();
 
-      // When Redis is not available and monitoring is enabled, 
+      // When Redis is not available and monitoring is enabled,
       // the health check may fail causing 'unhealthy' status
       expect(health.overall).toBe('unhealthy');
       expect(health.instances).toHaveLength(2);
