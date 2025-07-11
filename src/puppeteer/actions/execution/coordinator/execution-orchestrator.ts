@@ -65,7 +65,7 @@ export class ExecutionOrchestrator {
       });
 
       // Phase 1: Validation
-      const validationResult = this.executeValidationPhase(action, context);
+      const validationResult = await this.executeValidationPhase(action, context);
       if (!validationResult.valid) {
         return await this.handleValidationFailure<T>(
           action,
@@ -107,10 +107,11 @@ export class ExecutionOrchestrator {
    * @param context - Execution context
    * @returns Validation result
    */
-  private executeValidationPhase(
+  // eslint-disable-next-line @typescript-eslint/require-await
+  private async executeValidationPhase(
     action: BrowserAction,
     context: ActionContext,
-  ): ValidationResult {
+  ): Promise<ValidationResult> {
     logger.debug('Executing validation phase', {
       sessionId: context.sessionId,
       actionType: action.type,

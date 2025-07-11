@@ -108,7 +108,8 @@ export class ModularBrowserActionExecutor implements ActionExecutor {
    * @returns Validation result
    * @nist si-10 "Information input validation"
    */
-  validate(action: BrowserAction, context: ActionContext): ValidationResult {
+  // eslint-disable-next-line @typescript-eslint/require-await
+  async validate(action: BrowserAction, context: ActionContext): Promise<ValidationResult> {
     try {
       logger.debug('Validating browser action', {
         sessionId: context.sessionId,
@@ -221,7 +222,8 @@ export class ModularBrowserActionExecutor implements ActionExecutor {
    * @returns Array of historical action results
    * @nist au-7 "Audit reduction and report generation"
    */
-  getHistory(
+  // eslint-disable-next-line @typescript-eslint/require-await
+  async getHistory(
     context: ActionContext,
     options?: {
       limit?: number;
@@ -240,7 +242,8 @@ export class ModularBrowserActionExecutor implements ActionExecutor {
    * @param before - Clear history before this date
    * @nist au-4 "Audit storage capacity"
    */
-  clearHistory(context: ActionContext, before?: Date): void {
+  // eslint-disable-next-line @typescript-eslint/require-await
+  async clearHistory(context: ActionContext, before?: Date): Promise<void> {
     this.components.historyManager.clearHistory(context, before);
   }
 
@@ -250,13 +253,8 @@ export class ModularBrowserActionExecutor implements ActionExecutor {
    * @returns Action execution metrics
    * @nist au-6 "Audit review, analysis, and reporting"
    */
-  getMetrics(context: ActionContext): {
-    totalActions: number;
-    successfulActions: number;
-    failedActions: number;
-    averageDuration: number;
-    actionTypeBreakdown: Record<string, number>;
-  } {
+  // eslint-disable-next-line @typescript-eslint/require-await
+  async getMetrics(context: ActionContext): Promise<ActionMetrics> {
     return this.components.historyManager.getMetrics(context);
   }
 

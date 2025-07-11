@@ -181,7 +181,7 @@ export class OptimizationEngine implements IOptimizationEngine {
         rec: () => ({
           id: `latency-opt-${Date.now()}`,
           type: 'configuration' as const,
-          priority: (metric.current > this.config.optimizationThresholds.maxLatency * 2 ? 'high' : 'medium'),
+          priority: (metric.current > this.config.optimizationThresholds.maxLatency * 2 ? 'high' : 'medium') as 'low' | 'medium' | 'high' | 'critical',
           title: 'Optimize Latency Performance',
           description: `Current latency ${metric.current}ms exceeds threshold ${this.config.optimizationThresholds.maxLatency}ms`,
           impact: 'Improve response times by 20-30%',
@@ -195,7 +195,7 @@ export class OptimizationEngine implements IOptimizationEngine {
         rec: () => ({
           id: `error-rate-opt-${Date.now()}`,
           type: 'recycling' as const,
-          priority: 'critical' as const,
+          priority: 'critical' as 'low' | 'medium' | 'high' | 'critical',
           title: 'Reduce Error Rate',
           description: `Current error rate ${metric.current}% exceeds threshold ${this.config.optimizationThresholds.maxErrorRate}%`,
           impact: 'Reduce errors by 50-70%',
@@ -209,7 +209,7 @@ export class OptimizationEngine implements IOptimizationEngine {
         rec: () => ({
           id: `throughput-opt-${Date.now()}`,
           type: 'scaling' as const,
-          priority: 'high' as const,
+          priority: 'high' as 'low' | 'medium' | 'high' | 'critical',
           title: 'Improve Throughput',
           description: `Current throughput ${metric.current} below threshold ${this.config.optimizationThresholds.minThroughput}`,
           impact: 'Increase throughput by 40-60%',
@@ -223,7 +223,7 @@ export class OptimizationEngine implements IOptimizationEngine {
         rec: () => ({
           id: `resource-opt-${Date.now()}`,
           type: 'resource_management' as const,
-          priority: 'medium' as const,
+          priority: 'medium' as 'low' | 'medium' | 'high' | 'critical',
           title: 'Optimize Resource Usage',
           description: `Resource utilization ${metric.current}% exceeds threshold ${this.config.optimizationThresholds.maxResourceUtilization}%`,
           impact: 'Reduce resource usage by 15-25%',
