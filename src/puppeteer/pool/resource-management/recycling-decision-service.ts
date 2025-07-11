@@ -44,10 +44,10 @@ export class RecyclingDecisionService {
    */
   shouldRecycleBrowser(browserId: string, usage?: BrowserResourceUsage): RecyclingDecision {
     if (!usage) {
-      return { 
-        shouldRecycle: false, 
-        reason: 'No resource data available', 
-        priority: 'low' 
+      return {
+        shouldRecycle: false,
+        reason: 'No resource data available',
+        priority: 'low',
       };
     }
 
@@ -58,7 +58,7 @@ export class RecyclingDecisionService {
       memoryUsage.rss,
       cpuUsage.percent,
       openHandles,
-      connectionCount
+      connectionCount,
     );
     if (criticalDecision) {
       return criticalDecision;
@@ -76,10 +76,10 @@ export class RecyclingDecisionService {
       return leakDecision;
     }
 
-    return { 
-      shouldRecycle: false, 
-      reason: 'Resource usage within acceptable limits', 
-      priority: 'low' 
+    return {
+      shouldRecycle: false,
+      reason: 'Resource usage within acceptable limits',
+      priority: 'low',
     };
   }
 
@@ -91,7 +91,7 @@ export class RecyclingDecisionService {
     memoryRss: number,
     cpuPercent: number,
     openHandles: number,
-    connectionCount: number
+    connectionCount: number,
   ): RecyclingDecision | null {
     // Memory critical
     if (memoryRss > this.thresholds.memoryCritical) {

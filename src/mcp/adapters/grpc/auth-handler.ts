@@ -41,7 +41,7 @@ export class GrpcAuthHandler {
    */
   validateAuthParams(auth: unknown): ValidationResult<AuthParams> {
     const result = this.authParamsSchema.safeParse(auth);
-    
+
     if (!result.success) {
       return {
         success: false,
@@ -108,7 +108,7 @@ export class GrpcAuthHandler {
       return result;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown authentication error';
-      
+
       await logSecurityEvent(SecurityEventType.AUTH_FAILURE, {
         userId: sessionId,
         resource: 'grpc-authentication',
@@ -134,45 +134,47 @@ export class GrpcAuthHandler {
    * @nist ia-2 "Identification and authentication"
    */
   private authenticateJWT(token: string, _metadata: grpc.Metadata): Promise<AuthResult> {
-    return Promise.resolve().then(() => {
-      // Basic JWT validation (in production, use proper JWT library)
-      if (!token.startsWith('Bearer ')) {
+    return Promise.resolve()
+      .then(() => {
+        // Basic JWT validation (in production, use proper JWT library)
+        if (!token.startsWith('Bearer ')) {
+          return {
+            success: false,
+            error: 'Invalid JWT format - must start with Bearer',
+          };
+        }
+
+        const jwtToken = token.slice(7);
+        if (jwtToken.split('.').length !== 3) {
+          return {
+            success: false,
+            error: 'Invalid JWT structure',
+          };
+        }
+
+        // Mock JWT validation - replace with actual JWT verification
+        if (jwtToken === 'valid.jwt.token') {
+          return {
+            success: true,
+            userId: 'jwt-user',
+            metadata: {
+              tokenType: 'jwt',
+              issuer: 'mcp-grpc-service',
+            },
+          };
+        }
+
         return {
           success: false,
-          error: 'Invalid JWT format - must start with Bearer',
+          error: 'Invalid JWT token',
         };
-      }
-
-      const jwtToken = token.slice(7);
-      if (jwtToken.split('.').length !== 3) {
+      })
+      .catch((error: unknown) => {
         return {
           success: false,
-          error: 'Invalid JWT structure',
+          error: `JWT authentication failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
         };
-      }
-
-      // Mock JWT validation - replace with actual JWT verification
-      if (jwtToken === 'valid.jwt.token') {
-        return {
-          success: true,
-          userId: 'jwt-user',
-          metadata: {
-            tokenType: 'jwt',
-            issuer: 'mcp-grpc-service',
-          },
-        };
-      }
-
-      return {
-        success: false,
-        error: 'Invalid JWT token',
-      };
-    }).catch((error: unknown) => {
-      return {
-        success: false,
-        error: `JWT authentication failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      };
-    });
+      });
   }
 
   /**
@@ -180,37 +182,39 @@ export class GrpcAuthHandler {
    * @nist ia-2 "Identification and authentication"
    */
   private authenticateAPIKey(apiKey: string, _metadata: grpc.Metadata): Promise<AuthResult> {
-    return Promise.resolve().then(() => {
-      // Basic API key validation
-      if (apiKey.length < 10) {
+    return Promise.resolve()
+      .then(() => {
+        // Basic API key validation
+        if (apiKey.length < 10) {
+          return {
+            success: false,
+            error: 'API key too short',
+          };
+        }
+
+        // Mock API key validation - replace with actual key verification
+        if (apiKey.startsWith('mcp-') && apiKey.length >= 32) {
+          return {
+            success: true,
+            userId: `apikey-${apiKey.slice(-8)}`,
+            metadata: {
+              keyType: 'api',
+              keyPrefix: apiKey.slice(0, 8),
+            },
+          };
+        }
+
         return {
           success: false,
-          error: 'API key too short',
+          error: 'Invalid API key',
         };
-      }
-
-      // Mock API key validation - replace with actual key verification
-      if (apiKey.startsWith('mcp-') && apiKey.length >= 32) {
+      })
+      .catch((error: unknown) => {
         return {
-          success: true,
-          userId: `apikey-${apiKey.slice(-8)}`,
-          metadata: {
-            keyType: 'api',
-            keyPrefix: apiKey.slice(0, 8),
-          },
+          success: false,
+          error: `API key authentication failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
         };
-      }
-
-      return {
-        success: false,
-        error: 'Invalid API key',
-      };
-    }).catch((error: unknown) => {
-      return {
-        success: false,
-        error: `API key authentication failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      };
-    });
+      });
   }
 
   /**
@@ -218,38 +222,40 @@ export class GrpcAuthHandler {
    * @nist ia-2 "Identification and authentication"
    */
   private authenticateSession(sessionId: string, _metadata: grpc.Metadata): Promise<AuthResult> {
-    return Promise.resolve().then(() => {
-      // Basic session validation
-      if (sessionId.length < 16) {
+    return Promise.resolve()
+      .then(() => {
+        // Basic session validation
+        if (sessionId.length < 16) {
+          return {
+            success: false,
+            error: 'Session ID too short',
+          };
+        }
+
+        // Mock session validation - replace with actual session verification
+        if (sessionId.startsWith('sess-') && sessionId.length >= 24) {
+          return {
+            success: true,
+            userId: `session-${sessionId.slice(-8)}`,
+            sessionId,
+            metadata: {
+              sessionType: 'active',
+              sessionPrefix: sessionId.slice(0, 8),
+            },
+          };
+        }
+
         return {
           success: false,
-          error: 'Session ID too short',
+          error: 'Invalid session ID',
         };
-      }
-
-      // Mock session validation - replace with actual session verification
-      if (sessionId.startsWith('sess-') && sessionId.length >= 24) {
+      })
+      .catch((error: unknown) => {
         return {
-          success: true,
-          userId: `session-${sessionId.slice(-8)}`,
-          sessionId,
-          metadata: {
-            sessionType: 'active',
-            sessionPrefix: sessionId.slice(0, 8),
-          },
+          success: false,
+          error: `Session authentication failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
         };
-      }
-
-      return {
-        success: false,
-        error: 'Invalid session ID',
-      };
-    }).catch((error: unknown) => {
-      return {
-        success: false,
-        error: `Session authentication failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      };
-    });
+      });
   }
 
   /**
@@ -278,7 +284,7 @@ export class GrpcAuthHandler {
   ): Promise<boolean> {
     try {
       // Basic permission check - in production, integrate with proper RBAC system
-      
+
       // Admin users have full access
       if (userId.includes('admin')) {
         return true;
@@ -288,16 +294,20 @@ export class GrpcAuthHandler {
       switch (serviceName) {
         case 'SessionService':
           // Users can manage their own sessions
-          return methodName.includes('Get') || methodName.includes('Update') || methodName.includes('Refresh');
-        
+          return (
+            methodName.includes('Get') ||
+            methodName.includes('Update') ||
+            methodName.includes('Refresh')
+          );
+
         case 'ContextService':
           // Users can access context operations
           return true;
-        
+
         case 'HealthService':
           // Public access
           return true;
-        
+
         default:
           return false;
       }
@@ -309,7 +319,7 @@ export class GrpcAuthHandler {
         result: 'failure',
         reason: error instanceof Error ? error.message : 'Permission check error',
       });
-      
+
       return false;
     }
   }

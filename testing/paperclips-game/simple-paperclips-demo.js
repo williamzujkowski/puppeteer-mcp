@@ -2,10 +2,10 @@
 
 /**
  * Simple Paperclips Automation Demo
- * 
+ *
  * This demonstration showcases the core browser automation capabilities
  * by directly using Puppeteer to play the Universal Paperclips game.
- * 
+ *
  * This is a simplified version that demonstrates the working features
  * without the complex API integration.
  */
@@ -30,21 +30,21 @@ class SimplePaperclipsDemo {
       gameStats: [],
       screenshots: [],
       actions: [],
-      errors: []
+      errors: [],
     };
   }
 
   // Color output functions
   log(message, type = 'info') {
     const colors = {
-      info: '\x1b[34m',      // Blue
-      success: '\x1b[32m',    // Green
-      warning: '\x1b[33m',    // Yellow
-      error: '\x1b[31m',      // Red
-      action: '\x1b[35m',     // Magenta
-      metric: '\x1b[36m',     // Cyan
+      info: '\x1b[34m', // Blue
+      success: '\x1b[32m', // Green
+      warning: '\x1b[33m', // Yellow
+      error: '\x1b[31m', // Red
+      action: '\x1b[35m', // Magenta
+      metric: '\x1b[36m', // Cyan
       screenshot: '\x1b[95m', // Bright Magenta
-      reset: '\x1b[0m'
+      reset: '\x1b[0m',
     };
 
     const emojis = {
@@ -54,34 +54,34 @@ class SimplePaperclipsDemo {
       error: '❌',
       action: '🎯',
       metric: '📊',
-      screenshot: '📸'
+      screenshot: '📸',
     };
 
     const timestamp = new Date().toISOString().substring(11, 23);
     const emoji = emojis[type] || '';
     const color = colors[type] || colors.info;
-    
+
     console.log(`${color}${emoji} [${timestamp}] ${message}${colors.reset}`);
-    
+
     // Track actions for reporting
     if (type === 'action' || type === 'success' || type === 'error') {
       this.results.actions.push({
         timestamp: new Date().toISOString(),
         type,
-        message
+        message,
       });
     }
-    
+
     if (type === 'error') {
       this.results.errors.push({
         timestamp: new Date().toISOString(),
-        message
+        message,
       });
     }
   }
 
   async sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   async ensureResultsDirectory() {
@@ -99,15 +99,15 @@ class SimplePaperclipsDemo {
       const filename = `screenshot-${name}-${Date.now()}.png`;
       const filepath = path.join(RESULTS_DIR, filename);
       await fs.writeFile(filepath, buffer);
-      
+
       this.results.screenshots.push({
         name,
         filename,
         filepath,
         timestamp: new Date().toISOString(),
-        size: buffer.length
+        size: buffer.length,
       });
-      
+
       this.log(`Screenshot saved: ${name} (${Math.round(buffer.length / 1024)}KB)`, 'screenshot');
       return filepath;
     } catch (error) {
@@ -118,7 +118,7 @@ class SimplePaperclipsDemo {
 
   async analyzeGameState(page) {
     this.log('Analyzing game state...', 'metric');
-    
+
     try {
       const gameState = await page.evaluate(() => {
         // Extract game elements and their values
@@ -133,20 +133,23 @@ class SimplePaperclipsDemo {
         };
 
         // Look for various game state indicators
-        const paperclips = getElementText('#clips') || 
-                          getElementText('#paperclips') || 
-                          getElementText('[id*="clip"]') ||
-                          getElementText('[class*="clip"]');
-        
-        const money = getElementText('#money') || 
-                     getElementText('#funds') || 
-                     getElementText('[id*="money"]') ||
-                     getElementText('[class*="money"]');
+        const paperclips =
+          getElementText('#clips') ||
+          getElementText('#paperclips') ||
+          getElementText('[id*="clip"]') ||
+          getElementText('[class*="clip"]');
 
-        const clipButton = document.querySelector('#btnMakePaperclip') ||
-                          document.querySelector('[id*="make"]') ||
-                          document.querySelector('[class*="make"]') ||
-                          document.querySelector('button');
+        const money =
+          getElementText('#money') ||
+          getElementText('#funds') ||
+          getElementText('[id*="money"]') ||
+          getElementText('[class*="money"]');
+
+        const clipButton =
+          document.querySelector('#btnMakePaperclip') ||
+          document.querySelector('[id*="make"]') ||
+          document.querySelector('[class*="make"]') ||
+          document.querySelector('button');
 
         // Get page title and basic info
         const title = document.title;
@@ -163,18 +166,21 @@ class SimplePaperclipsDemo {
           inputs,
           clipButtonFound: !!clipButton,
           clipButtonText: clipButton ? clipButton.textContent : null,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         };
       });
 
       this.results.gameStats.push(gameState);
-      
+
       this.log(`Game State - Title: "${gameState.title}"`, 'metric');
       this.log(`Game State - Paperclips: ${gameState.paperclips || 'Not found'}`, 'metric');
       this.log(`Game State - Money: ${gameState.money || 'Not found'}`, 'metric');
       this.log(`Game State - Buttons: ${gameState.buttons}, Inputs: ${gameState.inputs}`, 'metric');
-      this.log(`Game State - Make Button: ${gameState.clipButtonFound ? 'Found' : 'Not found'}`, 'metric');
-      
+      this.log(
+        `Game State - Make Button: ${gameState.clipButtonFound ? 'Found' : 'Not found'}`,
+        'metric',
+      );
+
       return gameState;
     } catch (error) {
       this.log(`Game state analysis failed: ${error.message}`, 'error');
@@ -184,7 +190,7 @@ class SimplePaperclipsDemo {
 
   async clickMakeButton(page, attempts = 3) {
     this.log('Attempting to click Make Paperclip button...', 'action');
-    
+
     for (let i = 0; i < attempts; i++) {
       try {
         const clicked = await page.evaluate(() => {
@@ -196,17 +202,17 @@ class SimplePaperclipsDemo {
             'button:contains("Make")',
             'button:contains("Paperclip")',
             'button:contains("Click")',
-            'button'
+            'button',
           ];
 
           for (const selector of selectors) {
             const element = document.querySelector(selector);
             if (element && element.textContent.toLowerCase().includes('make')) {
               element.click();
-              return { 
-                success: true, 
-                selector, 
-                text: element.textContent 
+              return {
+                success: true,
+                selector,
+                text: element.textContent,
               };
             }
           }
@@ -215,10 +221,10 @@ class SimplePaperclipsDemo {
           const firstButton = document.querySelector('button');
           if (firstButton) {
             firstButton.click();
-            return { 
-              success: true, 
-              selector: 'button', 
-              text: firstButton.textContent 
+            return {
+              success: true,
+              selector: 'button',
+              text: firstButton.textContent,
             };
           }
 
@@ -226,7 +232,10 @@ class SimplePaperclipsDemo {
         });
 
         if (clicked.success) {
-          this.log(`Successfully clicked button: "${clicked.text}" (${clicked.selector})`, 'success');
+          this.log(
+            `Successfully clicked button: "${clicked.text}" (${clicked.selector})`,
+            'success',
+          );
           return true;
         } else {
           this.log(`Attempt ${i + 1} failed - button not found`, 'warning');
@@ -234,7 +243,7 @@ class SimplePaperclipsDemo {
       } catch (error) {
         this.log(`Click attempt ${i + 1} failed: ${error.message}`, 'error');
       }
-      
+
       await this.sleep(1000);
     }
 
@@ -244,76 +253,76 @@ class SimplePaperclipsDemo {
 
   async runAutomatedSession(page, durationSeconds = 30) {
     this.log(`=== STARTING AUTOMATED GAMEPLAY (${durationSeconds}s) ===`, 'info');
-    
-    const endTime = Date.now() + (durationSeconds * 1000);
+
+    const endTime = Date.now() + durationSeconds * 1000;
     let clickCount = 0;
     let lastGameState = null;
-    
+
     while (Date.now() < endTime) {
       try {
         // Click the make button
         const clicked = await this.clickMakeButton(page, 1);
         if (clicked) {
           clickCount++;
-          
+
           // Every 5 clicks, analyze game state
           if (clickCount % 5 === 0) {
             lastGameState = await this.analyzeGameState(page);
           }
-          
+
           // Every 10 clicks, take a screenshot
           if (clickCount % 10 === 0) {
             await this.saveScreenshot(page, `gameplay-${clickCount}-clicks`);
           }
         }
-        
+
         // Small delay between actions
         await this.sleep(500);
-        
+
         // Progress indicator
         const remaining = Math.ceil((endTime - Date.now()) / 1000);
         if (clickCount % 10 === 0) {
           this.log(`Progress: ${clickCount} clicks, ${remaining}s remaining`, 'info');
         }
-        
       } catch (error) {
         this.log(`Automation error: ${error.message}`, 'error');
         break;
       }
     }
-    
+
     this.log(`Automation completed: ${clickCount} clicks in ${durationSeconds}s`, 'success');
-    
+
     // Final game state analysis
     const finalState = await this.analyzeGameState(page);
     await this.saveScreenshot(page, 'final-state');
-    
+
     return {
       clickCount,
       finalState,
-      lastGameState
+      lastGameState,
     };
   }
 
   async generateReport() {
     this.results.endTime = new Date().toISOString();
-    this.results.duration = (new Date(this.results.endTime) - new Date(this.results.startTime)) / 1000;
-    
+    this.results.duration =
+      (new Date(this.results.endTime) - new Date(this.results.startTime)) / 1000;
+
     const jsonReport = JSON.stringify(this.results, null, 2);
     const jsonPath = path.join(RESULTS_DIR, 'demo-report.json');
     await fs.writeFile(jsonPath, jsonReport);
-    
+
     // Generate markdown report
     const mdReport = this.generateMarkdownReport();
     const mdPath = path.join(RESULTS_DIR, 'demo-report.md');
     await fs.writeFile(mdPath, mdReport);
-    
+
     this.log(`Reports generated: ${jsonPath} and ${mdPath}`, 'success');
   }
 
   generateMarkdownReport() {
     const { startTime, endTime, duration, gameStats, screenshots, actions, errors } = this.results;
-    
+
     return `# Paperclips Automation Demo Report
 
 ## Summary
@@ -325,7 +334,9 @@ class SimplePaperclipsDemo {
 - **Errors**: ${errors.length}
 
 ## Game Statistics
-${gameStats.map((stat, i) => `
+${gameStats
+  .map(
+    (stat, i) => `
 ### State ${i + 1}
 - **Title**: ${stat.title}
 - **Paperclips**: ${stat.paperclips || 'N/A'}
@@ -333,22 +344,40 @@ ${gameStats.map((stat, i) => `
 - **Buttons**: ${stat.buttons}
 - **Make Button**: ${stat.clipButtonFound ? 'Found' : 'Not found'}
 - **Timestamp**: ${stat.timestamp}
-`).join('\n')}
+`,
+  )
+  .join('\n')}
 
 ## Screenshots
-${screenshots.map(shot => `
+${screenshots
+  .map(
+    (shot) => `
 - **${shot.name}**: ${shot.filename} (${Math.round(shot.size / 1024)}KB)
-`).join('\n')}
+`,
+  )
+  .join('\n')}
 
 ## Actions Log
-${actions.map(action => `
+${actions
+  .map(
+    (action) => `
 - **${action.type}**: ${action.message} (${action.timestamp})
-`).join('\n')}
+`,
+  )
+  .join('\n')}
 
-${errors.length > 0 ? `## Errors
-${errors.map(error => `
+${
+  errors.length > 0
+    ? `## Errors
+${errors
+  .map(
+    (error) => `
 - ${error.message} (${error.timestamp})
-`).join('\n')}` : ''}
+`,
+  )
+  .join('\n')}`
+    : ''
+}
 
 ## Conclusion
 The demo successfully demonstrated browser automation capabilities using Puppeteer. 
@@ -359,10 +388,10 @@ interact with game elements, and capture comprehensive results.
 
   async run() {
     this.log('🎮 Starting Simple Paperclips Automation Demo', 'info');
-    this.log('=' .repeat(50), 'info');
-    
+    this.log('='.repeat(50), 'info');
+
     await this.ensureResultsDirectory();
-    
+
     let browser;
     try {
       // Launch browser
@@ -370,40 +399,41 @@ interact with game elements, and capture comprehensive results.
       browser = await puppeteer.launch({
         headless: false,
         defaultViewport: { width: 1920, height: 1080 },
-        args: ['--no-sandbox', '--disable-setuid-sandbox']
+        args: ['--no-sandbox', '--disable-setuid-sandbox'],
       });
-      
+
       const page = await browser.newPage();
-      await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
-      
+      await page.setUserAgent(
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      );
+
       this.log('Browser launched successfully', 'success');
-      
+
       // Navigate to game
       this.log(`Navigating to ${PAPERCLIPS_URL}`, 'info');
       await page.goto(PAPERCLIPS_URL, {
         waitUntil: 'networkidle2',
-        timeout: 30000
+        timeout: 30000,
       });
-      
+
       this.log('Page loaded successfully', 'success');
-      
+
       // Take initial screenshot
       await this.saveScreenshot(page, 'initial');
-      
+
       // Analyze initial state
       await this.analyzeGameState(page);
-      
+
       // Run automated session
       const results = await this.runAutomatedSession(page, 30);
-      
+
       // Generate comprehensive report
       await this.generateReport();
-      
+
       this.log('🎉 Demo completed successfully!', 'success');
       this.log(`Total results saved to: ${RESULTS_DIR}`, 'info');
-      
+
       return results;
-      
     } catch (error) {
       this.log(`Demo failed: ${error.message}`, 'error');
       throw error;

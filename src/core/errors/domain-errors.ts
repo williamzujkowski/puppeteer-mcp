@@ -3,7 +3,7 @@
  * @module core/errors/domain-errors
  * @nist si-11 "Error handling"
  * @nist au-3 "Content of Audit Records"
- * 
+ *
  * This file re-exports all domain errors from their modular files
  * for backward compatibility.
  */

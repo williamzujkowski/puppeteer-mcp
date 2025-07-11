@@ -5,12 +5,12 @@
  * @nist cm-7 "Least functionality"
  */
 
-import type { 
-  CompatibilityConfig, 
-  CompatibilityCheckResult, 
-  UsageStatistics, 
+import type {
+  CompatibilityConfig,
+  CompatibilityCheckResult,
+  UsageStatistics,
   CompatibilityAnalysis,
-  MigrationRisk 
+  MigrationRisk,
 } from './types.js';
 import type { OptimizationConfig } from '../browser-pool-optimized.js';
 import { RecyclingStrategy } from '../browser-pool-recycler.js';
@@ -28,7 +28,7 @@ export class CompatibilityValidator {
   static checkMigrationPrerequisites(
     currentConfig: CompatibilityConfig,
     issues: string[],
-    warnings: string[]
+    warnings: string[],
   ): void {
     if (!currentConfig.fallbackToLegacy) {
       issues.push('Fallback to legacy should be enabled during migration');
@@ -45,14 +45,16 @@ export class CompatibilityValidator {
    */
   static checkTargetConfiguration(
     targetConfig: Partial<OptimizationConfig>,
-    issues: string[]
+    issues: string[],
   ): void {
     if (targetConfig.autoOptimization && !targetConfig.performanceMonitoring?.enabled) {
       issues.push('Performance monitoring required for auto-optimization');
     }
 
-    if (targetConfig.scaling?.enablePredictiveScaling && 
-        !targetConfig.performanceMonitoring?.enabled) {
+    if (
+      targetConfig.scaling?.enablePredictiveScaling &&
+      !targetConfig.performanceMonitoring?.enabled
+    ) {
       issues.push('Performance monitoring required for predictive scaling');
     }
   }
@@ -64,7 +66,7 @@ export class CompatibilityValidator {
   static checkGradualMigrationRequirements(
     currentConfig: CompatibilityConfig,
     targetConfig: Partial<OptimizationConfig>,
-    recommendations: string[]
+    recommendations: string[],
   ): void {
     if (targetConfig.scaling?.enabled && !currentConfig.migrationMode) {
       recommendations.push('Consider enabling migration mode for scaling features');
@@ -139,7 +141,8 @@ export class CompatibilityValidator {
       },
       recycling: {
         enabled: true,
-        strategy: currentUsage.resourceUsage > 80 ? RecyclingStrategy.AGGRESSIVE : RecyclingStrategy.HYBRID,
+        strategy:
+          currentUsage.resourceUsage > 80 ? RecyclingStrategy.AGGRESSIVE : RecyclingStrategy.HYBRID,
       },
       circuitBreaker: {
         enabled: currentUsage.errorRate > 2,
@@ -167,7 +170,7 @@ export class CompatibilityValidator {
    */
   static validateMigrationReadiness(
     currentConfig: CompatibilityConfig,
-    targetConfig: Partial<OptimizationConfig>
+    targetConfig: Partial<OptimizationConfig>,
   ): CompatibilityCheckResult {
     const issues: string[] = [];
     const warnings: string[] = [];
@@ -183,7 +186,7 @@ export class CompatibilityValidator {
     CompatibilityValidator.checkGradualMigrationRequirements(
       currentConfig,
       targetConfig,
-      recommendations
+      recommendations,
     );
 
     return {

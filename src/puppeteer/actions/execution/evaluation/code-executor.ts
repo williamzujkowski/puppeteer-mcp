@@ -7,10 +7,7 @@
  */
 
 import type { Page } from 'puppeteer';
-import type {
-  ActionResult,
-  ActionContext,
-} from '../../../interfaces/action-executor.interface.js';
+import type { ActionResult, ActionContext } from '../../../interfaces/action-executor.interface.js';
 import type {
   BaseEvaluationStrategy,
   CodeEvaluationConfig,
@@ -45,7 +42,7 @@ export class CodeExecutionStrategy implements BaseEvaluationStrategy {
     context: ActionContext,
   ): Promise<ActionResult> {
     const metrics = this.createMetrics(config);
-    
+
     try {
       // Validate configuration first
       const validationResult = this.validateConfig(config);
@@ -60,10 +57,9 @@ export class CodeExecutionStrategy implements BaseEvaluationStrategy {
 
       // Execute the code evaluation
       const result = await this.executeCodeEvaluation(config, page, context);
-      
+
       // Process and return successful result
       return this.createSuccessResult(result, config, metrics, context);
-
     } catch (error) {
       return this.handleEvaluationError(error, metrics, context);
     }
@@ -90,15 +86,12 @@ export class CodeExecutionStrategy implements BaseEvaluationStrategy {
 
     const timeout = config.timeout ?? EVALUATION_TIMEOUTS.CODE_EVALUATION;
     const originalTimeout = page.getDefaultTimeout();
-    
+
     try {
       page.setDefaultTimeout(timeout);
-      
+
       const preparedArgs = this.prepareArguments(config.args ?? []);
-      return await page.evaluate(
-        config.functionToEvaluate,
-        ...preparedArgs,
-      );
+      return await page.evaluate(config.functionToEvaluate, ...preparedArgs);
     } finally {
       page.setDefaultTimeout(originalTimeout);
     }
@@ -170,7 +163,7 @@ export class CodeExecutionStrategy implements BaseEvaluationStrategy {
     metrics.success = false;
 
     const errorMessage = error instanceof Error ? error.message : 'Code evaluation failed';
-    
+
     logger.error('Code evaluation failed', {
       sessionId: context.sessionId,
       contextId: context.contextId,
@@ -190,7 +183,7 @@ export class CodeExecutionStrategy implements BaseEvaluationStrategy {
   validateConfig(config: CodeEvaluationConfig): SecurityValidationResult {
     // Validate the JavaScript code
     const jsValidation = this.securityValidator.validateJavaScript(config.functionToEvaluate);
-    
+
     if (!jsValidation.isValid) {
       return jsValidation;
     }
@@ -201,11 +194,13 @@ export class CodeExecutionStrategy implements BaseEvaluationStrategy {
       return {
         isValid: false,
         error: 'Too many arguments provided (maximum 10)',
-        issues: [{
-          type: 'size_limit',
-          message: `Argument count exceeds limit: ${args.length} > 10`,
-          severity: 'medium',
-        }],
+        issues: [
+          {
+            type: 'size_limit',
+            message: `Argument count exceeds limit: ${args.length} > 10`,
+            severity: 'medium',
+          },
+        ],
       };
     }
 
@@ -217,11 +212,13 @@ export class CodeExecutionStrategy implements BaseEvaluationStrategy {
         return {
           isValid: false,
           error: `Argument ${index} is too large (${argSize} bytes)`,
-          issues: [{
-            type: 'size_limit',
-            message: `Argument ${index} exceeds size limit: ${argSize} bytes`,
-            severity: 'medium',
-          }],
+          issues: [
+            {
+              type: 'size_limit',
+              message: `Argument ${index} exceeds size limit: ${argSize} bytes`,
+              severity: 'medium',
+            },
+          ],
         };
       }
     }
@@ -290,7 +287,7 @@ export class CodeExecutionStrategy implements BaseEvaluationStrategy {
       success: false,
       actionType,
       error: errorMessage,
-      duration: metrics.duration ?? (Date.now() - metrics.startTime),
+      duration: metrics.duration ?? Date.now() - metrics.startTime,
       timestamp: new Date(),
       metadata: {
         sessionId: context.sessionId,
@@ -308,13 +305,13 @@ export class CodeExecutionStrategy implements BaseEvaluationStrategy {
    * @nist si-10 "Information input validation"
    */
   private prepareArguments(args: unknown[]): unknown[] {
-    return args.map(arg => {
+    return args.map((arg) => {
       // For security, we avoid passing functions or complex objects
       // that might contain dangerous references
       if (typeof arg === 'function') {
         throw new Error('Function arguments are not allowed for security reasons');
       }
-      
+
       // Deep clone simple objects to avoid reference issues
       if (arg !== null && typeof arg === 'object') {
         try {
@@ -324,7 +321,7 @@ export class CodeExecutionStrategy implements BaseEvaluationStrategy {
           throw new Error('Unable to serialize argument for evaluation');
         }
       }
-      
+
       return arg;
     });
   }
@@ -352,7 +349,7 @@ export class CodeExecutionStrategy implements BaseEvaluationStrategy {
   private truncateResult(result: unknown): { truncated: true; type: string; size: number } {
     const type = typeof result;
     let size = 0;
-    
+
     try {
       size = JSON.stringify(result).length;
     } catch {

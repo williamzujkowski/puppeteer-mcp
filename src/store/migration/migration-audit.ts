@@ -21,7 +21,7 @@ export class MigrationAuditLogger {
       action: 'migrate',
       sourceStore: context.sourceStore.constructor.name,
       targetStore: context.targetStore.constructor.name,
-      stats: context.stats
+      stats: context.stats,
     });
   }
 
@@ -32,7 +32,7 @@ export class MigrationAuditLogger {
     await logDataAccess('WRITE', 'session/restore', {
       action: 'restore',
       targetStore: store.constructor.name,
-      stats
+      stats,
     });
   }
 
@@ -43,7 +43,7 @@ export class MigrationAuditLogger {
     await logDataAccess('READ', 'session/backup', {
       action: 'backup',
       sourceStore: store.constructor.name,
-      sessionCount
+      sessionCount,
     });
   }
 }

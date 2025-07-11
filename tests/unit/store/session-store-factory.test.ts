@@ -12,7 +12,7 @@ jest.mock('../../../src/utils/redis-client.js', () => ({
   getRedisClient: jest.fn(),
   initializeRedis: jest.fn(),
   closeRedis: jest.fn(),
-  checkRedisHealth: jest.fn()
+  checkRedisHealth: jest.fn(),
 }));
 
 jest.mock('../../../src/core/config.js', () => ({
@@ -22,8 +22,8 @@ jest.mock('../../../src/core/config.js', () => ({
     SESSION_STORE_REPLICATION_ENABLED: false,
     SESSION_STORE_MIGRATION_ENABLED: false,
     REDIS_MAX_RETRIES: 3,
-    REDIS_RETRY_DELAY: 1000
-  }
+    REDIS_RETRY_DELAY: 1000,
+  },
 }));
 
 describe('SessionStoreFactory', () => {
@@ -46,7 +46,7 @@ describe('SessionStoreFactory', () => {
         preferredStore: 'redis',
         enableMonitoring: false,
         enableReplication: false,
-        enableMigration: false
+        enableMigration: false,
       });
 
       expect(result.type).toBe('redis');
@@ -61,7 +61,7 @@ describe('SessionStoreFactory', () => {
         preferredStore: 'memory',
         enableMonitoring: false,
         enableReplication: false,
-        enableMigration: false
+        enableMigration: false,
       });
 
       expect(result.type).toBe('memory');
@@ -77,7 +77,7 @@ describe('SessionStoreFactory', () => {
         preferredStore: 'redis',
         enableMonitoring: false,
         enableReplication: false,
-        enableMigration: false
+        enableMigration: false,
       });
 
       expect(result.type).toBe('memory');
@@ -94,7 +94,7 @@ describe('SessionStoreFactory', () => {
         preferredStore: 'auto',
         enableMonitoring: false,
         enableReplication: false,
-        enableMigration: false
+        enableMigration: false,
       });
 
       expect(result.type).toBe('redis');
@@ -109,7 +109,7 @@ describe('SessionStoreFactory', () => {
         preferredStore: 'auto',
         enableMonitoring: false,
         enableReplication: false,
-        enableMigration: false
+        enableMigration: false,
       });
 
       expect(result.type).toBe('memory');
@@ -124,7 +124,7 @@ describe('SessionStoreFactory', () => {
         preferredStore: 'memory',
         enableMonitoring: true,
         enableReplication: false,
-        enableMigration: false
+        enableMigration: false,
       });
 
       expect(result.monitor).toBeDefined();
@@ -138,7 +138,7 @@ describe('SessionStoreFactory', () => {
         preferredStore: 'memory',
         enableMonitoring: false,
         enableReplication: true,
-        enableMigration: false
+        enableMigration: false,
       });
 
       expect(result.replication).toBeDefined();
@@ -152,7 +152,7 @@ describe('SessionStoreFactory', () => {
         preferredStore: 'memory',
         enableMonitoring: false,
         enableReplication: false,
-        enableMigration: true
+        enableMigration: true,
       });
 
       expect(result.migration).toBeDefined();
@@ -166,15 +166,17 @@ describe('SessionStoreFactory', () => {
         preferredStore: 'memory',
         enableMonitoring: false,
         enableReplication: false,
-        enableMigration: false
+        enableMigration: false,
       });
 
-      await expect(factory.create('duplicate-instance', {
-        preferredStore: 'memory',
-        enableMonitoring: false,
-        enableReplication: false,
-        enableMigration: false
-      })).rejects.toThrow("Session store instance 'duplicate-instance' already exists");
+      await expect(
+        factory.create('duplicate-instance', {
+          preferredStore: 'memory',
+          enableMonitoring: false,
+          enableReplication: false,
+          enableMigration: false,
+        }),
+      ).rejects.toThrow("Session store instance 'duplicate-instance' already exists");
     });
 
     it('should create default instance when no instanceId provided', async () => {
@@ -184,7 +186,7 @@ describe('SessionStoreFactory', () => {
 
       expect(result).toBeDefined();
       expect(result.type).toBe('memory');
-      
+
       const retrieved = factory.get();
       expect(retrieved).toBe(result);
     });
@@ -198,7 +200,7 @@ describe('SessionStoreFactory', () => {
         preferredStore: 'memory',
         enableMonitoring: false,
         enableReplication: false,
-        enableMigration: false
+        enableMigration: false,
       });
 
       const retrieved = factory.get('test-instance');
@@ -230,20 +232,20 @@ describe('SessionStoreFactory', () => {
         preferredStore: 'memory',
         enableMonitoring: false,
         enableReplication: false,
-        enableMigration: false
+        enableMigration: false,
       });
 
       await factory.create('instance2', {
         preferredStore: 'memory',
         enableMonitoring: false,
         enableReplication: false,
-        enableMigration: false
+        enableMigration: false,
       });
 
       const instances = factory.list();
 
       expect(instances).toHaveLength(2);
-      expect(instances.map(i => i.instanceId).sort()).toEqual(['instance1', 'instance2']);
+      expect(instances.map((i) => i.instanceId).sort()).toEqual(['instance1', 'instance2']);
     });
 
     it('should return empty array when no instances exist', () => {
@@ -261,7 +263,7 @@ describe('SessionStoreFactory', () => {
         preferredStore: 'memory',
         enableMonitoring: false,
         enableReplication: false,
-        enableMigration: false
+        enableMigration: false,
       });
 
       await factory.destroy('test-instance');
@@ -272,7 +274,7 @@ describe('SessionStoreFactory', () => {
 
     it('should throw error when destroying non-existent instance', async () => {
       await expect(factory.destroy('non-existent')).rejects.toThrow(
-        "Session store instance 'non-existent' not found"
+        "Session store instance 'non-existent' not found",
       );
     });
 
@@ -283,7 +285,7 @@ describe('SessionStoreFactory', () => {
         preferredStore: 'memory',
         enableMonitoring: true,
         enableReplication: false,
-        enableMigration: false
+        enableMigration: false,
       });
 
       if (!result.monitor) {
@@ -303,7 +305,7 @@ describe('SessionStoreFactory', () => {
         preferredStore: 'memory',
         enableMonitoring: false,
         enableReplication: true,
-        enableMigration: false
+        enableMigration: false,
       });
 
       if (!result.replication) {
@@ -325,14 +327,14 @@ describe('SessionStoreFactory', () => {
         preferredStore: 'memory',
         enableMonitoring: false,
         enableReplication: false,
-        enableMigration: false
+        enableMigration: false,
       });
 
       await factory.create('instance2', {
         preferredStore: 'memory',
         enableMonitoring: false,
         enableReplication: false,
-        enableMigration: false
+        enableMigration: false,
       });
 
       await factory.destroyAll();
@@ -350,14 +352,14 @@ describe('SessionStoreFactory', () => {
         preferredStore: 'memory',
         enableMonitoring: false,
         enableReplication: false,
-        enableMigration: true
+        enableMigration: true,
       });
 
       await factory.create('to-instance', {
         preferredStore: 'memory',
         enableMonitoring: false,
         enableReplication: false,
-        enableMigration: true
+        enableMigration: true,
       });
 
       // Create test session in source store
@@ -366,7 +368,7 @@ describe('SessionStoreFactory', () => {
         username: 'testuser',
         roles: ['user'],
         createdAt: new Date().toISOString(),
-        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
       });
 
       const stats = await factory.migrate('from-instance', 'to-instance');
@@ -383,11 +385,11 @@ describe('SessionStoreFactory', () => {
         preferredStore: 'memory',
         enableMonitoring: false,
         enableReplication: false,
-        enableMigration: true
+        enableMigration: true,
       });
 
       await expect(factory.migrate('non-existent', 'to-instance')).rejects.toThrow(
-        "Source session store 'non-existent' not found"
+        "Source session store 'non-existent' not found",
       );
     });
 
@@ -398,11 +400,11 @@ describe('SessionStoreFactory', () => {
         preferredStore: 'memory',
         enableMonitoring: false,
         enableReplication: false,
-        enableMigration: true
+        enableMigration: true,
       });
 
       await expect(factory.migrate('from-instance', 'non-existent')).rejects.toThrow(
-        "Target session store 'non-existent' not found"
+        "Target session store 'non-existent' not found",
       );
     });
 
@@ -413,18 +415,18 @@ describe('SessionStoreFactory', () => {
         preferredStore: 'memory',
         enableMonitoring: false,
         enableReplication: false,
-        enableMigration: false
+        enableMigration: false,
       });
 
       await factory.create('to-instance', {
         preferredStore: 'memory',
         enableMonitoring: false,
         enableReplication: false,
-        enableMigration: true
+        enableMigration: true,
       });
 
       await expect(factory.migrate('from-instance', 'to-instance')).rejects.toThrow(
-        "Migration not enabled for source store 'from-instance'"
+        "Migration not enabled for source store 'from-instance'",
       );
     });
   });
@@ -437,14 +439,14 @@ describe('SessionStoreFactory', () => {
         preferredStore: 'memory',
         enableMonitoring: true,
         enableReplication: false,
-        enableMigration: false
+        enableMigration: false,
       });
 
       await factory.create('instance2', {
         preferredStore: 'memory',
         enableMonitoring: true,
         enableReplication: false,
-        enableMigration: false
+        enableMigration: false,
       });
 
       const health = await factory.getHealthStatus();
@@ -462,7 +464,7 @@ describe('SessionStoreFactory', () => {
         preferredStore: 'memory',
         enableMonitoring: true,
         enableReplication: false,
-        enableMigration: false
+        enableMigration: false,
       });
 
       // Mock health check to return degraded status
@@ -473,10 +475,10 @@ describe('SessionStoreFactory', () => {
           checks: {
             redis: { available: false },
             sessionStore: { available: true },
-            fallback: { available: true }
+            fallback: { available: true },
           },
           metrics: {} as any,
-          alerts: []
+          alerts: [],
         });
       }
 
@@ -494,7 +496,7 @@ describe('SessionStoreFactory', () => {
         preferredStore: 'redis',
         enableMonitoring: true,
         enableReplication: false,
-        enableMigration: false
+        enableMigration: false,
       });
 
       const status = factory.getStatus();
@@ -517,7 +519,7 @@ describe('SessionStoreFactory', () => {
         preferredStore: 'memory',
         enableMonitoring: false,
         enableReplication: false,
-        enableMigration: false
+        enableMigration: false,
       });
 
       // Mock Redis becoming available
@@ -537,7 +539,7 @@ describe('SessionStoreFactory', () => {
         preferredStore: 'redis',
         enableMonitoring: false,
         enableReplication: false,
-        enableMigration: false
+        enableMigration: false,
       });
 
       await factory.switchStoreType('test-instance', 'memory');
@@ -554,11 +556,11 @@ describe('SessionStoreFactory', () => {
         preferredStore: 'memory',
         enableMonitoring: false,
         enableReplication: false,
-        enableMigration: false
+        enableMigration: false,
       });
 
       await expect(factory.switchStoreType('test-instance', 'redis')).rejects.toThrow(
-        'Cannot switch to Redis store: Redis not available'
+        'Cannot switch to Redis store: Redis not available',
       );
     });
 
@@ -569,7 +571,7 @@ describe('SessionStoreFactory', () => {
         preferredStore: 'memory',
         enableMonitoring: false,
         enableReplication: false,
-        enableMigration: false
+        enableMigration: false,
       });
 
       await factory.switchStoreType('test-instance', 'memory');
@@ -587,7 +589,7 @@ describe('SessionStoreFactory', () => {
         preferredStore: 'memory',
         enableMonitoring: false,
         enableReplication: false,
-        enableMigration: true
+        enableMigration: true,
       });
 
       // Create test session
@@ -596,7 +598,7 @@ describe('SessionStoreFactory', () => {
         username: 'testuser',
         roles: ['user'],
         createdAt: new Date().toISOString(),
-        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
       });
 
       const backup = await factory.createBackup('test-instance');
@@ -614,11 +616,11 @@ describe('SessionStoreFactory', () => {
         preferredStore: 'memory',
         enableMonitoring: false,
         enableReplication: false,
-        enableMigration: false
+        enableMigration: false,
       });
 
       await expect(factory.createBackup('test-instance')).rejects.toThrow(
-        "Migration not enabled for store 'test-instance'"
+        "Migration not enabled for store 'test-instance'",
       );
     });
   });
@@ -631,7 +633,7 @@ describe('SessionStoreFactory', () => {
         preferredStore: 'memory',
         enableMonitoring: false,
         enableReplication: false,
-        enableMigration: true
+        enableMigration: true,
       });
 
       const backup = {
@@ -643,12 +645,12 @@ describe('SessionStoreFactory', () => {
               username: 'testuser',
               roles: ['user'],
               createdAt: new Date().toISOString(),
-              expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+              expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
             },
-            lastAccessedAt: new Date().toISOString()
-          }
+            lastAccessedAt: new Date().toISOString(),
+          },
         ],
-        sessionCount: 1
+        sessionCount: 1,
       };
 
       const stats = await factory.restoreBackup('test-instance', backup);
@@ -668,13 +670,13 @@ describe('SessionStoreFactory', () => {
         preferredStore: 'memory',
         enableMonitoring: false,
         enableReplication: false,
-        enableMigration: false
+        enableMigration: false,
       });
 
       const backup = { data: [], sessionCount: 0 };
 
       await expect(factory.restoreBackup('test-instance', backup)).rejects.toThrow(
-        "Migration not enabled for store 'test-instance'"
+        "Migration not enabled for store 'test-instance'",
       );
     });
   });

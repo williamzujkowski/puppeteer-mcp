@@ -5,12 +5,7 @@
  * @nist si-4 "Information system monitoring"
  */
 
-import type {
-  MetricDataPoint,
-  MetricObserver,
-  MetricSubject,
-  MetricEvent,
-} from './types.js';
+import type { MetricDataPoint, MetricObserver, MetricSubject, MetricEvent } from './types.js';
 import { createLogger } from '../../../utils/logger.js';
 
 const logger = createLogger('metric-collector');
@@ -137,9 +132,7 @@ export abstract class BaseMetricCollector implements MetricSubject {
    * @protected
    */
   protected getLastValue(dataPoints: MetricDataPoint[]): number {
-    return dataPoints.length > 0
-      ? (dataPoints[dataPoints.length - 1]?.value ?? 0)
-      : 0;
+    return dataPoints.length > 0 ? (dataPoints[dataPoints.length - 1]?.value ?? 0) : 0;
   }
 
   /**

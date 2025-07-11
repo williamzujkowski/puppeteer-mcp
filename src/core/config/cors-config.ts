@@ -23,14 +23,23 @@ export function parseCORSConfig(allowedOrigins: string[]): {
     CORS_ENABLED: parseBoolean(process.env.CORS_ENABLED, true),
     CORS_CREDENTIALS: parseBoolean(process.env.CORS_CREDENTIALS, true),
     CORS_MAX_AGE: parseInt(process.env.CORS_MAX_AGE, 86400),
-    CORS_ALLOWED_METHODS: parseArray(process.env.CORS_ALLOWED_METHODS, ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']),
+    CORS_ALLOWED_METHODS: parseArray(process.env.CORS_ALLOWED_METHODS, [
+      'GET',
+      'POST',
+      'PUT',
+      'DELETE',
+      'OPTIONS',
+    ]),
     CORS_ALLOWED_HEADERS: parseArray(process.env.CORS_ALLOWED_HEADERS, [
       'Content-Type',
       'Authorization',
       'X-Request-ID',
       'X-Session-ID',
     ]),
-    CORS_EXPOSED_HEADERS: parseArray(process.env.CORS_EXPOSED_HEADERS, ['X-Request-ID', 'X-RateLimit-Remaining']),
+    CORS_EXPOSED_HEADERS: parseArray(process.env.CORS_EXPOSED_HEADERS, [
+      'X-Request-ID',
+      'X-RateLimit-Remaining',
+    ]),
     CORS_ORIGIN: process.env.CORS_ORIGIN,
     ALLOWED_ORIGINS: allowedOrigins,
   };

@@ -36,12 +36,9 @@ export class SecurityEventCoordinator {
    * @param context - Execution context
    * @nist au-3 "Content of audit records"
    */
-  async logExecutionStart(
-    action: BrowserAction,
-    context: ActionContext,
-  ): Promise<void> {
+  async logExecutionStart(action: BrowserAction, context: ActionContext): Promise<void> {
     const metadata = this.eventLogger.createBaseMetadata(action, context);
-    
+
     await this.eventLogger.logEvent(SecurityEventType.COMMAND_EXECUTED, {
       userId: context.userId,
       resource: `page:${action.pageId}`,
@@ -67,7 +64,7 @@ export class SecurityEventCoordinator {
     result: ActionResult,
   ): Promise<void> {
     const metadata = this.eventLogger.createBaseMetadata(action, context);
-    
+
     await this.eventLogger.logEvent(SecurityEventType.COMMAND_EXECUTED, {
       userId: context.userId,
       resource: `page:${action.pageId}`,
@@ -96,7 +93,7 @@ export class SecurityEventCoordinator {
     validationResult: ValidationResult,
   ): Promise<void> {
     const metadata = this.eventLogger.createBaseMetadata(action, context);
-    
+
     await this.eventLogger.logEvent(SecurityEventType.VALIDATION_FAILURE, {
       userId: context.userId,
       resource: `page:${action.pageId}`,
@@ -117,12 +114,9 @@ export class SecurityEventCoordinator {
    * @param context - Execution context
    * @nist au-14 "Session audit"
    */
-  async logPageNotFound(
-    action: BrowserAction,
-    context: ActionContext,
-  ): Promise<void> {
+  async logPageNotFound(action: BrowserAction, context: ActionContext): Promise<void> {
     const metadata = this.eventLogger.createBaseMetadata(action, context);
-    
+
     await this.eventLogger.logEvent(SecurityEventType.ACCESS_DENIED, {
       userId: context.userId,
       resource: `page:${action.pageId}`,
@@ -153,7 +147,7 @@ export class SecurityEventCoordinator {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     const errorType = this.errorAnalyzer.classifyError(error);
     const severity = this.errorAnalyzer.getErrorSeverity(error);
-    
+
     await this.eventLogger.logEvent(SecurityEventType.COMMAND_EXECUTED, {
       userId: context.userId,
       resource: `page:${action.pageId}`,
@@ -190,7 +184,7 @@ export class SecurityEventCoordinator {
   ): Promise<void> {
     const metadata = this.eventLogger.createBaseMetadata(action, context);
     const sanitizedPayload = this.errorAnalyzer.sanitizeActionPayload(action);
-    
+
     await this.eventLogger.logEvent(SecurityEventType.SUSPICIOUS_ACTIVITY, {
       userId: context.userId,
       resource: `page:${action.pageId}`,

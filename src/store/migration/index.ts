@@ -16,7 +16,7 @@ export type {
   ValidationResult,
   SessionValidationResult,
   RestoreCommand,
-  RestoreStrategy
+  RestoreStrategy,
 } from './types.js';
 export { StandardRestoreStrategy } from './migration-validator.js';
 export { MigrationOrchestrator } from './migration-orchestrator.js';

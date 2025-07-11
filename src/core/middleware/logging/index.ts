@@ -11,8 +11,8 @@
 export { requestResponseLogger, createRequestResponseLogger } from './request-response-logger.js';
 
 // Configuration exports
-export { 
-  getDefaultConfig, 
+export {
+  getDefaultConfig,
   createPresetConfigs,
   DEFAULT_SENSITIVE_HEADERS,
   DEFAULT_SENSITIVE_BODY_FIELDS,
@@ -31,34 +31,34 @@ export type {
 } from './types.js';
 
 // Utility exports
-export { 
-  redactSensitiveData, 
-  redactSensitiveHeaders, 
+export {
+  redactSensitiveData,
+  redactSensitiveHeaders,
   shouldLogContentType,
   sanitizeError,
 } from './log-sanitizer.js';
 
-export { 
-  shouldSkipRequest, 
-  shouldSkipResponse, 
-  isSlowRequest, 
-  getLogLevel, 
+export {
+  shouldSkipRequest,
+  shouldSkipResponse,
+  isSlowRequest,
+  getLogLevel,
   getAuditResult,
   isSecuritySensitivePath,
   isMutatingRequest,
 } from './log-filters.js';
 
-export { 
-  createTiming, 
-  calculateTiming, 
-  calculateDuration, 
-  roundDuration, 
+export {
+  createTiming,
+  calculateTiming,
+  calculateDuration,
+  roundDuration,
   formatDuration,
   PerformanceTracker,
   globalPerformanceTracker,
 } from './performance-tracker.js';
 
-export { 
+export {
   formatRequestLogData,
   formatResponseLogData,
   formatErrorLogData,
@@ -70,34 +70,30 @@ export {
   formatContentLength,
 } from './log-formatter.js';
 
-export { 
-  logRequest, 
-  parseRequestBody, 
-  attachRequestLogging,
-} from './request-logger.js';
+export { logRequest, parseRequestBody, attachRequestLogging } from './request-logger.js';
 
-export { 
-  logResponse, 
-  extractResponseBody, 
-  setupResponseBodyCapture, 
+export {
+  logResponse,
+  extractResponseBody,
+  setupResponseBodyCapture,
   setupResponseLogging,
 } from './response-logger.js';
 
-export { 
-  logRequestError, 
-  setupErrorLogging, 
-  logUncaughtException, 
-  logRequestTimeout, 
+export {
+  logRequestError,
+  setupErrorLogging,
+  logUncaughtException,
+  logRequestTimeout,
   logRequestCancellation,
   logMiddlewareError,
 } from './error-logger.js';
 
-export { 
-  logAuditEvent, 
-  logAuthenticationAudit, 
-  logAuthorizationAudit, 
-  logRateLimitAudit, 
-  logValidationAudit, 
+export {
+  logAuditEvent,
+  logAuthenticationAudit,
+  logAuthorizationAudit,
+  logRateLimitAudit,
+  logValidationAudit,
   logSuspiciousActivity,
   logSecurityEventWithContext,
 } from './audit-logger.js';

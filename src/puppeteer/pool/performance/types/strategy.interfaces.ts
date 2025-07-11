@@ -33,16 +33,16 @@ export interface IMetricsCollector extends IPerformanceStrategy {
     value: number,
     metadata?: Record<string, any>,
     tags?: Record<string, string>,
-    source?: string
+    source?: string,
   ): void;
-  
+
   getMetrics(
     type?: PerformanceMetricType,
-    timeRange?: TimeRange
+    timeRange?: TimeRange,
   ): Map<PerformanceMetricType, PerformanceDataPoint[]>;
-  
+
   cleanupOldData(retentionPeriod: number): void;
-  
+
   initializeMetricMaps(): void;
 }
 
@@ -51,13 +51,13 @@ export interface IMetricsCollector extends IPerformanceStrategy {
  */
 export interface IAlertManager extends IPerformanceStrategy {
   checkRealTimeAlert(type: PerformanceMetricType, value: number): void;
-  
+
   getActiveAlerts(): PerformanceAlert[];
-  
+
   acknowledgeAlert(alertId: string): boolean;
-  
+
   resolveAlert(alertId: string): boolean;
-  
+
   cleanupResolvedAlerts(retentionPeriod: number): void;
 }
 
@@ -66,11 +66,11 @@ export interface IAlertManager extends IPerformanceStrategy {
  */
 export interface ITrendAnalyzer extends IPerformanceStrategy {
   analyzeTrends(dataPoints: Map<PerformanceMetricType, PerformanceDataPoint[]>): void;
-  
+
   getTrends(): Map<PerformanceMetricType, PerformanceTrend>;
-  
+
   determineTrend(type: PerformanceMetricType): 'improving' | 'degrading' | 'stable';
-  
+
   calculateTrend(dataPoints: PerformanceDataPoint[]): PerformanceTrend;
 }
 
@@ -79,11 +79,11 @@ export interface ITrendAnalyzer extends IPerformanceStrategy {
  */
 export interface IAnomalyDetector extends IPerformanceStrategy {
   checkAnomaly(type: PerformanceMetricType, value: number): void;
-  
+
   getAnomalies(timeRange?: TimeRange): PerformanceAnomaly[];
-  
+
   cleanupOldAnomalies(retentionPeriod: number): void;
-  
+
   updateBaseline(type: PerformanceMetricType, value: number): void;
 }
 
@@ -92,14 +92,14 @@ export interface IAnomalyDetector extends IPerformanceStrategy {
  */
 export interface IOptimizationEngine extends IPerformanceStrategy {
   generateRecommendations(summary: PerformanceSummary): void;
-  
+
   getRecommendations(applied?: boolean): OptimizationRecommendation[];
-  
+
   applyRecommendation(
     recommendationId: string,
-    result: { successful: boolean; actualImprovement: number; notes: string }
+    result: { successful: boolean; actualImprovement: number; notes: string },
   ): boolean;
-  
+
   shouldGenerateRecommendations(): boolean;
 }
 
@@ -107,14 +107,10 @@ export interface IOptimizationEngine extends IPerformanceStrategy {
  * Performance calculations utility interface
  */
 export interface IPerformanceCalculations {
-  calculateHealthScore(
-    metrics: any,
-    alertsSummary: any,
-    anomaliesSummary: any
-  ): number;
-  
+  calculateHealthScore(metrics: any, alertsSummary: any, anomaliesSummary: any): number;
+
   calculatePerformanceGrade(healthScore: number): 'A' | 'B' | 'C' | 'D' | 'F';
-  
+
   calculateStatistics(values: number[]): {
     average: number;
     min: number;

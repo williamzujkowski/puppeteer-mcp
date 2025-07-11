@@ -25,7 +25,10 @@ export function parseDatabaseConfig(): {
     DATABASE_TYPE: (process.env.DATABASE_TYPE as 'sqlite' | 'postgres' | 'mysql') ?? 'sqlite',
     DATABASE_PATH: process.env.DATABASE_PATH ?? './data/app.db',
     DATABASE_HOST: process.env.DATABASE_HOST,
-    DATABASE_PORT: (process.env.DATABASE_PORT !== undefined && process.env.DATABASE_PORT !== '') ? parseInt(process.env.DATABASE_PORT, 5432) : undefined,
+    DATABASE_PORT:
+      process.env.DATABASE_PORT !== undefined && process.env.DATABASE_PORT !== ''
+        ? parseInt(process.env.DATABASE_PORT, 5432)
+        : undefined,
     DATABASE_NAME: process.env.DATABASE_NAME,
     DATABASE_USER: process.env.DATABASE_USER,
     DATABASE_PASSWORD: process.env.DATABASE_PASSWORD,

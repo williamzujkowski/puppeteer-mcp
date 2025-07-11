@@ -58,9 +58,5 @@ export const createDevelopmentTransport = (): pino.TransportSingleOptions => ({
  * Check if pretty printing should be enabled
  */
 export const shouldUsePrettyPrint = (isAudit: boolean): boolean => {
-  return (
-    config.NODE_ENV === 'development' && 
-    config.LOG_FORMAT === 'pretty' && 
-    !isAudit
-  );
+  return config.NODE_ENV === 'development' && config.LOG_FORMAT === 'pretty' && !isAudit;
 };

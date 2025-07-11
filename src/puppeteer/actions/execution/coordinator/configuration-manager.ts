@@ -7,7 +7,11 @@
 
 import type { PageManager } from '../../../interfaces/page-manager.interface.js';
 import { ConfigValidator } from './config/config-validator.js';
-import { DEFAULT_CONFIG, ACTION_TIMEOUT_MAP, NON_RETRYABLE_ACTIONS } from './config/config-defaults.js';
+import {
+  DEFAULT_CONFIG,
+  ACTION_TIMEOUT_MAP,
+  NON_RETRYABLE_ACTIONS,
+} from './config/config-defaults.js';
 import { createLogger } from '../../../../utils/logger.js';
 
 const logger = createLogger('puppeteer:configuration-manager');
@@ -95,7 +99,7 @@ export class ConfigurationManager {
    */
   updateConfig(updates: Partial<ExecutionConfig>, reason?: string): void {
     const previousConfig = JSON.parse(JSON.stringify(this.config));
-    
+
     this.config = this.mergeWithDefaults({
       ...this.config,
       ...updates,
@@ -214,14 +218,14 @@ export class ConfigurationManager {
    */
   isDomainAllowed(domain: string): boolean {
     const { allowedDomains } = this.config.security;
-    
+
     // If no domains specified, allow all
     if (allowedDomains.length === 0) {
       return true;
     }
 
     // Check exact match or wildcard patterns
-    return allowedDomains.some(allowed => {
+    return allowedDomains.some((allowed) => {
       if (allowed.startsWith('*.')) {
         const baseDomain = allowed.slice(2);
         return domain === baseDomain || domain.endsWith(`.${baseDomain}`);
@@ -248,7 +252,9 @@ export class ConfigurationManager {
       const imported = JSON.parse(json);
       this.updateConfig(imported, reason);
     } catch (error) {
-      throw new Error(`Invalid configuration JSON: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Invalid configuration JSON: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
     }
   }
 

@@ -6,9 +6,9 @@ describe('Resource Exhaustion Attack Tests', () => {
   let page: Page;
 
   beforeAll(async () => {
-    browser = await puppeteer.launch({ 
+    browser = await puppeteer.launch({
       headless: true,
-      args: ['--disable-dev-shm-usage', '--no-sandbox'] // Prevent resource issues during testing
+      args: ['--disable-dev-shm-usage', '--no-sandbox'], // Prevent resource issues during testing
     });
     page = await browser.newPage();
   });
@@ -78,7 +78,7 @@ describe('Resource Exhaustion Attack Tests', () => {
                 if (depth === 0) return {};
                 return {
                   data: new Array(1000).fill('x'),
-                  next: createRecursive(depth - 1)
+                  next: createRecursive(depth - 1),
                 };
               };
               const recursive = createRecursive(10000);
@@ -88,7 +88,7 @@ describe('Resource Exhaustion Attack Tests', () => {
             }
           });
           expect(result.success).toBe(true);
-        }
+        },
       ];
 
       for (const test of memoryExhaustionTests) {
@@ -130,22 +130,22 @@ describe('Resource Exhaustion Attack Tests', () => {
                 /([a-zA-Z]+)*$/,
                 /(a*)*$/,
                 /(a|a)*$/,
-                /(.*a){x}/ 
+                /(.*a){x}/,
               ];
-              
+
               const testString = 'a'.repeat(100) + '!';
-              
+
               for (const pattern of maliciousPatterns) {
                 const start = Date.now();
                 pattern.test(testString);
                 const duration = Date.now() - start;
-                
+
                 // Should not take excessive time
                 if (duration > 1000) {
                   return { success: false, duration };
                 }
               }
-              
+
               return { success: true };
             } catch (e: any) {
               return { success: true, error: e.message };
@@ -162,7 +162,7 @@ describe('Resource Exhaustion Attack Tests', () => {
                 if (n <= 0) return 0;
                 return recursiveFunction(n - 1) + recursiveFunction(n - 1);
               };
-              
+
               // This would cause exponential time complexity
               recursiveFunction(100);
               return { success: false };
@@ -182,7 +182,7 @@ describe('Resource Exhaustion Attack Tests', () => {
                 let nonce = 0;
                 const target = '0000';
                 const data = 'block_data';
-                
+
                 while (nonce < 1000000) {
                   const hash = btoa(data + nonce);
                   if (hash.startsWith(target)) {
@@ -191,18 +191,18 @@ describe('Resource Exhaustion Attack Tests', () => {
                   nonce++;
                 }
               };
-              
+
               const start = Date.now();
               mine();
               const duration = Date.now() - start;
-              
+
               return { success: true, duration };
             } catch (e: any) {
               return { success: true, error: e.message };
             }
           });
           expect(result.success).toBe(true);
-        }
+        },
       ];
 
       for (const test of cpuExhaustionTests) {
@@ -225,11 +225,11 @@ describe('Resource Exhaustion Attack Tests', () => {
                 container.appendChild(element);
               }
               document.body.appendChild(container);
-              
+
               // Check if DOM is responsive
               const elementCount = container.children.length;
               document.body.removeChild(container);
-              
+
               return { success: true, elementCount };
             } catch (e: any) {
               return { success: true, error: e.message };
@@ -244,15 +244,15 @@ describe('Resource Exhaustion Attack Tests', () => {
             try {
               let current = document.createElement('div');
               const root = current;
-              
+
               for (let i = 0; i < 10000; i++) {
                 const child = document.createElement('div');
                 current.appendChild(child);
                 current = child;
               }
-              
+
               document.body.appendChild(root);
-              
+
               // Test if deeply nested elements are accessible
               let depth = 0;
               let node: Element | null = root;
@@ -260,9 +260,9 @@ describe('Resource Exhaustion Attack Tests', () => {
                 depth++;
                 node = node.firstElementChild;
               }
-              
+
               document.body.removeChild(root);
-              
+
               return { success: true, depth };
             } catch (e: any) {
               return { success: true, error: e.message };
@@ -277,29 +277,29 @@ describe('Resource Exhaustion Attack Tests', () => {
             try {
               const button = document.createElement('button');
               document.body.appendChild(button);
-              
+
               // Add many event listeners
               for (let i = 0; i < 10000; i++) {
                 button.addEventListener('click', () => {
                   console.log(`Handler ${i}`);
                 });
               }
-              
+
               // Trigger event to test responsiveness
               const event = new MouseEvent('click');
               const start = Date.now();
               button.dispatchEvent(event);
               const duration = Date.now() - start;
-              
+
               document.body.removeChild(button);
-              
+
               return { success: true, duration };
             } catch (e: any) {
               return { success: true, error: e.message };
             }
           });
           expect(result.success).toBe(true);
-        }
+        },
       ];
 
       for (const test of domExhaustionTests) {
@@ -317,7 +317,7 @@ describe('Resource Exhaustion Attack Tests', () => {
             try {
               const largeData = 'x'.repeat(1024 * 1024); // 1MB string
               let count = 0;
-              
+
               try {
                 for (let i = 0; i < 100; i++) {
                   localStorage.setItem(`key${i}`, largeData);
@@ -326,12 +326,12 @@ describe('Resource Exhaustion Attack Tests', () => {
               } catch (e) {
                 // Storage quota exceeded is expected
               }
-              
+
               // Clean up
               for (let i = 0; i < count; i++) {
                 localStorage.removeItem(`key${i}`);
               }
-              
+
               return { success: true, itemsStored: count };
             } catch (e: any) {
               return { success: true, error: e.message };
@@ -346,7 +346,7 @@ describe('Resource Exhaustion Attack Tests', () => {
             try {
               const largeData = 'x'.repeat(1024 * 1024); // 1MB string
               let count = 0;
-              
+
               try {
                 for (let i = 0; i < 100; i++) {
                   sessionStorage.setItem(`key${i}`, largeData);
@@ -355,12 +355,12 @@ describe('Resource Exhaustion Attack Tests', () => {
               } catch (e) {
                 // Storage quota exceeded is expected
               }
-              
+
               // Clean up
               for (let i = 0; i < count; i++) {
                 sessionStorage.removeItem(`key${i}`);
               }
-              
+
               return { success: true, itemsStored: count };
             } catch (e: any) {
               return { success: true, error: e.message };
@@ -385,10 +385,10 @@ describe('Resource Exhaustion Attack Tests', () => {
                   }
                 };
               });
-              
+
               const largeData = new ArrayBuffer(1024 * 1024); // 1MB
               let count = 0;
-              
+
               try {
                 for (let i = 0; i < 100; i++) {
                   const transaction = db.transaction(['store'], 'readwrite');
@@ -403,7 +403,7 @@ describe('Resource Exhaustion Attack Tests', () => {
               } catch (e) {
                 // Quota exceeded is expected
               }
-              
+
               // Clean up
               db.close();
               await new Promise((resolve, reject) => {
@@ -411,14 +411,14 @@ describe('Resource Exhaustion Attack Tests', () => {
                 deleteReq.onsuccess = resolve;
                 deleteReq.onerror = reject;
               });
-              
+
               return { success: true, itemsStored: count };
             } catch (e: any) {
               return { success: true, error: e.message };
             }
           });
           expect(result.success).toBe(true);
-        }
+        },
       ];
 
       for (const test of storageExhaustionTests) {
@@ -436,26 +436,26 @@ describe('Resource Exhaustion Attack Tests', () => {
             try {
               const controller = new AbortController();
               const timeout = setTimeout(() => controller.abort(), 5000);
-              
+
               const promises = [];
               for (let i = 0; i < 1000; i++) {
                 promises.push(
-                  fetch('/api/test', { 
-                    signal: controller.signal 
-                  }).catch(() => null)
+                  fetch('/api/test', {
+                    signal: controller.signal,
+                  }).catch(() => null),
                 );
               }
-              
+
               const start = Date.now();
               await Promise.race([
                 Promise.all(promises),
-                new Promise(resolve => setTimeout(resolve, 2000))
+                new Promise((resolve) => setTimeout(resolve, 2000)),
               ]);
               const duration = Date.now() - start;
-              
+
               clearTimeout(timeout);
               controller.abort();
-              
+
               return { success: true, duration };
             } catch (e: any) {
               return { success: true, error: e.message };
@@ -470,17 +470,17 @@ describe('Resource Exhaustion Attack Tests', () => {
             try {
               const sockets = [];
               let connected = 0;
-              
+
               for (let i = 0; i < 100; i++) {
                 try {
                   const ws = new WebSocket('wss://echo.websocket.org/');
                   sockets.push(ws);
-                  
+
                   ws.onopen = () => {
                     connected++;
                     ws.close();
                   };
-                  
+
                   ws.onerror = () => {
                     ws.close();
                   };
@@ -489,16 +489,16 @@ describe('Resource Exhaustion Attack Tests', () => {
                   break;
                 }
               }
-              
+
               // Clean up
               setTimeout(() => {
-                sockets.forEach(ws => {
+                sockets.forEach((ws) => {
                   if (ws.readyState === WebSocket.OPEN) {
                     ws.close();
                   }
                 });
               }, 1000);
-              
+
               return { success: true, attempted: sockets.length };
             } catch (e: any) {
               return { success: true, error: e.message };
@@ -512,26 +512,26 @@ describe('Resource Exhaustion Attack Tests', () => {
           const result = await page.evaluate(async () => {
             try {
               const largePayload = 'x'.repeat(10 * 1024 * 1024); // 10MB
-              
+
               const response = await fetch('/api/test', {
                 method: 'POST',
                 body: largePayload,
                 headers: {
-                  'Content-Type': 'text/plain'
-                }
+                  'Content-Type': 'text/plain',
+                },
               }).catch(() => ({ ok: false }));
-              
-              return { 
-                success: true, 
+
+              return {
+                success: true,
                 payloadSize: largePayload.length,
-                requestFailed: !response.ok
+                requestFailed: !response.ok,
               };
             } catch (e: any) {
               return { success: true, error: e.message };
             }
           });
           expect(result.success).toBe(true);
-        }
+        },
       ];
 
       for (const test of networkExhaustionTests) {
@@ -554,10 +554,10 @@ describe('Resource Exhaustion Attack Tests', () => {
                 }, 1000000); // Far in the future
                 timers.push(timer);
               }
-              
+
               // Clean up
-              timers.forEach(timer => clearTimeout(timer));
-              
+              timers.forEach((timer) => clearTimeout(timer));
+
               return { success: true, timerCount: timers.length };
             } catch (e: any) {
               return { success: true, error: e.message };
@@ -577,10 +577,10 @@ describe('Resource Exhaustion Attack Tests', () => {
                 }, 1000000);
                 intervals.push(interval);
               }
-              
+
               // Clean up
-              intervals.forEach(interval => clearInterval(interval));
-              
+              intervals.forEach((interval) => clearInterval(interval));
+
               return { success: true, intervalCount: intervals.length };
             } catch (e: any) {
               return { success: true, error: e.message };
@@ -597,7 +597,7 @@ describe('Resource Exhaustion Attack Tests', () => {
                 let frameCount = 0;
                 let animationId: number;
                 const maxFrames = 1000;
-                
+
                 const animate = () => {
                   frameCount++;
                   if (frameCount < maxFrames) {
@@ -606,9 +606,9 @@ describe('Resource Exhaustion Attack Tests', () => {
                     resolve({ success: true, frameCount });
                   }
                 };
-                
+
                 animationId = requestAnimationFrame(animate);
-                
+
                 // Safety timeout
                 setTimeout(() => {
                   cancelAnimationFrame(animationId!);
@@ -620,7 +620,7 @@ describe('Resource Exhaustion Attack Tests', () => {
             });
           });
           expect(result.success).toBe(true);
-        }
+        },
       ];
 
       for (const test of timerExhaustionTests) {
@@ -639,13 +639,13 @@ describe('Resource Exhaustion Attack Tests', () => {
               if ('Notification' in window) {
                 // Request permission (will be denied in headless mode)
                 const permission = await Notification.requestPermission();
-                
+
                 if (permission === 'granted') {
                   for (let i = 0; i < 100; i++) {
                     new Notification(`Spam notification ${i}`);
                   }
                 }
-                
+
                 return { success: true, permission };
               }
               return { success: true, supported: false };
@@ -663,14 +663,14 @@ describe('Resource Exhaustion Attack Tests', () => {
               try {
                 if ('geolocation' in navigator) {
                   let requestCount = 0;
-                  
+
                   for (let i = 0; i < 100; i++) {
                     navigator.geolocation.getCurrentPosition(
                       () => requestCount++,
-                      () => requestCount++
+                      () => requestCount++,
                     );
                   }
-                  
+
                   setTimeout(() => {
                     resolve({ success: true, requestCount });
                   }, 1000);
@@ -691,14 +691,11 @@ describe('Resource Exhaustion Attack Tests', () => {
             try {
               if ('clipboard' in navigator) {
                 const promises = [];
-                
+
                 for (let i = 0; i < 100; i++) {
-                  promises.push(
-                    navigator.clipboard.writeText(`Spam ${i}`)
-                      .catch(() => null)
-                  );
+                  promises.push(navigator.clipboard.writeText(`Spam ${i}`).catch(() => null));
                 }
-                
+
                 await Promise.all(promises);
                 return { success: true };
               }
@@ -708,7 +705,7 @@ describe('Resource Exhaustion Attack Tests', () => {
             }
           });
           expect(result.success).toBe(true);
-        }
+        },
       ];
 
       for (const test of apiAbuseTests) {
@@ -740,25 +737,27 @@ describe('Resource Exhaustion Attack Tests', () => {
                     }
                   };
                 `;
-                
+
                 const workers: Worker[] = [];
                 const maxWorkers = 10;
-                
+
                 for (let i = 0; i < maxWorkers; i++) {
                   try {
-                    const worker = new Worker(URL.createObjectURL(
-                      new Blob([workerCode], { type: 'application/javascript' })
-                    ));
+                    const worker = new Worker(
+                      URL.createObjectURL(
+                        new Blob([workerCode], { type: 'application/javascript' }),
+                      ),
+                    );
                     workers.push(worker);
                   } catch (e) {
                     // Worker limit reached
                     break;
                   }
                 }
-                
+
                 // Clean up
                 setTimeout(() => {
-                  workers.forEach(w => w.terminate());
+                  workers.forEach((w) => w.terminate());
                   resolve({ success: true, workerCount: workers.length });
                 }, 1000);
               } catch (e: any) {
@@ -775,36 +774,36 @@ describe('Resource Exhaustion Attack Tests', () => {
             try {
               const createIframes = (parent: HTMLElement, depth: number, maxDepth: number) => {
                 if (depth >= maxDepth) return;
-                
+
                 for (let i = 0; i < 2; i++) {
                   const iframe = document.createElement('iframe');
                   iframe.src = 'about:blank';
                   parent.appendChild(iframe);
-                  
+
                   if (iframe.contentDocument) {
                     createIframes(iframe.contentDocument.body, depth + 1, maxDepth);
                   }
                 }
               };
-              
+
               const container = document.createElement('div');
               document.body.appendChild(container);
-              
+
               createIframes(container, 0, 3); // Limited depth
-              
+
               // Count created iframes
               const iframeCount = container.querySelectorAll('iframe').length;
-              
+
               // Clean up
               document.body.removeChild(container);
-              
+
               return { success: true, iframeCount };
             } catch (e: any) {
               return { success: true, error: e.message };
             }
           });
           expect(result.success).toBe(true);
-        }
+        },
       ];
 
       for (const test of forkBombTests) {

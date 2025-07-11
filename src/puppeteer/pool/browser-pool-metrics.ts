@@ -5,7 +5,7 @@
  * @nist au-4 "Audit storage capacity"
  * @nist au-6 "Audit review, analysis, and reporting"
  * @nist si-4 "Information system monitoring"
- * 
+ *
  * This file maintains backward compatibility by re-exporting from modularized components
  */
 
@@ -36,7 +36,7 @@ const logger = createLogger('browser-pool-metrics');
  * Browser pool metrics collector - facade for backward compatibility
  * @nist au-3 "Content of audit records"
  * @nist si-4 "Information system monitoring"
- * 
+ *
  * This class provides backward compatibility by wrapping the new modular architecture
  */
 export class BrowserPoolMetrics {
@@ -125,11 +125,7 @@ export class BrowserPoolMetrics {
    * @nist si-4 "Information system monitoring"
    */
   updateResourceUsage(browserId: string, cpuUsage: number, memoryUsage: number): void {
-    this.aggregator.getCollectors().resources.updateResourceUsage(
-      browserId,
-      cpuUsage,
-      memoryUsage
-    );
+    this.aggregator.getCollectors().resources.updateResourceUsage(browserId, cpuUsage, memoryUsage);
   }
 
   /**
@@ -146,7 +142,7 @@ export class BrowserPoolMetrics {
    */
   getMetrics(
     browsers: Map<string, InternalBrowserInstance>,
-    maxBrowsers: number
+    maxBrowsers: number,
   ): ExtendedPoolMetrics {
     return this.aggregator.getMetrics(browsers, maxBrowsers);
   }
@@ -173,10 +169,11 @@ export class BrowserPoolMetrics {
     const queueMetrics = this.aggregator.getCollectors().queue.collect();
     const errorMetrics = this.aggregator.getCollectors().errors.collect();
     const utilizationHistory = this.aggregator.getCollectors().resources.getUtilizationHistory();
-    const currentUtilization = utilizationHistory.length > 0 
-      ? utilizationHistory[utilizationHistory.length - 1]?.value || 0
-      : 0;
-    
+    const currentUtilization =
+      utilizationHistory.length > 0
+        ? utilizationHistory[utilizationHistory.length - 1]?.value || 0
+        : 0;
+
     return {
       pool: {
         size: browsers?.size || 0,

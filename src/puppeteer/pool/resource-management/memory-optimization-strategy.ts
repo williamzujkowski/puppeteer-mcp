@@ -7,7 +7,10 @@
 import type { Page, Browser } from 'puppeteer';
 import { createLogger } from '../../../utils/logger.js';
 import type { MemoryOptimizationOptions } from './resource-types.js';
-import type { IResourceOptimizationStrategy, OptimizationResult } from './resource-optimization-strategy.js';
+import type {
+  IResourceOptimizationStrategy,
+  OptimizationResult,
+} from './resource-optimization-strategy.js';
 
 const logger = createLogger('memory-optimization-strategy');
 
@@ -33,10 +36,12 @@ export class MemoryOptimizationStrategy implements IResourceOptimizationStrategy
    * Check if enabled
    */
   isEnabled(): boolean {
-    return this.config.enablePageMemoryReduction || 
-           this.config.enableImageOptimization || 
-           this.config.enableJavaScriptOptimization || 
-           this.config.enableCacheOptimization;
+    return (
+      this.config.enablePageMemoryReduction ||
+      this.config.enableImageOptimization ||
+      this.config.enableJavaScriptOptimization ||
+      this.config.enableCacheOptimization
+    );
   }
 
   /**
@@ -59,7 +64,7 @@ export class MemoryOptimizationStrategy implements IResourceOptimizationStrategy
       if (this.config.enableImageOptimization) {
         try {
           await page.setRequestInterception(true);
-          
+
           page.on('request', (req) => {
             if (req.resourceType() === 'image') {
               // Block data URIs to save memory
@@ -70,7 +75,8 @@ export class MemoryOptimizationStrategy implements IResourceOptimizationStrategy
               // Block large images
               const headers = req.headers();
               const contentLength = headers['content-length'];
-              if (contentLength && parseInt(contentLength) > 1024 * 1024) { // 1MB
+              if (contentLength && parseInt(contentLength) > 1024 * 1024) {
+                // 1MB
                 req.abort();
                 return;
               }
@@ -101,12 +107,12 @@ export class MemoryOptimizationStrategy implements IResourceOptimizationStrategy
         try {
           // Set viewport to reduce rendering overhead
           await page.setViewport({ width: 1280, height: 720 });
-          
+
           // Disable unnecessary features
           await page.evaluateOnNewDocument(() => {
             // Disable smooth scrolling
             document.documentElement.style.scrollBehavior = 'auto';
-            
+
             // Disable web fonts to save memory
             const style = document.createElement('style');
             style.textContent = `
@@ -126,22 +132,21 @@ export class MemoryOptimizationStrategy implements IResourceOptimizationStrategy
       if (this.config.enablePageMemoryReduction) {
         try {
           // Set reduced viewport
-          await page.setViewport({ 
-            width: 1024, 
+          await page.setViewport({
+            width: 1024,
             height: 768,
-            deviceScaleFactor: 1
+            deviceScaleFactor: 1,
           });
 
           // Disable unnecessary features
           await page.setBypassCSP(true);
-          
+
           optimizationsApplied.push('page-memory-reduction');
         } catch (error) {
           errors.push(`Page memory reduction failed: ${error}`);
           logger.debug({ error }, 'Failed to apply page memory reduction');
         }
       }
-
     } catch (error) {
       logger.error({ error }, 'Error applying memory optimizations');
       errors.push(`General optimization error: ${error}`);
@@ -164,7 +169,7 @@ export class MemoryOptimizationStrategy implements IResourceOptimizationStrategy
     try {
       // Apply page-level optimizations to all existing pages
       const pages = await browser.pages();
-      
+
       for (const page of pages) {
         const result = await this.optimizePage(page);
         if (!result.success) {
@@ -190,7 +195,8 @@ export class MemoryOptimizationStrategy implements IResourceOptimizationStrategy
       }
 
       // Close unused pages
-      if (pages.length > this.config.maxPageMemoryMB / 50) { // Rough estimate: 50MB per page
+      if (pages.length > this.config.maxPageMemoryMB / 50) {
+        // Rough estimate: 50MB per page
         const pagesToClose = pages.length - Math.floor(this.config.maxPageMemoryMB / 50);
         for (let i = 0; i < pagesToClose && i < pages.length - 1; i++) {
           try {
@@ -201,7 +207,6 @@ export class MemoryOptimizationStrategy implements IResourceOptimizationStrategy
           }
         }
       }
-
     } catch (error) {
       logger.error({ error }, 'Error optimizing browser');
       errors.push(`Browser optimization error: ${error}`);

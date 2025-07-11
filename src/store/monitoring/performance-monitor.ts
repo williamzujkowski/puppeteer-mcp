@@ -63,8 +63,8 @@ export class PerformanceMonitor {
       throughput: this.calculateThroughput(),
       saturation: {
         queueDepth: 0, // Placeholder - would need queue implementation
-        concurrency: 0 // Placeholder - would need concurrency tracking
-      }
+        concurrency: 0, // Placeholder - would need concurrency tracking
+      },
     };
   }
 
@@ -83,7 +83,7 @@ export class PerformanceMonitor {
       p50: sorted[Math.floor(len * 0.5)] ?? 0,
       p95: sorted[Math.floor(len * 0.95)] ?? 0,
       p99: sorted[Math.floor(len * 0.99)] ?? 0,
-      max: sorted[len - 1] ?? 0
+      max: sorted[len - 1] ?? 0,
     };
   }
 
@@ -96,7 +96,7 @@ export class PerformanceMonitor {
     }
 
     const oneMinuteAgo = Date.now() - 60000;
-    const recentOps = this.operationTimestamps.filter(ts => ts > oneMinuteAgo);
+    const recentOps = this.operationTimestamps.filter((ts) => ts > oneMinuteAgo);
     const rps = recentOps.length / 60;
     const peak = this.calculatePeakRPS();
 
@@ -113,7 +113,7 @@ export class PerformanceMonitor {
       if (windowStart !== undefined) {
         const windowEnd = windowStart + 1000;
         const opsInWindow = this.operationTimestamps.filter(
-          ts => ts >= windowStart && ts < windowEnd
+          (ts) => ts >= windowStart && ts < windowEnd,
         ).length;
         peak = Math.max(peak, opsInWindow);
       }
@@ -126,10 +126,10 @@ export class PerformanceMonitor {
    */
   exportMetrics(metrics: SessionMetrics): ExportedMetrics {
     const prometheusMetrics = this.generatePrometheusMetrics(metrics);
-    
+
     return {
       prometheus: prometheusMetrics,
-      json: metrics
+      json: metrics,
     };
   }
 
@@ -147,7 +147,9 @@ export class PerformanceMonitor {
 
       lines.push(`# HELP session_operation_latency_seconds Average latency of session operations`);
       lines.push(`# TYPE session_operation_latency_seconds gauge`);
-      lines.push(`session_operation_latency_seconds{operation="${operation}"} ${opMetrics.avgLatency / 1000}`);
+      lines.push(
+        `session_operation_latency_seconds{operation="${operation}"} ${opMetrics.avgLatency / 1000}`,
+      );
 
       lines.push(`# HELP session_operation_errors_total Total number of session operation errors`);
       lines.push(`# TYPE session_operation_errors_total counter`);
@@ -157,15 +159,21 @@ export class PerformanceMonitor {
     // Store metrics
     lines.push(`# HELP session_store_available Whether the session store is available`);
     lines.push(`# TYPE session_store_available gauge`);
-    lines.push(`session_store_available{type="${metrics.store.type}"} ${metrics.store.available ? 1 : 0}`);
+    lines.push(
+      `session_store_available{type="${metrics.store.type}"} ${metrics.store.available ? 1 : 0}`,
+    );
 
     lines.push(`# HELP session_store_total_sessions Total number of sessions in store`);
     lines.push(`# TYPE session_store_total_sessions gauge`);
-    lines.push(`session_store_total_sessions{type="${metrics.store.type}"} ${metrics.store.totalSessions}`);
+    lines.push(
+      `session_store_total_sessions{type="${metrics.store.type}"} ${metrics.store.totalSessions}`,
+    );
 
     lines.push(`# HELP session_store_active_sessions Number of active sessions in store`);
     lines.push(`# TYPE session_store_active_sessions gauge`);
-    lines.push(`session_store_active_sessions{type="${metrics.store.type}"} ${metrics.store.activeSessions}`);
+    lines.push(
+      `session_store_active_sessions{type="${metrics.store.type}"} ${metrics.store.activeSessions}`,
+    );
 
     // Redis metrics
     if (metrics.redis) {
@@ -193,7 +201,7 @@ export class PerformanceMonitor {
 
     // Performance metrics
     const perfMetrics = this.getPerformanceMetrics();
-    
+
     lines.push(`# HELP session_latency_p50_seconds 50th percentile latency`);
     lines.push(`# TYPE session_latency_p50_seconds gauge`);
     lines.push(`session_latency_p50_seconds ${perfMetrics.latency.p50 / 1000}`);

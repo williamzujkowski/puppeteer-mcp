@@ -1,6 +1,7 @@
 # Docker Development Environment
 
-This directory contains the Docker Compose setup for local development of puppeteer-mcp with a full observability stack.
+This directory contains the Docker Compose setup for local development of puppeteer-mcp with a full
+observability stack.
 
 ## 🚀 Quick Start
 
@@ -28,46 +29,47 @@ This directory contains the Docker Compose setup for local development of puppet
 
 ### Core Services
 
-| Service | Port | Description |
-|---------|------|-------------|
-| app | 8443, 50051, 9229 | Main puppeteer-mcp application |
-| redis | 6379 | Session storage and caching |
-| postgres | 5432 | Database for persistent data |
+| Service  | Port              | Description                    |
+| -------- | ----------------- | ------------------------------ |
+| app      | 8443, 50051, 9229 | Main puppeteer-mcp application |
+| redis    | 6379              | Session storage and caching    |
+| postgres | 5432              | Database for persistent data   |
 
 ### Observability Stack
 
-| Service | Port | URL | Description |
-|---------|------|-----|-------------|
-| prometheus | 9090 | http://localhost:9090 | Metrics collection |
-| grafana | 3000 | http://localhost:3000 | Dashboards (admin/admin-dev-password) |
-| jaeger | 16686 | http://localhost:16686 | Distributed tracing |
+| Service    | Port  | URL                    | Description                           |
+| ---------- | ----- | ---------------------- | ------------------------------------- |
+| prometheus | 9090  | http://localhost:9090  | Metrics collection                    |
+| grafana    | 3000  | http://localhost:3000  | Dashboards (admin/admin-dev-password) |
+| jaeger     | 16686 | http://localhost:16686 | Distributed tracing                   |
 
 ### Development Tools (--profile tools)
 
-| Service | Port | URL | Description |
-|---------|------|-----|-------------|
-| adminer | 8080 | http://localhost:8080 | Database management |
+| Service         | Port | URL                   | Description                                 |
+| --------------- | ---- | --------------------- | ------------------------------------------- |
+| adminer         | 8080 | http://localhost:8080 | Database management                         |
 | redis-commander | 8081 | http://localhost:8081 | Redis management (admin/admin-dev-password) |
 
 ### Monitoring Exporters (--profile monitoring)
 
-| Service | Port | Description |
-|---------|------|-------------|
-| node-exporter | 9100 | System metrics |
-| redis-exporter | 9121 | Redis metrics |
+| Service           | Port | Description        |
+| ----------------- | ---- | ------------------ |
+| node-exporter     | 9100 | System metrics     |
+| redis-exporter    | 9121 | Redis metrics      |
 | postgres-exporter | 9187 | PostgreSQL metrics |
 
 ### Load Testing (--profile load-test)
 
-| Service | Description |
-|---------|-------------|
-| k6 | Load testing tool |
+| Service | Description       |
+| ------- | ----------------- |
+| k6      | Load testing tool |
 
 ## 🔧 Configuration
 
 ### Environment Variables
 
 1. Copy `.env.example` to `.env`:
+
    ```bash
    cp .env.example .env
    ```
@@ -185,6 +187,7 @@ open http://localhost:8081
 Access at http://localhost:9090
 
 Useful queries:
+
 - `up`: Service health
 - `rate(puppeteer_mcp_http_requests_total[5m])`: Request rate
 - `puppeteer_mcp_browser_pool_available`: Available browsers
@@ -193,10 +196,12 @@ Useful queries:
 ### Grafana
 
 Access at http://localhost:3000
+
 - Username: admin
 - Password: admin-dev-password
 
 Pre-configured dashboards:
+
 - puppeteer-mcp Overview: Main application metrics
 - Browser Pool: Browser resource utilization
 - API Performance: Request latencies and error rates
@@ -206,6 +211,7 @@ Pre-configured dashboards:
 Access at http://localhost:16686
 
 Features:
+
 - Distributed trace viewing
 - Service dependency graph
 - Performance analysis
@@ -250,36 +256,40 @@ docker-compose run --rm k6 run --stage 5s:10,2m:10,5s:0 /scripts/load-test.js
 ### Common Issues
 
 1. **Port conflicts**
+
    ```bash
    # Check what's using a port
    lsof -i :8443
-   
+
    # Change port in docker-compose.override.yml
    ```
 
 2. **Service won't start**
+
    ```bash
    # Check logs
    docker-compose logs [service-name]
-   
+
    # Restart specific service
    docker-compose restart [service-name]
    ```
 
 3. **Database connection issues**
+
    ```bash
    # Check PostgreSQL is running
    docker-compose ps postgres
-   
+
    # Test connection
    docker-compose exec postgres pg_isready
    ```
 
 4. **Out of memory**
+
    ```bash
    # Increase Docker memory allocation
    # Docker Desktop > Preferences > Resources
-   
+
    # Or reduce service limits in docker-compose.yml
    ```
 

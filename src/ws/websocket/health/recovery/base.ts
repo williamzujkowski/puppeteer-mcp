@@ -7,7 +7,12 @@
  */
 
 import type { pino } from 'pino';
-import type { HealthStatus, HealthMetrics, HealthCheckContext, RecoveryActionResult } from '../types.js';
+import type {
+  HealthStatus,
+  HealthMetrics,
+  HealthCheckContext,
+  RecoveryActionResult,
+} from '../types.js';
 
 /**
  * Recovery action context
@@ -78,7 +83,9 @@ export abstract class RecoveryAction {
           error: error instanceof Error ? error.message : 'Unknown error',
         });
 
-        actionsExecuted.push(`${this.name}: Failed - ${error instanceof Error ? error.message : 'Unknown error'}`);
+        actionsExecuted.push(
+          `${this.name}: Failed - ${error instanceof Error ? error.message : 'Unknown error'}`,
+        );
 
         // Continue to next handler on error
         if (this.next) {

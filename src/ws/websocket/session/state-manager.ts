@@ -155,7 +155,7 @@ export class SessionStateManager {
     if (!sessionIds) return [];
 
     return Array.from(sessionIds)
-      .map(id => this.sessions.get(id))
+      .map((id) => this.sessions.get(id))
       .filter((session): session is SessionInfo => session !== undefined);
   }
 
@@ -220,7 +220,11 @@ export class SessionStateManager {
       const sessionAge = now - session.lastActivity.getTime();
       const shouldExpire = sessionAge > timeout * 0.9; // 90% of timeout
 
-      if (shouldExpire && session.state !== States.EXPIRING && session.state !== States.TERMINATED) {
+      if (
+        shouldExpire &&
+        session.state !== States.EXPIRING &&
+        session.state !== States.TERMINATED
+      ) {
         void this.transitionState(session.sessionId, States.EXPIRING);
         expiringIds.push(session.sessionId);
       }

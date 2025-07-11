@@ -18,7 +18,11 @@ export type {
 // Export strategies
 export { BaseWaitStrategy } from './base-strategy.js';
 export { SelectorWaitStrategy, ExtendedSelectorWaitStrategy } from './selector-strategy.js';
-export { NavigationWaitStrategy, NetworkIdleWaitStrategy, type NavigationWaitUntil } from './navigation-strategy.js';
+export {
+  NavigationWaitStrategy,
+  NetworkIdleWaitStrategy,
+  type NavigationWaitUntil,
+} from './navigation-strategy.js';
 export { TimeoutWaitStrategy } from './timeout-strategy.js';
 export { FunctionWaitStrategy } from './function-strategy.js';
 export { LoadStateWaitStrategy } from './load-strategy.js';

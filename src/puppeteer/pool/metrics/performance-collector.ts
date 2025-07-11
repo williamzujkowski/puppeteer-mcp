@@ -6,14 +6,8 @@
  */
 
 import { BaseMetricCollector } from './base-collector.js';
-import {
-  MetricEventType,
-} from './types.js';
-import type {
-  MetricDataPoint,
-  MetricCollector,
-  HealthCheckMetrics,
-} from './types.js';
+import { MetricEventType } from './types.js';
+import type { MetricDataPoint, MetricCollector, HealthCheckMetrics } from './types.js';
 import { createLogger } from '../../../utils/logger.js';
 
 const logger = createLogger('performance-collector');
@@ -149,9 +143,7 @@ export class PerformanceMetricsCollector
    */
   collect(): PerformanceMetrics {
     const avgPageCreationTime = this.calculateRecentAverage(this.pageCreationTimes);
-    const avgPageDestructionTime = this.calculateRecentAverage(
-      this.pageDestructionTimes
-    );
+    const avgPageDestructionTime = this.calculateRecentAverage(this.pageDestructionTimes);
 
     // Calculate health check metrics
     const successCount = this.healthCheckResults.filter((r) => r).length;

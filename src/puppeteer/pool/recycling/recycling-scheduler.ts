@@ -54,7 +54,7 @@ export class RecyclingScheduler extends EventEmitter {
           end: this.config.maintenanceWindowEnd,
         },
       },
-      'Starting recycling scheduler'
+      'Starting recycling scheduler',
     );
 
     // Start scheduled maintenance if enabled
@@ -119,12 +119,16 @@ export class RecyclingScheduler extends EventEmitter {
 
     // Handle wrap-around (e.g., 22:00 to 02:00)
     if (this.config.maintenanceWindowStart > this.config.maintenanceWindowEnd) {
-      return currentHour >= this.config.maintenanceWindowStart || 
-             currentHour <= this.config.maintenanceWindowEnd;
+      return (
+        currentHour >= this.config.maintenanceWindowStart ||
+        currentHour <= this.config.maintenanceWindowEnd
+      );
     }
 
-    return currentHour >= this.config.maintenanceWindowStart && 
-           currentHour <= this.config.maintenanceWindowEnd;
+    return (
+      currentHour >= this.config.maintenanceWindowStart &&
+      currentHour <= this.config.maintenanceWindowEnd
+    );
   }
 
   /**
@@ -161,7 +165,7 @@ export class RecyclingScheduler extends EventEmitter {
               end: this.config.maintenanceWindowEnd,
             },
           },
-          'Maintenance window active, triggering scheduled maintenance'
+          'Maintenance window active, triggering scheduled maintenance',
         );
         this.emit('scheduled-maintenance-trigger');
       }

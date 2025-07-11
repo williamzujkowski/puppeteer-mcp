@@ -7,12 +7,12 @@
 
 import { readFile } from 'fs/promises';
 import type { RedisClient, StoreLogger } from '../types.js';
-import type { 
-  RestoreOptions, 
-  RestoreResult, 
+import type {
+  RestoreOptions,
+  RestoreResult,
   BackupData,
   BackupSession,
-  MigrationContext 
+  MigrationContext,
 } from './types.js';
 import { BaseMigration } from './base-migration.js';
 import { SessionValidator } from './session-validator.js';
@@ -43,7 +43,7 @@ export class RestoreStrategy extends BaseMigration<RestoreConfig, RestoreResult>
     return {
       operation: 'restore',
       startTime,
-      options: config.options ?? {}
+      options: config.options ?? {},
     };
   }
 
@@ -62,21 +62,25 @@ export class RestoreStrategy extends BaseMigration<RestoreConfig, RestoreResult>
     try {
       await config.client.ping();
     } catch (error) {
-      errors.push(`Redis connection failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      errors.push(
+        `Redis connection failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
     }
 
     // Load and validate backup file
     try {
       const backupContent = await readFile(config.backupPath, 'utf8');
       const backupData = JSON.parse(backupContent);
-      
+
       if (!this.validator.validateBackupData(backupData)) {
         errors.push('Invalid backup file format');
       } else {
         this.backupData = backupData;
       }
     } catch (error) {
-      errors.push(`Failed to read backup file: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      errors.push(
+        `Failed to read backup file: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
     }
 
     return { valid: errors.length === 0, errors };
@@ -87,12 +91,15 @@ export class RestoreStrategy extends BaseMigration<RestoreConfig, RestoreResult>
       throw new Error('Backup data not loaded');
     }
 
-    this.logger.info({ 
-      sessionCount: this.backupData.sessions.length,
-      backupVersion: this.backupData.version,
-      backupTimestamp: this.backupData.timestamp,
-      options: config.options
-    }, 'Starting session restore');
+    this.logger.info(
+      {
+        sessionCount: this.backupData.sessions.length,
+        backupVersion: this.backupData.version,
+        backupTimestamp: this.backupData.timestamp,
+        options: config.options,
+      },
+      'Starting session restore',
+    );
   }
 
   protected async performMigration(config: RestoreConfig): Promise<RestoreResult> {
@@ -104,21 +111,20 @@ export class RestoreStrategy extends BaseMigration<RestoreConfig, RestoreResult>
       success: false,
       restoredCount: 0,
       skippedCount: 0,
-      errors: []
+      errors: [],
     };
 
     // Validate sessions first if requested
     if (config.options?.validateOnly) {
-      const validationResult = await this.validator.validateSessions(
-        this.backupData.sessions,
-        { strict: false }
-      );
-      
+      const validationResult = await this.validator.validateSessions(this.backupData.sessions, {
+        strict: false,
+      });
+
       result.restoredCount = validationResult.validCount;
       result.skippedCount = validationResult.invalidCount;
       result.errors = validationResult.errors;
       result.success = validationResult.valid;
-      
+
       return result;
     }
 
@@ -132,15 +138,15 @@ export class RestoreStrategy extends BaseMigration<RestoreConfig, RestoreResult>
             const restoreResult = await this.restoreSession(
               config.client,
               sessionBackup,
-              config.options
+              config.options,
             );
-            
+
             if (restoreResult.restored) {
               result.restoredCount++;
             } else if (restoreResult.skipped) {
               result.skippedCount++;
             }
-            
+
             if (restoreResult.error) {
               result.errors.push(restoreResult.error);
             }
@@ -151,27 +157,30 @@ export class RestoreStrategy extends BaseMigration<RestoreConfig, RestoreResult>
         }
       },
       (processed, total) => {
-        this.logger.info({ 
-          progress: `${processed}/${total}`,
-          restored: result.restoredCount,
-          skipped: result.skippedCount
-        }, 'Restore progress');
-      }
+        this.logger.info(
+          {
+            progress: `${processed}/${total}`,
+            restored: result.restoredCount,
+            skipped: result.skippedCount,
+          },
+          'Restore progress',
+        );
+      },
     );
 
     result.success = result.errors.length === 0;
     return result;
   }
 
-  protected async postMigration(
-    _config: RestoreConfig,
-    result: RestoreResult
-  ): Promise<void> {
-    this.logger.info({
-      restoredCount: result.restoredCount,
-      skippedCount: result.skippedCount,
-      errorCount: result.errors.length
-    }, 'Restore completed');
+  protected async postMigration(_config: RestoreConfig, result: RestoreResult): Promise<void> {
+    this.logger.info(
+      {
+        restoredCount: result.restoredCount,
+        skippedCount: result.skippedCount,
+        errorCount: result.errors.length,
+      },
+      'Restore completed',
+    );
   }
 
   protected createErrorResult(errors: string[]): RestoreResult {
@@ -179,7 +188,7 @@ export class RestoreStrategy extends BaseMigration<RestoreConfig, RestoreResult>
       success: false,
       restoredCount: 0,
       skippedCount: 0,
-      errors
+      errors,
     };
   }
 
@@ -189,16 +198,16 @@ export class RestoreStrategy extends BaseMigration<RestoreConfig, RestoreResult>
   private async restoreSession(
     client: RedisClient,
     sessionBackup: BackupSession,
-    options?: RestoreOptions
+    options?: RestoreOptions,
   ): Promise<{ restored: boolean; skipped: boolean; error?: string }> {
     const { key, data, ttl } = sessionBackup;
-    
+
     // Validate session data
     if (!this.validator.validateSessionData(data)) {
       return {
         restored: false,
         skipped: false,
-        error: `Invalid session data for key: ${key}`
+        error: `Invalid session data for key: ${key}`,
       };
     }
 

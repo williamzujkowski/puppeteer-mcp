@@ -197,11 +197,12 @@ export const formatHeaders = (
  * Format content length for display
  */
 export const formatContentLength = (contentLength: string | undefined): string => {
-  if (contentLength === null || contentLength === undefined || contentLength === '') return 'unknown';
-  
+  if (contentLength === null || contentLength === undefined || contentLength === '')
+    return 'unknown';
+
   const bytes = parseInt(contentLength, 10);
   if (Number.isNaN(bytes)) return contentLength;
-  
+
   if (bytes < 1024) return `${bytes}B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)}KB`;
   if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)}MB`;

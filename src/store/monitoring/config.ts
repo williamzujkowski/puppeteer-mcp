@@ -16,10 +16,10 @@ export function getDefaultConfig(): MonitoringConfig {
       maxLatency: 1000, // 1 second
       maxErrorRate: 0.05, // 5%
       maxFallbackTime: 300000, // 5 minutes
-      minAvailability: 0.99 // 99%
+      minAvailability: 0.99, // 99%
     },
     enableDetailedMetrics: true,
-    enableAlerting: true
+    enableAlerting: true,
   };
 }
 
@@ -29,6 +29,6 @@ export function getDefaultConfig(): MonitoringConfig {
 export function mergeConfig(config: Partial<MonitoringConfig>): MonitoringConfig {
   return {
     ...getDefaultConfig(),
-    ...config
+    ...config,
   };
 }

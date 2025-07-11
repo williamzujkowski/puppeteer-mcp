@@ -50,7 +50,7 @@ export class WebSocketProtocolHandler implements ProtocolHandlerInterface {
         messageId: message.id,
         messageType: message.type,
       });
-      
+
       return Promise.resolve();
     } catch (error) {
       this.logger.error('Failed to send message', {
@@ -192,14 +192,15 @@ export class WebSocketProtocolHandler implements ProtocolHandlerInterface {
    * Create MCP response from WebSocket message
    */
   createMCPResponse(message: WSMessage, metadata?: Record<string, unknown>): MCPResponse {
-    const content = 'data' in message && message.data !== null && message.data !== undefined
-      ? [
-          {
-            type: 'text' as const,
-            text: typeof message.data === 'string' ? message.data : JSON.stringify(message.data),
-          },
-        ]
-      : [];
+    const content =
+      'data' in message && message.data !== null && message.data !== undefined
+        ? [
+            {
+              type: 'text' as const,
+              text: typeof message.data === 'string' ? message.data : JSON.stringify(message.data),
+            },
+          ]
+        : [];
 
     return {
       content,

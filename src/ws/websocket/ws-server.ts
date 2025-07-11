@@ -23,10 +23,10 @@ import type {
   MessageFilter,
   WSComponentDependencies,
 } from './types.js';
-import { 
-  initializeComponents, 
+import {
+  initializeComponents,
   initializeWebSocketServer,
-  type ServerComponents 
+  type ServerComponents,
 } from './server-initialization.js';
 import { handleConnectionSetup } from './connection-setup.js';
 
@@ -43,13 +43,9 @@ export class WSServer extends EventEmitter {
   private dependencies: WSComponentDependencies;
   private isShuttingDown = false;
 
-  constructor(
-    logger: pino.Logger,
-    sessionStore: SessionStore,
-    options: WSServerOptions,
-  ) {
+  constructor(logger: pino.Logger, sessionStore: SessionStore, options: WSServerOptions) {
     super();
-    
+
     this.logger = logger.child({ module: 'ws-server' });
     this.dependencies = { logger: this.logger, sessionStore };
 
@@ -102,16 +98,12 @@ export class WSServer extends EventEmitter {
    * Broadcast event to topic subscribers
    * @nist ac-3 "Access enforcement"
    */
-  async broadcastToTopic(
-    topic: string,
-    data: unknown,
-    filter?: MessageFilter,
-  ): Promise<number> {
+  async broadcastToTopic(topic: string, data: unknown, filter?: MessageFilter): Promise<number> {
     return this.components.eventHandler.broadcastToTopic(
-      topic, 
-      data, 
-      this.components.connectionManager, 
-      filter
+      topic,
+      data,
+      this.components.connectionManager,
+      filter,
     );
   }
 
@@ -160,8 +152,8 @@ export class WSServer extends EventEmitter {
    * Add custom middleware to the pipeline
    */
   useMiddleware(
-    name: string, 
-    middleware: (context: unknown, next: () => Promise<void>) => Promise<void>
+    name: string,
+    middleware: (context: unknown, next: () => Promise<void>) => Promise<void>,
   ): void {
     this.components.middlewarePipeline.use(name, middleware);
   }
@@ -245,7 +237,7 @@ export class WSServer extends EventEmitter {
       this.components.securityManager,
       this.components.eventHandler,
     );
-    
+
     this.components.sessionManager.start();
   }
 }

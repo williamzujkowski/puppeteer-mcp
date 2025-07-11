@@ -6,14 +6,8 @@
  */
 
 import { BaseMetricCollector } from './base-collector.js';
-import {
-  MetricEventType,
-} from './types.js';
-import type {
-  QueueMetrics,
-  MetricCollector,
-  MetricDataPoint,
-} from './types.js';
+import { MetricEventType } from './types.js';
+import type { QueueMetrics, MetricCollector, MetricDataPoint } from './types.js';
 import { createLogger } from '../../../utils/logger.js';
 
 const logger = createLogger('queue-collector');
@@ -66,10 +60,7 @@ export class QueueMetricsCollector
     this.limitArraySize(this.queueWaitTimes);
     this.recordQueueLength();
 
-    logger.debug(
-      { queueLength: this.currentQueueLength, waitTime },
-      'Item removed from queue'
-    );
+    logger.debug({ queueLength: this.currentQueueLength, waitTime }, 'Item removed from queue');
 
     this.notify({
       type: MetricEventType.QUEUE_UPDATED,

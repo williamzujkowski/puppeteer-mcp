@@ -15,11 +15,11 @@ import type { MetricsLabels } from './types.js';
  */
 export function recordSessionDuration(session: Session): void {
   const duration = calculateSessionDuration(session);
-  
+
   const labels: MetricsLabels = {
     user_id: session.data.userId,
   };
-  
+
   appMetrics.session.sessionDuration.record(duration, labels);
 }
 
@@ -39,7 +39,7 @@ export function recordSessionCreated(userId: string): void {
   const labels: MetricsLabels = {
     user_id: userId,
   };
-  
+
   appMetrics.session.sessionCreated.add(1, labels);
   appMetrics.session.sessionActiveSessions.add(1);
 }
@@ -52,7 +52,7 @@ export function recordSessionDestroyed(userId: string, reason = 'manual'): void 
     user_id: userId,
     reason,
   };
-  
+
   appMetrics.session.sessionDestroyed.add(1, labels);
   appMetrics.session.sessionActiveSessions.add(-1);
 }
@@ -64,7 +64,7 @@ export function recordBulkSessionDestroyed(count: number, reason = 'cleanup'): v
   const labels: MetricsLabels = {
     reason,
   };
-  
+
   appMetrics.session.sessionDestroyed.add(count, labels);
   appMetrics.session.sessionActiveSessions.add(-count);
 }
@@ -75,10 +75,10 @@ export function recordBulkSessionDestroyed(count: number, reason = 'cleanup'): v
 export function createSessionActivitySpan(
   sessionId: string,
   activity: string,
-  attributes: Record<string, string | number | boolean> = {}
+  attributes: Record<string, string | number | boolean> = {},
 ): Span {
   const tracer = getTracer('session-activity');
-  
+
   return tracer.startSpan(`session.activity.${activity}`, {
     kind: SpanKind.CLIENT,
     attributes: {

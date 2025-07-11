@@ -5,11 +5,7 @@
  * @nist au-6 "Audit review, analysis, and reporting"
  */
 
-import type {
-  CompatibilityConfig,
-  UsageStatistics,
-  ExtendedMigrationMetrics,
-} from './types.js';
+import type { CompatibilityConfig, UsageStatistics, ExtendedMigrationMetrics } from './types.js';
 import { CompatibilityUtils } from './compatibility-utils.js';
 
 /**

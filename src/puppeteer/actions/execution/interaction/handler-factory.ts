@@ -79,13 +79,13 @@ export class InteractionHandlerFactory {
    */
   registerHandler(handler: InteractionHandler<any>): void {
     const actionType = handler.getActionType();
-    
+
     if (this.handlers.has(actionType)) {
       logger.warn('Overwriting existing handler', { actionType });
     }
 
     this.handlers.set(actionType, handler);
-    
+
     logger.debug('Handler registered', { actionType });
   }
 
@@ -100,7 +100,7 @@ export class InteractionHandlerFactory {
     }
 
     this.handlers.delete(actionType);
-    
+
     logger.debug('Handler unregistered', { actionType });
   }
 
@@ -122,7 +122,7 @@ export class InteractionHandlerFactory {
    */
   getHandlerForAction(action: BrowserAction): InteractionHandler<any> {
     const handler = this.handlers.get(action.type);
-    
+
     if (!handler) {
       throw new Error(`No handler registered for action type: ${action.type}`);
     }

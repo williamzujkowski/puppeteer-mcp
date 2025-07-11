@@ -2,7 +2,9 @@
 
 ## Overview
 
-The puppeteer-mcp project now includes comprehensive proxy support for browser contexts, allowing you to route browser traffic through HTTP/HTTPS/SOCKS proxies. This feature supports authentication, health monitoring, automatic rotation, and failover capabilities.
+The puppeteer-mcp project now includes comprehensive proxy support for browser contexts, allowing
+you to route browser traffic through HTTP/HTTPS/SOCKS proxies. This feature supports authentication,
+health monitoring, automatic rotation, and failover capabilities.
 
 ## Features
 
@@ -11,7 +13,8 @@ The puppeteer-mcp project now includes comprehensive proxy support for browser c
 - **Bypass Lists**: Configure domains/IPs to bypass proxy
 - **Proxy Pools**: Configure multiple proxies with automatic rotation
 - **Health Monitoring**: Automatic health checks and failover
-- **Load Balancing**: Multiple rotation strategies (round-robin, random, least-used, priority, health-based)
+- **Load Balancing**: Multiple rotation strategies (round-robin, random, least-used, priority,
+  health-based)
 - **Security**: NIST-compliant implementation with secure credential handling
 - **Monitoring**: Comprehensive metrics and alerting
 
@@ -32,12 +35,12 @@ const contextArgs = {
         port: 8080,
         auth: {
           username: 'user',
-          password: 'pass'
+          password: 'pass',
         },
-        bypass: ['localhost', '*.internal.com']
-      }
-    }
-  }
+        bypass: ['localhost', '*.internal.com'],
+      },
+    },
+  },
 };
 
 // Create context via MCP
@@ -59,25 +62,25 @@ const contextArgs = {
             protocol: 'http',
             host: 'proxy1.example.com',
             port: 8080,
-            priority: 100 // Higher priority
+            priority: 100, // Higher priority
           },
           {
             protocol: 'socks5',
             host: 'proxy2.example.com',
             port: 1080,
-            priority: 50
-          }
+            priority: 50,
+          },
         ],
         strategy: 'priority', // Use priority-based selection
         healthCheckEnabled: true,
         failoverEnabled: true,
-        failoverThreshold: 3 // Failover after 3 consecutive failures
+        failoverThreshold: 3, // Failover after 3 consecutive failures
       },
       rotateOnError: true,
       rotateOnInterval: true,
-      rotationInterval: 3600000 // Rotate every hour
-    }
-  }
+      rotationInterval: 3600000, // Rotate every hour
+    },
+  },
 };
 ```
 
@@ -104,12 +107,12 @@ Configure domains/IPs to bypass the proxy:
 
 ```typescript
 bypass: [
-  'localhost',           // Exact match
-  '127.0.0.1',          // IP address
-  '*.internal.com',     // Wildcard subdomain
-  '192.168.1.0/24',     // IP range (CIDR notation)
-  '10.*'                // IP prefix
-]
+  'localhost', // Exact match
+  '127.0.0.1', // IP address
+  '*.internal.com', // Wildcard subdomain
+  '192.168.1.0/24', // IP range (CIDR notation)
+  '10.*', // IP prefix
+];
 ```
 
 ## Advanced Configuration
@@ -169,6 +172,7 @@ console.log('Pool health:', status.currentMetrics.poolHealth);
 ### NIST Compliance
 
 The implementation follows NIST security controls:
+
 - **AC-4**: Information flow enforcement
 - **SC-8**: Transmission confidentiality and integrity
 - **IA-5**: Authenticator management
@@ -251,16 +255,16 @@ const scrapingContext = {
           // Add multiple proxies for rotation
           { protocol: 'http', host: 'proxy1.provider.com', port: 8080 },
           { protocol: 'http', host: 'proxy2.provider.com', port: 8080 },
-          { protocol: 'http', host: 'proxy3.provider.com', port: 8080 }
+          { protocol: 'http', host: 'proxy3.provider.com', port: 8080 },
         ],
         strategy: 'round-robin',
-        healthCheckEnabled: true
+        healthCheckEnabled: true,
       },
       rotateOnError: true,
       rotateOnInterval: true,
-      rotationInterval: 600000 // Rotate every 10 minutes
-    }
-  }
+      rotationInterval: 600000, // Rotate every 10 minutes
+    },
+  },
 };
 ```
 
@@ -280,13 +284,13 @@ const geoContext = {
         port: 8080,
         auth: {
           username: process.env.PROXY_USER,
-          password: process.env.PROXY_PASS
+          password: process.env.PROXY_PASS,
         },
         name: 'US-East-1',
-        tags: ['us', 'east']
-      }
-    }
-  }
+        tags: ['us', 'east'],
+      },
+    },
+  },
 };
 ```
 
@@ -306,7 +310,7 @@ const secureContext = {
         port: 1080,
         auth: {
           username: process.env.SECURE_PROXY_USER,
-          password: process.env.SECURE_PROXY_PASS
+          password: process.env.SECURE_PROXY_PASS,
         },
         bypass: [
           'localhost',
@@ -315,14 +319,14 @@ const secureContext = {
           '*.internal.company.com',
           '10.0.0.0/8',
           '172.16.0.0/12',
-          '192.168.0.0/16'
+          '192.168.0.0/16',
         ],
         rejectUnauthorized: true,
         connectionTimeout: 10000,
-        maxRetries: 1
-      }
-    }
-  }
+        maxRetries: 1,
+      },
+    },
+  },
 };
 ```
 

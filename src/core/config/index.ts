@@ -75,7 +75,9 @@ const parseConfig = (): Config => {
   // Validate configuration
   const result = configSchema.safeParse(rawConfig);
   if (!result.success) {
-    const errorMessages = result.error.errors.map(err => `${err.path.join('.')}: ${err.message}`).join('\n');
+    const errorMessages = result.error.errors
+      .map((err) => `${err.path.join('.')}: ${err.message}`)
+      .join('\n');
     throw new Error(`Configuration validation failed:\n${errorMessages}`);
   }
 

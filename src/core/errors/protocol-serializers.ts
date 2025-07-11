@@ -70,9 +70,7 @@ export function buildRestMetaObject(options: SerializationOptions): RestErrorRes
 /**
  * Serialize error for gRPC response
  */
-export function serializeForGrpc(
-  serialized: SerializedError
-): GrpcErrorResponse {
+export function serializeForGrpc(serialized: SerializedError): GrpcErrorResponse {
   return {
     code: httpToGrpcStatus(serialized.statusCode),
     message: serialized.userMessage,
@@ -83,12 +81,16 @@ export function serializeForGrpc(
       severity: serialized.severity,
       userMessage: serialized.userMessage,
       recoverySuggestions: serialized.recoverySuggestions,
-      ...(serialized.retryConfig !== undefined && { retryConfig: JSON.stringify(serialized.retryConfig) }),
-      ...(serialized.helpLinks !== undefined && { helpLinks: JSON.stringify(serialized.helpLinks) }),
+      ...(serialized.retryConfig !== undefined && {
+        retryConfig: JSON.stringify(serialized.retryConfig),
+      }),
+      ...(serialized.helpLinks !== undefined && {
+        helpLinks: JSON.stringify(serialized.helpLinks),
+      }),
       timestamp: serialized.context.timestamp,
       requestId: serialized.context.requestId,
-      ...(serialized.context.correlationIds !== undefined && { 
-        correlationIds: JSON.stringify(serialized.context.correlationIds) 
+      ...(serialized.context.correlationIds !== undefined && {
+        correlationIds: JSON.stringify(serialized.context.correlationIds),
       }),
       ...(serialized.tags !== undefined && { tags: JSON.stringify(serialized.tags) }),
     },
@@ -101,7 +103,7 @@ export function serializeForGrpc(
 export function serializeForWebSocket(
   serialized: SerializedError,
   messageId?: string,
-  connectionId?: string
+  connectionId?: string,
 ): WebSocketErrorResponse {
   return {
     type: 'error',
@@ -133,7 +135,7 @@ export function serializeForWebSocket(
  */
 export function serializeForMcp(
   serialized: SerializedError,
-  id?: string | number
+  id?: string | number,
 ): McpErrorResponse {
   return {
     jsonrpc: '2.0',

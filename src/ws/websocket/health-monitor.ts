@@ -8,7 +8,7 @@
 
 import type { pino } from 'pino';
 import { HealthMonitorCoordinator } from './health/index.js';
-import type { 
+import type {
   HealthCheckContext,
   HealthCheckResult,
   HealthMonitorOptions,
@@ -52,7 +52,7 @@ export class HealthMonitor {
       eventHandler,
       logger: this.logger,
     };
-    
+
     this.coordinator.start(this.context);
   }
 
@@ -82,31 +82,33 @@ export class HealthMonitor {
     // Synchronous wrapper for backward compatibility
     // Uses cached result from periodic health checks
     let result: HealthCheckResult | null = null;
-    
+
     // Execute health check and store result
-    void this.coordinator.getHealthStatus(context).then(r => {
+    void this.coordinator.getHealthStatus(context).then((r) => {
       result = r;
     });
 
     // Return cached or default result
-    return result ?? {
-      status: 'unknown' as any,
-      message: 'Health check in progress',
-      metrics: {
-        uptime: 0,
-        totalConnections: 0,
-        activeConnections: 0,
-        authenticatedConnections: 0,
-        totalSubscriptions: 0,
-        messagesProcessed: 0,
-        errorsCount: 0,
-        memoryUsage: process.memoryUsage(),
-        averageResponseTime: 0,
-        connectionTurnover: { connected: 0, disconnected: 0, period: 1 },
-      },
-      issues: [],
-      recommendations: [],
-    };
+    return (
+      result ?? {
+        status: 'unknown' as any,
+        message: 'Health check in progress',
+        metrics: {
+          uptime: 0,
+          totalConnections: 0,
+          activeConnections: 0,
+          authenticatedConnections: 0,
+          totalSubscriptions: 0,
+          messagesProcessed: 0,
+          errorsCount: 0,
+          memoryUsage: process.memoryUsage(),
+          averageResponseTime: 0,
+          connectionTurnover: { connected: 0, disconnected: 0, period: 1 },
+        },
+        issues: [],
+        recommendations: [],
+      }
+    );
   }
 
   /**

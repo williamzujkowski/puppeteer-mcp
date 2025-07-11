@@ -18,27 +18,27 @@ export interface SessionStoreFactoryConfig {
    * Preferred store type
    */
   preferredStore?: 'memory' | 'redis' | 'auto';
-  
+
   /**
    * Enable monitoring
    */
   enableMonitoring?: boolean;
-  
+
   /**
    * Enable replication
    */
   enableReplication?: boolean;
-  
+
   /**
    * Enable migration utilities
    */
   enableMigration?: boolean;
-  
+
   /**
    * Logger instance
    */
   logger?: pino.Logger;
-  
+
   /**
    * Monitoring configuration
    */
@@ -50,7 +50,7 @@ export interface SessionStoreFactoryConfig {
       maxErrorRate?: number;
     };
   };
-  
+
   /**
    * Replication configuration
    */

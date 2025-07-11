@@ -27,10 +27,10 @@ async function basicProxyExample(mcpClient: MCPClient): Promise<void> {
           protocol: 'http',
           host: 'proxy.example.com',
           port: 8080,
-          bypass: ['localhost', '127.0.0.1', '*.internal.com']
-        }
-      }
-    }
+          bypass: ['localhost', '127.0.0.1', '*.internal.com'],
+        },
+      },
+    },
   };
 
   const contextResult = await mcpClient.callTool('createBrowserContext', contextArgs);
@@ -43,8 +43,8 @@ async function basicProxyExample(mcpClient: MCPClient): Promise<void> {
     command: 'navigateTo',
     parameters: {
       url: 'https://httpbin.org/ip',
-      waitFor: 'networkidle0'
-    }
+      waitFor: 'networkidle0',
+    },
   });
 
   console.log('Navigation result:', navigationResult.content[0].text);
@@ -68,12 +68,12 @@ async function authenticatedProxyExample(mcpClient: MCPClient): Promise<void> {
           port: 1080,
           auth: {
             username: process.env.PROXY_USERNAME ?? 'user',
-            password: process.env.PROXY_PASSWORD ?? 'pass'
+            password: process.env.PROXY_PASSWORD ?? 'pass',
           },
-          bypass: ['*.local', '10.*', '192.168.*']
-        }
-      }
-    }
+          bypass: ['*.local', '10.*', '192.168.*'],
+        },
+      },
+    },
   };
 
   const contextResult = await mcpClient.callTool('createBrowserContext', contextArgs);
@@ -86,8 +86,8 @@ async function authenticatedProxyExample(mcpClient: MCPClient): Promise<void> {
     command: 'evaluateExpression',
     parameters: {
       expression: 'document.body.innerText',
-      waitFor: 'load'
-    }
+      waitFor: 'load',
+    },
   });
 
   console.log('Page content:', contentResult.content[0].text);
@@ -113,10 +113,10 @@ async function proxyPoolExample(mcpClient: MCPClient): Promise<void> {
               port: 8080,
               auth: {
                 username: 'user1',
-                password: 'pass1'
+                password: 'pass1',
               },
               bypass: [],
-              priority: 100 // Higher priority
+              priority: 100, // Higher priority
             },
             {
               protocol: 'http',
@@ -124,30 +124,30 @@ async function proxyPoolExample(mcpClient: MCPClient): Promise<void> {
               port: 8080,
               auth: {
                 username: 'user2',
-                password: 'pass2'
+                password: 'pass2',
               },
               bypass: [],
-              priority: 80
+              priority: 80,
             },
             {
               protocol: 'socks5',
               host: 'socks.pool.com',
               port: 1080,
               bypass: [],
-              priority: 60
-            }
+              priority: 60,
+            },
           ],
           strategy: 'priority', // Will prefer higher priority proxies
           healthCheckEnabled: true,
           healthCheckInterval: 300000, // 5 minutes
           failoverEnabled: true,
-          failoverThreshold: 3
+          failoverThreshold: 3,
         },
         rotateOnError: true,
         rotateOnInterval: true,
-        rotationInterval: 600000 // Rotate every 10 minutes
-      }
-    }
+        rotationInterval: 600000, // Rotate every 10 minutes
+      },
+    },
   };
 
   const contextResult = await mcpClient.callTool('createBrowserContext', contextArgs);
@@ -163,14 +163,14 @@ async function proxyPoolExample(mcpClient: MCPClient): Promise<void> {
       command: 'navigateTo',
       parameters: {
         url: `https://httpbin.org/headers`,
-        waitFor: 'networkidle0'
-      }
+        waitFor: 'networkidle0',
+      },
     });
 
     console.log(`Request ${i + 1} completed`);
-    
+
     // Simulate some work
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await new Promise((resolve) => setTimeout(resolve, 2000));
   }
 }
 
@@ -193,14 +193,14 @@ async function geoTargetedExample(mcpClient: MCPClient) {
           port: 8080,
           auth: {
             username: process.env.GEO_PROXY_USER || 'geouser',
-            password: process.env.GEO_PROXY_PASS || 'geopass'
+            password: process.env.GEO_PROXY_PASS || 'geopass',
           },
           bypass: [],
           name: 'US-East-Proxy',
-          tags: ['us', 'east', 'geo']
-        }
-      }
-    }
+          tags: ['us', 'east', 'geo'],
+        },
+      },
+    },
   };
 
   const contextResult = await mcpClient.callTool('createBrowserContext', usContextArgs);
@@ -213,8 +213,8 @@ async function geoTargetedExample(mcpClient: MCPClient) {
     command: 'navigateTo',
     parameters: {
       url: 'https://ipapi.co/json/',
-      waitFor: 'networkidle0'
-    }
+      waitFor: 'networkidle0',
+    },
   });
 
   const locationData = await mcpClient.callTool('executeInContext', {
@@ -222,8 +222,8 @@ async function geoTargetedExample(mcpClient: MCPClient) {
     contextId: JSON.parse(contextResult.content[0].text).contextId,
     command: 'evaluateExpression',
     parameters: {
-      expression: 'JSON.parse(document.body.innerText)'
-    }
+      expression: 'JSON.parse(document.body.innerText)',
+    },
   });
 
   console.log('Location through proxy:', locationData.content[0].text);
@@ -251,7 +251,7 @@ async function webScrapingExample(mcpClient: MCPClient) {
               auth: { username: 'scraper', password: 'pass1' },
               bypass: [],
               maxRetries: 2,
-              connectionTimeout: 10000
+              connectionTimeout: 10000,
             },
             {
               protocol: 'http',
@@ -260,7 +260,7 @@ async function webScrapingExample(mcpClient: MCPClient) {
               auth: { username: 'scraper', password: 'pass2' },
               bypass: [],
               maxRetries: 2,
-              connectionTimeout: 10000
+              connectionTimeout: 10000,
             },
             {
               protocol: 'http',
@@ -269,23 +269,23 @@ async function webScrapingExample(mcpClient: MCPClient) {
               auth: { username: 'scraper', password: 'pass3' },
               bypass: [],
               maxRetries: 2,
-              connectionTimeout: 10000
-            }
+              connectionTimeout: 10000,
+            },
           ],
           strategy: 'least-used', // Distribute load evenly
           healthCheckEnabled: true,
           failoverEnabled: true,
-          failoverThreshold: 2 // Failover quickly on errors
+          failoverThreshold: 2, // Failover quickly on errors
         },
         rotateOnError: true,
         rotateOnInterval: true,
-        rotationInterval: 300000 // 5 minutes
+        rotationInterval: 300000, // 5 minutes
       },
       viewport: {
         width: 1920,
-        height: 1080
-      }
-    }
+        height: 1080,
+      },
+    },
   };
 
   const contextResult = await mcpClient.callTool('createBrowserContext', contextArgs);
@@ -296,7 +296,7 @@ async function webScrapingExample(mcpClient: MCPClient) {
   const urls = [
     'https://example.com/page1',
     'https://example.com/page2',
-    'https://example.com/page3'
+    'https://example.com/page3',
   ];
 
   for (const url of urls) {
@@ -309,8 +309,8 @@ async function webScrapingExample(mcpClient: MCPClient) {
         parameters: {
           url,
           waitFor: 'domcontentloaded',
-          timeout: 30000
-        }
+          timeout: 30000,
+        },
       });
 
       // Extract data
@@ -326,15 +326,14 @@ async function webScrapingExample(mcpClient: MCPClient) {
               content: document.querySelector('main')?.innerText || '',
               links: Array.from(document.querySelectorAll('a')).map(a => a.href)
             })
-          `
-        }
+          `,
+        },
       });
 
       console.log(`Scraped ${url}:`, data.content[0].text);
 
       // Add delay to be respectful
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
+      await new Promise((resolve) => setTimeout(resolve, 1000));
     } catch (error) {
       console.error(`Failed to scrape ${url}:`, error);
       // Proxy will automatically rotate on error due to rotateOnError setting
@@ -344,7 +343,7 @@ async function webScrapingExample(mcpClient: MCPClient) {
   // Clean up
   await mcpClient.callTool('closeBrowserContext', {
     sessionId: 'scraping-session',
-    contextId: context.contextId
+    contextId: context.contextId,
   });
 }
 
@@ -372,7 +371,7 @@ export async function runProxyExamples() {
     const sessionResult = await mcpClient.callTool('createSession', {
       username: 'demo-user',
       password: 'demo-pass',
-      duration: 3600000 // 1 hour
+      duration: 3600000, // 1 hour
     });
 
     const session = JSON.parse(sessionResult.content[0].text);
@@ -395,9 +394,8 @@ export async function runProxyExamples() {
 
     // Clean up session
     await mcpClient.callTool('deleteSession', {
-      sessionId: session.sessionId
+      sessionId: session.sessionId,
     });
-
   } catch (error) {
     console.error('Example failed:', error);
   } finally {

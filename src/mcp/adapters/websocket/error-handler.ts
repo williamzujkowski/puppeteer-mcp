@@ -27,11 +27,7 @@ export class WebSocketErrorHandler {
    * Handle WebSocket connection error
    * @nist au-3 "Content of audit records"
    */
-  async handleConnectionError(
-    connectionId: string,
-    error: Error,
-    userId?: string,
-  ): Promise<void> {
+  async handleConnectionError(connectionId: string, error: Error, userId?: string): Promise<void> {
     this.logger.error('WebSocket connection error', {
       connectionId,
       error: error.message,
@@ -65,11 +61,7 @@ export class WebSocketErrorHandler {
    * @nist ia-2 "Identification and authentication"
    * @nist au-3 "Content of audit records"
    */
-  async handleAuthError(
-    connectionId: string,
-    error: Error,
-    authType?: string,
-  ): Promise<void> {
+  async handleAuthError(connectionId: string, error: Error, authType?: string): Promise<void> {
     this.logger.error('WebSocket authentication failed', {
       connectionId,
       error: error.message,
@@ -128,11 +120,7 @@ export class WebSocketErrorHandler {
   /**
    * Handle subscription error
    */
-  handleSubscriptionError(
-    connectionId: string,
-    subscriptionId: string,
-    error: Error,
-  ): void {
+  handleSubscriptionError(connectionId: string, subscriptionId: string, error: Error): void {
     this.logger.error('WebSocket subscription error', {
       connectionId,
       subscriptionId,
@@ -143,10 +131,7 @@ export class WebSocketErrorHandler {
   /**
    * Clean up pending requests with error
    */
-  cleanupPendingRequests(
-    pendingRequests: Map<string, PendingRequest>,
-    error: Error,
-  ): void {
+  cleanupPendingRequests(pendingRequests: Map<string, PendingRequest>, error: Error): void {
     for (const [requestId, pending] of pendingRequests) {
       clearTimeout(pending.timeout);
       pending.reject(error);
@@ -168,10 +153,7 @@ export class WebSocketErrorHandler {
     });
 
     // Clean up all pending requests
-    this.cleanupPendingRequests(
-      connection.pendingRequests,
-      new AppError('Connection closed', 503),
-    );
+    this.cleanupPendingRequests(connection.pendingRequests, new AppError('Connection closed', 503));
   }
 
   /**
@@ -200,7 +182,10 @@ export class WebSocketErrorHandler {
   /**
    * Create error response
    */
-  createErrorResponse(error: Error, requestId?: string): {
+  createErrorResponse(
+    error: Error,
+    requestId?: string,
+  ): {
     type: string;
     id?: string;
     error: { code: string; message: string; details?: unknown };

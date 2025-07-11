@@ -6,7 +6,12 @@
  */
 
 import { EnhancedAppError } from '../enhanced-app-error.js';
-import { ErrorContextBuilder, ErrorCategory, ErrorSeverity, RecoveryAction } from '../error-context.js';
+import {
+  ErrorContextBuilder,
+  ErrorCategory,
+  ErrorSeverity,
+  RecoveryAction,
+} from '../error-context.js';
 import type { BrowserErrorOptions, ProxyErrorOptions } from '../domain-error-interfaces.js';
 
 /**
@@ -15,7 +20,7 @@ import type { BrowserErrorOptions, ProxyErrorOptions } from '../domain-error-int
 export class BrowserDomainError extends EnhancedAppError {
   constructor(options: BrowserErrorOptions) {
     const { message, errorCode, browserInfo, requestId, sessionId } = options;
-    
+
     const context = new ErrorContextBuilder()
       .setErrorCode(errorCode)
       .setCategory(ErrorCategory.BROWSER)
@@ -46,7 +51,7 @@ export class BrowserDomainError extends EnhancedAppError {
 export class ProxyDomainError extends EnhancedAppError {
   constructor(options: ProxyErrorOptions) {
     const { message, errorCode, proxyInfo, requestId, sessionId } = options;
-    
+
     const context = new ErrorContextBuilder()
       .setErrorCode(errorCode)
       .setCategory(ErrorCategory.NETWORK)

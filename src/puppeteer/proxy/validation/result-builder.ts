@@ -57,7 +57,7 @@ export class ValidationResultBuilder<T> {
       warnings: this.warnings,
       sanitized: this.errors.length === 0 ? this.sanitized : undefined,
     };
-    
+
     return result as T extends ProxyConfig ? ProxyValidationResult : ContextProxyValidationResult;
   }
 }

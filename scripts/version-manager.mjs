@@ -34,24 +34,24 @@ function runCommand(cmd, silent = false) {
 
 // Commands
 const commands = {
-  'check': () => {
+  check: () => {
     console.log('🔍 Checking version consistency...\n');
     const currentVersion = getCurrentVersion();
     console.log(`📦 Package version: ${currentVersion}`);
-    
+
     // Run dry-run to see what would be updated
     runCommand('npm run update:version:dry', true);
-    
+
     // Count outdated references
-    const output = execSync('npm run update:version:dry 2>&1', { 
-      cwd: projectRoot, 
+    const output = execSync('npm run update:version:dry 2>&1', {
+      cwd: projectRoot,
       encoding: 'utf8',
-      stdio: 'pipe'
+      stdio: 'pipe',
     });
-    
+
     const matches = output.match(/Files to be updated: (\d+)/);
     const outdatedCount = matches ? parseInt(matches[1]) : 0;
-    
+
     if (outdatedCount > 0) {
       console.log(`\n⚠️  Found ${outdatedCount} files with outdated version references`);
       console.log('💡 Run "npm run version:sync" to update them');
@@ -60,94 +60,104 @@ const commands = {
       console.log('\n✅ All documentation versions are up to date!');
     }
   },
-  
-  'sync': () => {
+
+  sync: () => {
     console.log('🔄 Synchronizing version across documentation...\n');
     runCommand('npm run update:version');
     console.log('\n✅ Version synchronization complete!');
   },
-  
-  'bump': () => {
+
+  bump: () => {
     const bumpType = args[1] || 'patch';
-    const validTypes = ['major', 'minor', 'patch', 'premajor', 'preminor', 'prepatch', 'prerelease'];
-    
+    const validTypes = [
+      'major',
+      'minor',
+      'patch',
+      'premajor',
+      'preminor',
+      'prepatch',
+      'prerelease',
+    ];
+
     if (!validTypes.includes(bumpType)) {
       console.error(`❌ Invalid version bump type: ${bumpType}`);
       console.log(`Valid types: ${validTypes.join(', ')}`);
       process.exit(1);
     }
-    
+
     console.log(`📈 Bumping version (${bumpType})...\n`);
-    
+
     // Get current version
     const currentVersion = getCurrentVersion();
-    
+
     // Bump version
     runCommand(`npm version ${bumpType} --no-git-tag-version`);
-    
+
     // Get new version
     const newVersion = getCurrentVersion();
-    
+
     console.log(`Version bumped: ${currentVersion} → ${newVersion}`);
-    
+
     // Update documentation
     console.log('\n📝 Updating documentation...');
     runCommand('npm run update:version');
-    
+
     console.log(`\n✅ Version bumped to ${newVersion} and documentation updated!`);
     console.log('\n💡 Next steps:');
     console.log('   1. Review changes: git diff');
-    console.log('   2. Commit: git add -A && git commit -m "chore: bump version to ' + newVersion + '"');
+    console.log(
+      '   2. Commit: git add -A && git commit -m "chore: bump version to ' + newVersion + '"',
+    );
     console.log('   3. Tag: git tag v' + newVersion);
     console.log('   4. Push: git push && git push --tags');
   },
-  
-  'release': () => {
+
+  release: () => {
     const bumpType = args[1] || 'patch';
-    
+
     console.log('🚀 Starting release process...\n');
-    
+
     // Check git status
     const gitStatus = runCommand('git status --porcelain', true);
     if (gitStatus) {
       console.error('❌ Working directory is not clean. Please commit or stash changes.');
       process.exit(1);
     }
-    
+
     // Ensure we're on main branch
     const currentBranch = runCommand('git rev-parse --abbrev-ref HEAD', true);
     if (currentBranch !== 'main') {
       console.error(`❌ Must be on main branch to release. Currently on: ${currentBranch}`);
       process.exit(1);
     }
-    
+
     // Pull latest changes
     console.log('📥 Pulling latest changes...');
     runCommand('git pull');
-    
+
     // Run tests
     console.log('\n🧪 Running tests...');
     runCommand('npm test');
-    
+
     // Bump version and update docs
     commands.bump();
-    
+
     const newVersion = getCurrentVersion();
-    
+
     // Commit changes
     console.log('\n📝 Committing changes...');
     runCommand('git add -A');
     runCommand(`git commit -m "chore: release v${newVersion}"`);
-    
+
     // Create tag
     console.log('\n🏷️  Creating tag...');
     runCommand(`git tag -a v${newVersion} -m "Release v${newVersion}"`);
-    
+
     // Push changes
     console.log('\n📤 Pushing changes...');
     runCommand('git push');
     runCommand('git push --tags');
-    
+
     console.log(`\n✅ Release v${newVersion} complete!`);
     console.log('\n💡 The GitHub Actions release workflow will now:');
     console.log('   - Build and test the project');
@@ -155,8 +165,8 @@ const commands = {
     console.log('   - Publish to NPM');
     console.log('   - Create a GitHub release');
   },
-  
-  'help': () => {
+
+  help: () => {
     console.log(`
 📦 Version Manager for Puppeteer MCP
 
@@ -176,7 +186,7 @@ Examples:
   npm run version:bump patch     # Bump patch version
   npm run version:release minor  # Create a minor release
 `);
-  }
+  },
 };
 
 // Main execution

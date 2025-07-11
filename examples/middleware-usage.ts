@@ -5,7 +5,10 @@
  */
 
 import express from 'express';
-import { createRequestResponseLogger, VerbosityLevel } from '../src/core/middleware/request-response-logger.js';
+import {
+  createRequestResponseLogger,
+  VerbosityLevel,
+} from '../src/core/middleware/request-response-logger.js';
 import { createLogger } from '../src/utils/logger.js';
 
 const app = express();
@@ -14,67 +17,77 @@ const app = express();
 app.use(createRequestResponseLogger.standard());
 
 // Example 2: Verbose logging for development
-app.use(createRequestResponseLogger.development({
-  skipPaths: ['/health', '/metrics'],
-  slowRequestThreshold: 500,
-}));
+app.use(
+  createRequestResponseLogger.development({
+    skipPaths: ['/health', '/metrics'],
+    slowRequestThreshold: 500,
+  }),
+);
 
 // Example 3: Production configuration with security focus
-app.use(createRequestResponseLogger.production({
-  auditLogging: true,
-  includeHeaders: false,
-  includeRequestBody: false,
-  includeResponseBody: false,
-  errorsOnly: false,
-  slowRequestThreshold: 2000,
-}));
+app.use(
+  createRequestResponseLogger.production({
+    auditLogging: true,
+    includeHeaders: false,
+    includeRequestBody: false,
+    includeResponseBody: false,
+    errorsOnly: false,
+    slowRequestThreshold: 2000,
+  }),
+);
 
 // Example 4: Custom configuration
 const customLogger = createLogger('custom-request-logger');
-app.use(createRequestResponseLogger.verbose({
-  logger: customLogger,
-  verbosity: VerbosityLevel.VERBOSE,
-  includeHeaders: true,
-  includeRequestBody: true,
-  includeResponseBody: true,
-  maxBodySize: 4096,
-  sensitiveHeaders: ['authorization', 'cookie', 'x-api-key'],
-  sensitiveBodyFields: ['password', 'token', 'secret'],
-  loggedContentTypes: ['application/json', 'text/plain'],
-  auditLogging: true,
-  highPrecisionTiming: true,
-  slowRequestThreshold: 1000,
-  metadataExtractor: (req, res) => ({
-    customField: 'custom-value',
-    endpoint: req.path,
-    method: req.method,
+app.use(
+  createRequestResponseLogger.verbose({
+    logger: customLogger,
+    verbosity: VerbosityLevel.VERBOSE,
+    includeHeaders: true,
+    includeRequestBody: true,
+    includeResponseBody: true,
+    maxBodySize: 4096,
+    sensitiveHeaders: ['authorization', 'cookie', 'x-api-key'],
+    sensitiveBodyFields: ['password', 'token', 'secret'],
+    loggedContentTypes: ['application/json', 'text/plain'],
+    auditLogging: true,
+    highPrecisionTiming: true,
+    slowRequestThreshold: 1000,
+    metadataExtractor: (req, res) => ({
+      customField: 'custom-value',
+      endpoint: req.path,
+      method: req.method,
+    }),
   }),
-}));
+);
 
 // Example 5: Security-focused configuration
-app.use(createRequestResponseLogger.security({
-  verbosity: VerbosityLevel.VERBOSE,
-  auditLogging: true,
-  includeHeaders: true,
-  includeRequestBody: true,
-  includeResponseBody: false,
-  maxBodySize: 8192,
-  skipPaths: [], // Log everything for security
-  highPrecisionTiming: true,
-}));
+app.use(
+  createRequestResponseLogger.security({
+    verbosity: VerbosityLevel.VERBOSE,
+    auditLogging: true,
+    includeHeaders: true,
+    includeRequestBody: true,
+    includeResponseBody: false,
+    maxBodySize: 8192,
+    skipPaths: [], // Log everything for security
+    highPrecisionTiming: true,
+  }),
+);
 
 // Example 6: Performance monitoring configuration
-app.use(createRequestResponseLogger.performance({
-  verbosity: VerbosityLevel.MINIMAL,
-  auditLogging: false,
-  includeHeaders: false,
-  includeRequestBody: false,
-  includeResponseBody: false,
-  maxBodySize: 0,
-  skipPaths: ['/health', '/metrics'],
-  slowRequestThreshold: 100, // Very sensitive to slow requests
-  highPrecisionTiming: true,
-}));
+app.use(
+  createRequestResponseLogger.performance({
+    verbosity: VerbosityLevel.MINIMAL,
+    auditLogging: false,
+    includeHeaders: false,
+    includeRequestBody: false,
+    includeResponseBody: false,
+    maxBodySize: 0,
+    skipPaths: ['/health', '/metrics'],
+    slowRequestThreshold: 100, // Very sensitive to slow requests
+    highPrecisionTiming: true,
+  }),
+);
 
 // Example routes
 app.get('/health', (req, res) => {

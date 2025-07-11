@@ -12,7 +12,7 @@ describe('Redis Migration Compatibility', () => {
     info: jest.fn(),
     warn: jest.fn(),
     error: jest.fn(),
-    debug: jest.fn()
+    debug: jest.fn(),
   };
 
   describe('RedisMigrationManager', () => {
@@ -23,7 +23,7 @@ describe('Redis Migration Compatibility', () => {
 
     it('should have all required methods', () => {
       const manager = new RedisMigrationManager(mockLogger);
-      
+
       // Check main methods exist
       expect(typeof manager.backupSessions).toBe('function');
       expect(typeof manager.restoreSessions).toBe('function');
@@ -39,7 +39,7 @@ describe('Redis Migration Compatibility', () => {
     it('should create factory with all strategies', () => {
       const manager = new RedisMigrationManager(mockLogger);
       const factory = manager.getFactory();
-      
+
       // Test factory can create all strategies
       expect(factory.createBackupStrategy()).toBeDefined();
       expect(factory.createRestoreStrategy()).toBeDefined();
@@ -62,7 +62,7 @@ describe('Redis Migration Compatibility', () => {
         CleanupService,
         ValidationService,
         SessionValidator,
-        BaseMigration
+        BaseMigration,
       } = require('../../../src/store/redis/redis-migration.js');
 
       expect(MM).toBeDefined();

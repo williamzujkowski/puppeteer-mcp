@@ -49,10 +49,7 @@
                     "description": "Session duration in seconds"
                   }
                 },
-                "required": [
-                  "username",
-                  "password"
-                ]
+                "required": ["username", "password"]
               }
             },
             {
@@ -78,9 +75,7 @@
                     "description": "Session ID to delete"
                   }
                 },
-                "required": [
-                  "sessionId"
-                ]
+                "required": ["sessionId"]
               }
             }
           ],
@@ -114,9 +109,7 @@
                     }
                   }
                 },
-                "required": [
-                  "sessionId"
-                ]
+                "required": ["sessionId"]
               }
             },
             {
@@ -138,10 +131,7 @@
                     "description": "Parameters for the command"
                   }
                 },
-                "required": [
-                  "contextId",
-                  "command"
-                ]
+                "required": ["contextId", "command"]
               }
             }
           ],
@@ -154,11 +144,7 @@
                 "properties": {
                   "protocol": {
                     "type": "string",
-                    "enum": [
-                      "rest",
-                      "grpc",
-                      "websocket"
-                    ],
+                    "enum": ["rest", "grpc", "websocket"],
                     "description": "Protocol to use"
                   },
                   "operation": {
@@ -170,11 +156,7 @@
                     "properties": {
                       "type": {
                         "type": "string",
-                        "enum": [
-                          "jwt",
-                          "apikey",
-                          "session"
-                        ]
+                        "enum": ["jwt", "apikey", "session"]
                       },
                       "credentials": {
                         "type": "string"
@@ -182,10 +164,7 @@
                     }
                   }
                 },
-                "required": [
-                  "protocol",
-                  "operation"
-                ]
+                "required": ["protocol", "operation"]
               }
             }
           ],
@@ -200,11 +179,7 @@
               "properties": {
                 "protocol": {
                   "type": "string",
-                  "enum": [
-                    "rest",
-                    "grpc",
-                    "websocket"
-                  ],
+                  "enum": ["rest", "grpc", "websocket"],
                   "description": "Protocol to use"
                 },
                 "operation": {
@@ -216,11 +191,7 @@
                   "properties": {
                     "type": {
                       "type": "string",
-                      "enum": [
-                        "jwt",
-                        "apikey",
-                        "session"
-                      ]
+                      "enum": ["jwt", "apikey", "session"]
                     },
                     "credentials": {
                       "type": "string"
@@ -228,10 +199,7 @@
                   }
                 }
               },
-              "required": [
-                "protocol",
-                "operation"
-              ]
+              "required": ["protocol", "operation"]
             }
           },
           {
@@ -251,10 +219,7 @@
                   "description": "Session duration in seconds"
                 }
               },
-              "required": [
-                "username",
-                "password"
-              ]
+              "required": ["username", "password"]
             }
           },
           {
@@ -280,9 +245,7 @@
                   "description": "Session ID to delete"
                 }
               },
-              "required": [
-                "sessionId"
-              ]
+              "required": ["sessionId"]
             }
           },
           {
@@ -314,9 +277,7 @@
                   }
                 }
               },
-              "required": [
-                "sessionId"
-              ]
+              "required": ["sessionId"]
             }
           },
           {
@@ -338,10 +299,7 @@
                   "description": "Parameters for the command"
                 }
               },
-              "required": [
-                "contextId",
-                "command"
-              ]
+              "required": ["contextId", "command"]
             }
           }
         ],
@@ -370,9 +328,7 @@
           "sessionId": "32cbd7b0-d8dd-45b9-bdcf-72ee0f69ab43",
           "userId": "user-demo-001",
           "username": "demo",
-          "roles": [
-            "user"
-          ],
+          "roles": ["user"],
           "createdAt": "2025-07-06T00:07:39.110Z",
           "expiresAt": "2025-07-06T01:07:39.110Z",
           "tokens": {
@@ -475,11 +431,7 @@
                 "properties": {
                   "protocol": {
                     "type": "string",
-                    "enum": [
-                      "rest",
-                      "grpc",
-                      "websocket"
-                    ],
+                    "enum": ["rest", "grpc", "websocket"],
                     "description": "Protocol to use"
                   },
                   "operation": {
@@ -491,11 +443,7 @@
                     "properties": {
                       "type": {
                         "type": "string",
-                        "enum": [
-                          "jwt",
-                          "apikey",
-                          "session"
-                        ]
+                        "enum": ["jwt", "apikey", "session"]
                       },
                       "credentials": {
                         "type": "string"
@@ -503,10 +451,7 @@
                     }
                   }
                 },
-                "required": [
-                  "protocol",
-                  "operation"
-                ]
+                "required": ["protocol", "operation"]
               }
             },
             {
@@ -526,10 +471,7 @@
                     "description": "Session duration in seconds"
                   }
                 },
-                "required": [
-                  "username",
-                  "password"
-                ]
+                "required": ["username", "password"]
               }
             },
             {
@@ -555,9 +497,7 @@
                     "description": "Session ID to delete"
                   }
                 },
-                "required": [
-                  "sessionId"
-                ]
+                "required": ["sessionId"]
               }
             },
             {
@@ -589,9 +529,7 @@
                     }
                   }
                 },
-                "required": [
-                  "sessionId"
-                ]
+                "required": ["sessionId"]
               }
             },
             {
@@ -613,10 +551,7 @@
                     "description": "Parameters for the command"
                   }
                 },
-                "required": [
-                  "contextId",
-                  "command"
-                ]
+                "required": ["contextId", "command"]
               }
             }
           ]
@@ -939,9 +874,7 @@
     "sessionId": "32cbd7b0-d8dd-45b9-bdcf-72ee0f69ab43",
     "userId": "user-demo-001",
     "username": "demo",
-    "roles": [
-      "user"
-    ],
+    "roles": ["user"],
     "createdAt": "2025-07-06T00:07:39.110Z",
     "expiresAt": "2025-07-06T01:07:39.110Z",
     "tokens": {

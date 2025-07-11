@@ -40,7 +40,7 @@ export class ExporterValidationError extends Error {
   constructor(
     public readonly type: ValidationErrorType,
     message: string,
-    public readonly field?: string
+    public readonly field?: string,
   ) {
     super(message);
     this.name = 'ExporterValidationError';
@@ -50,7 +50,11 @@ export class ExporterValidationError extends Error {
 /**
  * Validate OTLP configuration
  */
-function validateOTLPConfig(endpoints: { otlp: string }, result: ValidationResult, prefix: string): void {
+function validateOTLPConfig(
+  endpoints: { otlp: string },
+  result: ValidationResult,
+  prefix: string,
+): void {
   if (!endpoints.otlp) {
     result.errors.push(`${prefix} endpoint is required when using OTLP exporter`);
     result.valid = false;
@@ -226,11 +230,15 @@ export function validateExportConfig(config: TelemetryConfig): ValidationResult 
 
   // Performance warnings
   if (exportConfig.timeout > 30000) {
-    result.warnings.push('Export timeout is very high (>30s), consider reducing for better performance');
+    result.warnings.push(
+      'Export timeout is very high (>30s), consider reducing for better performance',
+    );
   }
 
   if (exportConfig.maxQueueSize > 10000) {
-    result.warnings.push('Max queue size is very high (>10000), consider reducing to limit memory usage');
+    result.warnings.push(
+      'Max queue size is very high (>10000), consider reducing to limit memory usage',
+    );
   }
 
   return result;
@@ -291,7 +299,11 @@ export function validateTelemetryConfig(config: TelemetryConfig): ValidationResu
 /**
  * Validate exporter type
  */
-function validateExporterType(config: ExporterConfiguration, type: 'trace' | 'metric', result: ValidationResult): void {
+function validateExporterType(
+  config: ExporterConfiguration,
+  type: 'trace' | 'metric',
+  result: ValidationResult,
+): void {
   if (type === 'trace') {
     const validTraceTypes: TraceExporterType[] = ['otlp', 'jaeger', 'zipkin', 'console', 'none'];
     if (!validTraceTypes.includes(config.type as TraceExporterType)) {
@@ -312,14 +324,18 @@ function validateExporterType(config: ExporterConfiguration, type: 'trace' | 'me
  */
 function validateExporterEndpoint(config: ExporterConfiguration, result: ValidationResult): void {
   const requiresEndpoint = ['otlp', 'jaeger', 'zipkin', 'http'].includes(config.type);
-  
+
   if (requiresEndpoint && (config.endpoint === undefined || config.endpoint.trim() === '')) {
     result.errors.push(`Endpoint is required for ${config.type} exporter`);
     result.valid = false;
     return;
   }
 
-  if (config.endpoint !== undefined && config.endpoint.trim() !== '' && !validateHTTPEndpoint(config.endpoint)) {
+  if (
+    config.endpoint !== undefined &&
+    config.endpoint.trim() !== '' &&
+    !validateHTTPEndpoint(config.endpoint)
+  ) {
     result.errors.push(`Invalid endpoint URL: ${config.endpoint}`);
     result.valid = false;
   }
@@ -330,7 +346,7 @@ function validateExporterEndpoint(config: ExporterConfiguration, result: Validat
  */
 export function validateExporterConfiguration(
   config: ExporterConfiguration,
-  type: 'trace' | 'metric'
+  type: 'trace' | 'metric',
 ): ValidationResult {
   const result: ValidationResult = {
     valid: true,
@@ -365,17 +381,23 @@ export function validateExporterConfiguration(
  */
 export function logValidationResults(results: ValidationResult, context: string): void {
   if (results.errors.length > 0) {
-    logger.error({
-      context,
-      errors: results.errors,
-    }, 'Exporter configuration validation failed');
+    logger.error(
+      {
+        context,
+        errors: results.errors,
+      },
+      'Exporter configuration validation failed',
+    );
   }
 
   if (results.warnings.length > 0) {
-    logger.warn({
-      context,
-      warnings: results.warnings,
-    }, 'Exporter configuration validation warnings');
+    logger.warn(
+      {
+        context,
+        warnings: results.warnings,
+      },
+      'Exporter configuration validation warnings',
+    );
   }
 
   if (results.valid && results.errors.length === 0 && results.warnings.length === 0) {

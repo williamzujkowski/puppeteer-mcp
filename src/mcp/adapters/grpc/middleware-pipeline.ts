@@ -93,7 +93,11 @@ export class GrpcMiddlewarePipeline {
       });
 
       // Validate authentication if required
-      if (operation.service !== 'HealthService' && (params.auth === null || params.auth === undefined) && GrpcMiddlewarePipeline.isEmptySessionId(params.sessionId)) {
+      if (
+        operation.service !== 'HealthService' &&
+        (params.auth === null || params.auth === undefined) &&
+        GrpcMiddlewarePipeline.isEmptySessionId(params.sessionId)
+      ) {
         await logSecurityEvent(SecurityEventType.ACCESS_DENIED, {
           userId: params.sessionId,
           resource: `${operation.service}.${operation.method}`,
@@ -101,7 +105,7 @@ export class GrpcMiddlewarePipeline {
           result: 'failure',
           reason: 'No authentication provided',
         });
-        
+
         throw new Error('Authentication required for this service');
       }
 
@@ -116,10 +120,10 @@ export class GrpcMiddlewarePipeline {
   static createLoggingMiddleware(): GrpcMiddleware {
     return async (operation, _metadata, params, next) => {
       const startTime = Date.now();
-      
+
       try {
         const result = await next();
-        
+
         // Log successful request
         await logSecurityEvent(SecurityEventType.API_ACCESS, {
           userId: params.sessionId,
@@ -167,7 +171,7 @@ export class GrpcMiddlewarePipeline {
       const resetTime = now + 60000; // 1 minute from now
 
       let clientData = requestCounts.get(clientId);
-      
+
       if (clientData === undefined || now > clientData.resetTime) {
         clientData = { count: 0, resetTime };
         requestCounts.set(clientId, clientData);

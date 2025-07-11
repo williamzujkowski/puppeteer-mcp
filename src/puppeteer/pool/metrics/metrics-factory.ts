@@ -36,7 +36,7 @@ export class MetricsFactory {
    */
   static createCollector<T = unknown>(
     type: MetricCollectorType,
-    config?: MetricCollectorConfig
+    config?: MetricCollectorConfig,
   ): MetricCollector<T> {
     logger.debug({ type, config }, 'Creating metric collector');
 
@@ -70,19 +70,13 @@ export class MetricsFactory {
     return {
       performance: this.createCollector<PerformanceMetricsCollector>(
         MetricCollectorType.PERFORMANCE,
-        config
+        config,
       ),
-      queue: this.createCollector<QueueMetricsCollector>(
-        MetricCollectorType.QUEUE,
-        config
-      ),
-      error: this.createCollector<ErrorMetricsCollector>(
-        MetricCollectorType.ERROR,
-        config
-      ),
+      queue: this.createCollector<QueueMetricsCollector>(MetricCollectorType.QUEUE, config),
+      error: this.createCollector<ErrorMetricsCollector>(MetricCollectorType.ERROR, config),
       resource: this.createCollector<ResourceMetricsCollector>(
         MetricCollectorType.RESOURCE,
-        config
+        config,
       ),
     };
   }

@@ -4,7 +4,8 @@ This directory contains the modularized error handling components for Puppeteer 
 
 ## Architecture
 
-The error handling system has been broken down into focused modules following SOLID principles and design patterns:
+The error handling system has been broken down into focused modules following SOLID principles and
+design patterns:
 
 ### Components
 
@@ -50,7 +51,8 @@ The error handling system has been broken down into focused modules following SO
 
 ## Usage
 
-The original `ActionErrorHandler` class in `error-handler.ts` maintains backward compatibility while delegating to these specialized modules:
+The original `ActionErrorHandler` class in `error-handler.ts` maintains backward compatibility while
+delegating to these specialized modules:
 
 ```typescript
 import { ActionErrorHandler } from './error-handler.js';
@@ -63,7 +65,12 @@ const errorHandler = new ActionErrorHandler({
 });
 
 // Handle validation failure
-const result = await errorHandler.handleValidationFailure(action, context, validationResult, duration);
+const result = await errorHandler.handleValidationFailure(
+  action,
+  context,
+  validationResult,
+  duration,
+);
 
 // Execute with retry
 const result = await errorHandler.executeWithRetry(handler, action, page, context);

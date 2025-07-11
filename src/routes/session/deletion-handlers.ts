@@ -29,12 +29,12 @@ export class SessionDeletionHandlerFactory {
       }
 
       const { sessionId } = req.params;
-      
+
       // Validation middleware ensures sessionId is defined
       if (!sessionId) {
         throw new AppError('Session ID is required', 400);
       }
-      
+
       // Get session to verify ownership
       const session = await this.sessionStore.get(sessionId);
 
@@ -45,7 +45,7 @@ export class SessionDeletionHandlerFactory {
       // Check if user owns this session or is admin
       const isOwner = session.data.userId === req.user.userId;
       const isAdmin = req.user.roles.includes('admin');
-      
+
       if (!isOwner && !isAdmin) {
         throw new AppError('Cannot terminate session for another user', 403);
       }
@@ -110,10 +110,7 @@ export class SessionDeletionHandlerFactory {
         },
       });
 
-      res.json(formatSuccessResponse(
-        { deletedCount },
-        `Terminated ${deletedCount} sessions`
-      ));
+      res.json(formatSuccessResponse({ deletedCount }, `Terminated ${deletedCount} sessions`));
     };
   }
 
@@ -125,7 +122,7 @@ export class SessionDeletionHandlerFactory {
   adminTerminateSessionHandler() {
     return async (req: Request, res: Response): Promise<void> => {
       const { sessionId } = req.params;
-      
+
       // Validation middleware ensures sessionId is defined
       if (!sessionId) {
         throw new AppError('Session ID is required', 400);
@@ -158,13 +155,15 @@ export class SessionDeletionHandlerFactory {
         },
       });
 
-      res.json(formatSuccessResponse(
-        {
-          terminatedUserId: session.data.userId,
-          terminatedUsername: session.data.username,
-        },
-        'Session terminated successfully'
-      ));
+      res.json(
+        formatSuccessResponse(
+          {
+            terminatedUserId: session.data.userId,
+            terminatedUsername: session.data.username,
+          },
+          'Session terminated successfully',
+        ),
+      );
     };
   }
 }

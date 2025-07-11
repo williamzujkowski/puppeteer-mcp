@@ -21,12 +21,12 @@ export class PerformanceMetrics {
       description: 'JavaScript execution time in milliseconds',
       unit: 'ms',
     });
-    
+
     this.screenshotDuration = meter.createHistogram('browser_screenshot_duration_ms', {
       description: 'Screenshot capture duration in milliseconds',
       unit: 'ms',
     });
-    
+
     this.pdfGenerationDuration = meter.createHistogram('browser_pdf_generation_duration_ms', {
       description: 'PDF generation duration in milliseconds',
       unit: 'ms',
@@ -40,7 +40,7 @@ export class PerformanceMetrics {
     const labels = {
       success: success.toString(),
     };
-    
+
     this.javascriptExecutionTime.record(duration, labels);
   }
 
@@ -52,7 +52,7 @@ export class PerformanceMetrics {
       format,
       success: success.toString(),
     };
-    
+
     this.screenshotDuration.record(duration, labels);
   }
 
@@ -63,7 +63,7 @@ export class PerformanceMetrics {
     const labels = {
       success: success.toString(),
     };
-    
+
     this.pdfGenerationDuration.record(duration, labels);
   }
 }

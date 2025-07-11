@@ -94,10 +94,7 @@ export class FibonacciRetryStrategy extends BaseRetryStrategy {
 
   getDelay(attempt: number): number {
     const multiplier = this.fibonacci(attempt);
-    const delay = Math.min(
-      this.config.baseDelay * multiplier,
-      this.config.maxDelay,
-    );
+    const delay = Math.min(this.config.baseDelay * multiplier, this.config.maxDelay);
 
     logger.debug('Calculated Fibonacci retry delay', { attempt, multiplier, delay });
     return delay;
@@ -105,7 +102,7 @@ export class FibonacciRetryStrategy extends BaseRetryStrategy {
 
   private fibonacci(n: number): number {
     if (n <= 1) return 1;
-    
+
     const cached = this.fibCache.get(n);
     if (cached !== undefined) {
       return cached;
@@ -161,24 +158,24 @@ export class AdaptiveRetryStrategy extends BaseRetryStrategy {
     const jitter = baseDelay * 0.25 * (Math.random() * 2 - 1);
     const delay = Math.max(0, baseDelay + jitter);
 
-    logger.debug('Calculated adaptive retry delay with jitter', { 
-      attempt, 
-      baseDelay, 
-      jitter, 
+    logger.debug('Calculated adaptive retry delay with jitter', {
+      attempt,
+      baseDelay,
+      jitter,
       delay,
     });
-    
+
     return Math.round(delay);
   }
 
   private getErrorType(error: Error): string {
     const message = error.message.toLowerCase();
-    
+
     if (message.includes('timeout')) return 'timeout';
     if (message.includes('network')) return 'network';
     if (message.includes('element')) return 'element';
     if (message.includes('navigation')) return 'navigation';
-    
+
     return 'general';
   }
 
@@ -194,7 +191,10 @@ export class AdaptiveRetryStrategy extends BaseRetryStrategy {
  * Factory for creating retry strategies
  */
 export class RetryStrategyFactory {
-  static create(type: 'exponential' | 'linear' | 'fibonacci' | 'adaptive', config?: Partial<RetryConfig>): RetryStrategy {
+  static create(
+    type: 'exponential' | 'linear' | 'fibonacci' | 'adaptive',
+    config?: Partial<RetryConfig>,
+  ): RetryStrategy {
     switch (type) {
       case 'exponential':
         return new ExponentialBackoffStrategy(config);

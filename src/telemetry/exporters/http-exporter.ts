@@ -53,14 +53,17 @@ export class HTTPSpanExporter implements SpanExporter {
   export(spans: ReadableSpan[], resultCallback: (result: ExportResult) => void): void {
     this.exportAsync(spans, resultCallback).catch((error) => {
       logger.error({ error, endpoint: this.config.endpoint }, 'Failed to export spans via HTTP');
-      resultCallback({ 
+      resultCallback({
         code: ExportResultCode.FAILED,
-        error: error instanceof Error ? error : new Error(String(error))
+        error: error instanceof Error ? error : new Error(String(error)),
       });
     });
   }
 
-  private async exportAsync(spans: ReadableSpan[], resultCallback: (result: ExportResult) => void): Promise<void> {
+  private async exportAsync(
+    spans: ReadableSpan[],
+    resultCallback: (result: ExportResult) => void,
+  ): Promise<void> {
     const payload = {
       type: 'spans',
       timestamp: new Date().toISOString(),
@@ -102,19 +105,19 @@ export class HTTPSpanExporter implements SpanExporter {
       if (attempt < this.config.retryCount) {
         logger.warn(
           { error, attempt, endpoint: this.config.endpoint },
-          'HTTP export failed, retrying'
+          'HTTP export failed, retrying',
         );
-        
+
         await this.delay(this.config.retryDelay * attempt);
         return this.sendWithRetry(payload, attempt + 1);
       }
-      
+
       throw error;
     }
   }
 
   private delay(ms: number): Promise<void> {
-    return new Promise<void>(resolve => {
+    return new Promise<void>((resolve) => {
       setTimeout(resolve, ms);
     });
   }
@@ -137,14 +140,17 @@ export class HTTPMetricExporter implements PushMetricExporter {
   export(metrics: ResourceMetrics, resultCallback: (result: ExportResult) => void): void {
     this.exportAsync(metrics, resultCallback).catch((error) => {
       logger.error({ error, endpoint: this.config.endpoint }, 'Failed to export metrics via HTTP');
-      resultCallback({ 
+      resultCallback({
         code: ExportResultCode.FAILED,
-        error: error instanceof Error ? error : new Error(String(error))
+        error: error instanceof Error ? error : new Error(String(error)),
       });
     });
   }
 
-  private async exportAsync(metrics: ResourceMetrics, resultCallback: (result: ExportResult) => void): Promise<void> {
+  private async exportAsync(
+    metrics: ResourceMetrics,
+    resultCallback: (result: ExportResult) => void,
+  ): Promise<void> {
     const payload = {
       type: 'metrics',
       timestamp: new Date().toISOString(),
@@ -186,19 +192,19 @@ export class HTTPMetricExporter implements PushMetricExporter {
       if (attempt < this.config.retryCount) {
         logger.warn(
           { error, attempt, endpoint: this.config.endpoint },
-          'HTTP metrics export failed, retrying'
+          'HTTP metrics export failed, retrying',
         );
-        
+
         await this.delay(this.config.retryDelay * attempt);
         return this.sendWithRetry(payload, attempt + 1);
       }
-      
+
       throw error;
     }
   }
 
   private delay(ms: number): Promise<void> {
-    return new Promise<void>(resolve => {
+    return new Promise<void>((resolve) => {
       setTimeout(resolve, ms);
     });
   }
@@ -210,9 +216,9 @@ export class HTTPMetricExporter implements PushMetricExporter {
 export class HTTPTraceExporterFactory implements ExporterFactory<SpanExporter> {
   create(config: TelemetryConfig): SpanExporter {
     const endpoint = process.env.TELEMETRY_HTTP_TRACES_ENDPOINT ?? DEFAULT_CONFIG.endpoint;
-    
+
     logger.info({ endpoint }, 'Creating HTTP trace exporter');
-    
+
     return new HTTPSpanExporter({
       endpoint,
       timeout: config.export.timeout,
@@ -230,9 +236,9 @@ export class HTTPTraceExporterFactory implements ExporterFactory<SpanExporter> {
 export class HTTPMetricExporterFactory implements ExporterFactory<PushMetricExporter> {
   create(config: TelemetryConfig): PushMetricExporter {
     const endpoint = process.env.TELEMETRY_HTTP_METRICS_ENDPOINT ?? 'http://localhost:8080/metrics';
-    
+
     logger.info({ endpoint }, 'Creating HTTP metric exporter');
-    
+
     return new HTTPMetricExporter({
       endpoint,
       timeout: config.export.timeout,
@@ -247,14 +253,18 @@ export class HTTPMetricExporterFactory implements ExporterFactory<PushMetricExpo
 /**
  * Create HTTP span exporter with custom options
  */
-export function createHTTPSpanExporter(options: ExporterOptions & Partial<HTTPExporterConfig> = {}): HTTPSpanExporter {
+export function createHTTPSpanExporter(
+  options: ExporterOptions & Partial<HTTPExporterConfig> = {},
+): HTTPSpanExporter {
   return new HTTPSpanExporter(options);
 }
 
 /**
  * Create HTTP metric exporter with custom options
  */
-export function createHTTPMetricExporter(options: ExporterOptions & Partial<HTTPExporterConfig> = {}): HTTPMetricExporter {
+export function createHTTPMetricExporter(
+  options: ExporterOptions & Partial<HTTPExporterConfig> = {},
+): HTTPMetricExporter {
   return new HTTPMetricExporter(options);
 }
 

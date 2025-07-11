@@ -5,11 +5,7 @@
  * @nist au-6 "Audit review, analysis, and reporting"
  */
 
-import type {
-  SessionMetrics,
-  GetOperationMetrics,
-  OperationRecord
-} from './types.js';
+import type { SessionMetrics, GetOperationMetrics, OperationRecord } from './types.js';
 import { EventEmitter } from 'events';
 import { pino } from 'pino';
 
@@ -20,10 +16,7 @@ export class MetricsCollector extends EventEmitter {
   private _logger: pino.Logger;
   private metrics: SessionMetrics;
 
-  constructor(
-    storeType: string,
-    logger?: pino.Logger
-  ) {
+  constructor(storeType: string, logger?: pino.Logger) {
     super();
     this._logger = logger ?? pino({ level: 'info' });
     this.metrics = this.initializeMetrics(storeType);
@@ -39,19 +32,19 @@ export class MetricsCollector extends EventEmitter {
         get: { count: 0, avgLatency: 0, errors: 0, cacheMisses: 0 },
         update: { count: 0, avgLatency: 0, errors: 0 },
         delete: { count: 0, avgLatency: 0, errors: 0 },
-        touch: { count: 0, avgLatency: 0, errors: 0 }
+        touch: { count: 0, avgLatency: 0, errors: 0 },
       },
       store: {
         type: storeType,
         available: true,
         totalSessions: 0,
         activeSessions: 0,
-        expiredSessions: 0
+        expiredSessions: 0,
       },
       fallback: {
         activations: 0,
-        totalFallbackTime: 0
-      }
+        totalFallbackTime: 0,
+      },
     };
   }
 
@@ -61,19 +54,19 @@ export class MetricsCollector extends EventEmitter {
   recordOperation(record: OperationRecord): void {
     const { operation, latency, success, cacheMiss } = record;
     const opMetrics = this.metrics.operations[operation];
-    
+
     // Update count
     opMetrics.count++;
-    
+
     // Update average latency using incremental average formula
-    opMetrics.avgLatency = 
+    opMetrics.avgLatency =
       (opMetrics.avgLatency * (opMetrics.count - 1) + latency) / opMetrics.count;
-    
+
     // Update errors
     if (!success) {
       opMetrics.errors++;
     }
-    
+
     // Update cache misses for get operations
     if (operation === 'get' && cacheMiss === true) {
       const getMetrics = opMetrics as GetOperationMetrics;
@@ -139,7 +132,7 @@ export class MetricsCollector extends EventEmitter {
     if (getMetrics.count === 0) {
       return 1; // Assume 100% hit rate if no operations
     }
-    return 1 - (getMetrics.cacheMisses / getMetrics.count);
+    return 1 - getMetrics.cacheMisses / getMetrics.count;
   }
 
   /**
@@ -165,7 +158,7 @@ export class MetricsCollector extends EventEmitter {
     let totalErrors = 0;
     let totalLatency = 0;
 
-    Object.values(this.metrics.operations).forEach(opMetrics => {
+    Object.values(this.metrics.operations).forEach((opMetrics) => {
       totalOperations += opMetrics.count;
       totalErrors += opMetrics.errors;
       totalLatency += opMetrics.avgLatency * opMetrics.count;
@@ -176,7 +169,7 @@ export class MetricsCollector extends EventEmitter {
       totalErrors,
       overallErrorRate: totalOperations > 0 ? totalErrors / totalOperations : 0,
       avgLatencyAcrossOps: totalOperations > 0 ? totalLatency / totalOperations : 0,
-      cacheHitRate: this.getCacheHitRate()
+      cacheHitRate: this.getCacheHitRate(),
     };
   }
 }

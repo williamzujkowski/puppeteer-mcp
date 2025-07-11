@@ -17,8 +17,17 @@ import { BaseValidator } from '../base-validator.js';
  * Valid PDF formats
  */
 const VALID_PDF_FORMATS = [
-  'letter', 'legal', 'tabloid', 'ledger',
-  'a0', 'a1', 'a2', 'a3', 'a4', 'a5', 'a6'
+  'letter',
+  'legal',
+  'tabloid',
+  'ledger',
+  'a0',
+  'a1',
+  'a2',
+  'a3',
+  'a4',
+  'a5',
+  'a6',
 ] as const;
 
 /**
@@ -84,13 +93,7 @@ export class PDFSubValidator extends BaseValidator {
    */
   private validateFormat(action: PDFAction, errors: ValidationError[]): void {
     if (action.format) {
-      this.validateEnum(
-        action.format,
-        'format',
-        VALID_PDF_FORMATS,
-        errors,
-        'INVALID_PDF_FORMAT'
-      );
+      this.validateEnum(action.format, 'format', VALID_PDF_FORMATS, errors, 'INVALID_PDF_FORMAT');
     }
   }
 
@@ -99,14 +102,7 @@ export class PDFSubValidator extends BaseValidator {
    */
   private validateScale(action: PDFAction, errors: ValidationError[]): void {
     if (action.scale !== undefined) {
-      this.validateNumericRange(
-        action.scale,
-        'scale',
-        0.1,
-        2,
-        errors,
-        'INVALID_SCALE'
-      );
+      this.validateNumericRange(action.scale, 'scale', 0.1, 2, errors, 'INVALID_SCALE');
     }
   }
 
@@ -114,11 +110,16 @@ export class PDFSubValidator extends BaseValidator {
    * Validate margins
    */
   private validateMargins(
-    margin: { top?: string | number; right?: string | number; bottom?: string | number; left?: string | number },
-    errors: ValidationError[]
+    margin: {
+      top?: string | number;
+      right?: string | number;
+      bottom?: string | number;
+      left?: string | number;
+    },
+    errors: ValidationError[],
   ): void {
     const marginFields = ['top', 'right', 'bottom', 'left'];
-    
+
     for (const field of marginFields) {
       const value = margin[field as keyof typeof margin];
       if (value !== undefined) {
@@ -127,14 +128,14 @@ export class PDFSubValidator extends BaseValidator {
             errors,
             `margin.${field}`,
             `Margin ${field} must be non-negative`,
-            'NEGATIVE_MARGIN'
+            'NEGATIVE_MARGIN',
           );
         } else if (typeof value === 'string' && !this.isValidCSSUnit(value)) {
           this.addError(
             errors,
             `margin.${field}`,
             `Invalid margin ${field} format`,
-            'INVALID_MARGIN_FORMAT'
+            'INVALID_MARGIN_FORMAT',
           );
         }
       }
@@ -151,7 +152,7 @@ export class PDFSubValidator extends BaseValidator {
         errors,
         'pageRanges',
         'Invalid page range format. Use format like "1-5, 8, 11-13"',
-        'INVALID_PAGE_RANGES'
+        'INVALID_PAGE_RANGES',
       );
     }
   }
@@ -162,10 +163,10 @@ export class PDFSubValidator extends BaseValidator {
   private validateDimensions(action: PDFAction, errors: ValidationError[]): void {
     // Check if width/height properties exist on the action
     const dimensions = action as any;
-    
+
     if ('width' in dimensions || 'height' in dimensions) {
       const fields = ['width', 'height'] as const;
-      
+
       for (const field of fields) {
         const value = dimensions[field];
         if (value !== undefined) {
@@ -174,14 +175,14 @@ export class PDFSubValidator extends BaseValidator {
               errors,
               field,
               `${field} must be positive`,
-              `INVALID_${field.toUpperCase()}`
+              `INVALID_${field.toUpperCase()}`,
             );
           } else if (typeof value === 'string' && !this.isValidCSSUnit(value)) {
             this.addError(
               errors,
               field,
               `Invalid ${field} format`,
-              `INVALID_${field.toUpperCase()}_FORMAT`
+              `INVALID_${field.toUpperCase()}_FORMAT`,
             );
           }
         }
@@ -195,7 +196,7 @@ export class PDFSubValidator extends BaseValidator {
   private validatePrintOptions(
     action: PDFAction,
     errors: ValidationError[],
-    warnings: ValidationError[]
+    warnings: ValidationError[],
   ): void {
     // Warn about print background
     if (action.printBackground) {
@@ -203,18 +204,13 @@ export class PDFSubValidator extends BaseValidator {
         warnings,
         'printBackground',
         'Printing backgrounds may increase file size',
-        'PRINT_BACKGROUND_WARNING'
+        'PRINT_BACKGROUND_WARNING',
       );
     }
 
     // Validate landscape option
     if (action.landscape !== undefined && typeof action.landscape !== 'boolean') {
-      this.addError(
-        errors,
-        'landscape',
-        'Landscape must be a boolean',
-        'INVALID_LANDSCAPE'
-      );
+      this.addError(errors, 'landscape', 'Landscape must be a boolean', 'INVALID_LANDSCAPE');
     }
 
     // Validate preferCSSPageSize
@@ -223,7 +219,7 @@ export class PDFSubValidator extends BaseValidator {
         errors,
         'preferCSSPageSize',
         'PreferCSSPageSize must be a boolean',
-        'INVALID_PREFER_CSS_PAGE_SIZE'
+        'INVALID_PREFER_CSS_PAGE_SIZE',
       );
     }
   }
@@ -234,20 +230,10 @@ export class PDFSubValidator extends BaseValidator {
   private validateHeaderFooter(action: PDFAction, errors: ValidationError[]): void {
     if (action.displayHeaderFooter) {
       if (action.headerTemplate && action.headerTemplate.length > 5000) {
-        this.addError(
-          errors,
-          'headerTemplate',
-          'Header template is too long',
-          'HEADER_TOO_LONG'
-        );
+        this.addError(errors, 'headerTemplate', 'Header template is too long', 'HEADER_TOO_LONG');
       }
       if (action.footerTemplate && action.footerTemplate.length > 5000) {
-        this.addError(
-          errors,
-          'footerTemplate',
-          'Footer template is too long',
-          'FOOTER_TOO_LONG'
-        );
+        this.addError(errors, 'footerTemplate', 'Footer template is too long', 'FOOTER_TOO_LONG');
       }
     }
   }

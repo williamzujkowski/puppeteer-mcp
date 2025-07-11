@@ -25,11 +25,7 @@ export class TimeBasedStrategy {
   /**
    * Calculate time-based recycling score
    */
-  calculate(
-    ageMs: number,
-    idleTimeMs: number,
-    config: RecyclingConfig
-  ): RecyclingStrategyResult {
+  calculate(ageMs: number, idleTimeMs: number, config: RecyclingConfig): RecyclingStrategyResult {
     const reasons: RecyclingReason[] = [];
     let score = 0;
 
@@ -62,11 +58,7 @@ export class UsageBasedStrategy {
   /**
    * Calculate usage-based recycling score
    */
-  calculate(
-    useCount: number,
-    pageCount: number,
-    config: RecyclingConfig
-  ): RecyclingStrategyResult {
+  calculate(useCount: number, pageCount: number, config: RecyclingConfig): RecyclingStrategyResult {
     const reasons: RecyclingReason[] = [];
     let score = 0;
 
@@ -102,7 +94,7 @@ export class HealthBasedStrategy {
   calculate(
     healthScore: number,
     errorRate: number,
-    config: RecyclingConfig
+    config: RecyclingConfig,
   ): RecyclingStrategyResult {
     const reasons: RecyclingReason[] = [];
     let score = 0;
@@ -140,7 +132,7 @@ export class ResourceBasedStrategy {
   calculate(
     memoryUsageMB: number,
     cpuUsagePercent: number,
-    config: RecyclingConfig
+    config: RecyclingConfig,
   ): RecyclingStrategyResult {
     const reasons: RecyclingReason[] = [];
     let score = 0;
@@ -191,33 +183,29 @@ export class HybridStrategy {
       memoryUsageMB: number;
       cpuUsagePercent: number;
     },
-    config: RecyclingConfig
+    config: RecyclingConfig,
   ): RecyclingStrategyResult {
     const reasons: RecyclingReason[] = [];
 
     // Calculate individual scores
-    const timeResult = this.timeBasedStrategy.calculate(
-      metrics.ageMs,
-      metrics.idleTimeMs,
-      config
-    );
-    
+    const timeResult = this.timeBasedStrategy.calculate(metrics.ageMs, metrics.idleTimeMs, config);
+
     const usageResult = this.usageBasedStrategy.calculate(
       metrics.useCount,
       metrics.pageCount,
-      config
+      config,
     );
-    
+
     const healthResult = this.healthBasedStrategy.calculate(
       metrics.healthScore,
       metrics.errorRate,
-      config
+      config,
     );
-    
+
     const resourceResult = this.resourceBasedStrategy.calculate(
       metrics.memoryUsageMB,
       metrics.cpuUsagePercent,
-      config
+      config,
     );
 
     // Collect all reasons
@@ -227,7 +215,7 @@ export class HybridStrategy {
     reasons.push(...resourceResult.reasons);
 
     // Calculate weighted score
-    const score = 
+    const score =
       timeResult.score * config.weightTimeBasedScore +
       usageResult.score * config.weightUsageBasedScore +
       healthResult.score * config.weightHealthBasedScore +
@@ -242,7 +230,7 @@ export class HybridStrategy {
         finalScore: score,
         reasons,
       },
-      'Hybrid strategy calculation completed'
+      'Hybrid strategy calculation completed',
     );
 
     return {

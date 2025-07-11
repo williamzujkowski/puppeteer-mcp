@@ -16,6 +16,5 @@ export {
   type MigrationStats,
   type HealthStatus,
   type BackupResult,
-  type RestoreStats
+  type RestoreStats,
 } from './factory/index.js';
-

@@ -35,7 +35,7 @@ export const CONFIG_PRESETS = {
     exponentialBackoff: true,
     maxTimeout: 60000,
   } as Partial<CircuitBreakerConfig>,
-  
+
   conservative: {
     failureThreshold: 10,
     successThreshold: 2,
@@ -43,7 +43,7 @@ export const CONFIG_PRESETS = {
     timeout: 60000,
     exponentialBackoff: false,
   } as Partial<CircuitBreakerConfig>,
-  
+
   balanced: {
     failureThreshold: 5,
     successThreshold: 3,
@@ -52,7 +52,7 @@ export const CONFIG_PRESETS = {
     exponentialBackoff: true,
     maxTimeout: 180000,
   } as Partial<CircuitBreakerConfig>,
-  
+
   testing: {
     failureThreshold: 2,
     successThreshold: 1,
@@ -62,7 +62,7 @@ export const CONFIG_PRESETS = {
     exponentialBackoff: false,
     minimumThroughput: 1,
   } as Partial<CircuitBreakerConfig>,
-  
+
   highThroughput: {
     failureThreshold: 20,
     successThreshold: 10,
@@ -73,7 +73,7 @@ export const CONFIG_PRESETS = {
     maxTimeout: 60000,
     minimumThroughput: 50,
   } as Partial<CircuitBreakerConfig>,
-  
+
   microservice: {
     failureThreshold: 5,
     successThreshold: 2,
@@ -84,7 +84,7 @@ export const CONFIG_PRESETS = {
     backoffMultiplier: 1.5,
     minimumThroughput: 10,
   } as Partial<CircuitBreakerConfig>,
-  
+
   batch: {
     failureThreshold: 3,
     successThreshold: 1,
@@ -98,7 +98,9 @@ export const CONFIG_PRESETS = {
 /**
  * Get preset by name
  */
-export function getPreset(name: keyof typeof CONFIG_PRESETS): Partial<CircuitBreakerConfig> | undefined {
+export function getPreset(
+  name: keyof typeof CONFIG_PRESETS,
+): Partial<CircuitBreakerConfig> | undefined {
   return CONFIG_PRESETS[name];
 }
 
@@ -107,7 +109,7 @@ export function getPreset(name: keyof typeof CONFIG_PRESETS): Partial<CircuitBre
  */
 export function mergeWithPreset(
   presetName: keyof typeof CONFIG_PRESETS,
-  customConfig: Partial<CircuitBreakerConfig> = {}
+  customConfig: Partial<CircuitBreakerConfig> = {},
 ): CircuitBreakerConfig {
   const preset = CONFIG_PRESETS[presetName] || {};
   return {

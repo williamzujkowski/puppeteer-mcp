@@ -25,7 +25,7 @@ import { ServerInstance, ServerConfig } from './types.js';
 export function createApp(
   logger: Logger,
   sessionStore: SessionStore,
-  browserPool: BrowserPool
+  browserPool: BrowserPool,
 ): Application {
   const app = express();
 
@@ -64,7 +64,7 @@ export function createServer(app: Application, serverConfig: ServerConfig): Serv
 export function setupServerErrorHandlers(
   server: ServerInstance,
   port: number,
-  logger: Logger
+  logger: Logger,
 ): void {
   server.on('error', (error: NodeJS.ErrnoException) => {
     if (error.code === 'EADDRINUSE') {
@@ -90,7 +90,7 @@ export function startHttpServer(
   server: ServerInstance,
   port: number,
   host: string,
-  logger: Logger
+  logger: Logger,
 ): Promise<void> {
   return new Promise((resolve, reject) => {
     setupServerErrorHandlers(server, port, logger);
@@ -98,11 +98,11 @@ export function startHttpServer(
     server.listen(port, host, () => {
       const protocol = shouldEnableTLS() ? 'https' : 'http';
       logger.info(`HTTP server started on ${protocol}://${host}:${port}`);
-      
+
       if (!shouldEnableTLS() && process.env.NODE_ENV !== 'development') {
         logger.warn('Running without TLS - development only!');
       }
-      
+
       resolve();
     });
 

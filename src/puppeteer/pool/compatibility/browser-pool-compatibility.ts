@@ -8,7 +8,10 @@
 import { createLogger } from '../../../utils/logger.js';
 import { BrowserPool } from '../browser-pool.js';
 import { OptimizedBrowserPool } from '../browser-pool-optimized.js';
-import type { BrowserPoolOptions, BrowserInstance } from '../../interfaces/browser-pool.interface.js';
+import type {
+  BrowserPoolOptions,
+  BrowserInstance,
+} from '../../interfaces/browser-pool.interface.js';
 import type { OptimizationConfig } from '../browser-pool-optimized.js';
 import type { Page } from 'puppeteer';
 import { MigrationExecutor } from './migration-executor.js';
@@ -16,13 +19,13 @@ import { CompatibilityChecker } from './compatibility-checker.js';
 import { MigrationPlanner } from './migration-planner.js';
 import { VersionDetector } from './version-detector.js';
 import { CompatibilityUtils } from './compatibility-utils.js';
-import type { 
-  CompatibilityConfig, 
-  UsageStatistics, 
+import type {
+  CompatibilityConfig,
+  UsageStatistics,
   ExtendedMigrationMetrics,
   CompatibilityAnalysis,
   MigrationPlan,
-  CompatibilityCheckResult 
+  CompatibilityCheckResult,
 } from './types.js';
 import { DEFAULT_COMPATIBILITY_CONFIG } from './types.js';
 

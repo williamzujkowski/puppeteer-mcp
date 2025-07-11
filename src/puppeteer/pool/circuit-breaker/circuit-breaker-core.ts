@@ -24,9 +24,7 @@ import { ConfigManager } from './config.js';
 import { TimeoutManager } from './timeout-manager.js';
 import { ExecutionHandler } from './execution-handler.js';
 import { createLogger } from '../../../utils/logger.js';
-import {
-  handleStateTransition,
-} from './circuit-breaker-setup.js';
+import { handleStateTransition } from './circuit-breaker-setup.js';
 
 const logger = createLogger('circuit-breaker-core');
 
@@ -49,10 +47,10 @@ export class CircuitBreaker extends EventEmitter {
 
   constructor(
     private name: string,
-    config: CircuitBreakerConfig
+    config: CircuitBreakerConfig,
   ) {
     super();
-    
+
     // Initialize components
     this.configManager = new ConfigManager(name, config);
     this.stateMachine = new CircuitBreakerStateMachine(name);
@@ -60,25 +58,23 @@ export class CircuitBreaker extends EventEmitter {
     this.performanceMonitor = new PerformanceMonitor(name, this.metricsCollector);
     this.cacheManager = new CacheManager(name);
     this.eventAggregator = new EventAggregator(name);
-    this.timeoutManager = new TimeoutManager(
-      name,
-      config,
-      () => this.handleTimeout()
-    );
+    this.timeoutManager = new TimeoutManager(name, config, () => this.handleTimeout());
     this.failureDetectionStrategy = FailureDetectionStrategyFactory.getStrategy('threshold');
     this.executionHandler = new ExecutionHandler(
       name,
       this.stateMachine,
       this.metricsCollector,
       this.cacheManager,
-      (event: CircuitBreakerEvent) => this.emitEvent(event)
+      (event: CircuitBreakerEvent) => this.emitEvent(event),
     );
 
-
-    logger.info({
-      circuitBreaker: name,
-      config,
-    }, 'Circuit breaker initialized');
+    logger.info(
+      {
+        circuitBreaker: name,
+        config,
+      },
+      'Circuit breaker initialized',
+    );
   }
 
   /**
@@ -88,10 +84,10 @@ export class CircuitBreaker extends EventEmitter {
   async execute<T>(
     operation: () => Promise<T>,
     fallback?: () => Promise<T>,
-    cacheKey?: string
+    cacheKey?: string,
   ): Promise<ExecutionResult<T>> {
     const startTime = Date.now();
-    
+
     // Record request
     this.metricsCollector.recordRequest();
 
@@ -107,9 +103,9 @@ export class CircuitBreaker extends EventEmitter {
         startTime,
         cacheKey,
         this.failureDetectionStrategy,
-        this.configManager.getConfig()
+        this.configManager.getConfig(),
       );
-      
+
       // Handle state transition if needed
       const { newState, context } = executionResult as any;
       if (newState) {
@@ -118,10 +114,10 @@ export class CircuitBreaker extends EventEmitter {
           context,
           this.stateMachine,
           this.timeoutManager,
-          (event: CircuitBreakerEvent) => this.emitEvent(event)
+          (event: CircuitBreakerEvent) => this.emitEvent(event),
         );
       }
-      
+
       return executionResult;
     } catch (error) {
       const executionResult = await this.executionHandler.handleFailure(
@@ -130,9 +126,9 @@ export class CircuitBreaker extends EventEmitter {
         cacheKey,
         startTime,
         this.failureDetectionStrategy,
-        this.configManager.getConfig()
+        this.configManager.getConfig(),
       );
-      
+
       // Handle state transition if needed
       const { newState, context } = executionResult as any;
       if (newState) {
@@ -141,10 +137,10 @@ export class CircuitBreaker extends EventEmitter {
           context,
           this.stateMachine,
           this.timeoutManager,
-          (event: CircuitBreakerEvent) => this.emitEvent(event)
+          (event: CircuitBreakerEvent) => this.emitEvent(event),
         );
       }
-      
+
       return executionResult;
     }
   }
@@ -156,11 +152,11 @@ export class CircuitBreaker extends EventEmitter {
   getMetrics(): CircuitBreakerMetrics {
     const stateMetrics = this.stateMachine.getStateMetrics();
     const timeoutStatus = this.timeoutManager.getStatus();
-    
+
     return this.metricsCollector.getMetrics(
       this.stateMachine.getState(),
       stateMetrics,
-      timeoutStatus.currentTimeout
+      timeoutStatus.currentTimeout,
     );
   }
 
@@ -171,7 +167,7 @@ export class CircuitBreaker extends EventEmitter {
     const metrics = this.getMetrics();
     const config = this.configManager.getConfig();
     const performanceSummary = this.performanceMonitor.getPerformanceSummary(metrics);
-    
+
     return {
       name: this.name,
       state: this.stateMachine.getState(),
@@ -186,22 +182,25 @@ export class CircuitBreaker extends EventEmitter {
    * @nist au-5 "Response to audit processing failures"
    */
   forceState(newState: CircuitBreakerState, reason?: string): void {
-    logger.info({
-      circuitBreaker: this.name,
-      currentState: this.stateMachine.getState(),
-      newState,
-      reason,
-    }, 'Forcing circuit breaker state change');
+    logger.info(
+      {
+        circuitBreaker: this.name,
+        currentState: this.stateMachine.getState(),
+        newState,
+        reason,
+      },
+      'Forcing circuit breaker state change',
+    );
 
     this.stateMachine.forceState(newState, reason);
-    
+
     // Handle state-specific actions
     handleStateTransition(
       newState,
       { forced: true, reason },
       this.stateMachine,
       this.timeoutManager,
-      (event: CircuitBreakerEvent) => this.emitEvent(event)
+      (event: CircuitBreakerEvent) => this.emitEvent(event),
     );
   }
 
@@ -216,9 +215,12 @@ export class CircuitBreaker extends EventEmitter {
     this.timeoutManager.reset();
     this.eventAggregator.clearHistory();
 
-    logger.info({
-      circuitBreaker: this.name,
-    }, 'Circuit breaker reset');
+    logger.info(
+      {
+        circuitBreaker: this.name,
+      },
+      'Circuit breaker reset',
+    );
 
     this.emitEvent({
       type: 'state_change',
@@ -234,11 +236,11 @@ export class CircuitBreaker extends EventEmitter {
    */
   updateConfig(newConfig: Partial<CircuitBreakerConfig>): void {
     const result = this.configManager.updateConfig(newConfig);
-    
+
     if (result.success) {
       const updatedConfig = this.configManager.getConfig();
       this.timeoutManager.updateConfig(updatedConfig);
-      
+
       this.emit('config-updated', {
         name: this.name,
         config: updatedConfig,
@@ -261,11 +263,13 @@ export class CircuitBreaker extends EventEmitter {
     this.eventAggregator.destroy();
     this.removeAllListeners();
 
-    logger.info({
-      circuitBreaker: this.name,
-    }, 'Circuit breaker destroyed');
+    logger.info(
+      {
+        circuitBreaker: this.name,
+      },
+      'Circuit breaker destroyed',
+    );
   }
-
 
   /**
    * Handle timeout (transition to half-open)
@@ -279,7 +283,7 @@ export class CircuitBreaker extends EventEmitter {
         context,
         this.stateMachine,
         this.timeoutManager,
-        (event: CircuitBreakerEvent) => this.emitEvent(event)
+        (event: CircuitBreakerEvent) => this.emitEvent(event),
       );
     }
   }

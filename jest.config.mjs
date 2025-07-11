@@ -39,14 +39,9 @@ export default {
       },
     ],
   },
-  transformIgnorePatterns: [
-    'node_modules/(?!(.*\\.mjs$))'
-  ],
+  transformIgnorePatterns: ['node_modules/(?!(.*\\.mjs$))'],
   roots: ['<rootDir>/src', '<rootDir>/tests'],
-  testMatch: [
-    '**/__tests__/**/*.+(ts|tsx|js)',
-    '**/?(*.)+(spec|test).+(ts|tsx|js)',
-  ],
+  testMatch: ['**/__tests__/**/*.+(ts|tsx|js)', '**/?(*.)+(spec|test).+(ts|tsx|js)'],
   collectCoverageFrom: [
     'src/**/*.{ts,tsx}',
     '!src/**/*.d.ts',
@@ -99,6 +94,6 @@ export default {
     '/node_modules/',
     '/tests/integration/', // Temporarily disable integration tests
     '/tests/acceptance/', // Disable acceptance tests by default (run explicitly)
-    '/tests/unit/ws/server.test.ts' // Temporarily disable failing WebSocket tests
+    '/tests/unit/ws/server.test.ts', // Temporarily disable failing WebSocket tests
   ],
 };

@@ -1,12 +1,14 @@
 # Health Monitoring Module
 
-This module provides a modular, extensible health monitoring system for WebSocket servers using Strategy, Observer, and Chain of Responsibility patterns.
+This module provides a modular, extensible health monitoring system for WebSocket servers using
+Strategy, Observer, and Chain of Responsibility patterns.
 
 ## Architecture
 
 ### Components
 
-1. **HealthMonitorCoordinator** - Main coordinator that orchestrates all health monitoring activities
+1. **HealthMonitorCoordinator** - Main coordinator that orchestrates all health monitoring
+   activities
 2. **StrategyManager** - Manages health check strategies (Strategy pattern)
 3. **HealthEventManager** - Manages health event observers (Observer pattern)
 4. **MetricsCollector** - Collects and manages health metrics
@@ -30,17 +32,20 @@ import { HealthMonitorCoordinator } from './health/index.js';
 import type { HealthObserver } from './health/types.js';
 
 // Create health monitor
-const healthMonitor = new HealthMonitorCoordinator({ logger }, {
-  heartbeatInterval: 30000,
-  connectionTimeout: 60000,
-  maxStaleAge: 300000,
-});
+const healthMonitor = new HealthMonitorCoordinator(
+  { logger },
+  {
+    heartbeatInterval: 30000,
+    connectionTimeout: 60000,
+    maxStaleAge: 300000,
+  },
+);
 
 // Add custom observer
 const customObserver: HealthObserver = {
   onHealthEvent(event) {
     console.log('Health event:', event);
-  }
+  },
 };
 healthMonitor.getEventManager().registerObserver(customObserver);
 
@@ -69,9 +74,12 @@ const status = await healthMonitor.getHealthStatus(context);
 import { HealthCheckStrategy, type HealthCheckStrategyResult } from './strategies/base.js';
 
 export class CustomHealthCheck extends HealthCheckStrategy {
-  async check(context: HealthCheckContext, metrics: HealthMetrics): Promise<HealthCheckStrategyResult> {
+  async check(
+    context: HealthCheckContext,
+    metrics: HealthMetrics,
+  ): Promise<HealthCheckStrategyResult> {
     const issues = [];
-    
+
     // Perform custom health checks
     if (someCondition) {
       issues.push({
@@ -80,20 +88,22 @@ export class CustomHealthCheck extends HealthCheckStrategy {
         recommendation: 'Fix the issue',
       });
     }
-    
+
     return {
-      passed: issues.filter(i => i.severity === 'critical').length === 0,
+      passed: issues.filter((i) => i.severity === 'critical').length === 0,
       issues,
     };
   }
 }
 
 // Add to strategy manager
-healthMonitor.getStrategyManager().addStrategy(new CustomHealthCheck({
-  name: 'custom-check',
-  priority: 4,
-  enabled: true,
-}));
+healthMonitor.getStrategyManager().addStrategy(
+  new CustomHealthCheck({
+    name: 'custom-check',
+    priority: 4,
+    enabled: true,
+  }),
+);
 ```
 
 ### Adding Custom Recovery Action
@@ -103,9 +113,9 @@ import { RecoveryAction } from './recovery/base.js';
 
 export class CustomRecoveryAction extends RecoveryAction {
   protected canHandle(context: RecoveryContext): boolean {
-    return context.issues.some(issue => issue.includes('custom'));
+    return context.issues.some((issue) => issue.includes('custom'));
   }
-  
+
   protected async execute(context: RecoveryContext): Promise<RecoveryActionResult> {
     // Perform recovery actions
     return {

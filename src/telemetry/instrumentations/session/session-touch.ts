@@ -12,7 +12,7 @@ import type { InstrumentationContext } from './types.js';
  */
 export function instrumentTouch(ctx: InstrumentationContext): void {
   const { tracer, store } = ctx;
-  
+
   // Check if touch method exists
   if (!('touch' in store) || typeof store.touch !== 'function') {
     return;
@@ -20,7 +20,7 @@ export function instrumentTouch(ctx: InstrumentationContext): void {
 
   const originalTouch = store.touch.bind(store);
 
-  store.touch = async function(sessionId: string): Promise<boolean> {
+  store.touch = async function (sessionId: string): Promise<boolean> {
     const span = tracer.startSpan('session.touch', {
       kind: SpanKind.CLIENT,
       attributes: {
@@ -30,9 +30,8 @@ export function instrumentTouch(ctx: InstrumentationContext): void {
     });
 
     try {
-      const result = await context.with(
-        trace.setSpan(context.active(), span),
-        async () => originalTouch(sessionId)
+      const result = await context.with(trace.setSpan(context.active(), span), async () =>
+        originalTouch(sessionId),
       );
 
       span.setAttributes({
@@ -44,13 +43,13 @@ export function instrumentTouch(ctx: InstrumentationContext): void {
       return result;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      
+
       span.recordException(error as Error);
       span.setStatus({
         code: SpanStatusCode.ERROR,
         message: errorMessage,
       });
-      
+
       span.setAttributes({
         'session.success': false,
         'session.error': errorMessage,

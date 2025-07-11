@@ -3,7 +3,7 @@
  * @module puppeteer/actions/execution/interaction-executor
  * @nist ac-3 "Access enforcement"
  * @nist si-10 "Information input validation"
- * 
+ *
  * This file maintains backward compatibility by re-exporting functionality
  * from the modularized interaction handlers.
  */
@@ -65,11 +65,7 @@ export class InteractionExecutor {
    * @returns Action result
    * @deprecated Use execute() method with action type 'type'
    */
-  async executeType(
-    action: TypeAction,
-    page: Page,
-    context: ActionContext,
-  ): Promise<ActionResult> {
+  async executeType(action: TypeAction, page: Page, context: ActionContext): Promise<ActionResult> {
     const handler = this.handlerFactory.getHandlerForAction(action);
     return handler.execute(action, page, context);
   }
@@ -159,11 +155,7 @@ export class InteractionExecutor {
    * @nist ac-3 "Access enforcement"
    * @nist si-10 "Information input validation"
    */
-  async execute(
-    action: BrowserAction,
-    page: Page,
-    context: ActionContext,
-  ): Promise<ActionResult> {
+  async execute(action: BrowserAction, page: Page, context: ActionContext): Promise<ActionResult> {
     try {
       // Special handling for hover action with old interface
       if (action.type === 'hover' && 'selector' in action) {
@@ -177,12 +169,12 @@ export class InteractionExecutor {
 
       // Get appropriate handler from factory
       const handler = this.handlerFactory.getHandlerForAction(action);
-      
+
       // Execute action using handler
       return await handler.execute(action, page, context);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      
+
       logger.error('Failed to execute interaction action', {
         sessionId: context.sessionId,
         contextId: context.contextId,

@@ -46,20 +46,25 @@ export abstract class BaseMigration<TOptions, TResult extends MigrationResult> {
 
       // Step 5: Log completion
       const duration = Date.now() - startTime.getTime();
-      this.logger.info({
-        operation: this.context.operation,
-        duration,
-        success: result.success
-      }, 'Migration operation completed');
+      this.logger.info(
+        {
+          operation: this.context.operation,
+          duration,
+          success: result.success,
+        },
+        'Migration operation completed',
+      );
 
       return result;
-
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      this.logger.error({
-        operation: this.context?.operation,
-        error
-      }, 'Migration operation failed');
+      this.logger.error(
+        {
+          operation: this.context?.operation,
+          error,
+        },
+        'Migration operation failed',
+      );
 
       return this.createErrorResult([errorMessage]);
     }
@@ -102,7 +107,7 @@ export abstract class BaseMigration<TOptions, TResult extends MigrationResult> {
     items: T[],
     batchSize: number,
     processor: (batch: T[]) => Promise<void>,
-    progressCallback?: (processed: number, total: number) => void
+    progressCallback?: (processed: number, total: number) => void,
   ): Promise<void> {
     for (let i = 0; i < items.length; i += batchSize) {
       const batch = items.slice(i, i + batchSize);

@@ -8,10 +8,7 @@
 import { EventEmitter } from 'events';
 import { CircuitBreakerConfig, CircuitBreakerState } from './types.js';
 import { createLogger } from '../../../utils/logger.js';
-import {
-  FixedTimeoutStrategy,
-  JitteredBackoffStrategy,
-} from './timeout-strategies.js';
+import { FixedTimeoutStrategy, JitteredBackoffStrategy } from './timeout-strategies.js';
 
 const logger = createLogger('circuit-breaker-timeout');
 
@@ -38,7 +35,7 @@ export class TimeoutManager extends EventEmitter {
   constructor(
     private name: string,
     protected config: CircuitBreakerConfig,
-    private onTimeout: () => void
+    private onTimeout: () => void,
   ) {
     super();
     this.currentTimeout = config.timeout;
@@ -54,10 +51,7 @@ export class TimeoutManager extends EventEmitter {
     }
 
     // Default to jittered exponential backoff for better distributed recovery
-    return new JitteredBackoffStrategy(
-      this.config.backoffMultiplier,
-      this.config.maxTimeout
-    );
+    return new JitteredBackoffStrategy(this.config.backoffMultiplier, this.config.maxTimeout);
   }
 
   /**
@@ -65,26 +59,32 @@ export class TimeoutManager extends EventEmitter {
    */
   scheduleTimeout(state: CircuitBreakerState): void {
     if (state !== CircuitBreakerState.OPEN) {
-      logger.warn({
-        circuitBreaker: this.name,
-        state,
-      }, 'Attempted to schedule timeout in non-open state');
+      logger.warn(
+        {
+          circuitBreaker: this.name,
+          state,
+        },
+        'Attempted to schedule timeout in non-open state',
+      );
       return;
     }
 
     this.clearTimeout();
     this.attempt++;
-    
+
     this.currentTimeout = this.strategy.calculateTimeout(this.attempt, this.config.timeout);
     this.lastScheduledTime = new Date();
     this.nextTimeoutTime = new Date(Date.now() + this.currentTimeout);
 
     this.timeoutId = setTimeout(() => {
-      logger.info({
-        circuitBreaker: this.name,
-        timeout: this.currentTimeout,
-        attempt: this.attempt,
-      }, 'Circuit breaker timeout triggered');
+      logger.info(
+        {
+          circuitBreaker: this.name,
+          timeout: this.currentTimeout,
+          attempt: this.attempt,
+        },
+        'Circuit breaker timeout triggered',
+      );
 
       this.emit('timeout-triggered', {
         timeout: this.currentTimeout,
@@ -95,12 +95,15 @@ export class TimeoutManager extends EventEmitter {
       this.onTimeout();
     }, this.currentTimeout);
 
-    logger.debug({
-      circuitBreaker: this.name,
-      timeout: this.currentTimeout,
-      attempt: this.attempt,
-      nextTimeout: this.nextTimeoutTime,
-    }, 'Timeout scheduled');
+    logger.debug(
+      {
+        circuitBreaker: this.name,
+        timeout: this.currentTimeout,
+        attempt: this.attempt,
+        nextTimeout: this.nextTimeoutTime,
+      },
+      'Timeout scheduled',
+    );
 
     this.emit('timeout-scheduled', {
       timeout: this.currentTimeout,
@@ -117,11 +120,14 @@ export class TimeoutManager extends EventEmitter {
       clearTimeout(this.timeoutId);
       this.timeoutId = undefined;
       this.nextTimeoutTime = undefined;
-      
-      logger.debug({
-        circuitBreaker: this.name,
-      }, 'Timeout cleared');
-      
+
+      logger.debug(
+        {
+          circuitBreaker: this.name,
+        },
+        'Timeout cleared',
+      );
+
       this.emit('timeout-cleared');
     }
   }
@@ -135,11 +141,14 @@ export class TimeoutManager extends EventEmitter {
     this.currentTimeout = this.config.timeout;
     this.strategy.reset();
     this.lastScheduledTime = undefined;
-    
-    logger.debug({
-      circuitBreaker: this.name,
-    }, 'Timeout manager reset');
-    
+
+    logger.debug(
+      {
+        circuitBreaker: this.name,
+      },
+      'Timeout manager reset',
+    );
+
     this.emit('timeout-reset');
   }
 
@@ -147,7 +156,7 @@ export class TimeoutManager extends EventEmitter {
    * Update configuration
    */
   updateConfig(newConfig: CircuitBreakerConfig): void {
-    const configChanged = 
+    const configChanged =
       this.config.exponentialBackoff !== newConfig.exponentialBackoff ||
       this.config.backoffMultiplier !== newConfig.backoffMultiplier ||
       this.config.maxTimeout !== newConfig.maxTimeout ||
@@ -157,12 +166,15 @@ export class TimeoutManager extends EventEmitter {
 
     if (configChanged) {
       this.strategy = this.createStrategy();
-      logger.info({
-        circuitBreaker: this.name,
-        exponentialBackoff: newConfig.exponentialBackoff,
-        multiplier: newConfig.backoffMultiplier,
-        maxTimeout: newConfig.maxTimeout,
-      }, 'Timeout strategy updated');
+      logger.info(
+        {
+          circuitBreaker: this.name,
+          exponentialBackoff: newConfig.exponentialBackoff,
+          multiplier: newConfig.backoffMultiplier,
+          maxTimeout: newConfig.maxTimeout,
+        },
+        'Timeout strategy updated',
+      );
     }
   }
 
@@ -198,11 +210,14 @@ export class TimeoutManager extends EventEmitter {
     if (this.timeoutId) {
       this.clearTimeout();
       this.onTimeout();
-      
-      logger.warn({
-        circuitBreaker: this.name,
-      }, 'Timeout force triggered');
-      
+
+      logger.warn(
+        {
+          circuitBreaker: this.name,
+        },
+        'Timeout force triggered',
+      );
+
       this.emit('timeout-forced');
     }
   }
@@ -213,10 +228,13 @@ export class TimeoutManager extends EventEmitter {
   destroy(): void {
     this.clearTimeout();
     this.removeAllListeners();
-    
-    logger.debug({
-      circuitBreaker: this.name,
-    }, 'Timeout manager destroyed');
+
+    logger.debug(
+      {
+        circuitBreaker: this.name,
+      },
+      'Timeout manager destroyed',
+    );
   }
 }
 
@@ -265,11 +283,11 @@ export class AdaptiveTimeoutManager extends TimeoutManager {
     // Use adaptive timeout based on recovery history
     const averageRecovery = this.getAverageRecoveryTime();
     const adaptiveMultiplier = Math.max(1.5, Math.min(3, this.config.backoffMultiplier));
-    
+
     return new JitteredBackoffStrategy(
       adaptiveMultiplier,
       Math.max(this.config.maxTimeout, averageRecovery * 10),
-      0.2 // Higher jitter for adaptive strategy
+      0.2, // Higher jitter for adaptive strategy
     );
   }
 }

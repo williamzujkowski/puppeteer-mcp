@@ -18,18 +18,16 @@ const RESULTS_DIR = path.join(__dirname, 'results');
 const TEST_URLS = {
   valid: [
     'https://williamzujkowski.github.io/paperclips/index2.html',
-    'https://williamzujkowski.github.io/'
+    'https://williamzujkowski.github.io/',
   ],
   invalid: [
     'htp://invalid-protocol',
     'https://this-domain-definitely-does-not-exist-12345.com',
     'javascript:alert(1)',
     'file:///etc/passwd',
-    'about:blank'
+    'about:blank',
   ],
-  timeout: [
-    'https://httpstat.us/200?sleep=60000'
-  ]
+  timeout: ['https://httpstat.us/200?sleep=60000'],
 };
 
 // Test scenarios
@@ -40,29 +38,29 @@ const ERROR_TESTS = {
       {
         name: 'Invalid Protocol',
         url: 'htp://invalid-protocol',
-        expectedError: /Protocol error|ERR_UNKNOWN_URL_SCHEME/
+        expectedError: /Protocol error|ERR_UNKNOWN_URL_SCHEME/,
       },
       {
         name: 'Non-existent Domain',
         url: 'https://this-domain-definitely-does-not-exist-' + Date.now() + '.com',
-        expectedError: /ERR_NAME_NOT_RESOLVED|net::ERR_NAME_NOT_RESOLVED|getaddrinfo/
+        expectedError: /ERR_NAME_NOT_RESOLVED|net::ERR_NAME_NOT_RESOLVED|getaddrinfo/,
       },
       {
         name: 'Security Protocol',
         url: 'javascript:alert(1)',
-        expectedError: /Protocol error|ERR_ABORTED|ERR_UNKNOWN_URL_SCHEME/
+        expectedError: /Protocol error|ERR_ABORTED|ERR_UNKNOWN_URL_SCHEME/,
       },
       {
         name: 'File Protocol',
         url: 'file:///etc/passwd',
-        expectedError: /Protocol error|ERR_ABORTED|ERR_ACCESS_DENIED|ERR_UNKNOWN_URL_SCHEME/
+        expectedError: /Protocol error|ERR_ABORTED|ERR_ACCESS_DENIED|ERR_UNKNOWN_URL_SCHEME/,
       },
       {
         name: 'About Blank',
         url: 'about:blank',
-        expectedError: null // This should succeed
-      }
-    ]
+        expectedError: null, // This should succeed
+      },
+    ],
   },
   timeout: {
     name: 'Timeout Handling',
@@ -71,9 +69,9 @@ const ERROR_TESTS = {
         name: 'Navigation Timeout',
         url: 'https://httpstat.us/200?sleep=60000',
         timeout: 5000,
-        expectedError: /TimeoutError|Navigation timeout|Timeout/
-      }
-    ]
+        expectedError: /TimeoutError|Navigation timeout|Timeout/,
+      },
+    ],
   },
   javascript: {
     name: 'JavaScript Errors',
@@ -81,19 +79,19 @@ const ERROR_TESTS = {
       {
         name: 'Syntax Error',
         script: 'const x = {;',
-        expectedError: /SyntaxError|Unexpected token/
+        expectedError: /SyntaxError|Unexpected token/,
       },
       {
         name: 'Reference Error',
         script: 'nonExistentVariable.doSomething()',
-        expectedError: /ReferenceError|is not defined/
+        expectedError: /ReferenceError|is not defined/,
       },
       {
         name: 'Type Error',
         script: 'null.toString()',
-        expectedError: /TypeError|Cannot read/
-      }
-    ]
+        expectedError: /TypeError|Cannot read/,
+      },
+    ],
   },
   selectors: {
     name: 'Selector Errors',
@@ -101,16 +99,16 @@ const ERROR_TESTS = {
       {
         name: 'Invalid CSS Selector',
         selector: 'div[class="test"',
-        expectedError: /Failed to execute.*querySelector|Invalid selector/
+        expectedError: /Failed to execute.*querySelector|Invalid selector/,
       },
       {
         name: 'Non-existent Element',
         selector: '#this-element-definitely-does-not-exist-12345',
         timeout: 1000,
-        expectedError: /Waiting.*failed|timeout/
-      }
-    ]
-  }
+        expectedError: /Waiting.*failed|timeout/,
+      },
+    ],
+  },
 };
 
 class ErrorHandlingTester {
@@ -120,10 +118,10 @@ class ErrorHandlingTester {
       summary: {
         total: 0,
         passed: 0,
-        failed: 0
+        failed: 0,
       },
       categories: {},
-      tests: []
+      tests: [],
     };
   }
 
@@ -133,7 +131,7 @@ class ErrorHandlingTester {
       success: '\x1b[32m',
       warning: '\x1b[33m',
       error: '\x1b[31m',
-      reset: '\x1b[0m'
+      reset: '\x1b[0m',
     };
 
     const color = colors[type] || colors.info;
@@ -155,16 +153,16 @@ class ErrorHandlingTester {
       url: test.url,
       passed: false,
       error: null,
-      duration: 0
+      duration: 0,
     };
 
     const startTime = Date.now();
     const page = await browser.newPage();
 
     try {
-      await page.goto(test.url, { 
+      await page.goto(test.url, {
         waitUntil: 'networkidle2',
-        timeout: test.timeout || 30000 
+        timeout: test.timeout || 30000,
       });
 
       // If we expected an error but didn't get one
@@ -175,7 +173,7 @@ class ErrorHandlingTester {
       }
     } catch (error) {
       result.error = error.message;
-      
+
       if (test.expectedError) {
         if (test.expectedError.test(error.message)) {
           result.passed = true;
@@ -200,22 +198,22 @@ class ErrorHandlingTester {
       timeout: test.timeout,
       passed: false,
       error: null,
-      duration: 0
+      duration: 0,
     };
 
     const startTime = Date.now();
     const page = await browser.newPage();
 
     try {
-      await page.goto(test.url, { 
+      await page.goto(test.url, {
         waitUntil: 'networkidle2',
-        timeout: test.timeout 
+        timeout: test.timeout,
       });
 
       result.error = 'Expected timeout but navigation succeeded';
     } catch (error) {
       result.error = error.message;
-      
+
       if (test.expectedError && test.expectedError.test(error.message)) {
         result.passed = true;
         result.expectedErrorCaught = true;
@@ -235,7 +233,7 @@ class ErrorHandlingTester {
       script: test.script,
       passed: false,
       error: null,
-      duration: 0
+      duration: 0,
     };
 
     const startTime = Date.now();
@@ -244,14 +242,14 @@ class ErrorHandlingTester {
     try {
       // Navigate to a valid page first
       await page.goto('https://williamzujkowski.github.io/', { waitUntil: 'domcontentloaded' });
-      
+
       // Try to evaluate the script
       await page.evaluate(test.script);
-      
+
       result.error = 'Expected error but script executed successfully';
     } catch (error) {
       result.error = error.message;
-      
+
       if (test.expectedError && test.expectedError.test(error.message)) {
         result.passed = true;
         result.expectedErrorCaught = true;
@@ -271,7 +269,7 @@ class ErrorHandlingTester {
       selector: test.selector,
       passed: false,
       error: null,
-      duration: 0
+      duration: 0,
     };
 
     const startTime = Date.now();
@@ -280,7 +278,7 @@ class ErrorHandlingTester {
     try {
       // Navigate to a valid page first
       await page.goto('https://williamzujkowski.github.io/', { waitUntil: 'domcontentloaded' });
-      
+
       if (test.timeout) {
         // Test waiting for element with timeout
         await page.waitForSelector(test.selector, { timeout: test.timeout });
@@ -288,7 +286,7 @@ class ErrorHandlingTester {
         // Test immediate selector query
         await page.$(test.selector);
       }
-      
+
       // If we expected an error but didn't get one
       if (test.expectedError) {
         result.error = 'Expected error but selector operation succeeded';
@@ -297,7 +295,7 @@ class ErrorHandlingTester {
       }
     } catch (error) {
       result.error = error.message;
-      
+
       if (test.expectedError && test.expectedError.test(error.message)) {
         result.passed = true;
         result.expectedErrorCaught = true;
@@ -312,33 +310,33 @@ class ErrorHandlingTester {
 
   async runTests() {
     this.log('🚀 Starting Comprehensive Error Handling Tests', 'info');
-    this.log('=' .repeat(60), 'info');
-    
+    this.log('='.repeat(60), 'info');
+
     await this.ensureResultsDirectory();
-    
+
     let browser;
     try {
       browser = await puppeteer.launch({
         headless: true,
-        args: ['--no-sandbox', '--disable-setuid-sandbox']
+        args: ['--no-sandbox', '--disable-setuid-sandbox'],
       });
 
       // Test each category
       for (const [categoryKey, category] of Object.entries(ERROR_TESTS)) {
         this.log(`\n📋 Testing ${category.name}`, 'info');
         this.log('-'.repeat(40), 'info');
-        
+
         this.results.categories[categoryKey] = {
           name: category.name,
           total: category.tests.length,
           passed: 0,
           failed: 0,
-          tests: []
+          tests: [],
         };
 
         for (const test of category.tests) {
           process.stdout.write(`Testing ${test.name}...`);
-          
+
           let result;
           switch (categoryKey) {
             case 'navigation':
@@ -357,7 +355,7 @@ class ErrorHandlingTester {
 
           this.results.tests.push(result);
           this.results.summary.total++;
-          
+
           if (result.passed) {
             this.results.summary.passed++;
             this.results.categories[categoryKey].passed++;
@@ -371,20 +369,25 @@ class ErrorHandlingTester {
             console.log(` ❌ FAILED`);
             console.log(`   └─ Error: ${result.error}`);
           }
-          
+
           this.results.categories[categoryKey].tests.push(result);
         }
       }
 
       // Generate reports
       await this.generateReports();
-      
+
       this.log('\n📊 Test Summary', 'info');
-      this.log('=' .repeat(60), 'info');
+      this.log('='.repeat(60), 'info');
       this.log(`Total Tests: ${this.results.summary.total}`, 'info');
-      this.log(`Passed: ${this.results.summary.passed} (${(this.results.summary.passed / this.results.summary.total * 100).toFixed(1)}%)`, 'success');
-      this.log(`Failed: ${this.results.summary.failed}`, this.results.summary.failed > 0 ? 'error' : 'info');
-      
+      this.log(
+        `Passed: ${this.results.summary.passed} (${((this.results.summary.passed / this.results.summary.total) * 100).toFixed(1)}%)`,
+        'success',
+      );
+      this.log(
+        `Failed: ${this.results.summary.failed}`,
+        this.results.summary.failed > 0 ? 'error' : 'info',
+      );
     } catch (error) {
       this.log(`Test suite error: ${error.message}`, 'error');
     } finally {
@@ -396,16 +399,16 @@ class ErrorHandlingTester {
 
   async generateReports() {
     const timestamp = Date.now();
-    
+
     // JSON report
     const jsonPath = path.join(RESULTS_DIR, `error-handling-report-${timestamp}.json`);
     await fs.writeFile(jsonPath, JSON.stringify(this.results, null, 2));
-    
+
     // Markdown report
     const mdPath = path.join(RESULTS_DIR, 'ERROR_HANDLING_COMPREHENSIVE_REPORT.md');
     const mdContent = this.generateMarkdownReport();
     await fs.writeFile(mdPath, mdContent);
-    
+
     this.log(`\n📄 Reports saved to:`, 'info');
     this.log(`   - JSON: ${jsonPath}`, 'info');
     this.log(`   - Markdown: ${mdPath}`, 'info');
@@ -413,7 +416,7 @@ class ErrorHandlingTester {
 
   generateMarkdownReport() {
     const { timestamp, summary, categories, tests } = this.results;
-    
+
     let md = `# Comprehensive Error Handling Test Report
 
 Generated: ${timestamp}
@@ -421,7 +424,7 @@ Generated: ${timestamp}
 ## Summary
 
 - **Total Tests**: ${summary.total}
-- **Passed**: ${summary.passed} (${(summary.passed / summary.total * 100).toFixed(1)}%)
+- **Passed**: ${summary.passed} (${((summary.passed / summary.total) * 100).toFixed(1)}%)
 - **Failed**: ${summary.failed}
 
 ## Test Categories
@@ -444,7 +447,7 @@ Generated: ${timestamp}
         const error = test.error ? test.error.substring(0, 50) + '...' : '-';
         md += `| ${test.name} | ${status} | ${test.duration}ms | ${error} |\n`;
       }
-      
+
       md += '\n';
     }
 
@@ -460,10 +463,11 @@ Generated: ${timestamp}
 `;
 
     if (summary.failed === 0) {
-      md += '✅ All error handling tests passed! The platform demonstrates robust error handling.\n';
+      md +=
+        '✅ All error handling tests passed! The platform demonstrates robust error handling.\n';
     } else {
       md += '⚠️ Some error handling tests failed. Review the following:\n\n';
-      
+
       for (const test of tests) {
         if (!test.passed && !test.expectedErrorCaught) {
           md += `- **${test.name}**: ${test.error}\n`;

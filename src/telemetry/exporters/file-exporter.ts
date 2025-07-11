@@ -48,23 +48,26 @@ export class FileSpanExporter implements SpanExporter {
   export(spans: ReadableSpan[], resultCallback: (result: ExportResult) => void): void {
     this.exportAsync(spans, resultCallback).catch((error) => {
       logger.error({ error, filePath: this.config.filePath }, 'Failed to export spans to file');
-      resultCallback({ 
+      resultCallback({
         code: ExportResultCode.FAILED,
-        error: error instanceof Error ? error : new Error(String(error))
+        error: error instanceof Error ? error : new Error(String(error)),
       });
     });
   }
 
-  private async exportAsync(spans: ReadableSpan[], resultCallback: (result: ExportResult) => void): Promise<void> {
+  private async exportAsync(
+    spans: ReadableSpan[],
+    resultCallback: (result: ExportResult) => void,
+  ): Promise<void> {
     await this.ensureDirectoryExists(this.config.filePath);
-    
+
     if (this.config.rotateOnSize) {
       await this.rotateFileIfNeeded();
     }
 
     const data = this.formatSpans(spans);
     await fs.appendFile(this.config.filePath, data);
-    
+
     resultCallback({ code: ExportResultCode.SUCCESS });
   }
 
@@ -80,9 +83,9 @@ export class FileSpanExporter implements SpanExporter {
     if (this.config.format === 'json') {
       return JSON.stringify(spans, null, 2) + '\n';
     }
-    
+
     // NDJSON format (newline-delimited JSON)
-    return spans.map(span => JSON.stringify(span)).join('\n') + '\n';
+    return spans.map((span) => JSON.stringify(span)).join('\n') + '\n';
   }
 
   private async rotateFileIfNeeded(): Promise<void> {
@@ -129,23 +132,26 @@ export class FileMetricExporter implements PushMetricExporter {
   export(metrics: ResourceMetrics, resultCallback: (result: ExportResult) => void): void {
     this.exportAsync(metrics, resultCallback).catch((error) => {
       logger.error({ error, filePath: this.config.filePath }, 'Failed to export metrics to file');
-      resultCallback({ 
+      resultCallback({
         code: ExportResultCode.FAILED,
-        error: error instanceof Error ? error : new Error(String(error))
+        error: error instanceof Error ? error : new Error(String(error)),
       });
     });
   }
 
-  private async exportAsync(metrics: ResourceMetrics, resultCallback: (result: ExportResult) => void): Promise<void> {
+  private async exportAsync(
+    metrics: ResourceMetrics,
+    resultCallback: (result: ExportResult) => void,
+  ): Promise<void> {
     await this.ensureDirectoryExists(this.config.filePath);
-    
+
     if (this.config.rotateOnSize) {
       await this.rotateFileIfNeeded();
     }
 
     const data = this.formatMetrics(metrics);
     await fs.appendFile(this.config.filePath, data);
-    
+
     resultCallback({ code: ExportResultCode.SUCCESS });
   }
 
@@ -161,7 +167,7 @@ export class FileMetricExporter implements PushMetricExporter {
     if (this.config.format === 'json') {
       return JSON.stringify(metrics, null, 2) + '\n';
     }
-    
+
     // NDJSON format
     return JSON.stringify(metrics) + '\n';
   }
@@ -199,9 +205,9 @@ export class FileMetricExporter implements PushMetricExporter {
 export class FileTraceExporterFactory implements ExporterFactory<SpanExporter> {
   create(_config: TelemetryConfig): SpanExporter {
     const filePath = join(process.cwd(), 'logs', 'traces.log');
-    
+
     logger.info({ filePath }, 'Creating file trace exporter');
-    
+
     return new FileSpanExporter({ filePath });
   }
 
@@ -216,9 +222,9 @@ export class FileTraceExporterFactory implements ExporterFactory<SpanExporter> {
 export class FileMetricExporterFactory implements ExporterFactory<PushMetricExporter> {
   create(_config: TelemetryConfig): PushMetricExporter {
     const filePath = join(process.cwd(), 'logs', 'metrics.log');
-    
+
     logger.info({ filePath }, 'Creating file metric exporter');
-    
+
     return new FileMetricExporter({ filePath });
   }
 
@@ -230,13 +236,17 @@ export class FileMetricExporterFactory implements ExporterFactory<PushMetricExpo
 /**
  * Create file span exporter with custom options
  */
-export function createFileSpanExporter(options: ExporterOptions & Partial<FileExporterConfig> = {}): FileSpanExporter {
+export function createFileSpanExporter(
+  options: ExporterOptions & Partial<FileExporterConfig> = {},
+): FileSpanExporter {
   return new FileSpanExporter(options);
 }
 
 /**
  * Create file metric exporter with custom options
  */
-export function createFileMetricExporter(options: ExporterOptions & Partial<FileExporterConfig> = {}): FileMetricExporter {
+export function createFileMetricExporter(
+  options: ExporterOptions & Partial<FileExporterConfig> = {},
+): FileMetricExporter {
   return new FileMetricExporter(options);
 }

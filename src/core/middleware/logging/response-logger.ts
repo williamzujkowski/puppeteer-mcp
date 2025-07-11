@@ -7,11 +7,16 @@
 
 import type { Response } from 'express';
 import type { Logger } from 'pino';
-import type { RequestResponseLoggerOptions, RequestTiming, ExtendedRequest, ResponseLogData } from './types.js';
+import type {
+  RequestResponseLoggerOptions,
+  RequestTiming,
+  ExtendedRequest,
+  ResponseLogData,
+} from './types.js';
 import { redactSensitiveData } from './log-sanitizer.js';
-import { 
-  formatResponseLogData, 
-  generateResponseLogMessage, 
+import {
+  formatResponseLogData,
+  generateResponseLogMessage,
   formatHeaders,
   addTimingDetails,
   addHeadersToLogData,
@@ -33,7 +38,7 @@ export const extractResponseBody = (
 ): unknown => {
   try {
     const contentType = res.get('content-type') ?? '';
-    
+
     if (typeof body === 'string') {
       const bodySize = Buffer.byteLength(body, 'utf8');
       if (bodySize > maxSize) {
@@ -70,7 +75,7 @@ export const setupResponseBodyCapture = (
   config: RequestResponseLoggerOptions,
 ): { getResponseBody: () => unknown } => {
   let responseBody: unknown;
-  
+
   if (config.includeResponseBody !== true) {
     return { getResponseBody: () => undefined };
   }
@@ -81,21 +86,25 @@ export const setupResponseBodyCapture = (
   const originalEnd = res.end.bind(res);
 
   // Override send method
-  res.send = function(this: Response, body: unknown) {
+  res.send = function (this: Response, body: unknown) {
     responseBody = body;
     return originalSend.call(this, body);
   };
 
   // Override json method
-  res.json = function(body: unknown) {
+  res.json = function (body: unknown) {
     responseBody = body;
     return originalJson.call(this, body);
   };
 
   // Override end method
-  res.end = function(this: Response, ...args: unknown[]) {
+  res.end = function (this: Response, ...args: unknown[]) {
     const [chunk] = args;
-    if (chunk !== null && chunk !== undefined && (responseBody === null || responseBody === undefined)) {
+    if (
+      chunk !== null &&
+      chunk !== undefined &&
+      (responseBody === null || responseBody === undefined)
+    ) {
       responseBody = chunk;
     }
     return (originalEnd as (this: Response, ...args: unknown[]) => Response).apply(this, args);
@@ -149,12 +158,7 @@ const addResponseBodyIfConfigured = (
   if (config.includeResponseBody === true && responseBody !== null && responseBody !== undefined) {
     const maxBodySize = config.maxBodySize ?? 8192;
     const sensitiveBodyFields = config.sensitiveBodyFields ?? DEFAULT_SENSITIVE_BODY_FIELDS;
-    const sanitizedBody = extractResponseBody(
-      res,
-      responseBody,
-      maxBodySize,
-      sensitiveBodyFields,
-    );
+    const sanitizedBody = extractResponseBody(res, responseBody, maxBodySize, sensitiveBodyFields);
     addBodyToLogData(responseLogData, sanitizedBody);
   }
 };
@@ -164,10 +168,10 @@ export const logResponse = (options: LogResponseOptions): void => {
   // Calculate duration and performance metrics
   const duration = calculateDuration(startTime, timing);
   const slowRequest = isSlowRequest(duration, config.slowRequestThreshold);
-  
+
   // Extract custom metadata
   const customMetadata = config.metadataExtractor?.(req, res) ?? {};
-  
+
   // Prepare response log data
   let responseLogData = formatResponseLogData({
     req,
@@ -192,7 +196,7 @@ export const logResponse = (options: LogResponseOptions): void => {
   // Determine log level and log response
   const logLevel = getLogLevel(res.statusCode, slowRequest);
   const message = generateResponseLogMessage(req, res, duration);
-  
+
   // eslint-disable-next-line security/detect-object-injection
   logger[logLevel](responseLogData, message);
 };

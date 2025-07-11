@@ -6,10 +6,7 @@
  */
 
 import type { Page } from 'puppeteer';
-import type {
-  ActionResult,
-  ActionContext,
-} from '../../../interfaces/action-executor.interface.js';
+import type { ActionResult, ActionContext } from '../../../interfaces/action-executor.interface.js';
 
 /**
  * Base configuration for evaluation operations

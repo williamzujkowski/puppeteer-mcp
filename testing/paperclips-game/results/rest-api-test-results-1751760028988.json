@@ -71,15 +71,7 @@
     "successfulRequests": 4,
     "failedRequests": 3,
     "averageResponseTime": 8.285714285714286,
-    "requestTimes": [
-      30,
-      3,
-      4,
-      2,
-      7,
-      3,
-      9
-    ]
+    "requestTimes": [30, 3, 4, 2, 7, 3, 9]
   },
   "healthChecks": {
     "basic": true,

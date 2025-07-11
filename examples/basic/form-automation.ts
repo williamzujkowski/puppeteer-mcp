@@ -1,6 +1,6 @@
 /**
  * Form Automation Example
- * 
+ *
  * This example demonstrates how to:
  * - Fill out form fields
  * - Select dropdown options
@@ -28,18 +28,18 @@ class FormAutomation {
     baseURL: API_BASE_URL,
     headers: {
       'X-API-Key': API_KEY,
-      'Content-Type': 'application/json'
-    }
+      'Content-Type': 'application/json',
+    },
   });
 
   async createSession(): Promise<void> {
     const response = await this.apiClient.post('/sessions', {
       capabilities: {
         acceptInsecureCerts: true,
-        browserName: 'chrome'
-      }
+        browserName: 'chrome',
+      },
     });
-    
+
     this.sessionId = response.data.data.id;
     console.log(`Session created: ${this.sessionId}`);
   }
@@ -51,10 +51,12 @@ class FormAutomation {
 
   async fillTextField(selector: string, value: string): Promise<void> {
     // Clear existing value
-    await this.execute('evaluate', [`
+    await this.execute('evaluate', [
+      `
       document.querySelector('${selector}').value = '';
-    `]);
-    
+    `,
+    ]);
+
     // Type new value
     await this.execute('type', [selector, value]);
     console.log(`Filled ${selector} with: ${value}`);
@@ -66,10 +68,12 @@ class FormAutomation {
   }
 
   async toggleCheckbox(selector: string, checked: boolean): Promise<void> {
-    const isChecked = await this.execute('evaluate', [`
+    const isChecked = await this.execute('evaluate', [
+      `
       document.querySelector('${selector}').checked
-    `]);
-    
+    `,
+    ]);
+
     if (isChecked !== checked) {
       await this.execute('click', [selector]);
     }
@@ -87,10 +91,12 @@ class FormAutomation {
   }
 
   async getFormValidationErrors(): Promise<string[]> {
-    const errors = await this.execute('evaluate', [`
+    const errors = await this.execute('evaluate', [
+      `
       Array.from(document.querySelectorAll('.error-message'))
         .map(el => el.textContent.trim())
-    `]);
+    `,
+    ]);
     return errors as string[];
   }
 
@@ -99,10 +105,11 @@ class FormAutomation {
       throw new Error('No active session');
     }
 
-    const response = await this.apiClient.post(
-      `/sessions/${this.sessionId}/execute`,
-      { script, args, context: {} }
-    );
+    const response = await this.apiClient.post(`/sessions/${this.sessionId}/execute`, {
+      script,
+      args,
+      context: {},
+    });
 
     return response.data.data.result;
   }
@@ -121,49 +128,48 @@ class FormAutomation {
 
 async function runFormAutomationExample() {
   const automation = new FormAutomation();
-  
+
   try {
     // Create session and navigate to form
     await automation.createSession();
     await automation.navigate('https://example-forms.com/contact');
-    
+
     // Wait for form to load
     await automation.waitForElement('#contact-form');
-    
+
     // Fill out the form
     const formData: FormData = {
       firstName: 'John',
       lastName: 'Doe',
       email: 'john.doe@example.com',
       country: 'USA',
-      newsletter: true
+      newsletter: true,
     };
-    
+
     // Fill text fields
     await automation.fillTextField('#firstName', formData.firstName);
     await automation.fillTextField('#lastName', formData.lastName);
     await automation.fillTextField('#email', formData.email);
-    
+
     // Select country from dropdown
     await automation.selectDropdown('#country', formData.country);
-    
+
     // Check newsletter subscription
     await automation.toggleCheckbox('#newsletter', formData.newsletter);
-    
+
     // Submit the form
     await automation.submitForm('#submit-button');
-    
+
     // Wait for response
     await automation.waitForElement('.success-message', { timeout: 5000 });
-    
+
     console.log('Form submitted successfully!');
-    
+
     // Check for any validation errors
     const errors = await automation.getFormValidationErrors();
     if (errors.length > 0) {
       console.error('Validation errors:', errors);
     }
-    
   } catch (error) {
     console.error('Form automation failed:', error);
   } finally {
@@ -175,43 +181,44 @@ async function runFormAutomationExample() {
 async function fillFormWithRetry(
   automation: FormAutomation,
   formData: FormData,
-  maxRetries = 3
+  maxRetries = 3,
 ): Promise<void> {
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       console.log(`Attempt ${attempt} of ${maxRetries}`);
-      
+
       // Fill form fields
       await automation.fillTextField('#firstName', formData.firstName);
       await automation.fillTextField('#lastName', formData.lastName);
       await automation.fillTextField('#email', formData.email);
-      
+
       // Validate email format before submission
-      const emailValid = await automation.execute('evaluate', [`
+      const emailValid = await automation.execute('evaluate', [
+        `
         document.querySelector('#email').checkValidity()
-      `]);
-      
+      `,
+      ]);
+
       if (!emailValid) {
         throw new Error('Invalid email format');
       }
-      
+
       // Submit form
       await automation.submitForm('#submit-button');
-      
+
       // Check for success
       await automation.waitForElement('.success-message', { timeout: 3000 });
       console.log('Form submitted successfully');
       return;
-      
     } catch (error) {
       console.error(`Attempt ${attempt} failed:`, error);
-      
+
       if (attempt === maxRetries) {
         throw error;
       }
-      
+
       // Wait before retry
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
     }
   }
 }
@@ -220,5 +227,5 @@ async function fillFormWithRetry(
 if (require.main === module) {
   runFormAutomationExample()
     .then(() => console.log('Example completed'))
-    .catch(error => console.error('Example failed:', error));
+    .catch((error) => console.error('Example failed:', error));
 }

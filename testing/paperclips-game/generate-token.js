@@ -19,7 +19,7 @@ function createTestToken(payload = {}, secret = JWT_SECRET, expiresIn = '1h') {
       ...payload,
     },
     secret,
-    { expiresIn }
+    { expiresIn },
   );
 }
 

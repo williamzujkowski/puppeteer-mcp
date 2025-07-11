@@ -8,12 +8,12 @@
 import type { pino } from 'pino';
 import type { SessionStore } from '../session-store.interface.js';
 import type { Session } from '../../types/session.js';
-import type { 
-  RestoreOptions, 
-  RestoreStats, 
-  RestoreStrategy, 
-  RestoreCommand, 
-  SessionValidationResult
+import type {
+  RestoreOptions,
+  RestoreStats,
+  RestoreStrategy,
+  RestoreCommand,
+  SessionValidationResult,
 } from './types.js';
 import { StandardRestoreStrategy } from './migration-validator.js';
 import { MigrationMetrics } from './migration-metrics.js';
@@ -36,7 +36,7 @@ export class SessionRestorer {
   async restore(
     store: SessionStore,
     sessions: Session[],
-    options: RestoreOptions = {}
+    options: RestoreOptions = {},
   ): Promise<RestoreStats> {
     this.metrics.logRestoreStart(sessions.length);
 
@@ -49,7 +49,7 @@ export class SessionRestorer {
       store,
       config: restoreConfig,
       strategy,
-      stats
+      stats,
     });
 
     await this.logRestoreCompletion(store, stats);
@@ -64,7 +64,7 @@ export class SessionRestorer {
     return {
       overwrite: options.overwrite ?? false,
       skipExpired: options.skipExpired ?? true,
-      onProgress: options.onProgress ?? ((): void => {})
+      onProgress: options.onProgress ?? ((): void => {}),
     };
   }
 
@@ -80,15 +80,15 @@ export class SessionRestorer {
         processed++;
         continue;
       }
-      
+
       await this.processSingleSessionRestore({
         session,
         store,
         config,
         strategy,
-        stats
+        stats,
       });
-      
+
       processed++;
       config.onProgress(processed, sessions.length);
     }
@@ -102,7 +102,7 @@ export class SessionRestorer {
 
     try {
       const validation = await strategy.validate(session, store, config);
-      
+
       if (validation.shouldSkip) {
         this.metrics.recordRestoreSkip(stats);
         return;
@@ -119,11 +119,14 @@ export class SessionRestorer {
   /**
    * Create restore command based on validation result
    */
-  private createRestoreCommand(session: Session, validation: SessionValidationResult): RestoreCommand {
+  private createRestoreCommand(
+    session: Session,
+    validation: SessionValidationResult,
+  ): RestoreCommand {
     return {
       session,
       operation: validation.exists ? 'update' : 'create',
-      reason: validation.reason
+      reason: validation.reason,
     };
   }
 

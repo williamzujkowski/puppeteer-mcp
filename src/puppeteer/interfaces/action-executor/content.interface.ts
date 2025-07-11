@@ -13,16 +13,16 @@ import type { BaseBrowserAction } from './core.interface.js';
  */
 export interface ScreenshotAction extends BaseBrowserAction {
   type: 'screenshot';
-  
+
   /** Capture full page */
   fullPage?: boolean;
-  
+
   /** CSS selector for specific element */
   selector?: string;
-  
+
   /** Image quality (0-100, for JPEG/WebP) */
   quality?: number;
-  
+
   /** Image format */
   format?: 'png' | 'jpeg' | 'webp';
 }
@@ -33,7 +33,7 @@ export interface ScreenshotAction extends BaseBrowserAction {
  */
 export interface PDFAction extends BaseBrowserAction {
   type: 'pdf';
-  
+
   /** Page format */
   format?:
     | 'letter'
@@ -47,31 +47,31 @@ export interface PDFAction extends BaseBrowserAction {
     | 'a4'
     | 'a5'
     | 'a6';
-    
+
   /** Use landscape orientation */
   landscape?: boolean;
-  
+
   /** Scale of the webpage rendering (0.1 - 2) */
   scale?: number;
-  
+
   /** Display header and footer */
   displayHeaderFooter?: boolean;
-  
+
   /** HTML template for header */
   headerTemplate?: string;
-  
+
   /** HTML template for footer */
   footerTemplate?: string;
-  
+
   /** Print background graphics */
   printBackground?: boolean;
-  
+
   /** Use CSS page size */
   preferCSSPageSize?: boolean;
-  
+
   /** Page ranges to print (e.g., '1-5, 8, 11-13') */
   pageRanges?: string;
-  
+
   /** Page margins */
   margin?: {
     top?: string;
@@ -87,7 +87,7 @@ export interface PDFAction extends BaseBrowserAction {
  */
 export interface ContentAction extends BaseBrowserAction {
   type: 'content';
-  
+
   /** CSS selector for specific element */
   selector?: string;
 }
@@ -98,7 +98,7 @@ export interface ContentAction extends BaseBrowserAction {
  */
 export interface GetTextAction extends BaseBrowserAction {
   type: 'getText';
-  
+
   /** CSS selector for target element */
   selector: string;
 }
@@ -109,10 +109,10 @@ export interface GetTextAction extends BaseBrowserAction {
  */
 export interface GetAttributeAction extends BaseBrowserAction {
   type: 'getAttribute';
-  
+
   /** CSS selector for target element */
   selector: string;
-  
+
   /** Attribute name to retrieve */
   attribute: string;
 }
@@ -124,10 +124,10 @@ export interface GetAttributeAction extends BaseBrowserAction {
  */
 export interface EvaluateAction extends BaseBrowserAction {
   type: 'evaluate';
-  
+
   /** JavaScript function to execute as string */
   function: string;
-  
+
   /** Arguments to pass to function */
   args?: unknown[];
 }
@@ -135,10 +135,10 @@ export interface EvaluateAction extends BaseBrowserAction {
 /**
  * Content-related action types
  */
-export type ContentActionType = 
-  | ScreenshotAction 
-  | PDFAction 
-  | ContentAction 
-  | GetTextAction 
-  | GetAttributeAction 
+export type ContentActionType =
+  | ScreenshotAction
+  | PDFAction
+  | ContentAction
+  | GetTextAction
+  | GetAttributeAction
   | EvaluateAction;

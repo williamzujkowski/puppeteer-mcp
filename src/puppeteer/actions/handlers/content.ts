@@ -211,7 +211,7 @@ export async function handleContent(
           return (el as any).value;
         }
         // Otherwise get text content
-         
+
         return el.textContent ?? '';
       });
 

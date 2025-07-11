@@ -60,7 +60,7 @@ export class ResourceHistoryManager {
           cpu: usage.cpuUsage.percent,
         },
       },
-      'Resource usage added to history'
+      'Resource usage added to history',
     );
   }
 
@@ -162,12 +162,14 @@ export class ResourceHistoryManager {
     const olderHistory = history.slice(0, 10);
 
     // Calculate average memory for recent vs older samples
-    const recentAvgMemory = recentHistory.reduce((sum, u) => sum + u.memoryUsage.rss, 0) / recentHistory.length;
-    const olderAvgMemory = olderHistory.reduce((sum, u) => sum + u.memoryUsage.rss, 0) / olderHistory.length;
+    const recentAvgMemory =
+      recentHistory.reduce((sum, u) => sum + u.memoryUsage.rss, 0) / recentHistory.length;
+    const olderAvgMemory =
+      olderHistory.reduce((sum, u) => sum + u.memoryUsage.rss, 0) / olderHistory.length;
 
     // Check if memory has increased by threshold percentage
     const increaseRatio = (recentAvgMemory - olderAvgMemory) / olderAvgMemory;
-    
+
     if (increaseRatio > threshold) {
       logger.warn(
         {
@@ -176,7 +178,7 @@ export class ResourceHistoryManager {
           recentAvgMemoryMB: Math.round(recentAvgMemory / 1024 / 1024),
           olderAvgMemoryMB: Math.round(olderAvgMemory / 1024 / 1024),
         },
-        'Potential resource leak detected'
+        'Potential resource leak detected',
       );
       return true;
     }
@@ -196,7 +198,7 @@ export class ResourceHistoryManager {
     // Simple linear regression on memory usage
     const n = Math.min(history.length, 20); // Use last 20 samples
     const recentHistory = history.slice(-n);
-    
+
     let sumX = 0;
     let sumY = 0;
     let sumXY = 0;
@@ -215,9 +217,11 @@ export class ResourceHistoryManager {
     const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
 
     // Determine trend based on slope
-    if (slope > 1) { // More than 1MB increase per sample
+    if (slope > 1) {
+      // More than 1MB increase per sample
       return 'increasing';
-    } else if (slope < -1) { // More than 1MB decrease per sample
+    } else if (slope < -1) {
+      // More than 1MB decrease per sample
       return 'decreasing';
     } else {
       return 'stable';

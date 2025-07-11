@@ -10,7 +10,7 @@ import type {
   AlertThresholds,
   AlertHistoryEntry,
   OperationRecord,
-  SessionMetrics
+  SessionMetrics,
 } from './types.js';
 import { EventEmitter } from 'events';
 import { pino } from 'pino';
@@ -24,11 +24,7 @@ export class AlertManager extends EventEmitter {
   private alertThresholds: AlertThresholds;
   private enableAlerting: boolean;
 
-  constructor(
-    thresholds: AlertThresholds,
-    enableAlerting: boolean,
-    logger?: pino.Logger
-  ) {
+  constructor(thresholds: AlertThresholds, enableAlerting: boolean, logger?: pino.Logger) {
     super();
     this.logger = logger ?? pino({ level: 'info' });
     this.alertThresholds = thresholds;
@@ -38,21 +34,15 @@ export class AlertManager extends EventEmitter {
   /**
    * Check operation for alerts
    */
-  checkOperationAlerts(
-    record: OperationRecord,
-    metrics: SessionMetrics
-  ): void {
+  checkOperationAlerts(record: OperationRecord, metrics: SessionMetrics): void {
     if (!this.enableAlerting) return;
 
     const { operation, latency } = record;
     const opMetrics = metrics.operations[operation];
-    
+
     // High latency alert
     if (latency > this.alertThresholds.maxLatency) {
-      this.raiseAlert(
-        'warning',
-        `High latency detected for ${operation}: ${latency}ms`
-      );
+      this.raiseAlert('warning', `High latency detected for ${operation}: ${latency}ms`);
     }
 
     // High error rate alert
@@ -61,7 +51,7 @@ export class AlertManager extends EventEmitter {
       if (errorRate > this.alertThresholds.maxErrorRate) {
         this.raiseAlert(
           'critical',
-          `High error rate for ${operation}: ${(errorRate * 100).toFixed(2)}%`
+          `High error rate for ${operation}: ${(errorRate * 100).toFixed(2)}%`,
         );
       }
     }
@@ -70,26 +60,17 @@ export class AlertManager extends EventEmitter {
   /**
    * Check fallback usage alerts
    */
-  checkFallbackAlerts(
-    fallbackTime: number,
-    activations: number
-  ): void {
+  checkFallbackAlerts(fallbackTime: number, activations: number): void {
     if (!this.enableAlerting) {
       return;
     }
 
     if (fallbackTime > this.alertThresholds.maxFallbackTime) {
-      this.raiseAlert(
-        'critical',
-        `Excessive fallback time: ${(fallbackTime / 1000).toFixed(1)}s`
-      );
+      this.raiseAlert('critical', `Excessive fallback time: ${(fallbackTime / 1000).toFixed(1)}s`);
     }
 
     if (activations > 0) {
-      this.raiseAlert(
-        'warning',
-        `Fallback store activated ${activations} times`
-      );
+      this.raiseAlert('warning', `Fallback store activated ${activations} times`);
     }
   }
 
@@ -102,10 +83,7 @@ export class AlertManager extends EventEmitter {
     }
 
     if (availability < this.alertThresholds.minAvailability) {
-      this.raiseAlert(
-        'critical',
-        `Low availability: ${(availability * 100).toFixed(2)}%`
-      );
+      this.raiseAlert('critical', `Low availability: ${(availability * 100).toFixed(2)}%`);
     }
   }
 
@@ -116,24 +94,24 @@ export class AlertManager extends EventEmitter {
     const alert: Alert = {
       level,
       message,
-      timestamp: new Date()
+      timestamp: new Date(),
     };
 
     const historyEntry: AlertHistoryEntry = {
       timestamp: alert.timestamp,
       level,
-      message
+      message,
     };
 
     this.alertHistory.push(historyEntry);
-    
+
     // Log the alert
     if (level === 'critical') {
       this.logger.error(alert, `Session store alert: ${message}`);
     } else {
       this.logger.warn(alert, `Session store alert: ${message}`);
     }
-    
+
     this.emit('alert', alert);
   }
 
@@ -142,7 +120,7 @@ export class AlertManager extends EventEmitter {
    */
   getAlertHistory(since?: Date): AlertHistoryEntry[] {
     if (since) {
-      return this.alertHistory.filter(entry => entry.timestamp >= since);
+      return this.alertHistory.filter((entry) => entry.timestamp >= since);
     }
     return [...this.alertHistory];
   }
@@ -153,11 +131,11 @@ export class AlertManager extends EventEmitter {
   getRecentAlerts(minutes: number = 60): Alert[] {
     const since = new Date(Date.now() - minutes * 60 * 1000);
     return this.alertHistory
-      .filter(entry => entry.timestamp >= since)
-      .map(entry => ({
+      .filter((entry) => entry.timestamp >= since)
+      .map((entry) => ({
         level: entry.level as 'warning' | 'critical',
         message: entry.message,
-        timestamp: entry.timestamp
+        timestamp: entry.timestamp,
       }));
   }
 
@@ -166,9 +144,7 @@ export class AlertManager extends EventEmitter {
    */
   clearOldAlerts(retentionPeriod: number): void {
     const cutoffTime = Date.now() - retentionPeriod;
-    this.alertHistory = this.alertHistory.filter(
-      entry => entry.timestamp.getTime() > cutoffTime
-    );
+    this.alertHistory = this.alertHistory.filter((entry) => entry.timestamp.getTime() > cutoffTime);
   }
 
   /**
@@ -176,7 +152,7 @@ export class AlertManager extends EventEmitter {
    */
   getAlertCounts(): { warning: number; critical: number } {
     const counts = { warning: 0, critical: 0 };
-    this.alertHistory.forEach(entry => {
+    this.alertHistory.forEach((entry) => {
       if (entry.level === 'warning' || entry.level === 'critical') {
         counts[entry.level]++;
       }

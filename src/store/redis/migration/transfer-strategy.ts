@@ -6,10 +6,7 @@
  */
 
 import type { RedisClient, StoreLogger, MigrationConfig } from '../types.js';
-import type { 
-  SessionMigrationResult,
-  MigrationContext 
-} from './types.js';
+import type { SessionMigrationResult, MigrationContext } from './types.js';
 import { BaseMigration } from './base-migration.js';
 import { SessionValidator } from './session-validator.js';
 
@@ -41,8 +38,8 @@ export class TransferStrategy extends BaseMigration<TransferConfig, SessionMigra
       startTime,
       options: {
         batchSize: config.migrationConfig.batchSize,
-        preserveTTL: config.migrationConfig.preserveTTL
-      }
+        preserveTTL: config.migrationConfig.preserveTTL,
+      },
     };
   }
 
@@ -65,14 +62,18 @@ export class TransferStrategy extends BaseMigration<TransferConfig, SessionMigra
     try {
       await config.sourceClient.ping();
     } catch (error) {
-      errors.push(`Source Redis connection failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      errors.push(
+        `Source Redis connection failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
     }
 
     // Validate target connection
     try {
       await config.targetClient.ping();
     } catch (error) {
-      errors.push(`Target Redis connection failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      errors.push(
+        `Target Redis connection failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
     }
 
     return { valid: errors.length === 0, errors };
@@ -80,12 +81,15 @@ export class TransferStrategy extends BaseMigration<TransferConfig, SessionMigra
 
   protected async preMigration(config: TransferConfig): Promise<void> {
     const sessionKeys = await config.sourceClient.keys(`${this.SESSION_KEY_PREFIX}*`);
-    
-    this.logger.info({ 
-      sessionCount: sessionKeys.length,
-      batchSize: config.migrationConfig.batchSize,
-      preserveTTL: config.migrationConfig.preserveTTL
-    }, 'Starting session transfer');
+
+    this.logger.info(
+      {
+        sessionCount: sessionKeys.length,
+        batchSize: config.migrationConfig.batchSize,
+        preserveTTL: config.migrationConfig.preserveTTL,
+      },
+      'Starting session transfer',
+    );
   }
 
   protected async performMigration(config: TransferConfig): Promise<SessionMigrationResult> {
@@ -93,7 +97,7 @@ export class TransferStrategy extends BaseMigration<TransferConfig, SessionMigra
       success: false,
       migratedCount: 0,
       failedCount: 0,
-      errors: []
+      errors: [],
     };
 
     const sessionKeys = await config.sourceClient.keys(`${this.SESSION_KEY_PREFIX}*`);
@@ -104,12 +108,14 @@ export class TransferStrategy extends BaseMigration<TransferConfig, SessionMigra
       config.migrationConfig.batchSize,
       async (batch) => {
         const migrationResults = await Promise.allSettled(
-          batch.map(key => this.migrateSession(
-            key,
-            config.sourceClient,
-            config.targetClient,
-            config.migrationConfig
-          ))
+          batch.map((key) =>
+            this.migrateSession(
+              key,
+              config.sourceClient,
+              config.targetClient,
+              config.migrationConfig,
+            ),
+          ),
         );
 
         // Process results
@@ -130,12 +136,15 @@ export class TransferStrategy extends BaseMigration<TransferConfig, SessionMigra
         }
       },
       (processed, total) => {
-        this.logger.info({ 
-          progress: `${processed}/${total}`,
-          migrated: result.migratedCount,
-          failed: result.failedCount 
-        }, 'Migration progress');
-      }
+        this.logger.info(
+          {
+            progress: `${processed}/${total}`,
+            migrated: result.migratedCount,
+            failed: result.failedCount,
+          },
+          'Migration progress',
+        );
+      },
     );
 
     result.success = result.failedCount === 0;
@@ -144,13 +153,16 @@ export class TransferStrategy extends BaseMigration<TransferConfig, SessionMigra
 
   protected async postMigration(
     _config: TransferConfig,
-    result: SessionMigrationResult
+    result: SessionMigrationResult,
   ): Promise<void> {
-    this.logger.info({
-      migratedCount: result.migratedCount,
-      failedCount: result.failedCount,
-      errorCount: result.errors.length
-    }, 'Transfer completed');
+    this.logger.info(
+      {
+        migratedCount: result.migratedCount,
+        failedCount: result.failedCount,
+        errorCount: result.errors.length,
+      },
+      'Transfer completed',
+    );
   }
 
   protected createErrorResult(errors: string[]): SessionMigrationResult {
@@ -158,7 +170,7 @@ export class TransferStrategy extends BaseMigration<TransferConfig, SessionMigra
       success: false,
       migratedCount: 0,
       failedCount: 0,
-      errors
+      errors,
     };
   }
 
@@ -169,7 +181,7 @@ export class TransferStrategy extends BaseMigration<TransferConfig, SessionMigra
     key: string,
     sourceClient: RedisClient,
     targetClient: RedisClient,
-    config: MigrationConfig
+    config: MigrationConfig,
   ): Promise<{ success: boolean; error?: string }> {
     try {
       const data = await sourceClient.get(key);
@@ -198,7 +210,6 @@ export class TransferStrategy extends BaseMigration<TransferConfig, SessionMigra
       // Transfer session
       await targetClient.setex(key, ttl, data);
       return { success: true };
-
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       return { success: false, error: errorMessage };
@@ -211,15 +222,15 @@ export class TransferStrategy extends BaseMigration<TransferConfig, SessionMigra
   async quickTransfer(
     sourceClient: RedisClient,
     targetClient: RedisClient,
-    batchSize = 100
+    batchSize = 100,
   ): Promise<SessionMigrationResult> {
     return this.execute({
       sourceClient,
       targetClient,
       migrationConfig: {
         batchSize,
-        preserveTTL: true
-      }
+        preserveTTL: true,
+      },
     });
   }
 }

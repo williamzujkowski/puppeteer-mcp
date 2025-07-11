@@ -60,12 +60,12 @@ export class ValidatorFactory {
    */
   static getValidator(type: ValidatorType): IActionValidator {
     this.initialize();
-    
+
     const validator = this.validators.get(type);
     if (!validator) {
       throw new Error(`Unknown validator type: ${type}`);
     }
-    
+
     return validator;
   }
 
@@ -85,22 +85,24 @@ export class ValidatorFactory {
    */
   static getValidatorsForAction(action: BrowserAction): IActionValidator[] {
     this.initialize();
-    
+
     const validators: IActionValidator[] = [];
-    
+
     // Always include structural and security validators
     validators.push(this.validators.get(ValidatorType.STRUCTURAL)!);
     validators.push(this.validators.get(ValidatorType.SECURITY)!);
-    
+
     // Add type-specific validators
     for (const [type, validator] of this.validators) {
-      if (type !== ValidatorType.STRUCTURAL && 
-          type !== ValidatorType.SECURITY && 
-          validator.canValidate(action)) {
+      if (
+        type !== ValidatorType.STRUCTURAL &&
+        type !== ValidatorType.SECURITY &&
+        validator.canValidate(action)
+      ) {
         validators.push(validator);
       }
     }
-    
+
     return validators;
   }
 

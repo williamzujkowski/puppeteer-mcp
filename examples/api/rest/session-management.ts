@@ -1,6 +1,6 @@
 /**
  * REST API Session Management Example
- * 
+ *
  * This example demonstrates:
  * - Creating and managing sessions
  * - Session lifecycle operations
@@ -62,16 +62,13 @@ class RESTSessionManager {
       baseURL: API_BASE_URL,
       headers: {
         'X-API-Key': API_KEY,
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
       },
-      timeout: 30000 // 30 seconds
+      timeout: 30000, // 30 seconds
     });
 
     // Add response interceptor for error handling
-    this.apiClient.interceptors.response.use(
-      response => response,
-      this.handleApiError
-    );
+    this.apiClient.interceptors.response.use((response) => response, this.handleApiError);
   }
 
   private handleApiError(error: AxiosError): Promise<never> {
@@ -79,7 +76,7 @@ class RESTSessionManager {
       // Server responded with error
       const { status, data } = error.response;
       console.error(`API Error ${status}:`, data);
-      
+
       switch (status) {
         case 401:
           throw new Error('Authentication failed. Check your API key.');
@@ -105,18 +102,18 @@ class RESTSessionManager {
 
   async createSession(capabilities: SessionCapabilities = {}): Promise<Session> {
     console.log('Creating new session...');
-    
+
     const response = await this.apiClient.post('/sessions', {
       capabilities: {
         acceptInsecureCerts: true,
         browserName: 'chrome',
-        ...capabilities
-      }
+        ...capabilities,
+      },
     });
 
     const session: Session = response.data.data;
     this.sessions.set(session.id, session);
-    
+
     console.log(`Session created: ${session.id}`);
     return session;
   }
@@ -134,7 +131,7 @@ class RESTSessionManager {
   async updateSession(sessionId: string, updates: Partial<Session>): Promise<Session> {
     const response = await this.apiClient.patch(`/sessions/${sessionId}`, updates);
     const updatedSession: Session = response.data.data;
-    
+
     this.sessions.set(sessionId, updatedSession);
     return updatedSession;
   }
@@ -150,31 +147,37 @@ class RESTSessionManager {
     }
   }
 
-  async execute(sessionId: string, script: string, args: any[] = [], context: any = {}): Promise<ExecuteResult> {
+  async execute(
+    sessionId: string,
+    script: string,
+    args: any[] = [],
+    context: any = {},
+  ): Promise<ExecuteResult> {
     try {
-      const response = await this.apiClient.post(
-        `/sessions/${sessionId}/execute`,
-        { script, args, context }
-      );
+      const response = await this.apiClient.post(`/sessions/${sessionId}/execute`, {
+        script,
+        args,
+        context,
+      });
 
       return {
         success: true,
-        result: response.data.data.result
+        result: response.data.data.result,
       };
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       };
     }
   }
 
-  async createContext(sessionId: string, type: 'default' | 'incognito' = 'default'): Promise<Context> {
-    const response = await this.apiClient.post(
-      `/sessions/${sessionId}/contexts`,
-      { type }
-    );
-    
+  async createContext(
+    sessionId: string,
+    type: 'default' | 'incognito' = 'default',
+  ): Promise<Context> {
+    const response = await this.apiClient.post(`/sessions/${sessionId}/contexts`, { type });
+
     return response.data.data;
   }
 
@@ -191,16 +194,14 @@ class RESTSessionManager {
   async createPage(sessionId: string, contextId: string, url?: string): Promise<Page> {
     const response = await this.apiClient.post(
       `/sessions/${sessionId}/contexts/${contextId}/pages`,
-      { url }
+      { url },
     );
-    
+
     return response.data.data;
   }
 
   async listPages(sessionId: string, contextId: string): Promise<Page[]> {
-    const response = await this.apiClient.get(
-      `/sessions/${sessionId}/contexts/${contextId}/pages`
-    );
+    const response = await this.apiClient.get(`/sessions/${sessionId}/contexts/${contextId}/pages`);
     return response.data.data;
   }
 
@@ -220,7 +221,7 @@ class RESTSessionManager {
 
   async cleanupAllSessions(): Promise<void> {
     const sessions = await this.listSessions();
-    
+
     for (const session of sessions) {
       try {
         await this.deleteSession(session.id);
@@ -228,7 +229,7 @@ class RESTSessionManager {
         console.error(`Failed to cleanup session ${session.id}:`, error);
       }
     }
-    
+
     console.log(`Cleaned up ${sessions.length} sessions`);
   }
 }
@@ -237,7 +238,7 @@ class RESTSessionManager {
 
 async function basicSessionLifecycle() {
   const manager = new RESTSessionManager();
-  
+
   try {
     // Check server health
     const isHealthy = await manager.healthCheck();
@@ -250,16 +251,12 @@ async function basicSessionLifecycle() {
       browserName: 'chrome',
       proxy: {
         proxyType: 'manual',
-        httpProxy: 'proxy.example.com:8080'
-      }
+        httpProxy: 'proxy.example.com:8080',
+      },
     });
 
     // Execute commands
-    const result = await manager.execute(
-      session.id,
-      'goto',
-      ['https://example.com']
-    );
+    const result = await manager.execute(session.id, 'goto', ['https://example.com']);
 
     if (result.success) {
       console.log('Navigation successful');
@@ -271,7 +268,6 @@ async function basicSessionLifecycle() {
 
     // Clean up
     await manager.deleteSession(session.id);
-
   } catch (error) {
     console.error('Session lifecycle error:', error);
   }
@@ -280,7 +276,7 @@ async function basicSessionLifecycle() {
 async function multiContextExample() {
   const manager = new RESTSessionManager();
   let sessionId: string | null = null;
-  
+
   try {
     // Create session
     const session = await manager.createSession();
@@ -292,7 +288,7 @@ async function multiContextExample() {
 
     console.log('Created contexts:', {
       default: defaultContext.id,
-      incognito: incognitoContext.id
+      incognito: incognitoContext.id,
     });
 
     // Create pages in different contexts
@@ -307,7 +303,6 @@ async function multiContextExample() {
 
     // Clean up specific context
     await manager.deleteContext(sessionId, incognitoContext.id);
-
   } finally {
     if (sessionId) {
       await manager.deleteSession(sessionId);
@@ -319,48 +314,45 @@ async function sessionPoolExample() {
   const manager = new RESTSessionManager();
   const sessionPool: string[] = [];
   const poolSize = 5;
-  
+
   try {
     // Create session pool
     console.log(`Creating session pool of size ${poolSize}...`);
-    
+
     for (let i = 0; i < poolSize; i++) {
       const session = await manager.createSession();
       sessionPool.push(session.id);
     }
-    
+
     console.log(`Session pool created: ${sessionPool.length} sessions`);
 
     // Use sessions for parallel operations
     const tasks = sessionPool.map(async (sessionId, index) => {
       const url = `https://example.com/page${index + 1}`;
       const result = await manager.execute(sessionId, 'goto', [url]);
-      
+
       if (result.success) {
         // Take screenshot
-        const screenshotResult = await manager.execute(
-          sessionId,
-          'screenshot',
-          [{ fullPage: true }]
-        );
-        
+        const screenshotResult = await manager.execute(sessionId, 'screenshot', [
+          { fullPage: true },
+        ]);
+
         return {
           sessionId,
           url,
-          screenshot: screenshotResult.result
+          screenshot: screenshotResult.result,
         };
       }
-      
+
       return null;
     });
 
     const results = await Promise.all(tasks);
-    console.log(`Completed ${results.filter(r => r !== null).length} tasks`);
+    console.log(`Completed ${results.filter((r) => r !== null).length} tasks`);
 
     // Get metrics
     const metrics = await manager.getMetrics();
     console.log('System metrics:', metrics);
-
   } finally {
     // Clean up all sessions
     for (const sessionId of sessionPool) {
@@ -376,12 +368,12 @@ async function sessionPoolExample() {
 async function errorRecoveryExample() {
   const manager = new RESTSessionManager();
   let sessionId: string | null = null;
-  
+
   try {
     // Create session with retry logic
     let retries = 3;
     let session: Session | null = null;
-    
+
     while (retries > 0 && !session) {
       try {
         session = await manager.createSession();
@@ -389,11 +381,11 @@ async function errorRecoveryExample() {
       } catch (error) {
         retries--;
         console.log(`Session creation failed, retries left: ${retries}`);
-        
+
         if (retries === 0) throw error;
-        
+
         // Wait before retry
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise((resolve) => setTimeout(resolve, 1000));
       }
     }
 
@@ -405,23 +397,23 @@ async function errorRecoveryExample() {
     const operations = [
       { script: 'goto', args: ['https://example.com'] },
       { script: 'waitForSelector', args: ['.main-content', { timeout: 5000 }] },
-      { script: 'click', args: ['.submit-button'] }
+      { script: 'click', args: ['.submit-button'] },
     ];
 
     for (const op of operations) {
       const result = await manager.execute(sessionId, op.script, op.args);
-      
+
       if (!result.success) {
         console.error(`Operation ${op.script} failed:`, result.error);
-        
+
         // Attempt recovery
         if (result.error?.includes('timeout')) {
           console.log('Attempting to recover from timeout...');
-          
+
           // Refresh page and retry
           await manager.execute(sessionId, 'reload', []);
-          await new Promise(resolve => setTimeout(resolve, 2000));
-          
+          await new Promise((resolve) => setTimeout(resolve, 2000));
+
           // Retry operation
           const retryResult = await manager.execute(sessionId, op.script, op.args);
           if (!retryResult.success) {
@@ -432,7 +424,6 @@ async function errorRecoveryExample() {
     }
 
     console.log('All operations completed successfully');
-
   } catch (error) {
     console.error('Error recovery example failed:', error);
   } finally {
@@ -446,23 +437,22 @@ async function errorRecoveryExample() {
 if (require.main === module) {
   (async () => {
     console.log('REST API Session Management Examples\n');
-    
+
     try {
       console.log('1. Basic Session Lifecycle');
       await basicSessionLifecycle();
       console.log('\n---\n');
-      
+
       console.log('2. Multi-Context Example');
       await multiContextExample();
       console.log('\n---\n');
-      
+
       console.log('3. Session Pool Example');
       await sessionPoolExample();
       console.log('\n---\n');
-      
+
       console.log('4. Error Recovery Example');
       await errorRecoveryExample();
-      
     } catch (error) {
       console.error('Example failed:', error);
     }

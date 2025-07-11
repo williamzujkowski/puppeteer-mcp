@@ -74,29 +74,31 @@ export class DefaultExporterManager implements ExporterManager {
 
     try {
       logger.info('Initializing exporter manager');
-      
+
       // Validate configuration
       this.validateConfiguration(config);
-      
+
       // Store configuration
       this.config = config;
-      
+
       // Create exporters
       this.createExporters(config);
-      
+
       // Perform health check
       await this.performInitialHealthCheck(config);
-      
+
       this.state = ExporterState.RUNNING;
       this.stats.initializationTime = Date.now() - startTime;
       this.stats.totalInitializations++;
-      
-      logger.info({
-        traceExporters: this.stats.traceExporterCount,
-        metricExporters: this.stats.metricExporterCount,
-        initTime: this.stats.initializationTime,
-      }, 'Exporter manager initialized successfully');
-      
+
+      logger.info(
+        {
+          traceExporters: this.stats.traceExporterCount,
+          metricExporters: this.stats.metricExporterCount,
+          initTime: this.stats.initializationTime,
+        },
+        'Exporter manager initialized successfully',
+      );
     } catch (error) {
       this.state = ExporterState.ERROR;
       logger.error({ error }, 'Failed to initialize exporter manager');
@@ -118,23 +120,22 @@ export class DefaultExporterManager implements ExporterManager {
 
     try {
       logger.info('Shutting down exporter manager');
-      
+
       // Shutdown trace exporters
       await this.shutdownTraceExporters();
-      
+
       // Shutdown metric exporters
       await this.shutdownMetricExporters();
-      
+
       // Reset state
       this.traceExporters = [];
       this.metricExporters = [];
       this.config = null;
       this.state = ExporterState.SHUTDOWN;
       this.stats.totalShutdowns++;
-      
+
       const shutdownTime = Date.now() - startTime;
       logger.info({ shutdownTime }, 'Exporter manager shutdown completed');
-      
     } catch (error) {
       this.state = ExporterState.ERROR;
       logger.error({ error }, 'Error during exporter manager shutdown');
@@ -180,13 +181,16 @@ export class DefaultExporterManager implements ExporterManager {
 
     const result = await checkExporterHealth(this.config);
     this.stats.lastHealthCheck = new Date();
-    
-    logger.debug({
-      traces: result.traces,
-      metrics: result.metrics,
-      errorCount: result.errors.length,
-    }, 'Exporter health check completed');
-    
+
+    logger.debug(
+      {
+        traces: result.traces,
+        metrics: result.metrics,
+        errorCount: result.errors.length,
+      },
+      'Exporter health check completed',
+    );
+
     return result;
   }
 
@@ -224,9 +228,9 @@ export class DefaultExporterManager implements ExporterManager {
    */
   private validateConfiguration(config: TelemetryConfig): void {
     const validationResult = validateTelemetryConfig(config);
-    
+
     logValidationResults(validationResult, 'exporter-manager');
-    
+
     if (!validationResult.valid) {
       throw new Error(`Invalid telemetry configuration: ${validationResult.errors.join(', ')}`);
     }
@@ -258,13 +262,16 @@ export class DefaultExporterManager implements ExporterManager {
     try {
       const healthResult = await checkExporterHealth(config);
       this.stats.lastHealthCheck = new Date();
-      
+
       if (healthResult.errors.length > 0) {
-        logger.warn({
-          errors: healthResult.errors,
-          tracesHealthy: healthResult.traces,
-          metricsHealthy: healthResult.metrics,
-        }, 'Initial health check found issues');
+        logger.warn(
+          {
+            errors: healthResult.errors,
+            tracesHealthy: healthResult.traces,
+            metricsHealthy: healthResult.metrics,
+          },
+          'Initial health check found issues',
+        );
       } else {
         logger.info('Initial health check passed');
       }

@@ -45,7 +45,12 @@ export const sanitizeLogData = <T extends Record<string, unknown>>(data: T): T =
         writable: true,
         configurable: true,
       });
-    } else if (value !== null && value !== undefined && typeof value === 'object' && !Array.isArray(value)) {
+    } else if (
+      value !== null &&
+      value !== undefined &&
+      typeof value === 'object' &&
+      !Array.isArray(value)
+    ) {
       Object.defineProperty(sanitized, key, {
         value: sanitizeLogData(value as Record<string, unknown>),
         enumerable: true,
@@ -55,9 +60,9 @@ export const sanitizeLogData = <T extends Record<string, unknown>>(data: T): T =
     } else if (Array.isArray(value)) {
       Object.defineProperty(sanitized, key, {
         value: value.map((item) =>
-          item !== null && item !== undefined && typeof item === 'object' 
+          item !== null && item !== undefined && typeof item === 'object'
             ? sanitizeLogData(item as Record<string, unknown>)
-            : item as unknown
+            : (item as unknown),
         ),
         enumerable: true,
         writable: true,
@@ -91,7 +96,9 @@ export const sanitizeError = (error: Error): Record<string, unknown> => {
 /**
  * Extract safe metadata from request
  */
-export const extractSafeMetadata = (metadata?: Record<string, unknown>): {
+export const extractSafeMetadata = (
+  metadata?: Record<string, unknown>,
+): {
   ip?: string;
   userAgent?: string;
 } => {

@@ -31,27 +31,27 @@ export interface MigrationOptions {
    * Whether to skip sessions that already exist in the target store
    */
   skipExisting?: boolean;
-  
+
   /**
    * Whether to delete sessions from source store after successful migration
    */
   deleteAfterMigration?: boolean;
-  
+
   /**
    * Batch size for processing sessions
    */
   batchSize?: number;
-  
+
   /**
    * Whether to continue migration on individual session errors
    */
   continueOnError?: boolean;
-  
+
   /**
    * Filter function to determine which sessions to migrate
    */
   filter?: (session: Session) => boolean;
-  
+
   /**
    * Progress callback function
    */
@@ -101,7 +101,11 @@ export interface RestoreCommand {
  * Restore strategy interface
  */
 export interface RestoreStrategy {
-  validate(session: Session, store: SessionStore, options: RestoreOptions): Promise<SessionValidationResult>;
+  validate(
+    session: Session,
+    store: SessionStore,
+    options: RestoreOptions,
+  ): Promise<SessionValidationResult>;
   execute(command: RestoreCommand, store: SessionStore): Promise<void>;
 }
 
@@ -113,7 +117,6 @@ export interface BatchProcessingOptions {
   deleteAfterMigration: boolean;
   continueOnError: boolean;
 }
-
 
 /**
  * Migration context for orchestrator

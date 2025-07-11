@@ -14,7 +14,7 @@ jest.mock('../../../src/utils/redis-client.js', () => ({
   initializeRedis: jest.fn(),
   closeRedis: jest.fn(),
   checkRedisHealth: jest.fn(),
-  testRedisConnection: jest.fn()
+  testRedisConnection: jest.fn(),
 }));
 
 describe('RedisSessionStore', () => {
@@ -33,12 +33,12 @@ describe('RedisSessionStore', () => {
     smembers: jest.fn(),
     expire: jest.fn(),
     keys: jest.fn(),
-    ping: jest.fn()
+    ping: jest.fn(),
   };
 
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     // Create mock Redis client
     mockRedisClient = {
       ...mockRedisClient_Base,
@@ -51,9 +51,9 @@ describe('RedisSessionStore', () => {
         exec: jest.fn().mockResolvedValue([
           [null, 'OK'],
           [null, 1],
-          [null, 1]
-        ])
-      }))
+          [null, 1],
+        ]),
+      })),
     };
 
     // Mock Redis availability
@@ -86,7 +86,7 @@ describe('RedisSessionStore', () => {
 
     it('should fallback to in-memory store when Redis is unavailable', async () => {
       (isRedisAvailable as jest.Mock).mockReturnValue(false);
-      
+
       const id = await store.create(sessionData);
 
       expect(id).toBeDefined();
@@ -100,7 +100,7 @@ describe('RedisSessionStore', () => {
         setex: jest.fn(),
         sadd: jest.fn(),
         expire: jest.fn(),
-        exec: jest.fn().mockRejectedValue(new Error('Redis connection failed'))
+        exec: jest.fn().mockRejectedValue(new Error('Redis connection failed')),
       });
 
       const id = await store.create(sessionData);
@@ -116,7 +116,7 @@ describe('RedisSessionStore', () => {
       const mockSessionData = JSON.stringify({
         id: 'test-id',
         data: sessionData,
-        lastAccessedAt: new Date().toISOString()
+        lastAccessedAt: new Date().toISOString(),
       });
 
       mockRedisClient.get.mockResolvedValue(mockSessionData);
@@ -140,20 +140,23 @@ describe('RedisSessionStore', () => {
     it('should return null for expired session', async () => {
       const expiredData = {
         ...sessionData,
-        expiresAt: new Date(Date.now() - 1000).toISOString()
+        expiresAt: new Date(Date.now() - 1000).toISOString(),
       };
 
       const mockSessionData = JSON.stringify({
         id: 'expired-id',
         data: expiredData,
-        lastAccessedAt: new Date().toISOString()
+        lastAccessedAt: new Date().toISOString(),
       });
 
       mockRedisClient.get.mockResolvedValue(mockSessionData);
       mockRedisClient.pipeline.mockReturnValue({
         del: jest.fn(),
         srem: jest.fn(),
-        exec: jest.fn().mockResolvedValue([[null, 1], [null, 1]])
+        exec: jest.fn().mockResolvedValue([
+          [null, 1],
+          [null, 1],
+        ]),
       });
 
       const session = await store.get('expired-id');
@@ -176,7 +179,7 @@ describe('RedisSessionStore', () => {
       const mockSessionData = JSON.stringify({
         id: 'test-id',
         data: sessionData,
-        lastAccessedAt: new Date().toISOString()
+        lastAccessedAt: new Date().toISOString(),
       });
 
       mockRedisClient.get.mockResolvedValue(mockSessionData);
@@ -205,14 +208,17 @@ describe('RedisSessionStore', () => {
       const mockSessionData = JSON.stringify({
         id: 'test-id',
         data: sessionData,
-        lastAccessedAt: new Date().toISOString()
+        lastAccessedAt: new Date().toISOString(),
       });
 
       mockRedisClient.get.mockResolvedValue(mockSessionData);
       mockRedisClient.pipeline.mockReturnValue({
         del: jest.fn(),
         srem: jest.fn(),
-        exec: jest.fn().mockResolvedValue([[null, 1], [null, 1]])
+        exec: jest.fn().mockResolvedValue([
+          [null, 1],
+          [null, 1],
+        ]),
       });
 
       const deleted = await store.delete('test-id');
@@ -255,7 +261,7 @@ describe('RedisSessionStore', () => {
       const mockSessionData = JSON.stringify({
         id: 'test-id',
         data: sessionData,
-        lastAccessedAt: new Date().toISOString()
+        lastAccessedAt: new Date().toISOString(),
       });
 
       mockRedisClient.smembers.mockResolvedValue(['session1', 'session2']);
@@ -300,7 +306,7 @@ describe('RedisSessionStore', () => {
       const mockSessionData = JSON.stringify({
         id: 'test-id',
         data: sessionData,
-        lastAccessedAt: new Date().toISOString()
+        lastAccessedAt: new Date().toISOString(),
       });
 
       mockRedisClient.get.mockResolvedValue(mockSessionData);
@@ -323,20 +329,23 @@ describe('RedisSessionStore', () => {
     it('should return false for expired session', async () => {
       const expiredData = {
         ...sessionData,
-        expiresAt: new Date(Date.now() - 1000).toISOString()
+        expiresAt: new Date(Date.now() - 1000).toISOString(),
       };
 
       const mockSessionData = JSON.stringify({
         id: 'expired-id',
         data: expiredData,
-        lastAccessedAt: new Date().toISOString()
+        lastAccessedAt: new Date().toISOString(),
       });
 
       mockRedisClient.get.mockResolvedValue(mockSessionData);
       mockRedisClient.pipeline.mockReturnValue({
         del: jest.fn(),
         srem: jest.fn(),
-        exec: jest.fn().mockResolvedValue([[null, 1], [null, 1]])
+        exec: jest.fn().mockResolvedValue([
+          [null, 1],
+          [null, 1],
+        ]),
       });
 
       const touched = await store.touch('expired-id');
@@ -356,7 +365,11 @@ describe('RedisSessionStore', () => {
 
       expect(mockRedisClient.keys).toHaveBeenCalledWith('session:*');
       expect(mockRedisClient.keys).toHaveBeenCalledWith('user_sessions:*');
-      expect(mockRedisClient.del).toHaveBeenCalledWith('session:1', 'session:2', 'user_sessions:user1');
+      expect(mockRedisClient.del).toHaveBeenCalledWith(
+        'session:1',
+        'session:2',
+        'user_sessions:user1',
+      );
     });
   });
 

@@ -81,11 +81,7 @@ export class SessionFactory {
       lifecycleOptions.sessionTimeout,
     );
 
-    const statisticsManager = new SessionStatisticsManager(
-      logger,
-      stateManager,
-      eventEmitter,
-    );
+    const statisticsManager = new SessionStatisticsManager(logger, stateManager, eventEmitter);
 
     // Set up event listeners for persistence
     if (options.persistSessions !== false) {

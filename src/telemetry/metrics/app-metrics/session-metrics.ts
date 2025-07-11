@@ -20,22 +20,22 @@ export class SessionMetricsImpl implements SessionMetrics {
 
   constructor(meter: Meter) {
     this.meter = meter;
-    
+
     this.sessionCreated = meter.createCounter('session_created_total', {
       description: 'Total number of sessions created',
       unit: '1',
     });
-    
+
     this.sessionDestroyed = meter.createCounter('session_destroyed_total', {
       description: 'Total number of sessions destroyed',
       unit: '1',
     });
-    
+
     this.sessionDuration = meter.createHistogram('session_duration_seconds', {
       description: 'Session duration in seconds',
       unit: 's',
     });
-    
+
     this.sessionActiveSessions = meter.createUpDownCounter('session_active', {
       description: 'Number of active sessions',
       unit: '1',
@@ -62,10 +62,10 @@ export class SessionMetricsImpl implements SessionMetrics {
       session_type: sessionType,
       reason,
     };
-    
+
     this.sessionDestroyed.add(1, labels);
     this.sessionActiveSessions.add(-1);
-    
+
     if (duration !== undefined) {
       this.sessionDuration.record(duration, labels);
     }
@@ -74,15 +74,12 @@ export class SessionMetricsImpl implements SessionMetrics {
   /**
    * Record session activity
    */
-  recordSessionActivity(
-    sessionType: string,
-    activityType: string,
-  ): void {
+  recordSessionActivity(sessionType: string, activityType: string): void {
     const sessionActivityCounter = this.meter.createCounter('session_activity_total', {
       description: 'Total number of session activities',
       unit: '1',
     });
-    
+
     sessionActivityCounter.add(1, {
       session_type: sessionType,
       activity_type: activityType,

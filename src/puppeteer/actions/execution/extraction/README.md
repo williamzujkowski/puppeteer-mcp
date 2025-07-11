@@ -1,6 +1,8 @@
 # Extraction Module Architecture
 
-This directory contains the modularized extraction components for the Puppeteer MCP project. The extraction system has been refactored to follow SOLID principles and design patterns for better maintainability and extensibility.
+This directory contains the modularized extraction components for the Puppeteer MCP project. The
+extraction system has been refactored to follow SOLID principles and design patterns for better
+maintainability and extensibility.
 
 ## Module Structure
 
@@ -8,7 +10,7 @@ This directory contains the modularized extraction components for the Puppeteer 
 
 - **`screenshot-extractor.ts`** - Handles screenshot capture operations
   - Element screenshots
-  - Full page screenshots  
+  - Full page screenshots
   - Various image formats (PNG, JPEG, WebP)
 
 - **`pdf-extractor.ts`** - Manages PDF generation
@@ -40,13 +42,18 @@ This directory contains the modularized extraction components for the Puppeteer 
 ## Design Patterns Applied
 
 ### 1. **Factory Pattern**
-The `ExtractionFactory` class provides a centralized way to create appropriate extraction handlers based on action type.
+
+The `ExtractionFactory` class provides a centralized way to create appropriate extraction handlers
+based on action type.
 
 ### 2. **Strategy Pattern**
+
 Each extractor implements a common execution strategy, allowing them to be used interchangeably.
 
 ### 3. **Single Responsibility Principle**
+
 Each extractor class has a single, well-defined responsibility:
+
 - Screenshot extraction
 - PDF generation
 - Content extraction
@@ -75,7 +82,8 @@ const result = await extractor.execute(screenshotAction, page, context);
 
 ### Backward Compatibility
 
-The original `ExtractionExecutor` class maintains backward compatibility by delegating to the new modular components:
+The original `ExtractionExecutor` class maintains backward compatibility by delegating to the new
+modular components:
 
 ```typescript
 import { ExtractionExecutor } from './extraction-executor.js';
@@ -87,6 +95,7 @@ const result = await executor.executeScreenshot(action, page, context);
 ## Security Annotations
 
 All modules include NIST security control annotations:
+
 - **AC-3**: Access enforcement
 - **AU-3**: Content of audit records
 - **SI-10**: Information input validation

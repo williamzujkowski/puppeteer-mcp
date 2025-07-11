@@ -1,6 +1,6 @@
 /**
  * Content Extraction Example
- * 
+ *
  * This example demonstrates how to:
  * - Extract text content from pages
  * - Scrape structured data
@@ -38,18 +38,18 @@ class ContentExtractor {
     baseURL: API_BASE_URL,
     headers: {
       'X-API-Key': API_KEY,
-      'Content-Type': 'application/json'
-    }
+      'Content-Type': 'application/json',
+    },
   });
 
   async initialize(): Promise<void> {
     const response = await this.apiClient.post('/sessions', {
       capabilities: {
         acceptInsecureCerts: true,
-        browserName: 'chrome'
-      }
+        browserName: 'chrome',
+      },
     });
-    
+
     this.sessionId = response.data.data.id;
     console.log(`Session initialized: ${this.sessionId}`);
   }
@@ -64,32 +64,39 @@ class ContentExtractor {
   }
 
   async extractText(selector: string): Promise<string> {
-    const text = await this.execute('evaluate', [`
+    const text = await this.execute('evaluate', [
+      `
       document.querySelector('${selector}')?.textContent?.trim() || ''
-    `]);
+    `,
+    ]);
     return text as string;
   }
 
   async extractAttribute(selector: string, attribute: string): Promise<string> {
-    const value = await this.execute('evaluate', [`
+    const value = await this.execute('evaluate', [
+      `
       document.querySelector('${selector}')?.getAttribute('${attribute}') || ''
-    `]);
+    `,
+    ]);
     return value as string;
   }
 
   async extractMultiple(selector: string): Promise<string[]> {
-    const items = await this.execute('evaluate', [`
+    const items = await this.execute('evaluate', [
+      `
       Array.from(document.querySelectorAll('${selector}'))
         .map(el => el.textContent?.trim() || '')
-    `]);
+    `,
+    ]);
     return items as string[];
   }
 
   async extractProducts(): Promise<Product[]> {
     // Wait for products to load
     await this.waitForContent('.product-item');
-    
-    const products = await this.execute('evaluate', [`
+
+    const products = await this.execute('evaluate', [
+      `
       Array.from(document.querySelectorAll('.product-item')).map(item => ({
         title: item.querySelector('.product-title')?.textContent?.trim() || '',
         price: item.querySelector('.price')?.textContent?.trim() || '',
@@ -98,16 +105,18 @@ class ContentExtractor {
         rating: parseFloat(item.querySelector('.rating')?.textContent || '0'),
         availability: item.querySelector('.availability')?.textContent?.trim() || 'Unknown'
       }))
-    `]);
-    
+    `,
+    ]);
+
     return products as Product[];
   }
 
   async extractArticle(): Promise<Article> {
     // Wait for article content
     await this.waitForContent('article');
-    
-    const article = await this.execute('evaluate', [`
+
+    const article = await this.execute('evaluate', [
+      `
       const article = document.querySelector('article');
       if (!article) return null;
       
@@ -120,13 +129,15 @@ class ContentExtractor {
           .map(tag => tag.textContent?.trim() || '')
           .filter(Boolean)
       };
-    `]);
-    
+    `,
+    ]);
+
     return article as Article;
   }
 
   async extractTable(tableSelector: string): Promise<any[]> {
-    const tableData = await this.execute('evaluate', [`
+    const tableData = await this.execute('evaluate', [
+      `
       const table = document.querySelector('${tableSelector}');
       if (!table) return [];
       
@@ -146,52 +157,59 @@ class ContentExtractor {
         });
       
       return rows;
-    `]);
-    
+    `,
+    ]);
+
     return tableData as any[];
   }
 
   async scrollToBottom(): Promise<void> {
-    await this.execute('evaluate', [`
+    await this.execute('evaluate', [
+      `
       window.scrollTo(0, document.body.scrollHeight);
-    `]);
-    
+    `,
+    ]);
+
     // Wait for potential lazy-loaded content
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
   }
 
   async extractWithInfiniteScroll(selector: string, maxScrolls = 5): Promise<any[]> {
     const allItems: any[] = [];
     let previousHeight = 0;
-    
+
     for (let i = 0; i < maxScrolls; i++) {
       // Get current items
-      const items = await this.execute('evaluate', [`
+      const items = (await this.execute('evaluate', [
+        `
         Array.from(document.querySelectorAll('${selector}'))
           .map(el => el.textContent?.trim() || '')
-      `]) as string[];
-      
+      `,
+      ])) as string[];
+
       // Add new items
       const newItems = items.slice(allItems.length);
       allItems.push(...newItems);
-      
+
       // Check if we've reached the bottom
-      const currentHeight = await this.execute('evaluate', [`
+      const currentHeight = (await this.execute('evaluate', [
+        `
         document.body.scrollHeight
-      `]) as number;
-      
+      `,
+      ])) as number;
+
       if (currentHeight === previousHeight) {
         console.log('Reached bottom of page');
         break;
       }
-      
+
       previousHeight = currentHeight;
-      
+
       // Scroll down
       await this.scrollToBottom();
       console.log(`Scroll ${i + 1}/${maxScrolls}: Found ${newItems.length} new items`);
     }
-    
+
     return allItems;
   }
 
@@ -200,10 +218,11 @@ class ContentExtractor {
       throw new Error('Session not initialized');
     }
 
-    const response = await this.apiClient.post(
-      `/sessions/${this.sessionId}/execute`,
-      { script, args, context: {} }
-    );
+    const response = await this.apiClient.post(`/sessions/${this.sessionId}/execute`, {
+      script,
+      args,
+      context: {},
+    });
 
     return response.data.data.result;
   }
@@ -217,17 +236,13 @@ class ContentExtractor {
 
   async exportToCSV(data: any[], filename: string): Promise<void> {
     if (data.length === 0) return;
-    
+
     const headers = Object.keys(data[0]);
     const csv = [
       headers.join(','),
-      ...data.map(row => 
-        headers.map(header => 
-          JSON.stringify(row[header] || '')
-        ).join(',')
-      )
+      ...data.map((row) => headers.map((header) => JSON.stringify(row[header] || '')).join(',')),
     ].join('\n');
-    
+
     const outputPath = path.join(__dirname, 'output', filename);
     await fs.mkdir(path.dirname(outputPath), { recursive: true });
     await fs.writeFile(outputPath, csv);
@@ -249,23 +264,22 @@ class ContentExtractor {
 // Example: Extract products from an e-commerce site
 async function extractProductCatalog() {
   const extractor = new ContentExtractor();
-  
+
   try {
     await extractor.initialize();
     await extractor.navigate('https://example-shop.com/products');
-    
+
     // Extract product data
     const products = await extractor.extractProducts();
     console.log(`Found ${products.length} products`);
-    
+
     // Export data
     await extractor.exportToJSON(products, 'products.json');
     await extractor.exportToCSV(products, 'products.csv');
-    
+
     // Extract with filters
-    const inStockProducts = products.filter(p => p.availability === 'In Stock');
+    const inStockProducts = products.filter((p) => p.availability === 'In Stock');
     console.log(`${inStockProducts.length} products in stock`);
-    
   } finally {
     await extractor.cleanup();
   }
@@ -275,27 +289,31 @@ async function extractProductCatalog() {
 async function extractBlogArticles() {
   const extractor = new ContentExtractor();
   const allArticles: Article[] = [];
-  
+
   try {
     await extractor.initialize();
-    
+
     // Navigate through pages
     for (let page = 1; page <= 5; page++) {
       await extractor.navigate(`https://example-blog.com/articles?page=${page}`);
-      
+
       // Check if there are articles on this page
-      const hasArticles = await extractor.execute('evaluate', [`
+      const hasArticles = await extractor.execute('evaluate', [
+        `
         document.querySelectorAll('article').length > 0
-      `]);
-      
+      `,
+      ]);
+
       if (!hasArticles) break;
-      
+
       // Extract article links
-      const articleLinks = await extractor.execute('evaluate', [`
+      const articleLinks = (await extractor.execute('evaluate', [
+        `
         Array.from(document.querySelectorAll('article a'))
           .map(a => a.href)
-      `]) as string[];
-      
+      `,
+      ])) as string[];
+
       // Visit each article
       for (const link of articleLinks) {
         await extractor.navigate(link);
@@ -304,11 +322,10 @@ async function extractBlogArticles() {
         console.log(`Extracted: ${article.title}`);
       }
     }
-    
+
     // Export all articles
     await extractor.exportToJSON(allArticles, 'articles.json');
     console.log(`Total articles extracted: ${allArticles.length}`);
-    
   } finally {
     await extractor.cleanup();
   }
@@ -317,18 +334,17 @@ async function extractBlogArticles() {
 // Example: Extract data from dynamic content
 async function extractDynamicContent() {
   const extractor = new ContentExtractor();
-  
+
   try {
     await extractor.initialize();
     await extractor.navigate('https://example-feed.com');
-    
+
     // Extract content with infinite scroll
     const posts = await extractor.extractWithInfiniteScroll('.post-item', 10);
     console.log(`Extracted ${posts.length} posts`);
-    
+
     // Export data
     await extractor.exportToJSON(posts, 'dynamic-posts.json');
-    
   } finally {
     await extractor.cleanup();
   }
@@ -338,16 +354,15 @@ async function extractDynamicContent() {
 if (require.main === module) {
   (async () => {
     console.log('Running content extraction examples...\n');
-    
+
     try {
       await extractProductCatalog();
       console.log('\n---\n');
-      
+
       await extractBlogArticles();
       console.log('\n---\n');
-      
+
       await extractDynamicContent();
-      
     } catch (error) {
       console.error('Example failed:', error);
     }

@@ -27,8 +27,10 @@ export class ConnectionLimitRecoveryAction extends RecoveryAction {
 
   protected canHandle(context: RecoveryContext): boolean {
     // Handle when connections exceed threshold or specific connection limit issues
-    return context.metrics.activeConnections > this.connectionThreshold ||
-           context.issues.some(issue => issue.includes('Connection limit'));
+    return (
+      context.metrics.activeConnections > this.connectionThreshold ||
+      context.issues.some((issue) => issue.includes('Connection limit'))
+    );
   }
 
   protected async execute(context: RecoveryContext): Promise<RecoveryActionResult> {
@@ -37,13 +39,13 @@ export class ConnectionLimitRecoveryAction extends RecoveryAction {
     try {
       // Get all connections sorted by age
       const connections = context.connectionManager.getAllConnections();
-      const sortedConnections = connections.sort((a, b) => 
-        a.state.connectedAt.getTime() - b.state.connectedAt.getTime()
+      const sortedConnections = connections.sort(
+        (a, b) => a.state.connectedAt.getTime() - b.state.connectedAt.getTime(),
       );
 
       // Calculate how many connections to close
       const excessConnections = Math.max(0, connections.length - this.connectionThreshold);
-      
+
       if (excessConnections === 0) {
         return {
           success: true,
@@ -54,11 +56,11 @@ export class ConnectionLimitRecoveryAction extends RecoveryAction {
 
       // Close oldest unauthenticated connections first
       let closedCount = 0;
-      const unauthenticated = sortedConnections.filter(c => !c.state.authenticated);
-      
+      const unauthenticated = sortedConnections.filter((c) => !c.state.authenticated);
+
       for (const conn of unauthenticated) {
         if (closedCount >= excessConnections) break;
-        
+
         conn.ws.close(1008, 'Server connection limit reached');
         context.connectionManager.removeConnection(conn.connectionId);
         closedCount++;
@@ -70,11 +72,11 @@ export class ConnectionLimitRecoveryAction extends RecoveryAction {
 
       // If still over limit, close oldest authenticated connections
       if (closedCount < excessConnections) {
-        const authenticated = sortedConnections.filter(c => c.state.authenticated);
-        
+        const authenticated = sortedConnections.filter((c) => c.state.authenticated);
+
         for (const conn of authenticated) {
           if (closedCount >= excessConnections) break;
-          
+
           conn.ws.close(1008, 'Server connection limit reached');
           context.connectionManager.removeConnection(conn.connectionId);
           closedCount++;
@@ -106,9 +108,14 @@ export class ConnectionLimitRecoveryAction extends RecoveryAction {
     }
   }
 
-  protected override shouldContinueChain(context: RecoveryContext, _result: RecoveryActionResult): boolean {
+  protected override shouldContinueChain(
+    context: RecoveryContext,
+    _result: RecoveryActionResult,
+  ): boolean {
     // Continue if other critical issues exist
-    return context.status === HealthStatus.CRITICAL && 
-           context.issues.some(issue => !issue.includes('Connection limit'));
+    return (
+      context.status === HealthStatus.CRITICAL &&
+      context.issues.some((issue) => !issue.includes('Connection limit'))
+    );
   }
 }

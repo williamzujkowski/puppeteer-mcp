@@ -1,6 +1,7 @@
 # MCP Protocol Adapters
 
-This directory contains protocol adapters that allow the MCP (Model Context Protocol) server to communicate with different transport protocols.
+This directory contains protocol adapters that allow the MCP (Model Context Protocol) server to
+communicate with different transport protocols.
 
 ## REST Adapter
 
@@ -60,6 +61,7 @@ await mcpServer.start();
 ### Authentication Types
 
 1. **JWT Authentication**
+
    ```json
    {
      "type": "jwt",
@@ -68,6 +70,7 @@ await mcpServer.start();
    ```
 
 2. **API Key Authentication**
+
    ```json
    {
      "type": "apikey",
@@ -89,10 +92,12 @@ All responses follow the MCP response format:
 
 ```json
 {
-  "content": [{
-    "type": "text",
-    "text": "JSON stringified response body"
-  }],
+  "content": [
+    {
+      "type": "text",
+      "text": "JSON stringified response body"
+    }
+  ],
   "metadata": {
     "status": 200,
     "headers": {
@@ -110,10 +115,12 @@ Errors are transformed into a standardized format:
 
 ```json
 {
-  "content": [{
-    "type": "text",
-    "text": "{\"error\":{\"message\":\"Error message\",\"status\":400,\"details\":{},\"timestamp\":\"2024-01-01T00:00:00.000Z\",\"requestId\":\"mcp-rest-1234567890-abc123\"}}"
-  }],
+  "content": [
+    {
+      "type": "text",
+      "text": "{\"error\":{\"message\":\"Error message\",\"status\":400,\"details\":{},\"timestamp\":\"2024-01-01T00:00:00.000Z\",\"requestId\":\"mcp-rest-1234567890-abc123\"}}"
+    }
+  ],
   "metadata": {
     "status": 400,
     "timestamp": "2024-01-01T00:00:00.000Z",
@@ -147,7 +154,8 @@ The gRPC adapter enables MCP to execute gRPC service calls through the existing 
 
 ### Features
 
-- **Multi-Modal Authentication**: Supports JWT, API key, and session-based authentication via metadata
+- **Multi-Modal Authentication**: Supports JWT, API key, and session-based authentication via
+  metadata
 - **Unary and Streaming RPCs**: Full support for both unary and server-streaming calls
 - **Metadata Handling**: Proper gRPC metadata transformation for authentication and tracing
 - **Error Mapping**: Comprehensive gRPC status code to HTTP status code mapping
@@ -171,18 +179,19 @@ const response = await adapter.executeRequest({
   operation: {
     service: 'SessionService',
     method: 'CreateSession',
-    request: { name: 'Test Session' }
+    request: { name: 'Test Session' },
   },
   auth: {
     type: 'jwt',
-    credentials: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
-  }
+    credentials: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+  },
 });
 ```
 
 ### MCP Tool Call Format
 
 #### Unary Call
+
 ```json
 {
   "name": "execute-api",
@@ -207,6 +216,7 @@ const response = await adapter.executeRequest({
 ```
 
 #### Streaming Call
+
 ```json
 {
   "name": "execute-api",
@@ -259,13 +269,16 @@ const response = await adapter.executeRequest({
 ### Response Format
 
 #### Unary Response
+
 ```json
 {
-  "content": [{
-    "type": "text",
-    "text": "JSON stringified response",
-    "data": { "id": "123", "name": "Session Name" }
-  }],
+  "content": [
+    {
+      "type": "text",
+      "text": "JSON stringified response",
+      "data": { "id": "123", "name": "Session Name" }
+    }
+  ],
   "metadata": {
     "requestId": "mcp-grpc-1234567890-abc123",
     "timestamp": "2024-01-01T00:00:00.000Z",
@@ -278,6 +291,7 @@ const response = await adapter.executeRequest({
 ```
 
 #### Streaming Response
+
 ```json
 {
   "content": [
@@ -308,19 +322,19 @@ const response = await adapter.executeRequest({
 
 gRPC errors are properly mapped to HTTP status codes:
 
-| gRPC Status | HTTP Status | Description |
-|-------------|-------------|--------------|
-| OK | 200 | Success |
-| CANCELLED | 499 | Client cancelled request |
-| INVALID_ARGUMENT | 400 | Bad request |
-| NOT_FOUND | 404 | Resource not found |
-| ALREADY_EXISTS | 409 | Conflict |
-| PERMISSION_DENIED | 403 | Forbidden |
-| UNAUTHENTICATED | 401 | Unauthorized |
-| RESOURCE_EXHAUSTED | 429 | Too many requests |
-| FAILED_PRECONDITION | 412 | Precondition failed |
-| INTERNAL | 500 | Internal server error |
-| UNAVAILABLE | 503 | Service unavailable |
+| gRPC Status         | HTTP Status | Description              |
+| ------------------- | ----------- | ------------------------ |
+| OK                  | 200         | Success                  |
+| CANCELLED           | 499         | Client cancelled request |
+| INVALID_ARGUMENT    | 400         | Bad request              |
+| NOT_FOUND           | 404         | Resource not found       |
+| ALREADY_EXISTS      | 409         | Conflict                 |
+| PERMISSION_DENIED   | 403         | Forbidden                |
+| UNAUTHENTICATED     | 401         | Unauthorized             |
+| RESOURCE_EXHAUSTED  | 429         | Too many requests        |
+| FAILED_PRECONDITION | 412         | Precondition failed      |
+| INTERNAL            | 500         | Internal server error    |
+| UNAVAILABLE         | 503         | Service unavailable      |
 
 ### Security Compliance
 

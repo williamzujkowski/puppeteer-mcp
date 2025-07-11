@@ -136,7 +136,7 @@ export class ConfigManager {
 
   constructor(
     private name: string,
-    initialConfig: Partial<CircuitBreakerConfig> = {}
+    initialConfig: Partial<CircuitBreakerConfig> = {},
   ) {
     this.config = this.createConfig(initialConfig);
     this.addToHistory(this.config);
@@ -148,13 +148,16 @@ export class ConfigManager {
   private createConfig(partial: Partial<CircuitBreakerConfig>): CircuitBreakerConfig {
     const sanitized = ConfigValidator.sanitize(partial);
     const validation = ConfigValidator.validate(sanitized);
-    
+
     if (!validation.valid) {
-      logger.warn({
-        circuitBreaker: this.name,
-        errors: validation.errors,
-        config: partial,
-      }, 'Invalid configuration values detected, using defaults for invalid fields');
+      logger.warn(
+        {
+          circuitBreaker: this.name,
+          errors: validation.errors,
+          config: partial,
+        },
+        'Invalid configuration values detected, using defaults for invalid fields',
+      );
     }
 
     return { ...DEFAULT_CIRCUIT_BREAKER_CONFIG, ...sanitized };
@@ -172,14 +175,17 @@ export class ConfigManager {
    */
   updateConfig(updates: Partial<CircuitBreakerConfig>): { success: boolean; errors?: string[] } {
     const validation = ConfigValidator.validate(updates);
-    
+
     if (!validation.valid) {
-      logger.error({
-        circuitBreaker: this.name,
-        errors: validation.errors,
-        updates,
-      }, 'Configuration update rejected due to validation errors');
-      
+      logger.error(
+        {
+          circuitBreaker: this.name,
+          errors: validation.errors,
+          updates,
+        },
+        'Configuration update rejected due to validation errors',
+      );
+
       return { success: false, errors: validation.errors };
     }
 
@@ -187,12 +193,15 @@ export class ConfigManager {
     this.config = this.createConfig({ ...this.config, ...updates });
     this.addToHistory(this.config);
 
-    logger.info({
-      circuitBreaker: this.name,
-      oldConfig,
-      newConfig: this.config,
-      changes: Object.keys(updates),
-    }, 'Configuration updated');
+    logger.info(
+      {
+        circuitBreaker: this.name,
+        oldConfig,
+        newConfig: this.config,
+        changes: Object.keys(updates),
+      },
+      'Configuration updated',
+    );
 
     return { success: true };
   }
@@ -202,22 +211,28 @@ export class ConfigManager {
    */
   applyPreset(presetName: string): boolean {
     if (!isValidPreset(presetName)) {
-      logger.error({
-        circuitBreaker: this.name,
-        presetName,
-      }, 'Unknown configuration preset');
+      logger.error(
+        {
+          circuitBreaker: this.name,
+          presetName,
+        },
+        'Unknown configuration preset',
+      );
       return false;
     }
 
     const preset = CONFIG_PRESETS[presetName];
     const result = this.updateConfig(preset);
     if (result.success) {
-      logger.info({
-        circuitBreaker: this.name,
-        presetName,
-      }, 'Configuration preset applied');
+      logger.info(
+        {
+          circuitBreaker: this.name,
+          presetName,
+        },
+        'Configuration preset applied',
+      );
     }
-    
+
     return result.success;
   }
 
@@ -233,28 +248,34 @@ export class ConfigManager {
    */
   rollback(): boolean {
     if (this.configHistory.length <= 1) {
-      logger.warn({
-        circuitBreaker: this.name,
-      }, 'Cannot rollback, no previous configuration available');
+      logger.warn(
+        {
+          circuitBreaker: this.name,
+        },
+        'Cannot rollback, no previous configuration available',
+      );
       return false;
     }
 
     // Remove current config
     this.configHistory.pop();
-    
+
     // Get previous config
     const previous = this.configHistory[this.configHistory.length - 1];
     if (previous) {
       this.config = { ...previous.config };
-      
-      logger.info({
-        circuitBreaker: this.name,
-        rolledBackTo: previous.timestamp,
-      }, 'Configuration rolled back');
-      
+
+      logger.info(
+        {
+          circuitBreaker: this.name,
+          rolledBackTo: previous.timestamp,
+        },
+        'Configuration rolled back',
+      );
+
       return true;
     }
-    
+
     return false;
   }
 
@@ -276,9 +297,10 @@ export class ConfigManager {
   /**
    * Import configuration
    */
-  importConfig(data: {
-    config: Partial<CircuitBreakerConfig>;
-  }): { success: boolean; errors?: string[] } {
+  importConfig(data: { config: Partial<CircuitBreakerConfig> }): {
+    success: boolean;
+    errors?: string[];
+  } {
     return this.updateConfig(data.config);
   }
 

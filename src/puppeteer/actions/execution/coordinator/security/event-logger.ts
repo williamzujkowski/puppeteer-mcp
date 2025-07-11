@@ -57,10 +57,7 @@ export class SecurityEventLogger {
    * @param context - Execution context
    * @returns Security event metadata
    */
-  createBaseMetadata(
-    action: BrowserAction,
-    context: ActionContext,
-  ): SecurityEventMetadata {
+  createBaseMetadata(action: BrowserAction, context: ActionContext): SecurityEventMetadata {
     return {
       sessionId: context.sessionId,
       contextId: context.contextId,
@@ -124,9 +121,7 @@ export class SecurityEventLogger {
 
     try {
       // Process events in parallel with error handling
-      await Promise.allSettled(
-        events.map(event => logSecurityEvent(event.type, event.data))
-      );
+      await Promise.allSettled(events.map((event) => logSecurityEvent(event.type, event.data)));
     } catch (error) {
       logger.error('Failed to flush security event queue', {
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -143,7 +138,7 @@ export class SecurityEventLogger {
       clearInterval(this.flushTimer);
       this.flushTimer = undefined;
     }
-    
+
     // Flush remaining events
     this.flushEventQueue();
   }

@@ -4,24 +4,27 @@
  * @nist cm-6 "Configuration settings"
  */
 
-export { SessionStoreFactory, createDefaultSessionStoreFactory } from './session-store-factory-main.js';
-export type { 
-  SessionStoreFactoryConfig, 
+export {
+  SessionStoreFactory,
+  createDefaultSessionStoreFactory,
+} from './session-store-factory-main.js';
+export type {
+  SessionStoreFactoryConfig,
   SessionStoreFactoryResult,
   ExtractedConfiguration,
   MigrationStats,
   HealthStatus,
   BackupResult,
-  RestoreStats
+  RestoreStats,
 } from './types.js';
 export { SessionStoreBuilder } from './session-store-builder.js';
-export { 
+export {
   type StoreSelectionStrategy,
   type StoreSelectionResult,
   RedisSelectionStrategy,
   MemorySelectionStrategy,
   AutoSelectionStrategy,
-  StoreSelectionStrategyFactory
+  StoreSelectionStrategyFactory,
 } from './store-selection-strategies.js';
 export { ComponentFactoryManager } from './component-factory-manager.js';
 export { ConfigurationExtractor } from './configuration-extractor.js';

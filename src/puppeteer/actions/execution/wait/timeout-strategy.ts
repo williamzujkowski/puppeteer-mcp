@@ -30,7 +30,7 @@ export class TimeoutWaitStrategy extends BaseWaitStrategy {
     const duration = config.duration;
 
     // Use a delay promise as waitForTimeout might not be available in all Puppeteer versions
-    await new Promise<void>(resolve => {
+    await new Promise<void>((resolve) => {
       setTimeout(resolve, duration);
     });
 
@@ -62,7 +62,8 @@ export class TimeoutWaitStrategy extends BaseWaitStrategy {
       return false;
     }
 
-    if (config.duration > 300000) { // 5 minutes max
+    if (config.duration > 300000) {
+      // 5 minutes max
       this.logger.warn('Duration exceeds recommended maximum of 5 minutes');
     }
 

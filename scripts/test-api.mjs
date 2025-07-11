@@ -6,7 +6,7 @@ const API_BASE = 'http://localhost:8443/api/v1';
 
 async function testApi() {
   console.log('Testing Puppeteer MCP API...\n');
-  
+
   // Test 1: Health check
   console.log('1. Testing health endpoint:');
   try {
@@ -24,43 +24,43 @@ async function testApi() {
       method: 'POST',
       headers: {
         'X-API-Key': 'test-key',
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        baseUrl: 'https://example.com'
-      })
+        baseUrl: 'https://example.com',
+      }),
     });
-    
+
     console.log('Response status:', sessionRes.status);
     const sessionData = await sessionRes.json();
     console.log('Response:', JSON.stringify(sessionData, null, 2));
-    
+
     if (sessionRes.ok && sessionData.sessionId) {
       console.log('✅ Session created:', sessionData.sessionId);
-      
+
       // Test 3: Navigate
       console.log('\n3. Testing navigation:');
       const navRes = await fetch(`${API_BASE}/sessions/${sessionData.sessionId}/navigate`, {
         method: 'POST',
         headers: {
           'X-API-Key': 'test-key',
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          url: 'https://example.com'
-        })
+          url: 'https://example.com',
+        }),
       });
-      
+
       const navData = await navRes.json();
       console.log('Navigation response:', navData);
-      
+
       // Cleanup
       console.log('\n4. Cleaning up session:');
       const deleteRes = await fetch(`${API_BASE}/sessions/${sessionData.sessionId}`, {
         method: 'DELETE',
         headers: {
-          'X-API-Key': 'test-key'
-        }
+          'X-API-Key': 'test-key',
+        },
       });
       console.log('✅ Session deleted:', deleteRes.status);
     }

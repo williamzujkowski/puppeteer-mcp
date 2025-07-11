@@ -8,10 +8,7 @@
 import { EventEmitter } from 'events';
 import { CircuitBreakerEvent, CircuitBreakerState } from './types.js';
 import { createLogger } from '../../../utils/logger.js';
-import {
-  LoggingEventHandler,
-  MetricsEventHandler,
-} from './event-handlers.js';
+import { LoggingEventHandler, MetricsEventHandler } from './event-handlers.js';
 
 const logger = createLogger('circuit-breaker-events');
 
@@ -28,7 +25,6 @@ export interface IEventHandler {
 export interface IEventFilter {
   shouldProcess(event: CircuitBreakerEvent): boolean;
 }
-
 
 /**
  * Event aggregator for circuit breaker
@@ -60,12 +56,15 @@ export class EventAggregator extends EventEmitter {
     const handlers = this.handlers.get(eventType) || [];
     handlers.push(handler);
     this.handlers.set(eventType, handlers);
-    
-    logger.debug({
-      aggregator: this.name,
-      eventType,
-      handlerName: (handler as any).name || 'unknown',
-    }, 'Event handler registered');
+
+    logger.debug(
+      {
+        aggregator: this.name,
+        eventType,
+        handlerName: (handler as any).name || 'unknown',
+      },
+      'Event handler registered',
+    );
   }
 
   /**
@@ -105,11 +104,14 @@ export class EventAggregator extends EventEmitter {
     // Apply filters
     for (const filter of this.filters) {
       if (!filter.shouldProcess(event)) {
-        logger.debug({
-          aggregator: this.name,
-          eventType: event.type,
-          filtered: true,
-        }, 'Event filtered out');
+        logger.debug(
+          {
+            aggregator: this.name,
+            eventType: event.type,
+            filtered: true,
+          },
+          'Event filtered out',
+        );
         return;
       }
     }
@@ -123,15 +125,18 @@ export class EventAggregator extends EventEmitter {
     const allHandlers = [...specificHandlers, ...wildcardHandlers];
 
     // Process event with all handlers
-    const promises = allHandlers.map(handler => {
+    const promises = allHandlers.map((handler) => {
       try {
         return Promise.resolve(handler.handle(event));
       } catch (error) {
-        logger.error({
-          aggregator: this.name,
-          handler: (handler as any).name || 'unknown',
-          error,
-        }, 'Event handler error');
+        logger.error(
+          {
+            aggregator: this.name,
+            handler: (handler as any).name || 'unknown',
+            error,
+          },
+          'Event handler error',
+        );
         return Promise.resolve();
       }
     });
@@ -165,13 +170,13 @@ export class EventAggregator extends EventEmitter {
 
     if (filter) {
       if (filter.type) {
-        events = events.filter(e => e.type === filter.type);
+        events = events.filter((e) => e.type === filter.type);
       }
       if (filter.state) {
-        events = events.filter(e => e.state === filter.state);
+        events = events.filter((e) => e.state === filter.state);
       }
       if (filter.since) {
-        events = events.filter(e => e.timestamp > filter.since!);
+        events = events.filter((e) => e.timestamp > filter.since!);
       }
     }
 
@@ -232,4 +237,3 @@ export class EventAggregator extends EventEmitter {
     this.removeAllListeners();
   }
 }
-

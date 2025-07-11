@@ -82,7 +82,7 @@ export interface InteractionOptions {
 /**
  * Wait condition types
  */
-export type WaitCondition = 
+export type WaitCondition =
   | 'selector'
   | 'navigation'
   | 'timeout'

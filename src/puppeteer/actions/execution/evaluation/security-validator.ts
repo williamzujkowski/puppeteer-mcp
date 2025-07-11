@@ -6,16 +6,8 @@
  * @nist si-11 "Error handling"
  */
 
-import type {
-  SecurityValidator,
-  SecurityValidationResult,
-  SecurityIssue,
-} from './types.js';
-import {
-  DANGEROUS_JS_PATTERNS,
-  DANGEROUS_CSS_PATTERNS,
-  SIZE_LIMITS,
-} from './types.js';
+import type { SecurityValidator, SecurityValidationResult, SecurityIssue } from './types.js';
+import { DANGEROUS_JS_PATTERNS, DANGEROUS_CSS_PATTERNS, SIZE_LIMITS } from './types.js';
 import { createLogger } from '../../../../utils/logger.js';
 
 const logger = createLogger('puppeteer:security-validator');
@@ -33,8 +25,8 @@ export class CodeSecurityValidator implements SecurityValidator {
    * @nist sc-18 "Mobile code"
    */
   validateJavaScript(code: string): SecurityValidationResult {
-    logger.debug('Validating JavaScript code', { 
-      codeLength: code.length 
+    logger.debug('Validating JavaScript code', {
+      codeLength: code.length,
     });
 
     const issues: SecurityIssue[] = [];
@@ -72,7 +64,7 @@ export class CodeSecurityValidator implements SecurityValidator {
       result.error = `JavaScript validation failed: ${issues.length} issue(s) found`;
       logger.warn('JavaScript validation failed', {
         issueCount: issues.length,
-        issues: issues.map(i => ({ type: i.type, severity: i.severity })),
+        issues: issues.map((i) => ({ type: i.type, severity: i.severity })),
       });
     } else {
       logger.debug('JavaScript validation passed');
@@ -88,8 +80,8 @@ export class CodeSecurityValidator implements SecurityValidator {
    * @nist sc-18 "Mobile code"
    */
   validateCSS(css: string): SecurityValidationResult {
-    logger.debug('Validating CSS code', { 
-      cssLength: css.length 
+    logger.debug('Validating CSS code', {
+      cssLength: css.length,
     });
 
     const issues: SecurityIssue[] = [];
@@ -121,7 +113,7 @@ export class CodeSecurityValidator implements SecurityValidator {
       result.error = `CSS validation failed: ${issues.length} issue(s) found`;
       logger.warn('CSS validation failed', {
         issueCount: issues.length,
-        issues: issues.map(i => ({ type: i.type, severity: i.severity })),
+        issues: issues.map((i) => ({ type: i.type, severity: i.severity })),
       });
     } else {
       logger.debug('CSS validation passed');
@@ -289,7 +281,7 @@ export class CodeSecurityValidator implements SecurityValidator {
       /^ftp:/i,
     ];
 
-    return maliciousPatterns.some(pattern => pattern.test(url));
+    return maliciousPatterns.some((pattern) => pattern.test(url));
   }
 
   /**
@@ -306,7 +298,11 @@ export class CodeSecurityValidator implements SecurityValidator {
     }
 
     // High-risk patterns
-    if (source.includes('location') || source.includes('xmlhttprequest') || source.includes('fetch')) {
+    if (
+      source.includes('location') ||
+      source.includes('xmlhttprequest') ||
+      source.includes('fetch')
+    ) {
       return 'high';
     }
 

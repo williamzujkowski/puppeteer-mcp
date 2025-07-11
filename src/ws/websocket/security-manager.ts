@@ -39,16 +39,15 @@ export class SecurityManager {
   private rateLimiter = WebSocketRateLimitPresets.standard;
   private options: SecurityValidationOptions;
 
-  constructor(
-    { logger }: WSComponentDependencies,
-    options: SecurityValidationOptions = {},
-  ) {
+  constructor({ logger }: WSComponentDependencies, options: SecurityValidationOptions = {}) {
     this.logger = logger.child({ module: 'ws-security-manager' });
     this.options = {
-      allowedOrigins: config.ALLOWED_ORIGINS ? 
-        Array.isArray(config.ALLOWED_ORIGINS) ? 
-          config.ALLOWED_ORIGINS : 
-          String(config.ALLOWED_ORIGINS).split(',').map(o => o.trim()) 
+      allowedOrigins: config.ALLOWED_ORIGINS
+        ? Array.isArray(config.ALLOWED_ORIGINS)
+          ? config.ALLOWED_ORIGINS
+          : String(config.ALLOWED_ORIGINS)
+              .split(',')
+              .map((o) => o.trim())
         : [],
       maxPayloadSize: config.WS_MAX_PAYLOAD ?? 1024 * 1024, // 1MB
       requireSecure: config.NODE_ENV === 'production',
@@ -106,7 +105,7 @@ export class SecurityManager {
       // Check rate limits
       const rateLimitKey = this.getRateLimitKey(clientIp, info);
       const rateLimitResult = this.checkRateLimit(rateLimitKey);
-      
+
       if (!rateLimitResult.allowed) {
         this.logger.warn('Connection rate limited', {
           clientIp,
@@ -175,7 +174,7 @@ export class SecurityManager {
    */
   async handleConnectionClose(rateLimitKey: string): Promise<void> {
     await this.rateLimiter.onConnectionClose(rateLimitKey);
-    
+
     // Clean up our internal rate limit state
     const state = this.rateLimitState.get(rateLimitKey);
     if (state && state.connections > 0) {
@@ -205,7 +204,7 @@ export class SecurityManager {
       }
 
       const msg = message as Record<string, unknown>;
-      
+
       if (!msg.type || typeof msg.type !== 'string') {
         return { valid: false, error: 'Message must have a valid type field' };
       }
@@ -216,9 +215,9 @@ export class SecurityManager {
 
       return { valid: true };
     } catch (error) {
-      return { 
-        valid: false, 
-        error: error instanceof Error ? error.message : 'Invalid message structure' 
+      return {
+        valid: false,
+        error: error instanceof Error ? error.message : 'Invalid message structure',
       };
     }
   }
@@ -300,9 +299,10 @@ export class SecurityManager {
 
     // Check allowed origins
     if (this.options.allowedOrigins && this.options.allowedOrigins.length > 0) {
-      const isOriginAllowed = this.options.allowedOrigins.includes('*') || 
-                             this.options.allowedOrigins.includes(info.origin);
-      
+      const isOriginAllowed =
+        this.options.allowedOrigins.includes('*') ||
+        this.options.allowedOrigins.includes(info.origin);
+
       if (!isOriginAllowed) {
         return {
           allowed: false,
@@ -336,7 +336,7 @@ export class SecurityManager {
     const maxConnections = 10; // Max connections per minute per IP
 
     let state = this.rateLimitState.get(rateLimitKey);
-    
+
     if (!state) {
       state = {
         connections: 0,

@@ -47,7 +47,7 @@ export class ProxyInstanceManager {
     };
 
     this.proxies.set(id, instance);
-    
+
     logger.info({
       msg: 'Proxy added to pool',
       proxyId: id,
@@ -69,7 +69,7 @@ export class ProxyInstanceManager {
     }
 
     this.proxies.delete(proxyId);
-    
+
     logger.info({
       msg: 'Proxy removed from pool',
       proxyId,
@@ -103,7 +103,7 @@ export class ProxyInstanceManager {
    * Get healthy proxies
    */
   getHealthyProxies(): ProxyInstance[] {
-    return this.getAllProxies().filter(proxy => proxy.health.healthy);
+    return this.getAllProxies().filter((proxy) => proxy.health.healthy);
   }
 
   /**

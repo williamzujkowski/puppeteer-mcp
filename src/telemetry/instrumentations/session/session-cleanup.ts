@@ -16,7 +16,7 @@ export function instrumentDeleteExpired(ctx: InstrumentationContext): void {
   const { tracer, store } = ctx;
   const originalDeleteExpired = store.deleteExpired.bind(store);
 
-  store.deleteExpired = async function(): Promise<number> {
+  store.deleteExpired = async function (): Promise<number> {
     const span = tracer.startSpan('session.deleteExpired', {
       kind: SpanKind.CLIENT,
       attributes: {
@@ -25,9 +25,8 @@ export function instrumentDeleteExpired(ctx: InstrumentationContext): void {
     });
 
     try {
-      const count = await context.with(
-        trace.setSpan(context.active(), span),
-        async () => originalDeleteExpired()
+      const count = await context.with(trace.setSpan(context.active(), span), async () =>
+        originalDeleteExpired(),
       );
 
       span.setAttributes({
@@ -45,13 +44,13 @@ export function instrumentDeleteExpired(ctx: InstrumentationContext): void {
       return count;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      
+
       span.recordException(error as Error);
       span.setStatus({
         code: SpanStatusCode.ERROR,
         message: errorMessage,
       });
-      
+
       span.setAttributes({
         'session.success': false,
         'session.error': errorMessage,

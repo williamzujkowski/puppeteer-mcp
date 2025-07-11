@@ -123,7 +123,11 @@ export interface CacheEntry<T> {
  */
 export interface IFailureDetectionStrategy {
   shouldOpen(failures: Date[], requests: Date[], config: CircuitBreakerConfig): boolean;
-  shouldTransitionToHalfOpen(state: CircuitBreakerState, lastStateChange: Date, config: CircuitBreakerConfig): boolean;
+  shouldTransitionToHalfOpen(
+    state: CircuitBreakerState,
+    lastStateChange: Date,
+    config: CircuitBreakerConfig,
+  ): boolean;
   shouldClose(successes: Date[], config: CircuitBreakerConfig): boolean;
 }
 

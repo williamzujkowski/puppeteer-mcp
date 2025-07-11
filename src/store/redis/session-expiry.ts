@@ -51,7 +51,7 @@ export class SessionExpiryManager {
   extendExpiration(session: Session, extensionMs: number): Session {
     const currentExpiry = new Date(session.data.expiresAt);
     const newExpiry = new Date(currentExpiry.getTime() + extensionMs);
-    
+
     return {
       ...session,
       data: {
@@ -65,11 +65,7 @@ export class SessionExpiryManager {
   /**
    * Set TTL for session in Redis
    */
-  async setSessionTTL(
-    client: RedisClient,
-    sessionKey: string,
-    ttl: number
-  ): Promise<boolean> {
+  async setSessionTTL(client: RedisClient, sessionKey: string, ttl: number): Promise<boolean> {
     try {
       const result = await client.expire(sessionKey, ttl);
       return result === 1;
@@ -84,18 +80,18 @@ export class SessionExpiryManager {
    */
   async cleanupExpiredUserSessions(client: RedisClient): Promise<number> {
     let deletedCount = 0;
-    
+
     try {
       // Get all user session keys
       const userSessionKeys = await client.keys(`${this.USER_SESSIONS_KEY_PREFIX}*`);
-      
+
       for (const userKey of userSessionKeys) {
         const sessionIds = await client.smembers(userKey);
-        
+
         for (const sessionId of sessionIds) {
           const sessionKey = this.getSessionKey(sessionId);
           const exists = await client.exists(sessionKey);
-          
+
           if (!exists) {
             // Remove expired session from user's set
             await client.srem(userKey, sessionId);
@@ -155,25 +151,25 @@ export class SessionExpiryManager {
    */
   async batchCleanupExpired(
     client: RedisClient,
-    batchSize: number = 100
+    batchSize: number = 100,
   ): Promise<{ processed: number; deleted: number }> {
     let processed = 0;
     let deleted = 0;
 
     try {
       const userSessionKeys = await client.keys(`${this.USER_SESSIONS_KEY_PREFIX}*`);
-      
+
       for (let i = 0; i < userSessionKeys.length; i += batchSize) {
         const batch = userSessionKeys.slice(i, i + batchSize);
-        
+
         for (const userKey of batch) {
           const sessionIds = await client.smembers(userKey);
           processed += sessionIds.length;
-          
+
           for (const sessionId of sessionIds) {
             const sessionKey = this.getSessionKey(sessionId);
             const exists = await client.exists(sessionKey);
-            
+
             if (!exists) {
               await client.srem(userKey, sessionId);
               deleted++;

@@ -46,10 +46,7 @@ export const shouldSkipResponse = (
 /**
  * Determine if request is slow based on duration
  */
-export const isSlowRequest = (
-  duration: number,
-  threshold: number = 1000,
-): boolean => {
+export const isSlowRequest = (duration: number, threshold: number = 1000): boolean => {
   return duration > threshold;
 };
 

@@ -6,13 +6,18 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue.svg)](https://www.typescriptlang.org/)
 [![Node.js](https://img.shields.io/badge/Node.js-20+-green.svg)](https://nodejs.org/)
 
-**Beta release of AI-enabled browser automation platform** with REST, gRPC, WebSocket, and Model Context Protocol (MCP) interfaces, unified session management, and enterprise-focused security.
+**Beta release of AI-enabled browser automation platform** with REST, gRPC, WebSocket, and Model
+Context Protocol (MCP) interfaces, unified session management, and enterprise-focused security.
 
-> **🔔 We Need Your Feedback!** This project is in beta and we're actively seeking user feedback to ensure it meets production requirements. Please [report issues](https://github.com/williamzujkowski/puppeteer-mcp/issues) or share your experience.
+> **🔔 We Need Your Feedback!** This project is in beta and we're actively seeking user feedback to
+> ensure it meets production requirements. Please
+> [report issues](https://github.com/williamzujkowski/puppeteer-mcp/issues) or share your
+> experience.
 
 ## 📚 Documentation
 
-**Full documentation is available at: [https://williamzujkowski.github.io/puppeteer-mcp/](https://williamzujkowski.github.io/puppeteer-mcp/)**
+**Full documentation is available at:
+[https://williamzujkowski.github.io/puppeteer-mcp/](https://williamzujkowski.github.io/puppeteer-mcp/)**
 
 - [Quick Start Guide](https://williamzujkowski.github.io/puppeteer-mcp/quickstart/)
 - [API Reference](https://williamzujkowski.github.io/puppeteer-mcp/api/)
@@ -53,6 +58,7 @@ Add to your Claude Desktop configuration:
 ```
 
 **Configuration file locations:**
+
 - macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
 - Windows: `%APPDATA%\Claude\claude_desktop_config.json`
 - Linux: `~/.config/claude/claude_desktop_config.json`

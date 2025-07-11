@@ -87,7 +87,7 @@ export class DataValidator extends BaseValidator {
     action: UploadAction,
     context: ActionContext,
     errors: ValidationError[],
-    warnings: ValidationError[]
+    warnings: ValidationError[],
   ): Promise<void> {
     // Validate selector
     if (!this.validateRequiredString(action.selector, 'selector', errors, 'MISSING_SELECTOR')) {
@@ -102,13 +102,13 @@ export class DataValidator extends BaseValidator {
     // Validate each file path
     for (let i = 0; i < action.filePaths.length; i++) {
       const filePath = action.filePaths[i];
-      
+
       if (typeof filePath !== 'string') {
         this.addError(
           errors,
           `filePaths[${i}]`,
           'File path must be a string',
-          'INVALID_FILE_PATH_TYPE'
+          'INVALID_FILE_PATH_TYPE',
         );
         continue;
       }
@@ -123,7 +123,7 @@ export class DataValidator extends BaseValidator {
         warnings,
         'filePaths',
         'Uploading many files may impact performance',
-        'MANY_FILES_WARNING'
+        'MANY_FILES_WARNING',
       );
     }
 
@@ -133,7 +133,7 @@ export class DataValidator extends BaseValidator {
         warnings,
         'selector',
         'Selector does not appear to target a file input element',
-        'NON_FILE_INPUT_WARNING'
+        'NON_FILE_INPUT_WARNING',
       );
     }
   }
@@ -147,7 +147,7 @@ export class DataValidator extends BaseValidator {
   private validateCookieAction(
     action: CookieAction,
     errors: ValidationError[],
-    warnings: ValidationError[]
+    warnings: ValidationError[],
   ): void {
     // Validate operation
     if (!action.operation) {
@@ -160,7 +160,7 @@ export class DataValidator extends BaseValidator {
       'operation',
       VALID_COOKIE_OPERATIONS,
       errors,
-      'INVALID_COOKIE_OPERATION'
+      'INVALID_COOKIE_OPERATION',
     );
 
     // Operation-specific validation
@@ -187,7 +187,7 @@ export class DataValidator extends BaseValidator {
   private validateSetCookies(
     action: CookieAction,
     errors: ValidationError[],
-    warnings: ValidationError[]
+    warnings: ValidationError[],
   ): void {
     if (!this.validateArray(action.cookies, 'cookies', errors, 'MISSING_COOKIES_FOR_SET')) {
       return;
@@ -200,7 +200,7 @@ export class DataValidator extends BaseValidator {
           errors,
           `cookies[${index}].name`,
           'Cookie name is required',
-          'MISSING_COOKIE_NAME'
+          'MISSING_COOKIE_NAME',
         );
       }
 
@@ -209,7 +209,7 @@ export class DataValidator extends BaseValidator {
           errors,
           `cookies[${index}].value`,
           'Cookie value is required',
-          'MISSING_COOKIE_VALUE'
+          'MISSING_COOKIE_VALUE',
         );
       }
 
@@ -219,7 +219,7 @@ export class DataValidator extends BaseValidator {
           errors,
           `cookies[${index}].domain`,
           'Invalid cookie domain',
-          'INVALID_COOKIE_DOMAIN'
+          'INVALID_COOKIE_DOMAIN',
         );
       }
 
@@ -229,7 +229,7 @@ export class DataValidator extends BaseValidator {
           errors,
           `cookies[${index}].path`,
           'Cookie path must start with /',
-          'INVALID_COOKIE_PATH'
+          'INVALID_COOKIE_PATH',
         );
       }
 
@@ -240,7 +240,7 @@ export class DataValidator extends BaseValidator {
             errors,
             `cookies[${index}].expires`,
             'Cookie expires must be a positive number (Unix timestamp)',
-            'INVALID_COOKIE_EXPIRES'
+            'INVALID_COOKIE_EXPIRES',
           );
         }
       }
@@ -252,7 +252,7 @@ export class DataValidator extends BaseValidator {
           `cookies[${index}].sameSite`,
           VALID_SAME_SITE,
           errors,
-          'INVALID_SAME_SITE'
+          'INVALID_SAME_SITE',
         );
       }
 
@@ -262,7 +262,7 @@ export class DataValidator extends BaseValidator {
           warnings,
           `cookies[${index}]`,
           'SameSite=None requires Secure attribute',
-          'SAME_SITE_SECURITY'
+          'SAME_SITE_SECURITY',
         );
       }
 
@@ -271,20 +271,20 @@ export class DataValidator extends BaseValidator {
           warnings,
           `cookies[${index}].httpOnly`,
           'Setting httpOnly to false may have security implications',
-          'HTTP_ONLY_WARNING'
+          'HTTP_ONLY_WARNING',
         );
       }
 
       // Check for sensitive cookie names
-      const sensitiveName = ['session', 'token', 'auth', 'key'].some(
-        sensitive => cookie.name?.toLowerCase().includes(sensitive)
+      const sensitiveName = ['session', 'token', 'auth', 'key'].some((sensitive) =>
+        cookie.name?.toLowerCase().includes(sensitive),
       );
       if (sensitiveName && !cookie.secure) {
         this.addWarning(
           warnings,
           `cookies[${index}].secure`,
           'Sensitive cookie should use secure flag',
-          'INSECURE_SENSITIVE_COOKIE'
+          'INSECURE_SENSITIVE_COOKIE',
         );
       }
     });
@@ -301,7 +301,7 @@ export class DataValidator extends BaseValidator {
         errors,
         'cookies/names',
         'Either cookies array or names array is required for delete operation',
-        'MISSING_DELETE_PARAMS'
+        'MISSING_DELETE_PARAMS',
       );
       return;
     }
@@ -317,7 +317,7 @@ export class DataValidator extends BaseValidator {
             errors,
             `names[${index}]`,
             'Cookie name must be a string',
-            'INVALID_NAME_TYPE'
+            'INVALID_NAME_TYPE',
           );
         }
       });
@@ -337,7 +337,7 @@ export class DataValidator extends BaseValidator {
     index: number,
     _context: ActionContext,
     errors: ValidationError[],
-    warnings: ValidationError[]
+    warnings: ValidationError[],
   ): Promise<void> {
     // Check for path traversal
     if (filePath.includes('..') || filePath.includes('~')) {
@@ -345,16 +345,16 @@ export class DataValidator extends BaseValidator {
         errors,
         `filePaths[${index}]`,
         'File path contains potentially dangerous patterns',
-        'DANGEROUS_FILE_PATH'
+        'DANGEROUS_FILE_PATH',
       );
     }
-    
+
     // Warn about large file handling
     this.addWarning(
       warnings,
       `filePaths[${index}]`,
       `Files larger than ${MAX_FILE_SIZE / (1024 * 1024)}MB may cause performance issues`,
-      'LARGE_FILE_WARNING'
+      'LARGE_FILE_WARNING',
     );
 
     // Check for absolute paths (security concern)
@@ -363,24 +363,36 @@ export class DataValidator extends BaseValidator {
         warnings,
         `filePaths[${index}]`,
         'Absolute file paths may have security implications',
-        'ABSOLUTE_PATH_WARNING'
+        'ABSOLUTE_PATH_WARNING',
       );
     }
 
     // Validate file extension
     const allowedExtensions = [
-      '.txt', '.pdf', '.doc', '.docx', '.xls', '.xlsx',
-      '.png', '.jpg', '.jpeg', '.gif', '.webp',
-      '.csv', '.json', '.xml', '.zip'
+      '.txt',
+      '.pdf',
+      '.doc',
+      '.docx',
+      '.xls',
+      '.xlsx',
+      '.png',
+      '.jpg',
+      '.jpeg',
+      '.gif',
+      '.webp',
+      '.csv',
+      '.json',
+      '.xml',
+      '.zip',
     ];
-    
+
     const ext = filePath.toLowerCase().match(/\.[^.]+$/)?.[0];
     if (ext && !allowedExtensions.includes(ext)) {
       this.addWarning(
         warnings,
         `filePaths[${index}]`,
         `Unusual file extension: ${ext}`,
-        'UNUSUAL_FILE_EXTENSION'
+        'UNUSUAL_FILE_EXTENSION',
       );
     }
 
@@ -391,7 +403,7 @@ export class DataValidator extends BaseValidator {
         errors,
         `filePaths[${index}]`,
         'Executable files are not allowed',
-        'EXECUTABLE_FILE'
+        'EXECUTABLE_FILE',
       );
     }
   }
@@ -405,10 +417,12 @@ export class DataValidator extends BaseValidator {
     // Simple domain validation
     const domainPattern = /^(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$/;
     const ipPattern = /^(\d{1,3}\.){3}\d{1,3}$/;
-    
-    return domain === 'localhost' || 
-           domainPattern.test(domain) || 
-           ipPattern.test(domain) ||
-           domain.startsWith('.');
+
+    return (
+      domain === 'localhost' ||
+      domainPattern.test(domain) ||
+      ipPattern.test(domain) ||
+      domain.startsWith('.')
+    );
   }
 }

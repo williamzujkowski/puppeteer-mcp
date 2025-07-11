@@ -6,7 +6,10 @@
  * @nist si-11 "Error handling"
  */
 
-import type { ActionContext, ValidationResult } from '../../../interfaces/action-executor.interface.js';
+import type {
+  ActionContext,
+  ValidationResult,
+} from '../../../interfaces/action-executor.interface.js';
 import type { ActionExecutionErrorDetails } from '../types.js';
 import { logSecurityEvent, SecurityEventType } from '../../../../utils/logger.js';
 
@@ -42,8 +45,8 @@ export class SecurityEventHandler {
     validationResult: ValidationResult,
     metadata?: Partial<SecurityEventMetadata>,
   ): Promise<void> {
-    const errorMessage = validationResult.errors.map(e => e.message).join('; ');
-    
+    const errorMessage = validationResult.errors.map((e) => e.message).join('; ');
+
     await logSecurityEvent(SecurityEventType.VALIDATION_FAILURE, {
       userId: context.userId,
       resource: `action:${actionType}`,
@@ -195,7 +198,7 @@ export class SecurityEventHandler {
     ];
 
     const message = error.message.toLowerCase();
-    return securityPatterns.some(pattern => message.includes(pattern));
+    return securityPatterns.some((pattern) => message.includes(pattern));
   }
 
   /**
@@ -210,15 +213,10 @@ export class SecurityEventHandler {
     error: Error,
   ): Promise<void> {
     if (this.isSecurityRelatedError(error)) {
-      await this.logSuspiciousActivity(
-        context,
-        actionType,
-        'Security-related error detected',
-        {
-          errorMessage: error.message,
-          errorStack: error.stack,
-        },
-      );
+      await this.logSuspiciousActivity(context, actionType, 'Security-related error detected', {
+        errorMessage: error.message,
+        errorStack: error.stack,
+      });
     }
 
     // Check for patterns indicating potential attacks
@@ -230,18 +228,13 @@ export class SecurityEventHandler {
     ];
 
     const errorString = error.message + (error.stack ?? '');
-    
+
     for (const { pattern, type } of attackPatterns) {
       if (pattern.test(errorString)) {
-        await this.logSuspiciousActivity(
-          context,
-          actionType,
-          type,
-          {
-            errorMessage: error.message,
-            matchedPattern: pattern.toString(),
-          },
-        );
+        await this.logSuspiciousActivity(context, actionType, type, {
+          errorMessage: error.message,
+          matchedPattern: pattern.toString(),
+        });
       }
     }
   }

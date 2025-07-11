@@ -38,7 +38,7 @@ const TEST_URLS = {
     'http://exa mple.com',
     'http://example.com:99999', // Invalid port
     'http://example.com:-1',
-    'http://example.com:abc'
+    'http://example.com:abc',
   ],
   nonExistent: [
     'https://this-domain-definitely-does-not-exist-12345.com',
@@ -60,18 +60,14 @@ const TEST_URLS = {
     'view-source:http://example.com',
     'blob:http://example.com/123',
     'filesystem:http://example.com/temporary/',
-  ]
+  ],
 };
 
 // Helper functions
 async function setupSession() {
   try {
     // Use dev-create endpoint for testing
-    const response = await axios.post(
-      `${API_BASE}/v1/sessions/dev-create`,
-      {},
-      {}
-    );
+    const response = await axios.post(`${API_BASE}/v1/sessions/dev-create`, {}, {});
     // Store the token for later use
     if (response.data.data?.tokens?.accessToken) {
       process.env.API_TOKEN = response.data.data.tokens.accessToken;
@@ -94,7 +90,7 @@ async function testInvalidUrl(sessionId, url, category) {
     errorCode: null,
     errorMessage: null,
     responseTime: 0,
-    httpStatus: null
+    httpStatus: null,
   };
 
   try {
@@ -103,13 +99,13 @@ async function testInvalidUrl(sessionId, url, category) {
       {
         sessionId,
         action: 'navigate',
-        params: { url }
+        params: { url },
       },
-      { 
+      {
         headers: { Authorization: `Bearer ${TOKEN}` },
         timeout: 10000,
-        validateStatus: () => true // Accept any status
-      }
+        validateStatus: () => true, // Accept any status
+      },
     );
 
     result.httpStatus = response.status;
@@ -134,7 +130,7 @@ async function testInvalidUrl(sessionId, url, category) {
     result.success = true; // Network errors are expected for some URLs
     result.error = error.code || 'NETWORK_ERROR';
     result.errorMessage = error.message;
-    
+
     if (error.response) {
       result.httpStatus = error.response.status;
       result.errorCode = error.response.data?.code || error.response.status;
@@ -152,15 +148,14 @@ async function testResourceCleanup(sessionId) {
     test: 'resource_cleanup',
     timestamp: new Date().toISOString(),
     success: false,
-    checks: []
+    checks: [],
   };
 
   try {
     // Get session info before
-    const beforeResponse = await axios.get(
-      `${API_BASE}/v1/sessions/dev-create/${sessionId}`,
-      { headers: { Authorization: `Bearer ${TOKEN}` } }
-    );
+    const beforeResponse = await axios.get(`${API_BASE}/v1/sessions/dev-create/${sessionId}`, {
+      headers: { Authorization: `Bearer ${TOKEN}` },
+    });
     const pagesBefore = beforeResponse.data.data.pages?.length || 0;
 
     // Try multiple invalid URLs
@@ -169,29 +164,27 @@ async function testResourceCleanup(sessionId) {
     }
 
     // Get session info after
-    const afterResponse = await axios.get(
-      `${API_BASE}/v1/sessions/dev-create/${sessionId}`,
-      { headers: { Authorization: `Bearer ${TOKEN}` } }
-    );
+    const afterResponse = await axios.get(`${API_BASE}/v1/sessions/dev-create/${sessionId}`, {
+      headers: { Authorization: `Bearer ${TOKEN}` },
+    });
     const pagesAfter = afterResponse.data.data.pages?.length || 0;
 
     result.checks.push({
       name: 'page_count_unchanged',
       passed: pagesBefore === pagesAfter,
       expected: pagesBefore,
-      actual: pagesAfter
+      actual: pagesAfter,
     });
 
     // Check session is still active
     result.checks.push({
       name: 'session_still_active',
       passed: afterResponse.data.data.active === true,
-      details: afterResponse.data.data
+      details: afterResponse.data.data,
     });
 
-    result.success = result.checks.every(check => check.passed);
+    result.success = result.checks.every((check) => check.passed);
     result.duration = Date.now() - startTime;
-
   } catch (error) {
     result.error = error.message;
     result.duration = Date.now() - startTime;
@@ -202,7 +195,7 @@ async function testResourceCleanup(sessionId) {
 
 async function runTests() {
   console.log('Starting Invalid URL Error Handling Tests...\n');
-  
+
   const results = {
     testSuite: 'invalid-url-handling',
     timestamp: new Date().toISOString(),
@@ -210,10 +203,10 @@ async function runTests() {
       total: 0,
       passed: 0,
       failed: 0,
-      categories: {}
+      categories: {},
     },
     tests: [],
-    resourceCleanup: null
+    resourceCleanup: null,
   };
 
   let sessionId;
@@ -228,20 +221,20 @@ async function runTests() {
     for (const [category, urls] of Object.entries(TEST_URLS)) {
       console.log(`\nTesting ${category} URLs:`);
       console.log('='.repeat(50));
-      
+
       results.summary.categories[category] = {
         total: urls.length,
         passed: 0,
-        failed: 0
+        failed: 0,
       };
 
       for (const url of urls) {
         process.stdout.write(`Testing: ${url.substring(0, 50)}...`);
         const result = await testInvalidUrl(sessionId, url, category);
-        
+
         results.tests.push(result);
         results.summary.total++;
-        
+
         if (result.success) {
           results.summary.passed++;
           results.summary.categories[category].passed++;
@@ -255,7 +248,7 @@ async function runTests() {
         }
 
         // Small delay between tests
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise((resolve) => setTimeout(resolve, 100));
       }
     }
 
@@ -263,16 +256,15 @@ async function runTests() {
     console.log('\n\nTesting Resource Cleanup:');
     console.log('='.repeat(50));
     results.resourceCleanup = await testResourceCleanup(sessionId);
-    
+
     if (results.resourceCleanup.success) {
       console.log('✓ Resources properly cleaned up after errors');
     } else {
       console.log('✗ Resource cleanup issues detected');
-      results.resourceCleanup.checks.forEach(check => {
+      results.resourceCleanup.checks.forEach((check) => {
         console.log(`  - ${check.name}: ${check.passed ? '✓' : '✗'}`);
       });
     }
-
   } catch (error) {
     console.error('\nTest suite error:', error.message);
     results.error = error.message;
@@ -280,10 +272,9 @@ async function runTests() {
     // Cleanup
     if (sessionId) {
       try {
-        await axios.delete(
-          `${API_BASE}/v1/sessions/dev-create/${sessionId}`,
-          { headers: { Authorization: `Bearer ${TOKEN}` } }
-        );
+        await axios.delete(`${API_BASE}/v1/sessions/dev-create/${sessionId}`, {
+          headers: { Authorization: `Bearer ${TOKEN}` },
+        });
         console.log('\nTest session cleaned up');
       } catch (error) {
         console.error('Failed to cleanup session:', error.message);
@@ -300,9 +291,11 @@ async function runTests() {
   console.log('\n\nTest Summary:');
   console.log('='.repeat(50));
   console.log(`Total Tests: ${results.summary.total}`);
-  console.log(`Passed: ${results.summary.passed} (${(results.summary.passed/results.summary.total*100).toFixed(1)}%)`);
+  console.log(
+    `Passed: ${results.summary.passed} (${((results.summary.passed / results.summary.total) * 100).toFixed(1)}%)`,
+  );
   console.log(`Failed: ${results.summary.failed}`);
-  
+
   console.log('\nBy Category:');
   for (const [category, stats] of Object.entries(results.summary.categories)) {
     console.log(`  ${category}: ${stats.passed}/${stats.total} passed`);
@@ -311,19 +304,19 @@ async function runTests() {
   // Identify vulnerabilities
   console.log('\n\nVulnerability Analysis:');
   console.log('='.repeat(50));
-  
-  const vulnerabilities = results.tests.filter(t => !t.success);
+
+  const vulnerabilities = results.tests.filter((t) => !t.success);
   if (vulnerabilities.length === 0) {
     console.log('✓ No vulnerabilities found - all invalid URLs properly rejected');
   } else {
     console.log(`⚠️  Found ${vulnerabilities.length} potential vulnerabilities:`);
-    vulnerabilities.forEach(v => {
+    vulnerabilities.forEach((v) => {
       console.log(`  - ${v.url}: ${v.errorMessage}`);
     });
   }
 
   // Check for consistent error handling
-  const errorCodes = [...new Set(results.tests.map(t => t.errorCode))].filter(Boolean);
+  const errorCodes = [...new Set(results.tests.map((t) => t.errorCode))].filter(Boolean);
   console.log(`\nError codes encountered: ${errorCodes.join(', ')}`);
 
   return results;

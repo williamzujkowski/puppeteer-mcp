@@ -3,7 +3,7 @@
  * @module puppeteer/actions/execution/file-executor
  * @nist ac-3 "Access enforcement"
  * @nist si-7 "Software, firmware, and information integrity"
- * 
+ *
  * This file maintains backward compatibility by re-exporting the modularized components.
  * The implementation has been split into focused modules under the ./file/ directory.
  */
@@ -100,13 +100,9 @@ export class FileExecutor {
    * @param context - Execution context
    * @returns Action result
    */
-  async execute(
-    action: BrowserAction,
-    page: Page,
-    context: ActionContext,
-  ): Promise<ActionResult> {
+  async execute(action: BrowserAction, page: Page, context: ActionContext): Promise<ActionResult> {
     const executor = this.executorFactory.getExecutor(action.type);
-    
+
     if (!executor) {
       throw new Error(`Unsupported file action: ${action.type}`);
     }
@@ -118,7 +114,7 @@ export class FileExecutor {
         downloadPath: string;
         timeout?: number;
       };
-      
+
       const normalizedAction: DownloadAction = {
         ...action,
         type: 'download',

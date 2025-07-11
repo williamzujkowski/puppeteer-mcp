@@ -23,7 +23,7 @@ export class ActionContextManager {
 
   constructor(pageManager?: PageManager) {
     this.pageManager = pageManager;
-    
+
     // Clean up cache periodically
     setInterval(() => {
       this.cleanupCache();
@@ -251,7 +251,7 @@ export class ActionContextManager {
         await page.evaluate(() => {
           // Remove any added event listeners with our namespace
           const elements = document.querySelectorAll('[data-puppeteer-listener]');
-          elements.forEach(el => {
+          elements.forEach((el) => {
             el.removeAttribute('data-puppeteer-listener');
             // Note: We can't easily remove event listeners without references
           });
@@ -310,7 +310,7 @@ export class ActionContextManager {
       logger.error('Failed to get page info', {
         error: error instanceof Error ? error.message : 'Unknown error',
       });
-      
+
       return {
         url: '',
         title: '',
@@ -357,7 +357,7 @@ export class ActionContextManager {
    */
   private cleanupCache(): void {
     const stalePagesIds: string[] = [];
-    
+
     this.pageCache.forEach((page, pageId) => {
       if (page.isClosed()) {
         stalePagesIds.push(pageId);
@@ -369,7 +369,7 @@ export class ActionContextManager {
         count: stalePagesIds.length,
         pageIds: stalePagesIds,
       });
-      
+
       for (const pageId of stalePagesIds) {
         this.pageCache.delete(pageId);
       }
@@ -386,7 +386,7 @@ declare module 'puppeteer' {
   interface Page {
     waitForLoadState?(
       state: 'load' | 'domcontentloaded' | 'networkidle',
-      options?: { timeout?: number }
+      options?: { timeout?: number },
     ): Promise<void>;
   }
 }

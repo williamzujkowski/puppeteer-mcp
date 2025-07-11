@@ -40,7 +40,7 @@ export class PerformanceMonitor extends EventEmitter {
   constructor(
     private name: string,
     private metricsCollector: MetricsCollector,
-    thresholds: Partial<PerformanceThresholds> = {}
+    thresholds: Partial<PerformanceThresholds> = {},
   ) {
     super();
     this.performanceThresholds = {
@@ -84,7 +84,7 @@ export class PerformanceMonitor extends EventEmitter {
   private performHealthCheck(): void {
     const recentRequests = this.metricsCollector.getRecentRequests();
     const recentFailures = this.metricsCollector.getRecentFailures();
-    
+
     // Check failure rate
     if (recentRequests.length > 0) {
       const failureRate = (recentFailures.length / recentRequests.length) * 100;
@@ -113,10 +113,13 @@ export class PerformanceMonitor extends EventEmitter {
    */
   updateThresholds(thresholds: Partial<PerformanceThresholds>): void {
     this.performanceThresholds = { ...this.performanceThresholds, ...thresholds };
-    logger.info({
-      circuitBreaker: this.name,
-      thresholds: this.performanceThresholds,
-    }, 'Performance thresholds updated');
+    logger.info(
+      {
+        circuitBreaker: this.name,
+        thresholds: this.performanceThresholds,
+      },
+      'Performance thresholds updated',
+    );
   }
 
   /**
@@ -129,7 +132,7 @@ export class PerformanceMonitor extends EventEmitter {
   } {
     const issues: string[] = [];
     const recommendations: string[] = [];
-    
+
     // Check response time
     if (metrics.averageResponseTime > this.performanceThresholds.highResponseTime) {
       issues.push(`High average response time: ${metrics.averageResponseTime}ms`);

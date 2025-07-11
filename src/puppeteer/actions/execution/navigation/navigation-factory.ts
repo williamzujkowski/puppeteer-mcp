@@ -68,11 +68,7 @@ class PageNavigationStrategy implements NavigationStrategy {
 
   constructor(private readonly navigator: PageNavigator) {}
 
-  async execute(
-    action: BrowserAction,
-    page: Page,
-    context: ActionContext
-  ): Promise<ActionResult> {
+  async execute(action: BrowserAction, page: Page, context: ActionContext): Promise<ActionResult> {
     if (action.type !== 'navigate') {
       throw new Error(`Page navigation strategy does not support action type: ${action.type}`);
     }
@@ -89,11 +85,7 @@ class HistoryNavigationStrategy implements NavigationStrategy {
 
   constructor(private readonly navigator: HistoryNavigator) {}
 
-  async execute(
-    action: BrowserAction,
-    page: Page,
-    context: ActionContext
-  ): Promise<ActionResult> {
+  async execute(action: BrowserAction, page: Page, context: ActionContext): Promise<ActionResult> {
     switch (action.type) {
       case 'goBack':
         return this.navigator.goBack(page, context, action.timeout);
@@ -116,18 +108,14 @@ class ViewportStrategy implements NavigationStrategy {
 
   constructor(private readonly manager: ViewportManager) {}
 
-  async execute(
-    action: BrowserAction,
-    page: Page,
-    context: ActionContext
-  ): Promise<ActionResult> {
+  async execute(action: BrowserAction, page: Page, context: ActionContext): Promise<ActionResult> {
     if (action.type !== 'setViewport') {
       throw new Error(`Viewport strategy does not support action type: ${action.type}`);
     }
 
     // Type assertion - in practice this would be validated by the dispatcher
     const viewportAction = action as any;
-    
+
     return this.manager.setViewport(page, context, {
       width: viewportAction.width,
       height: viewportAction.height,
@@ -144,9 +132,16 @@ export class NavigationFactory {
   private readonly strategies: StrategyRegistry = {};
   private readonly urlValidator: UrlValidator;
   private readonly performanceMonitor: PerformanceMonitor;
-  private readonly config: Required<Omit<NavigationFactoryConfig, 
-    'urlValidation' | 'pageNavigation' | 'historyNavigation' | 
-    'viewportValidation' | 'performanceMonitoring'>>;
+  private readonly config: Required<
+    Omit<
+      NavigationFactoryConfig,
+      | 'urlValidation'
+      | 'pageNavigation'
+      | 'historyNavigation'
+      | 'viewportValidation'
+      | 'performanceMonitoring'
+    >
+  >;
 
   constructor(config?: NavigationFactoryConfig) {
     this.config = {
@@ -176,14 +171,18 @@ export class NavigationFactory {
     // Page navigation strategy
     const pageNavigator = new PageNavigator({
       urlValidator: this.config.enableUrlValidation ? this.urlValidator : undefined,
-      performanceMonitor: this.config.enablePerformanceMonitoring ? this.performanceMonitor : undefined,
+      performanceMonitor: this.config.enablePerformanceMonitoring
+        ? this.performanceMonitor
+        : undefined,
       ...config?.pageNavigation,
     });
     this.registerStrategy(new PageNavigationStrategy(pageNavigator));
 
     // History navigation strategy
     const historyNavigator = new HistoryNavigator({
-      performanceMonitor: this.config.enablePerformanceMonitoring ? this.performanceMonitor : undefined,
+      performanceMonitor: this.config.enablePerformanceMonitoring
+        ? this.performanceMonitor
+        : undefined,
       ...config?.historyNavigation,
     });
     this.registerStrategy(new HistoryNavigationStrategy(historyNavigator));
@@ -206,9 +205,9 @@ export class NavigationFactory {
           newStrategy: strategy.name,
         });
       }
-      
+
       this.strategies[actionType] = strategy;
-      
+
       logger.debug('Registered navigation strategy', {
         actionType,
         strategyName: strategy.name,
@@ -224,7 +223,7 @@ export class NavigationFactory {
     if (this.strategies[actionType]) {
       const strategyName = this.strategies[actionType].name;
       delete this.strategies[actionType];
-      
+
       logger.debug('Unregistered navigation strategy', {
         actionType,
         strategyName,
@@ -250,11 +249,7 @@ export class NavigationFactory {
    * @nist ac-3 "Access enforcement"
    * @nist au-3 "Content of audit records"
    */
-  async execute(
-    action: BrowserAction,
-    page: Page,
-    context: ActionContext
-  ): Promise<ActionResult> {
+  async execute(action: BrowserAction, page: Page, context: ActionContext): Promise<ActionResult> {
     const startTime = Date.now();
 
     try {
@@ -290,7 +285,6 @@ export class NavigationFactory {
       });
 
       return result;
-
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Navigation execution failed';
       const duration = Date.now() - startTime;
@@ -339,11 +333,11 @@ export class NavigationFactory {
    */
   getRegisteredStrategies(): Record<string, string> {
     const strategyMap: Record<string, string> = {};
-    
+
     for (const [actionType, strategy] of Object.entries(this.strategies)) {
       strategyMap[actionType] = strategy.name;
     }
-    
+
     return strategyMap;
   }
 
@@ -402,9 +396,16 @@ export class NavigationFactory {
    * Get current factory configuration
    * @returns Current configuration
    */
-  getConfig(): Required<Omit<NavigationFactoryConfig,
-    'urlValidation' | 'pageNavigation' | 'historyNavigation' | 
-    'viewportValidation' | 'performanceMonitoring'>> {
+  getConfig(): Required<
+    Omit<
+      NavigationFactoryConfig,
+      | 'urlValidation'
+      | 'pageNavigation'
+      | 'historyNavigation'
+      | 'viewportValidation'
+      | 'performanceMonitoring'
+    >
+  > {
     return { ...this.config };
   }
 
@@ -431,7 +432,7 @@ export class NavigationFactory {
       if (action.type === 'navigate' && this.config.enableUrlValidation) {
         const navigateAction = action;
         const urlValidation = await this.urlValidator.validateUrl(navigateAction.url);
-        
+
         if (!urlValidation.isValid) {
           return {
             isValid: false,
@@ -446,10 +447,9 @@ export class NavigationFactory {
       }
 
       return { isValid: true };
-
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Validation failed';
-      
+
       logger.error('Action validation failed', {
         actionType: action.type,
         error: errorMessage,
@@ -480,13 +480,13 @@ export function createNavigationFactory(config?: NavigationFactoryConfig): Navig
  */
 export function createNavigationFactoryWithStrategies(
   strategies: NavigationStrategy[],
-  config?: NavigationFactoryConfig
+  config?: NavigationFactoryConfig,
 ): NavigationFactory {
   const factory = new NavigationFactory(config);
-  
+
   for (const strategy of strategies) {
     factory.registerStrategy(strategy);
   }
-  
+
   return factory;
 }

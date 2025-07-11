@@ -63,6 +63,12 @@ export type ResourceEventListener<T = any> = (data: T) => void;
  */
 export interface IResourceEventEmitter {
   emit<K extends keyof ResourceEventMap>(event: K, data: ResourceEventMap[K]): void;
-  on<K extends keyof ResourceEventMap>(event: K, listener: ResourceEventListener<ResourceEventMap[K]>): void;
-  off<K extends keyof ResourceEventMap>(event: K, listener: ResourceEventListener<ResourceEventMap[K]>): void;
+  on<K extends keyof ResourceEventMap>(
+    event: K,
+    listener: ResourceEventListener<ResourceEventMap[K]>,
+  ): void;
+  off<K extends keyof ResourceEventMap>(
+    event: K,
+    listener: ResourceEventListener<ResourceEventMap[K]>,
+  ): void;
 }

@@ -11,11 +11,7 @@ import type { WSMessage } from '../../types/websocket.js';
 import { logSecurityEvent, SecurityEventType } from '../../utils/logger.js';
 import type { ConnectionManager } from './connection-manager.js';
 import type { SecurityManager } from './security-manager.js';
-import type { 
-  WSComponentDependencies, 
-  MiddlewareContext, 
-  MiddlewareFunction 
-} from './types.js';
+import type { WSComponentDependencies, MiddlewareContext, MiddlewareFunction } from './types.js';
 
 /**
  * Middleware execution result
@@ -177,14 +173,14 @@ export class MiddlewarePipeline {
       if (currentIndex < enabledMiddlewares.length) {
         const current = enabledMiddlewares[currentIndex++];
         if (!current) return;
-        
+
         const { name, middleware } = current;
-        
+
         try {
           await middleware(context, next);
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : 'Unknown middleware error';
-          
+
           this.logger.error('Middleware execution error', {
             middleware: name,
             direction,
@@ -232,7 +228,7 @@ export class MiddlewarePipeline {
     // Logging middleware
     this.use(BuiltInMiddleware.LOGGING, async (context, next) => {
       const start = Date.now();
-      
+
       context.logger.debug('Processing message', {
         connectionId: context.connectionId,
         messageType: context.message?.type,
@@ -294,10 +290,10 @@ export class MiddlewarePipeline {
     // Metrics middleware
     this.use(BuiltInMiddleware.METRICS, async (context, next) => {
       const start = Date.now();
-      
+
       try {
         await next();
-        
+
         // Record successful processing
         const duration = Date.now() - start;
         void logSecurityEvent(SecurityEventType.API_ACCESS, {
@@ -326,7 +322,7 @@ export class MiddlewarePipeline {
             error: error instanceof Error ? error.message : 'Unknown error',
           },
         });
-        
+
         throw error;
       }
     });

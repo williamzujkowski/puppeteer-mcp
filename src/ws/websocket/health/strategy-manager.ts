@@ -6,11 +6,11 @@
  */
 
 import type { pino } from 'pino';
-import { 
-  HealthCheckStrategy, 
-  MemoryCheckStrategy, 
-  ConnectionCheckStrategy, 
-  PerformanceCheckStrategy 
+import {
+  HealthCheckStrategy,
+  MemoryCheckStrategy,
+  ConnectionCheckStrategy,
+  PerformanceCheckStrategy,
 } from './strategies/index.js';
 import type { HealthCheckContext, HealthMetrics } from './types.js';
 import { HealthStatus } from './types.js';
@@ -32,41 +32,47 @@ export class StrategyManager {
    * Initialize default health check strategies
    */
   private initializeDefaultStrategies(): void {
-    this.addStrategy(new MemoryCheckStrategy({
-      name: 'memory-check',
-      priority: 1,
-      enabled: true,
-      thresholds: {
-        maxMemoryMB: 500,
-        warningMemoryMB: 400,
-      },
-    }));
+    this.addStrategy(
+      new MemoryCheckStrategy({
+        name: 'memory-check',
+        priority: 1,
+        enabled: true,
+        thresholds: {
+          maxMemoryMB: 500,
+          warningMemoryMB: 400,
+        },
+      }),
+    );
 
-    this.addStrategy(new ConnectionCheckStrategy({
-      name: 'connection-check',
-      priority: 2,
-      enabled: true,
-      thresholds: {
-        maxTurnoverRate: 10,
-        warningTurnoverRate: 5,
-        minAuthRatio: 0.8,
-        maxConnections: 1000,
-      },
-    }));
+    this.addStrategy(
+      new ConnectionCheckStrategy({
+        name: 'connection-check',
+        priority: 2,
+        enabled: true,
+        thresholds: {
+          maxTurnoverRate: 10,
+          warningTurnoverRate: 5,
+          minAuthRatio: 0.8,
+          maxConnections: 1000,
+        },
+      }),
+    );
 
-    this.addStrategy(new PerformanceCheckStrategy({
-      name: 'performance-check',
-      priority: 3,
-      enabled: true,
-      thresholds: {
-        maxResponseTime: 1000,
-        warningResponseTime: 500,
-        maxErrorRate: 0.1,
-        warningErrorRate: 0.05,
-        recentErrorThresholdMs: 300000,
-        minUptimeMs: 300000,
-      },
-    }));
+    this.addStrategy(
+      new PerformanceCheckStrategy({
+        name: 'performance-check',
+        priority: 3,
+        enabled: true,
+        thresholds: {
+          maxResponseTime: 1000,
+          warningResponseTime: 500,
+          maxErrorRate: 0.1,
+          warningErrorRate: 0.05,
+          recentErrorThresholdMs: 300000,
+          minUptimeMs: 300000,
+        },
+      }),
+    );
   }
 
   /**
@@ -75,7 +81,7 @@ export class StrategyManager {
   addStrategy(strategy: HealthCheckStrategy): void {
     this.strategies.push(strategy);
     this.strategies.sort((a, b) => a.getPriority() - b.getPriority());
-    
+
     this.logger.debug('Added health check strategy', {
       name: strategy.getName(),
       priority: strategy.getPriority(),
@@ -87,7 +93,7 @@ export class StrategyManager {
    */
   removeStrategy(name: string): boolean {
     const initialLength = this.strategies.length;
-    this.strategies = this.strategies.filter(s => s.getName() !== name);
+    this.strategies = this.strategies.filter((s) => s.getName() !== name);
     return this.strategies.length < initialLength;
   }
 
@@ -95,8 +101,8 @@ export class StrategyManager {
    * Execute all enabled health checks
    */
   async executeHealthChecks(
-    context: HealthCheckContext, 
-    metrics: HealthMetrics
+    context: HealthCheckContext,
+    metrics: HealthMetrics,
   ): Promise<{
     status: HealthStatus;
     issues: string[];
@@ -114,10 +120,10 @@ export class StrategyManager {
 
       try {
         const result = await strategy.check(context, metrics);
-        
+
         for (const issue of result.issues) {
           allIssues.push(issue.message);
-          
+
           if (issue.recommendation) {
             allRecommendations.push(issue.recommendation);
           }
@@ -139,7 +145,7 @@ export class StrategyManager {
           strategy: strategy.getName(),
           error: error instanceof Error ? error.message : 'Unknown error',
         });
-        
+
         allIssues.push(`Health check '${strategy.getName()}' failed`);
         highCount++;
       }
@@ -168,8 +174,12 @@ export class StrategyManager {
   /**
    * Update strategy configuration
    */
-  updateStrategyConfig(name: string, enabled?: boolean, thresholds?: Record<string, number>): boolean {
-    const strategy = this.strategies.find(s => s.getName() === name);
+  updateStrategyConfig(
+    name: string,
+    enabled?: boolean,
+    thresholds?: Record<string, number>,
+  ): boolean {
+    const strategy = this.strategies.find((s) => s.getName() === name);
     if (!strategy) {
       return false;
     }

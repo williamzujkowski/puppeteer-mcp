@@ -35,7 +35,7 @@ export class RedisSessionStore implements SessionStore {
   constructor(logger?: pino.Logger) {
     this.logger = logger ?? pino({ level: 'info' });
     this.fallbackStore = new InMemorySessionStore(logger);
-    
+
     // Initialize managers
     this.clientManager = new RedisClientManager(this.logger, this.fallbackStore);
     this.sessionOps = new SessionOperations(this.logger);
@@ -55,7 +55,7 @@ export class RedisSessionStore implements SessionStore {
     return this.metricsCollector.monitorOperation('create', async () => {
       return this.clientManager.executeWithFallback(
         async (client) => this.sessionOps.createSession(client, data),
-        async (fallback) => fallback.create(data)
+        async (fallback) => fallback.create(data),
       );
     });
   }
@@ -67,7 +67,7 @@ export class RedisSessionStore implements SessionStore {
     return this.metricsCollector.monitorOperation('get', async () => {
       return this.clientManager.executeWithFallback(
         async (client) => this.sessionOps.getSession(client, id),
-        async (fallback) => fallback.get(id)
+        async (fallback) => fallback.get(id),
       );
     });
   }
@@ -79,7 +79,7 @@ export class RedisSessionStore implements SessionStore {
     return this.metricsCollector.monitorOperation('update', async () => {
       return this.clientManager.executeWithFallback(
         async (client) => this.sessionOps.updateSession(client, id, data),
-        async (fallback) => fallback.update(id, data)
+        async (fallback) => fallback.update(id, data),
       );
     });
   }
@@ -91,7 +91,7 @@ export class RedisSessionStore implements SessionStore {
     return this.metricsCollector.monitorOperation('delete', async () => {
       return this.clientManager.executeWithFallback(
         async (client) => this.sessionOps.deleteSession(client, id),
-        async (fallback) => fallback.delete(id)
+        async (fallback) => fallback.delete(id),
       );
     });
   }
@@ -103,7 +103,7 @@ export class RedisSessionStore implements SessionStore {
     return this.metricsCollector.monitorOperation('deleteExpired', async () => {
       return this.clientManager.executeWithFallback(
         async (client) => this.expiryManager.cleanupExpiredUserSessions(client),
-        async (fallback) => fallback.deleteExpired()
+        async (fallback) => fallback.deleteExpired(),
       );
     });
   }
@@ -115,7 +115,7 @@ export class RedisSessionStore implements SessionStore {
     return this.metricsCollector.monitorOperation('getByUserId', async () => {
       return this.clientManager.executeWithFallback(
         async (client) => this.sessionOps.getSessionsByUserId(client, userId),
-        async (fallback) => fallback.getByUserId(userId)
+        async (fallback) => fallback.getByUserId(userId),
       );
     });
   }
@@ -127,7 +127,7 @@ export class RedisSessionStore implements SessionStore {
     return this.metricsCollector.monitorOperation('exists', async () => {
       return this.clientManager.executeWithFallback(
         async (client) => this.sessionOps.sessionExists(client, id),
-        async (fallback) => fallback.exists(id)
+        async (fallback) => fallback.exists(id),
       );
     });
   }
@@ -139,7 +139,7 @@ export class RedisSessionStore implements SessionStore {
     return this.metricsCollector.monitorOperation('touch', async () => {
       return this.clientManager.executeWithFallback(
         async (client) => this.sessionOps.touchSession(client, id),
-        async (fallback) => fallback.touch(id)
+        async (fallback) => fallback.touch(id),
       );
     });
   }
@@ -151,7 +151,7 @@ export class RedisSessionStore implements SessionStore {
     return this.metricsCollector.monitorOperation('clear', async () => {
       return this.clientManager.executeWithFallback(
         async (client) => this.sessionOps.clearAllSessions(client),
-        async (fallback) => fallback.clear()
+        async (fallback) => fallback.clear(),
       );
     });
   }
@@ -188,7 +188,7 @@ export class RedisSessionStore implements SessionStore {
             return this.fallbackStore.getByUserId(query.userId);
           }
           return [];
-        }
+        },
       );
     });
   }
@@ -203,8 +203,8 @@ export class RedisSessionStore implements SessionStore {
         total: 0,
         active: 0,
         expired: 0,
-        byUser: {}
-      })
+        byUser: {},
+      }),
     );
   }
 
@@ -226,7 +226,7 @@ export class RedisSessionStore implements SessionStore {
    */
   private startCleanupInterval(): void {
     this.cleanupInterval = setInterval(() => {
-      void this.deleteExpired().catch(error => {
+      void this.deleteExpired().catch((error) => {
         this.logger.error({ error }, 'Failed to clean up expired sessions');
       });
     }, 60000); // Run every minute

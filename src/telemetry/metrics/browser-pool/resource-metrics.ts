@@ -21,23 +21,23 @@ export class ResourceMetrics {
       description: 'Total memory usage by browsers in bytes',
       unit: 'By',
     });
-    
+
     this.cpuUsage = meter.createObservableGauge('browser_cpu_usage_percent', {
       description: 'CPU usage percentage by browsers',
       unit: '1',
     });
-    
+
     this.networkBandwidth = meter.createHistogram('browser_network_bandwidth_bytes', {
       description: 'Network bandwidth used by browsers in bytes',
       unit: 'By',
     });
-    
+
     // Add callbacks for observable gauges
     this.memoryUsage.addCallback((result: ObservableResult) => {
       const metrics = browserPoolProvider.getPoolMetrics();
       result.observe(metrics.memoryUsage);
     });
-    
+
     this.cpuUsage.addCallback((result: ObservableResult) => {
       const metrics = browserPoolProvider.getPoolMetrics();
       result.observe(metrics.cpuUsage);

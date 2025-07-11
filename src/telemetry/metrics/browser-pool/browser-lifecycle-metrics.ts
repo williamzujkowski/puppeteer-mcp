@@ -24,27 +24,27 @@ export class BrowserLifecycleMetrics {
       description: 'Total number of browsers launched',
       unit: '1',
     });
-    
+
     this.browserClosed = meter.createCounter('browser_closed_total', {
       description: 'Total number of browsers closed',
       unit: '1',
     });
-    
+
     this.browserCrashed = meter.createCounter('browser_crashed_total', {
       description: 'Total number of browser crashes',
       unit: '1',
     });
-    
+
     this.browserLaunchDuration = meter.createHistogram('browser_launch_duration_ms', {
       description: 'Browser launch duration in milliseconds',
       unit: 'ms',
     });
-    
+
     this.browserLifetime = meter.createHistogram('browser_lifetime_seconds', {
       description: 'Browser lifetime in seconds',
       unit: 's',
     });
-    
+
     this.activeBrowsers = meter.createUpDownCounter('browser_active', {
       description: 'Number of active browsers',
       unit: '1',
@@ -58,10 +58,10 @@ export class BrowserLifecycleMetrics {
     const labels = {
       success: success.toString(),
     };
-    
+
     this.browserLaunched.add(1, labels);
     this.browserLaunchDuration.record(duration, labels);
-    
+
     if (success) {
       this.activeBrowsers.add(1);
     }
@@ -74,11 +74,11 @@ export class BrowserLifecycleMetrics {
     const labels = {
       reason,
     };
-    
+
     this.browserClosed.add(1, labels);
     this.browserLifetime.record(lifetime / 1000, labels); // Convert to seconds
     this.activeBrowsers.add(-1);
-    
+
     if (reason === 'crash') {
       this.browserCrashed.add(1);
     }

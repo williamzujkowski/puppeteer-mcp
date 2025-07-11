@@ -32,8 +32,10 @@ export class NavigationExecutor {
   private readonly logger = logger;
 
   constructor(config?: NavigationExecutorConfig) {
-    logger.warn('Using deprecated NavigationExecutor. Consider migrating to the modular navigation system.');
-    
+    logger.warn(
+      'Using deprecated NavigationExecutor. Consider migrating to the modular navigation system.',
+    );
+
     this.executor = createNavigationExecutor({
       enablePerformanceMonitoring: true,
       enableUrlValidation: true,
@@ -68,11 +70,7 @@ export class NavigationExecutor {
    * @returns Action result
    * @deprecated Use executor.execute() instead
    */
-  async executeGoBack(
-    page: Page,
-    context: ActionContext,
-    timeout?: number,
-  ): Promise<ActionResult> {
+  async executeGoBack(page: Page, context: ActionContext, timeout?: number): Promise<ActionResult> {
     // Check if navigation is possible (for logging purposes)
     const canNavigateBack = await this.canGoBack(page);
     if (!canNavigateBack) {
@@ -141,16 +139,12 @@ export class NavigationExecutor {
   /**
    * Execute route handler for navigation actions
    * @param action - Browser action
-   * @param page - Page instance  
+   * @param page - Page instance
    * @param context - Execution context
    * @returns Action result
    * @deprecated Use executor.execute() instead
    */
-  async execute(
-    action: BrowserAction,
-    page: Page,
-    context: ActionContext,
-  ): Promise<ActionResult> {
+  async execute(action: BrowserAction, page: Page, context: ActionContext): Promise<ActionResult> {
     return this.executor.execute(action, page, context);
   }
 

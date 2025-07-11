@@ -5,13 +5,7 @@
  */
 
 // Re-export base parsers
-export {
-  parseBoolean,
-  parseInt,
-  parseFloat,
-  parseArray,
-  parseJSON,
-} from './base-parsers.js';
+export { parseBoolean, parseInt, parseFloat, parseArray, parseJSON } from './base-parsers.js';
 
 // Re-export all configuration parsers
 export { parseServerConfig, parseTLSConfig } from './server-config.js';

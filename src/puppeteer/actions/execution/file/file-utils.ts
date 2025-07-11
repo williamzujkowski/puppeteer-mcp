@@ -106,19 +106,19 @@ export async function ensureDirectory(dirPath: string): Promise<void> {
 export function isPathSafe(targetPath: string, basePath: string = '.'): boolean {
   const resolvedTarget = path.resolve(targetPath);
   const resolvedBase = path.resolve(basePath);
-  
+
   // Check if target path is within base path
   const isSafe = resolvedTarget.startsWith(resolvedBase);
-  
+
   if (!isSafe) {
-    logger.warn('Unsafe path detected', { 
-      targetPath, 
-      resolvedTarget, 
+    logger.warn('Unsafe path detected', {
+      targetPath,
+      resolvedTarget,
       basePath,
-      resolvedBase 
+      resolvedBase,
     });
   }
-  
+
   return isSafe;
 }
 

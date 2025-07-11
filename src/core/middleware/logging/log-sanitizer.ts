@@ -30,12 +30,12 @@ export const redactSensitiveData = (
     for (const [key, value] of Object.entries(targetRecord)) {
       const lowerKey = key.toLowerCase();
       const fullPath = [...path, key].join('.');
-      
+
       // Check if this field should be redacted
       const shouldRedact = sensitiveFields.some(
-        (field) => 
+        (field) =>
           lowerKey.includes(field.toLowerCase()) ||
-          fullPath.toLowerCase().includes(field.toLowerCase())
+          fullPath.toLowerCase().includes(field.toLowerCase()),
       );
 
       if (shouldRedact) {
@@ -62,12 +62,10 @@ export const redactSensitiveHeaders = (
   sensitiveHeaders: string[],
 ): Record<string, string | string[]> => {
   const redacted: Record<string, string | string[]> = {};
-  
+
   for (const [key, value] of Object.entries(headers)) {
     const lowerKey = key.toLowerCase();
-    const shouldRedact = sensitiveHeaders.some((header) => 
-      lowerKey.includes(header.toLowerCase())
-    );
+    const shouldRedact = sensitiveHeaders.some((header) => lowerKey.includes(header.toLowerCase()));
 
     if (shouldRedact) {
       // eslint-disable-next-line security/detect-object-injection
@@ -84,7 +82,10 @@ export const redactSensitiveHeaders = (
 /**
  * Check if content type should be logged
  */
-export const shouldLogContentType = (contentType: string | undefined, loggedTypes: string[]): boolean => {
+export const shouldLogContentType = (
+  contentType: string | undefined,
+  loggedTypes: string[],
+): boolean => {
   if (contentType === undefined || contentType === null || contentType === '') return false;
   const type = contentType.toLowerCase().split(';')[0] ?? '';
   return loggedTypes.some((loggedType) => type.includes(loggedType));

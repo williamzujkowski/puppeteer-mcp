@@ -69,7 +69,9 @@ export async function handleUpload(
       throw new Error(`File input element not found: ${sanitizedSelector}`);
     }
 
-    await (fileInputElement as ElementHandle<HTMLInputElement>).uploadFile(...validatedFiles.map((f) => f.path));
+    await (fileInputElement as ElementHandle<HTMLInputElement>).uploadFile(
+      ...validatedFiles.map((f) => f.path),
+    );
 
     const duration = Date.now() - startTime;
 

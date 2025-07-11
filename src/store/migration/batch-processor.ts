@@ -8,10 +8,7 @@
 import type { pino } from 'pino';
 import type { SessionStore } from '../session-store.interface.js';
 import type { Session } from '../../types/session.js';
-import type { 
-  MigrationStats, 
-  BatchProcessingOptions
-} from './types.js';
+import type { MigrationStats, BatchProcessingOptions } from './types.js';
 import { isSessionExpired } from './migration-utils.js';
 import { MigrationMetrics } from './migration-metrics.js';
 
@@ -42,9 +39,9 @@ export class BatchProcessor {
           targetStore,
           options: {
             skipExisting,
-            deleteAfterMigration
+            deleteAfterMigration,
           },
-          stats
+          stats,
         });
       } catch (error) {
         this.metrics.recordSessionMigrationFailure(stats, session.id, error);
@@ -64,8 +61,12 @@ export class BatchProcessor {
     const { skipExisting, deleteAfterMigration } = options;
 
     // Check if session exists in target store
-    if (skipExisting && await targetStore.exists(session.id)) {
-      this.metrics.recordSessionMigrationSkip(stats, session.id, 'Session already exists in target store');
+    if (skipExisting && (await targetStore.exists(session.id))) {
+      this.metrics.recordSessionMigrationSkip(
+        stats,
+        session.id,
+        'Session already exists in target store',
+      );
       return;
     }
 
@@ -94,13 +95,13 @@ export class BatchProcessor {
 
     for (let i = 0; i < sessions.length; i += batchSize) {
       const batch = sessions.slice(i, i + batchSize);
-      
+
       await this.processBatch({
         sessions: batch,
         sourceStore: context.sourceStore,
         targetStore: context.targetStore,
         options: context.options,
-        stats: context.stats
+        stats: context.stats,
       });
 
       // Report progress

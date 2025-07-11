@@ -51,7 +51,7 @@ export const flushAndEndStream = (stream: unknown): void => {
   if (stream === null || stream === undefined) {
     return;
   }
-  
+
   if (!(typeof stream === 'object' && stream !== null)) {
     return;
   }
@@ -65,7 +65,7 @@ export const flushAndEndStream = (stream: unknown): void => {
   // Try to flush synchronously if ready
   const isReady = streamObj.readyState !== 'opening';
   const hasFlushSync = typeof streamObj.flushSync === 'function';
-  
+
   if (isReady && hasFlushSync && streamObj.flushSync) {
     try {
       streamObj.flushSync();
@@ -87,7 +87,7 @@ export const cleanupLoggers = async (): Promise<void> => {
   // Import dynamically to avoid circular dependency
   const securityLoggerModule = await import('./security-logger.js');
   const { getAuditLogger, cleanupAuditLogger } = securityLoggerModule;
-  
+
   try {
     const auditLogger = await getAuditLogger();
     const stream = getLoggerStream(auditLogger);

@@ -1,28 +1,33 @@
 # Acceptance Tests
 
-Real-world acceptance tests that validate puppeteer-mcp functionality against live websites and APIs.
+Real-world acceptance tests that validate puppeteer-mcp functionality against live websites and
+APIs.
 
 ## Test Categories
 
 ### 1. Basic Web Interactions (`basic/`)
+
 - Form filling and submission
 - Navigation and page interactions
 - Element selection and manipulation
 - Screenshot and content capture
 
 ### 2. API Interactions (`api/`)
+
 - REST API calls and data extraction
 - HTTP method testing
 - Error handling and retries
 - Response parsing and validation
 
 ### 3. Complex Workflows (`workflows/`)
+
 - E-commerce complete flows
 - Authentication scenarios
 - Multi-step processes
 - State management
 
 ### 4. Real-World Sites (`real-world/`)
+
 - Public testing sites
 - Government data sources
 - News and content sites
@@ -31,6 +36,7 @@ Real-world acceptance tests that validate puppeteer-mcp functionality against li
 ## Test Configuration
 
 Tests are configured to use stable, public testing targets that are:
+
 - Publicly accessible
 - Testing-friendly (don't require authentication)
 - Stable and reliable for CI/CD
@@ -64,6 +70,7 @@ ACCEPTANCE_TEST_SLOW_MO=100 npm run test:acceptance
 ## Test Utilities
 
 The `utils/` directory contains shared utilities for:
+
 - MCP client setup and teardown
 - Common assertions and helpers
 - Retry logic for flaky external services

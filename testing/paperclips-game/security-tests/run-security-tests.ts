@@ -38,7 +38,7 @@ const TEST_FILES = [
   'auth-bypass.test.ts',
   'resource-exhaustion.test.ts',
   'prototype-pollution.test.ts',
-  'unsafe-js-execution.test.ts'
+  'unsafe-js-execution.test.ts',
 ];
 
 async function runSecurityTests(): Promise<SecurityReport> {
@@ -55,7 +55,7 @@ async function runSecurityTests(): Promise<SecurityReport> {
     mediumVulnerabilities: [],
     lowVulnerabilities: [],
     recommendations: [],
-    testResults: []
+    testResults: [],
   };
 
   const testDir = path.dirname(__filename);
@@ -73,22 +73,19 @@ async function runSecurityTests(): Promise<SecurityReport> {
       failures: 0,
       errors: [],
       duration: 0,
-      vulnerabilities: []
+      vulnerabilities: [],
     };
 
     try {
       // Run Jest for the specific test file
-      const output = execSync(
-        `npx jest ${testPath} --json --outputFile=/tmp/jest-output.json`,
-        { 
-          encoding: 'utf8',
-          stdio: 'pipe'
-        }
-      );
+      const output = execSync(`npx jest ${testPath} --json --outputFile=/tmp/jest-output.json`, {
+        encoding: 'utf8',
+        stdio: 'pipe',
+      });
 
       // Parse Jest output
       const jestResults = JSON.parse(fs.readFileSync('/tmp/jest-output.json', 'utf8'));
-      
+
       result.passed = jestResults.success;
       result.tests = jestResults.numTotalTests;
       result.failures = jestResults.numFailedTests;
@@ -96,7 +93,6 @@ async function runSecurityTests(): Promise<SecurityReport> {
 
       // Extract vulnerability information from test results
       analyzeTestResults(jestResults, result, report);
-
     } catch (error: any) {
       result.passed = false;
       result.errors.push(error.message);
@@ -142,67 +138,67 @@ function analyzeTestResults(jestResults: any, result: TestResult, report: Securi
       if (test.status === 'failed') {
         // Analyze failure message for vulnerability indicators
         const message = test.failureMessages?.join(' ') || '';
-        
+
         if (message.includes('XSS') || message.includes('script injection')) {
           const vuln = 'XSS vulnerability: Script injection possible';
           result.vulnerabilities.push(vuln);
           report.criticalVulnerabilities.push(vuln);
         }
-        
+
         if (message.includes('SQL injection')) {
           const vuln = 'SQL Injection vulnerability detected';
           result.vulnerabilities.push(vuln);
           report.criticalVulnerabilities.push(vuln);
         }
-        
+
         if (message.includes('path traversal') || message.includes('directory traversal')) {
           const vuln = 'Path Traversal vulnerability: File system access possible';
           result.vulnerabilities.push(vuln);
           report.highVulnerabilities.push(vuln);
         }
-        
+
         if (message.includes('SSRF') || message.includes('internal network')) {
           const vuln = 'SSRF vulnerability: Internal network access possible';
           result.vulnerabilities.push(vuln);
           report.highVulnerabilities.push(vuln);
         }
-        
+
         if (message.includes('command injection') || message.includes('command execution')) {
           const vuln = 'Command Injection vulnerability detected';
           result.vulnerabilities.push(vuln);
           report.criticalVulnerabilities.push(vuln);
         }
-        
+
         if (message.includes('prototype pollution')) {
           const vuln = 'Prototype Pollution vulnerability detected';
           result.vulnerabilities.push(vuln);
           report.highVulnerabilities.push(vuln);
         }
-        
+
         if (message.includes('CSP') || message.includes('Content Security Policy')) {
           const vuln = 'CSP bypass possible or missing CSP headers';
           result.vulnerabilities.push(vuln);
           report.mediumVulnerabilities.push(vuln);
         }
-        
+
         if (message.includes('cookie') && message.includes('secure')) {
           const vuln = 'Insecure cookie configuration detected';
           result.vulnerabilities.push(vuln);
           report.mediumVulnerabilities.push(vuln);
         }
-        
+
         if (message.includes('authentication') || message.includes('authorization')) {
           const vuln = 'Authentication/Authorization bypass possible';
           result.vulnerabilities.push(vuln);
           report.criticalVulnerabilities.push(vuln);
         }
-        
+
         if (message.includes('rate limit') || message.includes('brute force')) {
           const vuln = 'Missing rate limiting: Brute force attacks possible';
           result.vulnerabilities.push(vuln);
           report.mediumVulnerabilities.push(vuln);
         }
-        
+
         if (message.includes('resource exhaustion') || message.includes('DoS')) {
           const vuln = 'Resource exhaustion/DoS vulnerability detected';
           result.vulnerabilities.push(vuln);
@@ -216,29 +212,35 @@ function analyzeTestResults(jestResults: any, result: TestResult, report: Securi
 function generateRecommendations(report: SecurityReport) {
   // Critical recommendations
   if (report.criticalVulnerabilities.length > 0) {
-    report.recommendations.push('🚨 CRITICAL: Address all critical vulnerabilities immediately before production deployment');
-    
-    if (report.criticalVulnerabilities.some(v => v.includes('XSS'))) {
+    report.recommendations.push(
+      '🚨 CRITICAL: Address all critical vulnerabilities immediately before production deployment',
+    );
+
+    if (report.criticalVulnerabilities.some((v) => v.includes('XSS'))) {
       report.recommendations.push('• Implement strict input validation and output encoding');
-      report.recommendations.push('• Enable Content Security Policy (CSP) with restrictive directives');
+      report.recommendations.push(
+        '• Enable Content Security Policy (CSP) with restrictive directives',
+      );
       report.recommendations.push('• Use DOMPurify or similar libraries for HTML sanitization');
     }
-    
-    if (report.criticalVulnerabilities.some(v => v.includes('SQL'))) {
+
+    if (report.criticalVulnerabilities.some((v) => v.includes('SQL'))) {
       report.recommendations.push('• Use parameterized queries or prepared statements');
       report.recommendations.push('• Implement input validation and escaping');
       report.recommendations.push('• Apply principle of least privilege for database access');
     }
-    
-    if (report.criticalVulnerabilities.some(v => v.includes('Command'))) {
+
+    if (report.criticalVulnerabilities.some((v) => v.includes('Command'))) {
       report.recommendations.push('• Never pass user input directly to system commands');
       report.recommendations.push('• Use safe APIs instead of shell commands where possible');
       report.recommendations.push('• Implement strict input validation and sanitization');
     }
-    
-    if (report.criticalVulnerabilities.some(v => v.includes('Authentication'))) {
+
+    if (report.criticalVulnerabilities.some((v) => v.includes('Authentication'))) {
       report.recommendations.push('• Implement proper session management');
-      report.recommendations.push('• Use secure authentication mechanisms (JWT with proper validation)');
+      report.recommendations.push(
+        '• Use secure authentication mechanisms (JWT with proper validation)',
+      );
       report.recommendations.push('• Enable rate limiting on authentication endpoints');
     }
   }
@@ -246,26 +248,28 @@ function generateRecommendations(report: SecurityReport) {
   // High severity recommendations
   if (report.highVulnerabilities.length > 0) {
     report.recommendations.push('\n⚠️ HIGH: Address high severity issues before production');
-    
-    if (report.highVulnerabilities.some(v => v.includes('SSRF'))) {
+
+    if (report.highVulnerabilities.some((v) => v.includes('SSRF'))) {
       report.recommendations.push('• Implement URL allowlisting for external requests');
       report.recommendations.push('• Block requests to internal IP ranges and metadata endpoints');
       report.recommendations.push('• Validate and sanitize all URLs before making requests');
     }
-    
-    if (report.highVulnerabilities.some(v => v.includes('Path Traversal'))) {
+
+    if (report.highVulnerabilities.some((v) => v.includes('Path Traversal'))) {
       report.recommendations.push('• Validate and sanitize all file paths');
-      report.recommendations.push('• Use path.resolve() and ensure paths stay within allowed directories');
+      report.recommendations.push(
+        '• Use path.resolve() and ensure paths stay within allowed directories',
+      );
       report.recommendations.push('• Implement access controls for file operations');
     }
-    
-    if (report.highVulnerabilities.some(v => v.includes('Prototype Pollution'))) {
+
+    if (report.highVulnerabilities.some((v) => v.includes('Prototype Pollution'))) {
       report.recommendations.push('• Freeze Object.prototype and other built-in prototypes');
       report.recommendations.push('• Validate object keys before assignment');
       report.recommendations.push('• Use Map instead of objects for user-controlled keys');
     }
-    
-    if (report.highVulnerabilities.some(v => v.includes('DoS'))) {
+
+    if (report.highVulnerabilities.some((v) => v.includes('DoS'))) {
       report.recommendations.push('• Implement resource limits and timeouts');
       report.recommendations.push('• Add rate limiting for resource-intensive operations');
       report.recommendations.push('• Monitor and alert on abnormal resource usage');
@@ -275,20 +279,20 @@ function generateRecommendations(report: SecurityReport) {
   // Medium severity recommendations
   if (report.mediumVulnerabilities.length > 0) {
     report.recommendations.push('\n⚡ MEDIUM: Improve security posture with these enhancements');
-    
-    if (report.mediumVulnerabilities.some(v => v.includes('CSP'))) {
+
+    if (report.mediumVulnerabilities.some((v) => v.includes('CSP'))) {
       report.recommendations.push('• Implement strict Content Security Policy headers');
       report.recommendations.push('• Remove unsafe-inline and unsafe-eval from CSP');
       report.recommendations.push('• Use nonces or hashes for inline scripts if needed');
     }
-    
-    if (report.mediumVulnerabilities.some(v => v.includes('cookie'))) {
+
+    if (report.mediumVulnerabilities.some((v) => v.includes('cookie'))) {
       report.recommendations.push('• Set Secure, HttpOnly, and SameSite flags on all cookies');
       report.recommendations.push('• Implement proper session management');
       report.recommendations.push('• Use short session timeouts and regenerate session IDs');
     }
-    
-    if (report.mediumVulnerabilities.some(v => v.includes('rate limit'))) {
+
+    if (report.mediumVulnerabilities.some((v) => v.includes('rate limit'))) {
       report.recommendations.push('• Implement rate limiting on all endpoints');
       report.recommendations.push('• Use progressive delays for failed authentication attempts');
       report.recommendations.push('• Monitor and alert on suspicious patterns');
@@ -298,7 +302,9 @@ function generateRecommendations(report: SecurityReport) {
   // General security recommendations
   report.recommendations.push('\n✅ GENERAL: Security best practices');
   report.recommendations.push('• Keep all dependencies up to date');
-  report.recommendations.push('• Implement security headers (X-Frame-Options, X-Content-Type-Options, etc.)');
+  report.recommendations.push(
+    '• Implement security headers (X-Frame-Options, X-Content-Type-Options, etc.)',
+  );
   report.recommendations.push('• Use HTTPS everywhere with HSTS');
   report.recommendations.push('• Implement proper logging and monitoring');
   report.recommendations.push('• Conduct regular security audits and penetration testing');
@@ -311,7 +317,7 @@ function generateReport(report: SecurityReport) {
   console.log('\n' + '='.repeat(80));
   console.log('🔒 SECURITY TEST REPORT');
   console.log('='.repeat(80));
-  
+
   console.log(`\n📅 Timestamp: ${report.timestamp}`);
   console.log(`⏱️ Total Duration: ${(report.totalDuration / 1000).toFixed(2)}s`);
   console.log(`\n📊 Test Summary:`);
@@ -348,29 +354,29 @@ function generateReport(report: SecurityReport) {
   }
 
   console.log('\n📋 Test Results by Suite:');
-  report.testResults.forEach(result => {
+  report.testResults.forEach((result) => {
     const status = result.passed ? '✅' : '❌';
     console.log(`\n   ${status} ${result.suite}`);
     console.log(`      Tests: ${result.tests}, Failures: ${result.failures}`);
     console.log(`      Duration: ${(result.duration / 1000).toFixed(2)}s`);
-    
+
     if (result.vulnerabilities.length > 0) {
       console.log('      Vulnerabilities Found:');
-      result.vulnerabilities.forEach(vuln => {
+      result.vulnerabilities.forEach((vuln) => {
         console.log(`        - ${vuln}`);
       });
     }
   });
 
   console.log('\n💡 Recommendations:');
-  report.recommendations.forEach(rec => {
+  report.recommendations.forEach((rec) => {
     console.log(rec);
   });
 
   console.log('\n' + '='.repeat(80));
-  
+
   // Overall security assessment
-  const totalVulnerabilities = 
+  const totalVulnerabilities =
     report.criticalVulnerabilities.length +
     report.highVulnerabilities.length +
     report.mediumVulnerabilities.length +
@@ -387,7 +393,7 @@ function generateReport(report: SecurityReport) {
   } else {
     console.log('✅ SECURITY STATUS: GOOD - Minor issues only');
   }
-  
+
   console.log('='.repeat(80));
 
   // Save detailed report to file
@@ -446,14 +452,14 @@ function generateMarkdownReport(report: SecurityReport): string {
   md += `## Test Results\n\n`;
   md += `| Test Suite | Status | Tests | Failures | Duration |\n`;
   md += `|------------|--------|-------|----------|----------|\n`;
-  report.testResults.forEach(result => {
+  report.testResults.forEach((result) => {
     const status = result.passed ? '✅' : '❌';
     md += `| ${result.suite} | ${status} | ${result.tests} | ${result.failures} | ${(result.duration / 1000).toFixed(2)}s |\n`;
   });
   md += '\n';
 
   md += `## Recommendations\n\n`;
-  report.recommendations.forEach(rec => {
+  report.recommendations.forEach((rec) => {
     md += `${rec}\n`;
   });
 
@@ -465,12 +471,11 @@ async function main() {
   try {
     const report = await runSecurityTests();
     generateReport(report);
-    
+
     // Exit with appropriate code
-    const hasVulnerabilities = 
-      report.criticalVulnerabilities.length > 0 ||
-      report.highVulnerabilities.length > 0;
-    
+    const hasVulnerabilities =
+      report.criticalVulnerabilities.length > 0 || report.highVulnerabilities.length > 0;
+
     process.exit(hasVulnerabilities ? 1 : 0);
   } catch (error) {
     console.error('❌ Error running security tests:', error);

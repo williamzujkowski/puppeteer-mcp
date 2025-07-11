@@ -5,6 +5,7 @@ This directory contains the core infrastructure components for the multi-protoco
 ## Components
 
 ### Configuration (`config.ts`)
+
 - **Purpose**: Centralized configuration management with Zod validation
 - **Features**:
   - Environment variable parsing and validation
@@ -13,6 +14,7 @@ This directory contains the core infrastructure components for the multi-protoco
   - NIST control tags: CM-6, CM-7, SC-8, SC-13
 
 ### Error Handling (`errors.ts`, `errors/`)
+
 - **Purpose**: Comprehensive error handling system
 - **Features**:
   - Custom error classes for different scenarios
@@ -21,6 +23,7 @@ This directory contains the core infrastructure components for the multi-protoco
   - NIST control tags: SI-11
 
 ### Middleware (`middleware/`)
+
 - **Components**:
   - `error-handler.ts`: Global error handling middleware
   - `request-id.ts`: Request ID generation and tracking
@@ -31,6 +34,7 @@ This directory contains the core infrastructure components for the multi-protoco
 ## Usage
 
 ### Configuration
+
 ```typescript
 import { config } from '@core/config';
 
@@ -44,13 +48,14 @@ validateProductionConfig();
 ```
 
 ### Error Handling
+
 ```typescript
-import { 
-  AppError, 
+import {
+  AppError,
   ValidationError,
   serializeErrorForREST,
   serializeErrorForGRPC,
-  serializeErrorForWebSocket 
+  serializeErrorForWebSocket,
 } from '@core/errors';
 
 // Throw custom errors
@@ -63,14 +68,15 @@ const wsError = serializeErrorForWebSocket(error, messageId);
 ```
 
 ### Middleware
+
 ```typescript
-import { 
+import {
   errorHandler,
   requestIdMiddleware,
   requestLogger,
   createSecurityHeaders,
   additionalSecurityHeaders,
-  createCORSMiddleware
+  createCORSMiddleware,
 } from '@core/middleware';
 
 // Apply middleware to Express app

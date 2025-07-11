@@ -1,6 +1,8 @@
 # Puppeteer MCP Examples
 
-This directory contains comprehensive examples, templates, and utilities for the Puppeteer MCP project. These resources are designed to help developers quickly get started and implement real-world solutions.
+This directory contains comprehensive examples, templates, and utilities for the Puppeteer MCP
+project. These resources are designed to help developers quickly get started and implement
+real-world solutions.
 
 ## 📁 Directory Structure
 
@@ -43,6 +45,7 @@ examples/
 ### Quick Start
 
 1. **Basic Example**: Start with a simple browser automation
+
    ```bash
    cd basic
    npm install
@@ -50,6 +53,7 @@ examples/
    ```
 
 2. **API Integration**: Try REST API integration
+
    ```bash
    cd api/rest
    npm install
@@ -66,6 +70,7 @@ examples/
 ## 📚 Example Categories
 
 ### Basic Examples
+
 - **Screenshot Capture**: Take screenshots of web pages
 - **Form Automation**: Fill and submit forms automatically
 - **Navigation**: Navigate between pages and handle redirects
@@ -73,6 +78,7 @@ examples/
 - **PDF Generation**: Convert web pages to PDF
 
 ### Advanced Examples
+
 - **Multi-Tab Workflows**: Manage multiple browser tabs
 - **Parallel Processing**: Run multiple automations concurrently
 - **Error Recovery**: Handle failures gracefully
@@ -80,18 +86,21 @@ examples/
 - **Complex Interactions**: Handle dynamic content and SPAs
 
 ### API Examples
+
 - **REST API**: CRUD operations, batch processing
 - **WebSocket**: Real-time updates, event streaming
 - **gRPC**: High-performance RPC calls
 - **MCP Protocol**: AI-agent integration
 
 ### Security Examples
+
 - **JWT Authentication**: Secure API endpoints
 - **API Key Management**: Handle API keys securely
 - **Rate Limiting**: Implement request throttling
 - **CSRF Protection**: Prevent cross-site attacks
 
 ### Monitoring Examples
+
 - **OpenTelemetry**: Distributed tracing
 - **Prometheus Metrics**: Performance monitoring
 - **Health Checks**: Service availability
@@ -100,6 +109,7 @@ examples/
 ## 🛠️ Utilities
 
 ### Code Generators
+
 ```bash
 # Generate a new automation script
 cd utilities/generators
@@ -110,6 +120,7 @@ npm run generate:client -- --api rest --output ./my-client
 ```
 
 ### Project Scaffolding
+
 ```bash
 # Create a new project from template
 cd utilities/scaffolding
@@ -117,6 +128,7 @@ npm run scaffold -- --template enterprise --name my-project
 ```
 
 ### Testing Utilities
+
 ```bash
 # Run automated tests
 cd utilities/testing

@@ -49,37 +49,37 @@ export interface ReplicationConfig {
    * Replication mode
    */
   mode: 'master-slave' | 'master-master' | 'active-passive';
-  
+
   /**
    * Sync interval in milliseconds
    */
   syncInterval: number;
-  
+
   /**
    * Batch size for synchronization
    */
   batchSize: number;
-  
+
   /**
    * Conflict resolution strategy
    */
   conflictResolution: 'last-write-wins' | 'oldest-wins' | 'manual';
-  
+
   /**
    * Whether to sync deletions
    */
   syncDeletions: boolean;
-  
+
   /**
    * Whether to sync expired sessions
    */
   syncExpired: boolean;
-  
+
   /**
    * Maximum retry attempts for failed operations
    */
   maxRetries: number;
-  
+
   /**
    * Retry delay in milliseconds
    */
@@ -156,5 +156,5 @@ export const DEFAULT_REPLICATION_CONFIG: ReplicationConfig = {
   syncDeletions: true,
   syncExpired: false,
   maxRetries: 3,
-  retryDelay: 1000
+  retryDelay: 1000,
 };

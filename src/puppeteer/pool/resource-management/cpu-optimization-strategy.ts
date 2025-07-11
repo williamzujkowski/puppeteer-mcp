@@ -7,7 +7,10 @@
 import type { Page, Browser } from 'puppeteer';
 import { createLogger } from '../../../utils/logger.js';
 import type { CpuOptimizationOptions } from './resource-types.js';
-import type { IResourceOptimizationStrategy, OptimizationResult } from './resource-optimization-strategy.js';
+import type {
+  IResourceOptimizationStrategy,
+  OptimizationResult,
+} from './resource-optimization-strategy.js';
 
 const logger = createLogger('cpu-optimization-strategy');
 
@@ -33,9 +36,11 @@ export class CpuOptimizationStrategy implements IResourceOptimizationStrategy {
    * Check if enabled
    */
   isEnabled(): boolean {
-    return this.config.enableRequestThrottling || 
-           this.config.enableResourceBlocking || 
-           this.config.enableAnimationDisabling;
+    return (
+      this.config.enableRequestThrottling ||
+      this.config.enableResourceBlocking ||
+      this.config.enableAnimationDisabling
+    );
   }
 
   /**
@@ -58,9 +63,9 @@ export class CpuOptimizationStrategy implements IResourceOptimizationStrategy {
       if (this.config.enableResourceBlocking && this.config.blockedResourceTypes.length > 0) {
         try {
           await page.setRequestInterception(true);
-          
+
           const blockedTypes = new Set(this.config.blockedResourceTypes);
-          
+
           page.on('request', (req) => {
             if (blockedTypes.has(req.resourceType())) {
               req.abort();
@@ -70,7 +75,10 @@ export class CpuOptimizationStrategy implements IResourceOptimizationStrategy {
           });
 
           optimizationsApplied.push('resource-blocking');
-          logger.debug({ blockedTypes: this.config.blockedResourceTypes }, 'Applied resource blocking');
+          logger.debug(
+            { blockedTypes: this.config.blockedResourceTypes },
+            'Applied resource blocking',
+          );
         } catch (error) {
           errors.push(`Resource blocking failed: ${error}`);
           logger.debug({ error }, 'Failed to apply resource blocking');
@@ -96,7 +104,7 @@ export class CpuOptimizationStrategy implements IResourceOptimizationStrategy {
             // Disable video autoplay
             document.addEventListener('DOMContentLoaded', () => {
               const videos = document.querySelectorAll('video');
-              videos.forEach(video => {
+              videos.forEach((video) => {
                 video.pause();
                 video.preload = 'none';
               });
@@ -105,13 +113,13 @@ export class CpuOptimizationStrategy implements IResourceOptimizationStrategy {
             // Reduce timer precision to save CPU
             const originalSetTimeout = window.setTimeout;
             const originalSetInterval = window.setInterval;
-            
-            (window as any).setTimeout = function(fn: any, delay: any) {
+
+            (window as any).setTimeout = function (fn: any, delay: any) {
               // Round delays to nearest 100ms to reduce timer precision
               return originalSetTimeout(fn, Math.max(100, Math.round(delay / 100) * 100));
             };
-            
-            (window as any).setInterval = function(fn: any, delay: any) {
+
+            (window as any).setInterval = function (fn: any, delay: any) {
               // Minimum interval of 100ms
               return originalSetInterval(fn, Math.max(100, delay));
             };
@@ -129,11 +137,11 @@ export class CpuOptimizationStrategy implements IResourceOptimizationStrategy {
         try {
           // Throttle network to reduce CPU usage
           await page.setCacheEnabled(true); // Enable cache to reduce requests
-          
+
           // Set CPU throttling
           const client = await page.target().createCDPSession();
           await client.send('Emulation.setCPUThrottlingRate', { rate: 2 }); // 2x slowdown
-          
+
           optimizationsApplied.push('request-throttling');
         } catch (error) {
           errors.push(`Request throttling failed: ${error}`);
@@ -158,9 +166,10 @@ export class CpuOptimizationStrategy implements IResourceOptimizationStrategy {
           // Override requestAnimationFrame to reduce frequency
           const originalRAF = window.requestAnimationFrame;
           let lastTime = 0;
-          (window as any).requestAnimationFrame = function(callback: any) {
+          (window as any).requestAnimationFrame = function (callback: any) {
             const now = Date.now();
-            if (now - lastTime < 50) { // Max 20fps
+            if (now - lastTime < 50) {
+              // Max 20fps
               return originalRAF(() => (window as any).requestAnimationFrame(callback));
             }
             lastTime = now;
@@ -173,7 +182,6 @@ export class CpuOptimizationStrategy implements IResourceOptimizationStrategy {
         errors.push(`Additional CPU optimizations failed: ${error}`);
         logger.debug({ error }, 'Failed to apply additional CPU optimizations');
       }
-
     } catch (error) {
       logger.error({ error }, 'Error applying CPU optimizations');
       errors.push(`General optimization error: ${error}`);
@@ -196,7 +204,7 @@ export class CpuOptimizationStrategy implements IResourceOptimizationStrategy {
     try {
       // Apply page-level optimizations to all existing pages
       const pages = await browser.pages();
-      
+
       // Limit concurrent pages if needed
       if (this.config.maxConcurrentRequests && pages.length > this.config.maxConcurrentRequests) {
         const pagesToClose = pages.length - this.config.maxConcurrentRequests;
@@ -220,7 +228,6 @@ export class CpuOptimizationStrategy implements IResourceOptimizationStrategy {
       }
 
       optimizationsApplied.push('browser-cpu-optimization');
-
     } catch (error) {
       logger.error({ error }, 'Error optimizing browser for CPU');
       errors.push(`Browser CPU optimization error: ${error}`);

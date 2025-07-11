@@ -19,7 +19,7 @@ export let defaultErrorTracker: ErrorTracker | null = null;
 export function initializeErrorTracker(
   storage: ErrorTrackingStorage,
   logger: Logger,
-  patternConfig?: ErrorPatternConfig
+  patternConfig?: ErrorPatternConfig,
 ): ErrorTracker {
   defaultErrorTracker = new ErrorTracker(storage, logger, patternConfig);
   return defaultErrorTracker;

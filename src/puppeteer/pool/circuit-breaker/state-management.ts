@@ -16,7 +16,7 @@ const logger = createLogger('circuit-breaker-state');
 abstract class BaseStateHandler implements IStateHandler {
   constructor(
     protected name: string,
-    protected state: CircuitBreakerState
+    protected state: CircuitBreakerState,
   ) {}
 
   abstract canExecute(): boolean;
@@ -24,19 +24,25 @@ abstract class BaseStateHandler implements IStateHandler {
   abstract handleFailure(context: StateTransitionContext): CircuitBreakerState | null;
 
   enter(context?: StateTransitionContext): void {
-    logger.debug({
-      circuitBreaker: this.name,
-      state: this.state,
-      context,
-    }, 'Entering state');
+    logger.debug(
+      {
+        circuitBreaker: this.name,
+        state: this.state,
+        context,
+      },
+      'Entering state',
+    );
   }
 
   exit(context?: StateTransitionContext): void {
-    logger.debug({
-      circuitBreaker: this.name,
-      state: this.state,
-      context,
-    }, 'Exiting state');
+    logger.debug(
+      {
+        circuitBreaker: this.name,
+        state: this.state,
+        context,
+      },
+      'Exiting state',
+    );
   }
 }
 
@@ -89,10 +95,13 @@ export class OpenStateHandler extends BaseStateHandler {
 
   override enter(context?: StateTransitionContext): void {
     super.enter(context);
-    logger.warn({
-      circuitBreaker: this.name,
-      context,
-    }, 'Circuit breaker opened');
+    logger.warn(
+      {
+        circuitBreaker: this.name,
+        context,
+      },
+      'Circuit breaker opened',
+    );
   }
 }
 
@@ -179,13 +188,16 @@ export class CircuitBreakerStateMachine {
 
     const currentHandler = this.getCurrentHandler();
     const newHandler = this.stateHandlers.get(newState);
-    
+
     if (!newHandler) {
-      logger.error({
-        circuitBreaker: this.name,
-        currentState: this.currentState,
-        newState,
-      }, 'Invalid state transition attempted');
+      logger.error(
+        {
+          circuitBreaker: this.name,
+          currentState: this.currentState,
+          newState,
+        },
+        'Invalid state transition attempted',
+      );
       return false;
     }
 
@@ -197,7 +209,7 @@ export class CircuitBreakerStateMachine {
     this.currentState = newState;
     this.stateChangeTime = new Date();
     this.totalStateChanges++;
-    
+
     // Update state count
     const currentCount = this.stateChangeCounts.get(newState) || 0;
     this.stateChangeCounts.set(newState, currentCount + 1);
@@ -205,12 +217,15 @@ export class CircuitBreakerStateMachine {
     // Enter new state
     newHandler.enter(context);
 
-    logger.info({
-      circuitBreaker: this.name,
-      previousState,
-      newState,
-      context,
-    }, 'State transition completed');
+    logger.info(
+      {
+        circuitBreaker: this.name,
+        previousState,
+        newState,
+        context,
+      },
+      'State transition completed',
+    );
 
     return true;
   }

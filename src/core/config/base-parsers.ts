@@ -35,7 +35,7 @@ export function parseFloat(value: string | undefined, defaultValue: number): num
  */
 export function parseArray(value: string | undefined, defaultValue: string[]): string[] {
   if (value === undefined || value === '') return defaultValue;
-  return value.split(',').map(item => item.trim());
+  return value.split(',').map((item) => item.trim());
 }
 
 /**

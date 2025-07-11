@@ -12,10 +12,7 @@ import { ServerConfig } from './types.js';
 /**
  * Initialize gRPC server with dependencies
  */
-export function createGrpcServerInstance(
-  logger: Logger,
-  sessionStore: SessionStore
-): GrpcServer {
+export function createGrpcServerInstance(logger: Logger, sessionStore: SessionStore): GrpcServer {
   return createGrpcServer(logger, sessionStore);
 }
 
@@ -25,7 +22,7 @@ export function createGrpcServerInstance(
 export async function startGrpcServer(
   grpcServer: GrpcServer,
   serverConfig: ServerConfig,
-  logger: Logger
+  logger: Logger,
 ): Promise<void> {
   await grpcServer.start(serverConfig.grpcPort, serverConfig.grpcHost);
   logger.info(`gRPC server started on ${serverConfig.grpcHost}:${serverConfig.grpcPort}`);

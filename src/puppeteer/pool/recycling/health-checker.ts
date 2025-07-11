@@ -42,7 +42,7 @@ export class BrowserHealthChecker {
         consecutiveFailures: metrics.consecutiveFailures,
         failureRate: metrics.failureRate,
       },
-      'Health metrics updated'
+      'Health metrics updated',
     );
   }
 
@@ -84,8 +84,8 @@ export class BrowserHealthChecker {
    * @private
    */
   private calculateOverallHealth(
-    result: HealthCheckResult, 
-    existing?: BrowserHealthMetrics
+    result: HealthCheckResult,
+    existing?: BrowserHealthMetrics,
   ): number {
     let score = 100;
 
@@ -124,10 +124,7 @@ export class BrowserHealthChecker {
    * Calculate stability score
    * @private
    */
-  private calculateStability(
-    result: HealthCheckResult,
-    existing?: BrowserHealthMetrics
-  ): number {
+  private calculateStability(result: HealthCheckResult, existing?: BrowserHealthMetrics): number {
     let score = existing?.stability ?? 100;
 
     // Adjust based on health result
@@ -149,10 +146,7 @@ export class BrowserHealthChecker {
    * Calculate performance score
    * @private
    */
-  private calculatePerformance(
-    result: HealthCheckResult,
-    existing?: BrowserHealthMetrics
-  ): number {
+  private calculatePerformance(result: HealthCheckResult, existing?: BrowserHealthMetrics): number {
     let score = existing?.performance ?? 100;
 
     // Response time impact
@@ -175,7 +169,7 @@ export class BrowserHealthChecker {
    */
   private calculateAvgResponseTime(
     result: HealthCheckResult,
-    existing?: BrowserHealthMetrics
+    existing?: BrowserHealthMetrics,
   ): number {
     if (result.responseTimeMs === undefined || result.responseTimeMs === null) {
       return existing?.avgResponseTime ?? 0;
@@ -197,10 +191,10 @@ export class BrowserHealthChecker {
   private buildHealthMetrics(
     browserId: string,
     healthResult: HealthCheckResult,
-    existing?: BrowserHealthMetrics
+    existing?: BrowserHealthMetrics,
   ): BrowserHealthMetrics {
     const counts = this.calculateCounts(healthResult, existing);
-    
+
     const metrics: BrowserHealthMetrics = {
       browserId,
       overallHealth: this.calculateOverallHealth(healthResult, existing),
@@ -213,7 +207,7 @@ export class BrowserHealthChecker {
       failureRate: this.calculateFailureRate(
         counts.consecutiveFailures,
         existing?.errorCount ?? 0,
-        counts.totalHealthChecks
+        counts.totalHealthChecks,
       ),
       avgResponseTime: this.calculateAvgResponseTime(healthResult, existing),
       errorCount: counts.errorCount,
@@ -229,7 +223,7 @@ export class BrowserHealthChecker {
    */
   private calculateCounts(
     healthResult: HealthCheckResult,
-    existing?: BrowserHealthMetrics
+    existing?: BrowserHealthMetrics,
   ): {
     consecutiveFailures: number;
     totalHealthChecks: number;
@@ -242,7 +236,7 @@ export class BrowserHealthChecker {
     const existingWarnings = existing?.warningCount ?? 0;
     const newErrors = healthResult.errors?.length ?? 0;
     const newWarnings = healthResult.warnings?.length ?? 0;
-    
+
     return {
       consecutiveFailures: healthResult.healthy ? 0 : existingFailures + 1,
       totalHealthChecks: existingTotal + 1,
@@ -258,7 +252,7 @@ export class BrowserHealthChecker {
   private calculateFailureRate(
     consecutiveFailures: number,
     errorCount: number,
-    totalHealthChecks: number
+    totalHealthChecks: number,
   ): number {
     if (totalHealthChecks === 0) {
       return 0;

@@ -50,11 +50,7 @@ export class UploadExecutor implements FileOperationExecutor {
    * @nist ac-3 "Access enforcement"
    * @nist au-3 "Content of audit records"
    */
-  async execute(
-    action: UploadAction,
-    page: Page,
-    context: ActionContext,
-  ): Promise<ActionResult> {
+  async execute(action: UploadAction, page: Page, context: ActionContext): Promise<ActionResult> {
     const startTime = Date.now();
 
     try {
@@ -73,10 +69,10 @@ export class UploadExecutor implements FileOperationExecutor {
 
       // Validate file paths and permissions
       const validationResults = await this.validator.validateUploadPaths(config.filePaths);
-      const invalidResults = validationResults.filter(r => !r.valid);
-      
+      const invalidResults = validationResults.filter((r) => !r.valid);
+
       if (invalidResults.length > 0) {
-        const errors = invalidResults.map(r => r.error).join('; ');
+        const errors = invalidResults.map((r) => r.error).join('; ');
         throw new Error(`File validation failed: ${errors}`);
       }
 
@@ -115,7 +111,7 @@ export class UploadExecutor implements FileOperationExecutor {
         timestamp: new Date(),
         metadata: {
           originalSelector: action.selector,
-          filePaths: config.filePaths.map(fp => path.basename(fp)),
+          filePaths: config.filePaths.map((fp) => path.basename(fp)),
         },
       };
     } catch (error) {
@@ -139,7 +135,7 @@ export class UploadExecutor implements FileOperationExecutor {
         metadata: {
           selector: action.selector,
           fileCount: action.filePaths.length,
-          filePaths: action.filePaths.map(fp => path.basename(fp)),
+          filePaths: action.filePaths.map((fp) => path.basename(fp)),
         },
       };
     }
@@ -151,10 +147,7 @@ export class UploadExecutor implements FileOperationExecutor {
    * @param config - Upload configuration
    * @nist si-10 "Information input validation"
    */
-  private async validateFileInputElement(
-    page: Page,
-    config: FileUploadConfig,
-  ): Promise<void> {
+  private async validateFileInputElement(page: Page, config: FileUploadConfig): Promise<void> {
     // Check if element is a file input
     const isFileInput = await page.$eval(config.selector, (element) => {
       return element instanceof HTMLInputElement && element.type === 'file';
@@ -167,7 +160,6 @@ export class UploadExecutor implements FileOperationExecutor {
     // Check if multiple files are allowed
     if (config.multiple === true) {
       const allowsMultiple = await page.$eval(config.selector, (element) => {
-         
         return element instanceof HTMLInputElement && element.hasAttribute('multiple');
       });
 
@@ -183,10 +175,7 @@ export class UploadExecutor implements FileOperationExecutor {
    * @param config - Upload configuration
    * @returns Array of uploaded file names
    */
-  private async performUpload(
-    page: Page,
-    config: FileUploadConfig,
-  ): Promise<string[]> {
+  private async performUpload(page: Page, config: FileUploadConfig): Promise<string[]> {
     const fileInput = await page.$(config.selector);
     if (!fileInput) {
       throw new Error(`File input not found: ${config.selector}`);

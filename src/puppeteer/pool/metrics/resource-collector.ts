@@ -6,9 +6,7 @@
  */
 
 import { BaseMetricCollector } from './base-collector.js';
-import {
-  MetricEventType,
-} from './types.js';
+import { MetricEventType } from './types.js';
 import type {
   ResourceMetrics,
   AggregatedResourceMetrics,
@@ -35,11 +33,7 @@ export class ResourceMetricsCollector
    * Update resource usage for a browser
    * @nist si-4 "Information system monitoring"
    */
-  updateResourceUsage(
-    browserId: string,
-    cpuUsage: number,
-    memoryUsage: number
-  ): void {
+  updateResourceUsage(browserId: string, cpuUsage: number, memoryUsage: number): void {
     const metrics: ResourceMetrics = {
       browserId,
       cpuUsage,
@@ -49,10 +43,7 @@ export class ResourceMetricsCollector
 
     this.resourceMetrics.set(browserId, metrics);
 
-    logger.debug(
-      { browserId, cpuUsage, memoryUsage },
-      'Resource usage updated'
-    );
+    logger.debug({ browserId, cpuUsage, memoryUsage }, 'Resource usage updated');
 
     this.notify({
       type: MetricEventType.RESOURCE_UPDATED,
@@ -107,10 +98,7 @@ export class ResourceMetricsCollector
     const activeMetrics = Array.from(this.resourceMetrics.values());
 
     const totalCpu = activeMetrics.reduce((sum, m) => sum + m.cpuUsage, 0);
-    const totalMemory = activeMetrics.reduce(
-      (sum, m) => sum + m.memoryUsage,
-      0
-    );
+    const totalMemory = activeMetrics.reduce((sum, m) => sum + m.memoryUsage, 0);
     const count = activeMetrics.length;
 
     return {

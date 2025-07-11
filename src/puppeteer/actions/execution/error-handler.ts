@@ -3,7 +3,7 @@
  * @module puppeteer/actions/execution/error-handler
  * @nist au-3 "Content of audit records"
  * @nist si-11 "Error handling"
- * 
+ *
  * This file maintains backward compatibility while delegating to modular components
  */
 
@@ -29,7 +29,7 @@ const logger = createLogger('puppeteer:error-handler');
 /**
  * Error handler for action execution
  * @nist si-11 "Error handling"
- * 
+ *
  * This class maintains the original API while delegating to specialized modules
  */
 export class ActionErrorHandler {
@@ -40,7 +40,7 @@ export class ActionErrorHandler {
 
   constructor(retryConfig?: Partial<RetryConfig>) {
     this.retryConfig = { ...DEFAULT_CONFIG.RETRY, ...retryConfig };
-    
+
     // Initialize modular components
     this.errorClassifier = new ErrorClassifier();
     this.securityEventHandler = new SecurityEventHandler();
@@ -70,19 +70,13 @@ export class ActionErrorHandler {
     });
 
     // Log security event using dedicated handler
-    await this.securityEventHandler.logValidationFailure(
-      context,
-      action.type,
-      validationResult,
-      { pageId: action.pageId, duration },
-    );
+    await this.securityEventHandler.logValidationFailure(context, action.type, validationResult, {
+      pageId: action.pageId,
+      duration,
+    });
 
     // Create standardized result using factory
-    return ErrorResultFactory.createValidationFailure<T>(
-      action,
-      validationResult,
-      duration,
-    );
+    return ErrorResultFactory.createValidationFailure<T>(action, validationResult, duration);
   }
 
   /**
@@ -101,7 +95,7 @@ export class ActionErrorHandler {
   ): Promise<ActionResult<T>> {
     // Classify error using dedicated classifier
     const errorDetails = this.errorClassifier.classify(error, action);
-    
+
     logger.error('Action execution failed', {
       sessionId: context.sessionId,
       contextId: context.contextId,
@@ -112,28 +106,18 @@ export class ActionErrorHandler {
     });
 
     // Log security event
-    await this.securityEventHandler.logExecutionError(
-      context,
-      action.type,
-      errorDetails,
-      { pageId: action.pageId, duration },
-    );
+    await this.securityEventHandler.logExecutionError(context, action.type, errorDetails, {
+      pageId: action.pageId,
+      duration,
+    });
 
     // Analyze for security implications
     if (error instanceof Error) {
-      await this.securityEventHandler.analyzeSecurityImplications(
-        context,
-        action.type,
-        error,
-      );
+      await this.securityEventHandler.analyzeSecurityImplications(context, action.type, error);
     }
 
     // Create standardized result
-    return ErrorResultFactory.createExecutionError<T>(
-      action,
-      errorDetails,
-      duration,
-    );
+    return ErrorResultFactory.createExecutionError<T>(action, errorDetails, duration);
   }
 
   /**
@@ -142,10 +126,7 @@ export class ActionErrorHandler {
    * @param duration - Execution duration so far
    * @returns Action result with page not found error
    */
-  createPageNotFoundResult<T = unknown>(
-    action: BrowserAction,
-    duration: number,
-  ): ActionResult<T> {
+  createPageNotFoundResult<T = unknown>(action: BrowserAction, duration: number): ActionResult<T> {
     logger.error('Page not found for action execution', {
       actionType: action.type,
       pageId: action.pageId,
@@ -203,14 +184,11 @@ export class ActionErrorHandler {
       // Log successful retry if applicable
       const metadata = result.metadata;
       const retryAttempts = metadata?.retryAttempts as number | undefined;
-      
+
       if (result.success && retryAttempts !== undefined && retryAttempts > 1) {
-        await this.securityEventHandler.logSuccessfulRetry(
-          context,
-          action.type,
-          retryAttempts,
-          { duration: result.duration },
-        );
+        await this.securityEventHandler.logSuccessfulRetry(context, action.type, retryAttempts, {
+          duration: result.duration,
+        });
       }
 
       return result;
@@ -218,7 +196,7 @@ export class ActionErrorHandler {
       // Handle retry exhaustion
       const lastError = error instanceof Error ? error : new Error('Unknown error');
       const retryConfig = this.getRetryConfig();
-      
+
       await this.securityEventHandler.logMaxRetriesExceeded(
         context,
         action.type,
@@ -229,7 +207,6 @@ export class ActionErrorHandler {
       throw lastError;
     }
   }
-
 
   /**
    * Get retry configuration

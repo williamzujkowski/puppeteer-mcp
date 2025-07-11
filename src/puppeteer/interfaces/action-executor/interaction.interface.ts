@@ -14,22 +14,22 @@ import type { BaseBrowserAction } from './core.interface.js';
  */
 export interface ClickAction extends BaseBrowserAction {
   type: 'click';
-  
+
   /** CSS selector for target element */
   selector: string;
-  
+
   /** Number of consecutive clicks */
   clickCount?: number;
-  
+
   /** Mouse button to use */
   button?: 'left' | 'right' | 'middle';
-  
+
   /** Delay between down and up in milliseconds */
   delay?: number;
-  
+
   /** X offset from element center */
   offsetX?: number;
-  
+
   /** Y offset from element center */
   offsetY?: number;
 }
@@ -40,16 +40,16 @@ export interface ClickAction extends BaseBrowserAction {
  */
 export interface TypeAction extends BaseBrowserAction {
   type: 'type';
-  
+
   /** CSS selector for target element */
   selector: string;
-  
+
   /** Text to type */
   text: string;
-  
+
   /** Delay between key presses in milliseconds */
   delay?: number;
-  
+
   /** Clear existing content before typing */
   clearFirst?: boolean;
 }
@@ -60,10 +60,10 @@ export interface TypeAction extends BaseBrowserAction {
  */
 export interface SelectAction extends BaseBrowserAction {
   type: 'select';
-  
+
   /** CSS selector for select element */
   selector: string;
-  
+
   /** Values to select */
   values: string[];
 }
@@ -74,13 +74,13 @@ export interface SelectAction extends BaseBrowserAction {
  */
 export interface KeyboardAction extends BaseBrowserAction {
   type: 'keyboard';
-  
+
   /** Key to press */
   key: KeyInput;
-  
+
   /** Keyboard action type */
   action: 'press' | 'down' | 'up';
-  
+
   /** Modifier keys to hold during action */
   modifiers?: string[];
 }
@@ -91,22 +91,22 @@ export interface KeyboardAction extends BaseBrowserAction {
  */
 export interface MouseAction extends BaseBrowserAction {
   type: 'mouse';
-  
+
   /** Mouse action type */
   action: 'move' | 'down' | 'up' | 'wheel';
-  
+
   /** X coordinate for mouse position */
   x?: number;
-  
+
   /** Y coordinate for mouse position */
   y?: number;
-  
+
   /** Horizontal scroll delta */
   deltaX?: number;
-  
+
   /** Vertical scroll delta */
   deltaY?: number;
-  
+
   /** Mouse button for down/up actions */
   button?: 'left' | 'right' | 'middle';
 }
@@ -118,10 +118,10 @@ export interface MouseAction extends BaseBrowserAction {
  */
 export interface UploadAction extends BaseBrowserAction {
   type: 'upload';
-  
+
   /** CSS selector for file input element */
   selector: string;
-  
+
   /** Array of file paths to upload */
   filePaths: string[];
 }
@@ -132,7 +132,7 @@ export interface UploadAction extends BaseBrowserAction {
  */
 export interface HoverAction extends BaseBrowserAction {
   type: 'hover';
-  
+
   /** CSS selector for target element */
   selector: string;
 }
@@ -140,11 +140,11 @@ export interface HoverAction extends BaseBrowserAction {
 /**
  * Interaction-related action types
  */
-export type InteractionActionType = 
-  | ClickAction 
-  | TypeAction 
-  | SelectAction 
-  | KeyboardAction 
-  | MouseAction 
+export type InteractionActionType =
+  | ClickAction
+  | TypeAction
+  | SelectAction
+  | KeyboardAction
+  | MouseAction
   | UploadAction
   | HoverAction;

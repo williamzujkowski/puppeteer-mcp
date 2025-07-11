@@ -55,10 +55,10 @@ export class MetricsCollector {
    */
   recordMessageProcessed(responseTime?: number): void {
     this.data.messagesProcessed++;
-    
+
     if (responseTime !== undefined && responseTime >= 0) {
       this.data.responseTimes.push(responseTime);
-      
+
       // Keep only recent response times
       if (this.data.responseTimes.length > this.maxResponseTimeSamples) {
         this.data.responseTimes = this.data.responseTimes.slice(-this.maxResponseTimeSamples);
@@ -73,7 +73,7 @@ export class MetricsCollector {
   recordError(error: Error | string): void {
     this.data.errorsCount++;
     this.data.lastErrorTime = Date.now();
-    
+
     this.logger.error('Error recorded in metrics', {
       error: error instanceof Error ? error.message : error,
       totalErrors: this.data.errorsCount,
@@ -137,7 +137,7 @@ export class MetricsCollector {
       },
       startTime: Date.now(),
     };
-    
+
     this.logger.info('Metrics reset');
   }
 
@@ -176,7 +176,7 @@ export class MetricsCollector {
       disconnected: 0,
       periodStart: Date.now(),
     };
-    
+
     this.logger.debug('Connection statistics reset');
   }
 }

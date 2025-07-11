@@ -26,16 +26,19 @@ import { logger } from '../../utils/logger.js';
 export class ZipkinExporterFactory implements ExporterFactory<SpanExporter> {
   create(config: TelemetryConfig): SpanExporter | null {
     const endpoint = config.tracing.endpoints.zipkin;
-    
+
     if (!endpoint || endpoint.trim() === '') {
       logger.warn('Zipkin endpoint not configured');
       return null;
     }
 
-    logger.info({
-      endpoint,
-      serviceName: config.serviceName,
-    }, 'Creating Zipkin trace exporter');
+    logger.info(
+      {
+        endpoint,
+        serviceName: config.serviceName,
+      },
+      'Creating Zipkin trace exporter',
+    );
 
     return new ZipkinExporter({
       url: endpoint,
@@ -83,7 +86,10 @@ class TraceExporterFactoryRegistry {
  * Registry of metric exporter factories
  */
 class MetricExporterFactoryRegistry {
-  private readonly factories = new Map<MetricExporterType, ExporterFactory<PushMetricExporter | PrometheusExporter>>();
+  private readonly factories = new Map<
+    MetricExporterType,
+    ExporterFactory<PushMetricExporter | PrometheusExporter>
+  >();
 
   constructor() {
     this.registerDefaults();
@@ -95,12 +101,17 @@ class MetricExporterFactoryRegistry {
     this.factories.set('prometheus', new PrometheusExporterFactory());
   }
 
-  register(type: MetricExporterType, factory: ExporterFactory<PushMetricExporter | PrometheusExporter>): void {
+  register(
+    type: MetricExporterType,
+    factory: ExporterFactory<PushMetricExporter | PrometheusExporter>,
+  ): void {
     this.factories.set(type, factory);
     logger.debug({ type, factoryType: factory.getType() }, 'Registered metric exporter factory');
   }
 
-  get(type: MetricExporterType): ExporterFactory<PushMetricExporter | PrometheusExporter> | undefined {
+  get(
+    type: MetricExporterType,
+  ): ExporterFactory<PushMetricExporter | PrometheusExporter> | undefined {
     return this.factories.get(type);
   }
 
@@ -125,18 +136,18 @@ export function createTraceExporter(config: TelemetryConfig): SpanExporter | nul
   }
 
   const exporterType = config.tracing.exporter;
-  
+
   if (exporterType === 'none') {
     logger.info('Trace exporter disabled');
     return null;
   }
 
   const factory = traceFactoryRegistry.get(exporterType);
-  
+
   if (!factory) {
     logger.warn(
       { exporter: exporterType, available: traceFactoryRegistry.getAvailableTypes() },
-      'Unknown trace exporter type, falling back to console'
+      'Unknown trace exporter type, falling back to console',
     );
     const consoleFactory = traceFactoryRegistry.get('console');
     return consoleFactory?.create(config) ?? null;
@@ -151,7 +162,7 @@ export function createTraceExporter(config: TelemetryConfig): SpanExporter | nul
   } catch (error) {
     logger.error(
       { error, type: exporterType },
-      'Failed to create trace exporter, falling back to console'
+      'Failed to create trace exporter, falling back to console',
     );
     const consoleFactory = traceFactoryRegistry.get('console');
     return consoleFactory?.create(config) ?? null;
@@ -161,25 +172,27 @@ export function createTraceExporter(config: TelemetryConfig): SpanExporter | nul
 /**
  * Create metric exporter based on configuration
  */
-export function createMetricExporter(config: TelemetryConfig): PushMetricExporter | PrometheusExporter | null {
+export function createMetricExporter(
+  config: TelemetryConfig,
+): PushMetricExporter | PrometheusExporter | null {
   if (!config.metrics.enabled) {
     logger.debug('Metric exporter creation skipped - metrics disabled');
     return null;
   }
 
   const exporterType = config.metrics.exporter;
-  
+
   if (exporterType === 'none') {
     logger.info('Metric exporter disabled');
     return null;
   }
 
   const factory = metricFactoryRegistry.get(exporterType);
-  
+
   if (!factory) {
     logger.warn(
       { exporter: exporterType, available: metricFactoryRegistry.getAvailableTypes() },
-      'Unknown metric exporter type, falling back to console'
+      'Unknown metric exporter type, falling back to console',
     );
     const consoleFactory = metricFactoryRegistry.get('console');
     return consoleFactory?.create(config) ?? null;
@@ -194,7 +207,7 @@ export function createMetricExporter(config: TelemetryConfig): PushMetricExporte
   } catch (error) {
     logger.error(
       { error, type: exporterType },
-      'Failed to create metric exporter, falling back to console'
+      'Failed to create metric exporter, falling back to console',
     );
     const consoleFactory = metricFactoryRegistry.get('console');
     return consoleFactory?.create(config) ?? null;
@@ -206,13 +219,13 @@ export function createMetricExporter(config: TelemetryConfig): PushMetricExporte
  */
 export function createMultiTraceExporter(config: TelemetryConfig): SpanExporter[] {
   const exporters: SpanExporter[] = [];
-  
+
   // Primary exporter
   const primary = createTraceExporter(config);
   if (primary) {
     exporters.push(primary);
   }
-  
+
   // Add console exporter in debug mode (if not already the primary)
   if (config.debug.enabled && config.tracing.exporter !== 'console') {
     const consoleFactory = traceFactoryRegistry.get('console');
@@ -222,7 +235,7 @@ export function createMultiTraceExporter(config: TelemetryConfig): SpanExporter[
       logger.debug('Added console trace exporter for debug mode');
     }
   }
-  
+
   logger.info({ count: exporters.length }, 'Created multi-trace exporter setup');
   return exporters;
 }
@@ -230,15 +243,17 @@ export function createMultiTraceExporter(config: TelemetryConfig): SpanExporter[
 /**
  * Create multiple metric exporters
  */
-export function createMultiMetricExporter(config: TelemetryConfig): Array<PushMetricExporter | PrometheusExporter> {
+export function createMultiMetricExporter(
+  config: TelemetryConfig,
+): Array<PushMetricExporter | PrometheusExporter> {
   const exporters: Array<PushMetricExporter | PrometheusExporter> = [];
-  
+
   // Primary exporter
   const primary = createMetricExporter(config);
   if (primary) {
     exporters.push(primary);
   }
-  
+
   // Add console exporter in debug mode (if not already the primary)
   if (config.debug.enabled && config.metrics.exporter !== 'console') {
     const consoleFactory = metricFactoryRegistry.get('console');
@@ -248,7 +263,7 @@ export function createMultiMetricExporter(config: TelemetryConfig): Array<PushMe
       logger.debug('Added console metric exporter for debug mode');
     }
   }
-  
+
   logger.info({ count: exporters.length }, 'Created multi-metric exporter setup');
   return exporters;
 }
@@ -258,7 +273,7 @@ export function createMultiMetricExporter(config: TelemetryConfig): Array<PushMe
  */
 export function registerTraceExporterFactory(
   type: TraceExporterType,
-  factory: ExporterFactory<SpanExporter>
+  factory: ExporterFactory<SpanExporter>,
 ): void {
   traceFactoryRegistry.register(type, factory);
 }
@@ -268,7 +283,7 @@ export function registerTraceExporterFactory(
  */
 export function registerMetricExporterFactory(
   type: MetricExporterType,
-  factory: ExporterFactory<PushMetricExporter | PrometheusExporter>
+  factory: ExporterFactory<PushMetricExporter | PrometheusExporter>,
 ): void {
   metricFactoryRegistry.register(type, factory);
 }
@@ -293,11 +308,11 @@ export function getAvailableMetricExporterTypes(): MetricExporterType[] {
 export function registerExtendedExporterFactories(): void {
   // These are optional exporters that can be registered as needed
   logger.info('Registering extended exporter factories');
-  
+
   // Note: These would extend the TraceExporterType and MetricExporterType unions
   // For now, they're available through direct factory instantiation
   // Factories are available: FileTraceExporterFactory, FileMetricExporterFactory,
   // HTTPTraceExporterFactory, HTTPMetricExporterFactory
-  
+
   logger.debug('Extended exporter factories available for direct use');
 }

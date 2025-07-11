@@ -18,11 +18,12 @@ export class ConfigurationExtractor {
     return {
       preferredStore: factoryConfig.preferredStore ?? config.SESSION_STORE_TYPE,
       enableMonitoring: factoryConfig.enableMonitoring ?? config.SESSION_STORE_MONITORING_ENABLED,
-      enableReplication: factoryConfig.enableReplication ?? config.SESSION_STORE_REPLICATION_ENABLED,
+      enableReplication:
+        factoryConfig.enableReplication ?? config.SESSION_STORE_REPLICATION_ENABLED,
       enableMigration: factoryConfig.enableMigration ?? config.SESSION_STORE_MIGRATION_ENABLED,
       logger: factoryConfig.logger ?? this.defaultLogger,
       monitoringConfig: factoryConfig.monitoringConfig ?? {},
-      replicationConfig: factoryConfig.replicationConfig ?? {}
+      replicationConfig: factoryConfig.replicationConfig ?? {},
     };
   }
 }

@@ -32,7 +32,6 @@ import {
   SerializationOptions,
 } from './serialization-interfaces.js';
 
-
 /**
  * Error serialization utility class
  */
@@ -42,7 +41,7 @@ export class ErrorSerializer {
    */
   static serialize(
     error: Error | AppError | EnhancedAppError | ZodError,
-    options: SerializationOptions = {}
+    options: SerializationOptions = {},
   ): SerializedError {
     const timestamp = new Date().toISOString();
 
@@ -67,7 +66,7 @@ export class ErrorSerializer {
   private static serializeEnhancedAppError(
     error: EnhancedAppError,
     options: SerializationOptions,
-    timestamp: string
+    timestamp: string,
   ): SerializedError {
     const baseResult: SerializedError = {
       name: error.name,
@@ -91,11 +90,11 @@ export class ErrorSerializer {
   private static buildEnhancedErrorContext(
     error: EnhancedAppError,
     options: SerializationOptions,
-    timestamp: string
+    timestamp: string,
   ): SerializedError['context'] {
     const errorContext = error.errorContext.context;
     const baseContext = this.buildBasicErrorContext(options, timestamp, error.stack);
-    
+
     return {
       ...baseContext,
       sessionId: errorContext?.sessionId,
@@ -112,14 +111,18 @@ export class ErrorSerializer {
   private static addOptionalEnhancedErrorFields(
     baseResult: SerializedError,
     error: EnhancedAppError,
-    options: SerializationOptions
+    options: SerializationOptions,
   ): SerializedError {
     const result = { ...baseResult };
 
-    if (options.includeTechnicalDetails === true && error.errorContext.technicalDetails !== undefined) {
-      result.technicalDetails = options.sanitizeSensitiveData === true
-        ? sanitizeDetails(error.errorContext.technicalDetails)
-        : error.errorContext.technicalDetails;
+    if (
+      options.includeTechnicalDetails === true &&
+      error.errorContext.technicalDetails !== undefined
+    ) {
+      result.technicalDetails =
+        options.sanitizeSensitiveData === true
+          ? sanitizeDetails(error.errorContext.technicalDetails)
+          : error.errorContext.technicalDetails;
     }
 
     if (options.includeRetryConfig === true && error.errorContext.retryConfig !== undefined) {
@@ -143,7 +146,7 @@ export class ErrorSerializer {
   private static serializeZodError(
     error: ZodError,
     options: SerializationOptions,
-    timestamp: string
+    timestamp: string,
   ): SerializedError {
     const baseResult: SerializedError = {
       name: 'ValidationError',
@@ -160,7 +163,7 @@ export class ErrorSerializer {
 
     if (options.includeTechnicalDetails === true) {
       baseResult.technicalDetails = {
-        validationErrors: error.errors.map(e => ({
+        validationErrors: error.errors.map((e) => ({
           path: e.path.join('.'),
           message: e.message,
           code: e.code,
@@ -177,7 +180,7 @@ export class ErrorSerializer {
   private static serializeAppError(
     error: AppError,
     options: SerializationOptions,
-    timestamp: string
+    timestamp: string,
   ): SerializedError {
     const baseResult: SerializedError = {
       name: error.name,
@@ -193,9 +196,8 @@ export class ErrorSerializer {
     };
 
     if (options.includeTechnicalDetails === true && error.details !== undefined) {
-      baseResult.technicalDetails = options.sanitizeSensitiveData === true
-        ? sanitizeDetails(error.details)
-        : error.details;
+      baseResult.technicalDetails =
+        options.sanitizeSensitiveData === true ? sanitizeDetails(error.details) : error.details;
     }
 
     return baseResult;
@@ -207,11 +209,11 @@ export class ErrorSerializer {
   private static serializeGenericError(
     error: Error,
     options: SerializationOptions,
-    timestamp: string
+    timestamp: string,
   ): SerializedError {
     const isDevelopment = process.env.NODE_ENV === 'development';
     const context = this.buildBasicErrorContext(options, timestamp, error.stack);
-    
+
     // Only include stack for generic errors in development mode
     if (isDevelopment !== true || options.includeStack !== true) {
       delete context.stack;
@@ -237,7 +239,7 @@ export class ErrorSerializer {
   private static buildBasicErrorContext(
     options: SerializationOptions,
     timestamp: string,
-    stack?: string
+    stack?: string,
   ): SerializedError['context'] {
     const context: SerializedError['context'] = {
       requestId: options.requestId,
@@ -257,7 +259,7 @@ export class ErrorSerializer {
    */
   static serializeForRest(
     error: Error | AppError | EnhancedAppError | ZodError,
-    options: SerializationOptions = {}
+    options: SerializationOptions = {},
   ): RestErrorResponse {
     const restOptions = buildRestSerializationOptions(options);
     const serialized = this.serialize(error, restOptions);
@@ -273,7 +275,7 @@ export class ErrorSerializer {
    */
   static serializeForGrpc(
     error: Error | AppError | EnhancedAppError | ZodError,
-    options: SerializationOptions = {}
+    options: SerializationOptions = {},
   ): GrpcErrorResponse {
     const serialized = this.serialize(error, {
       ...options,
@@ -294,7 +296,7 @@ export class ErrorSerializer {
   static serializeForWebSocket(
     error: Error | AppError | EnhancedAppError | ZodError,
     messageId?: string,
-    options: SerializationOptions = {}
+    options: SerializationOptions = {},
   ): WebSocketErrorResponse {
     const serialized = this.serialize(error, {
       ...options,
@@ -315,7 +317,7 @@ export class ErrorSerializer {
   static serializeForMcp(
     error: Error | AppError | EnhancedAppError | ZodError,
     id?: string | number,
-    options: SerializationOptions = {}
+    options: SerializationOptions = {},
   ): McpErrorResponse {
     const serialized = this.serialize(error, {
       ...options,
@@ -329,7 +331,4 @@ export class ErrorSerializer {
 
     return serializeForMcp(serialized, id);
   }
-
-
 }
-

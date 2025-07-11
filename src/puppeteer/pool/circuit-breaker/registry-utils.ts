@@ -29,16 +29,16 @@ export interface RegistryExportData {
  */
 export function findByState(
   circuitBreakers: Map<string, CircuitBreaker>,
-  state: CircuitBreakerState
+  state: CircuitBreakerState,
 ): Array<{ name: string; circuitBreaker: CircuitBreaker }> {
   const results: Array<{ name: string; circuitBreaker: CircuitBreaker }> = [];
-  
+
   for (const [name, cb] of circuitBreakers) {
     if (cb.getStatus().state === state) {
       results.push({ name, circuitBreaker: cb });
     }
   }
-  
+
   return results;
 }
 
@@ -46,31 +46,31 @@ export function findByState(
  * Find unhealthy circuit breakers
  */
 export function findUnhealthy(
-  circuitBreakers: Map<string, CircuitBreaker>
+  circuitBreakers: Map<string, CircuitBreaker>,
 ): Array<{ name: string; circuitBreaker: CircuitBreaker; issues: string[] }> {
   const results: Array<{ name: string; circuitBreaker: CircuitBreaker; issues: string[] }> = [];
-  
+
   for (const [name, cb] of circuitBreakers) {
     const status = cb.getStatus();
     if (!status.healthy) {
       const issues: string[] = [];
-      
+
       if (status.state === CircuitBreakerState.OPEN) {
         issues.push('Circuit is open');
       }
-      
+
       if (status.metrics.failureRate > 50) {
         issues.push(`High failure rate: ${status.metrics.failureRate.toFixed(2)}%`);
       }
-      
+
       if (status.metrics.averageResponseTime > 5000) {
         issues.push(`High response time: ${status.metrics.averageResponseTime}ms`);
       }
-      
+
       results.push({ name, circuitBreaker: cb, issues });
     }
   }
-  
+
   return results;
 }
 
@@ -95,11 +95,11 @@ export function calculateAggregatedMetrics(circuitBreakers: Map<string, CircuitB
   for (const [name, cb] of circuitBreakers) {
     const metrics = cb.getMetrics();
     circuitBreakerMetrics.set(name, metrics);
-    
+
     totalRequests += metrics.requestCount;
     totalFailures += metrics.failureCount;
     totalSuccesses += metrics.successCount;
-    
+
     if (metrics.averageResponseTime > 0) {
       totalResponseTime += metrics.averageResponseTime;
       responseTimeCount++;
@@ -124,7 +124,7 @@ export function calculateAggregatedMetrics(circuitBreakers: Map<string, CircuitB
  */
 export function exportRegistryState(
   circuitBreakers: Map<string, CircuitBreaker>,
-  globalConfig: CircuitBreakerConfig
+  globalConfig: CircuitBreakerConfig,
 ): RegistryExportData {
   const circuitBreakerData = Array.from(circuitBreakers.entries()).map(([name, cb]) => ({
     name,
@@ -145,16 +145,19 @@ export function exportRegistryState(
  */
 export function applyConfigToAll(
   circuitBreakers: Map<string, CircuitBreaker>,
-  config: Partial<CircuitBreakerConfig>
+  config: Partial<CircuitBreakerConfig>,
 ): void {
   for (const circuitBreaker of circuitBreakers.values()) {
     circuitBreaker.updateConfig(config);
   }
-  
-  logger.info({
-    config,
-    appliedTo: circuitBreakers.size,
-  }, 'Configuration applied to all circuit breakers');
+
+  logger.info(
+    {
+      config,
+      appliedTo: circuitBreakers.size,
+    },
+    'Configuration applied to all circuit breakers',
+  );
 }
 
 /**
@@ -164,10 +167,13 @@ export function resetAll(circuitBreakers: Map<string, CircuitBreaker>): void {
   for (const circuitBreaker of circuitBreakers.values()) {
     circuitBreaker.reset();
   }
-  
-  logger.info({
-    resetCount: circuitBreakers.size,
-  }, 'All circuit breakers reset');
+
+  logger.info(
+    {
+      resetCount: circuitBreakers.size,
+    },
+    'All circuit breakers reset',
+  );
 }
 
 /**
@@ -175,7 +181,7 @@ export function resetAll(circuitBreakers: Map<string, CircuitBreaker>): void {
  */
 export function evictCircuitBreaker(
   circuitBreakers: Map<string, CircuitBreaker>,
-  removeCallback: (name: string) => boolean
+  removeCallback: (name: string) => boolean,
 ): string | null {
   // First try to evict closed and healthy circuit breakers
   for (const [name, cb] of circuitBreakers) {
@@ -191,7 +197,10 @@ export function evictCircuitBreaker(
   const oldestName = circuitBreakers.keys().next().value;
   if (oldestName) {
     removeCallback(oldestName);
-    logger.info({ evictedName: oldestName }, 'Oldest circuit breaker evicted due to capacity limit');
+    logger.info(
+      { evictedName: oldestName },
+      'Oldest circuit breaker evicted due to capacity limit',
+    );
     return oldestName;
   }
 
@@ -203,17 +212,23 @@ export function evictCircuitBreaker(
  */
 export function setupEventForwarding(name: string, circuitBreaker: CircuitBreaker): void {
   circuitBreaker.on('circuit-breaker-event', (event) => {
-    logger.debug({
-      circuitBreaker: name,
-      eventType: event.type,
-      state: event.state,
-    }, 'Circuit breaker event received');
+    logger.debug(
+      {
+        circuitBreaker: name,
+        eventType: event.type,
+        state: event.state,
+      },
+      'Circuit breaker event received',
+    );
   });
 
   circuitBreaker.on('performance-warning', (warning) => {
-    logger.warn({
-      circuitBreaker: name,
-      warning,
-    }, 'Circuit breaker performance warning');
+    logger.warn(
+      {
+        circuitBreaker: name,
+        warning,
+      },
+      'Circuit breaker performance warning',
+    );
   });
 }

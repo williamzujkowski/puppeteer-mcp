@@ -1,6 +1,6 @@
 /**
  * Secure Browser Automation Example
- * 
+ *
  * This example demonstrates security best practices:
  * - Credential management with encryption
  * - Input validation and sanitization
@@ -23,47 +23,49 @@ const API_RATE_LIMIT = parseInt(process.env.API_RATE_LIMIT || '100', 10);
 const SESSION_TIMEOUT = parseInt(process.env.SESSION_TIMEOUT || '3600000', 10); // 1 hour
 
 // Input validation schemas
-const UrlSchema = z.string().url().refine(
-  (url) => {
-    const parsed = new URL(url);
-    // Prevent SSRF attacks
-    const blockedHosts = ['localhost', '127.0.0.1', '0.0.0.0', '169.254.169.254'];
-    const blockedProtocols = ['file:', 'ftp:', 'ssh:', 'telnet:'];
-    
-    return !blockedHosts.includes(parsed.hostname) && 
-           !blockedProtocols.includes(parsed.protocol);
-  },
-  { message: 'URL contains blocked host or protocol' }
-);
+const UrlSchema = z
+  .string()
+  .url()
+  .refine(
+    (url) => {
+      const parsed = new URL(url);
+      // Prevent SSRF attacks
+      const blockedHosts = ['localhost', '127.0.0.1', '0.0.0.0', '169.254.169.254'];
+      const blockedProtocols = ['file:', 'ftp:', 'ssh:', 'telnet:'];
+
+      return !blockedHosts.includes(parsed.hostname) && !blockedProtocols.includes(parsed.protocol);
+    },
+    { message: 'URL contains blocked host or protocol' },
+  );
 
 const SelectorSchema = z.string().refine(
   (selector) => {
     // Prevent selector injection
-    const dangerousPatterns = [
-      /javascript:/i,
-      /on\w+\s*=/i,
-      /<script/i,
-      /\beval\b/i,
-      /\bexec\b/i,
-    ];
-    
-    return !dangerousPatterns.some(pattern => pattern.test(selector));
+    const dangerousPatterns = [/javascript:/i, /on\w+\s*=/i, /<script/i, /\beval\b/i, /\bexec\b/i];
+
+    return !dangerousPatterns.some((pattern) => pattern.test(selector));
   },
-  { message: 'Selector contains potentially dangerous content' }
+  { message: 'Selector contains potentially dangerous content' },
 );
 
 const AutomationParamsSchema = z.object({
   url: UrlSchema,
   selectors: z.record(SelectorSchema).optional(),
-  actions: z.array(z.object({
-    type: z.enum(['click', 'type', 'select', 'wait']),
-    selector: SelectorSchema.optional(),
-    value: z.string().optional(),
-  })).optional(),
-  credentials: z.object({
-    username: z.string().min(1),
-    password: z.string().min(1),
-  }).optional(),
+  actions: z
+    .array(
+      z.object({
+        type: z.enum(['click', 'type', 'select', 'wait']),
+        selector: SelectorSchema.optional(),
+        value: z.string().optional(),
+      }),
+    )
+    .optional(),
+  credentials: z
+    .object({
+      username: z.string().min(1),
+      password: z.string().min(1),
+    })
+    .optional(),
 });
 
 // Secure credential storage
@@ -74,12 +76,12 @@ class SecureCredentialStore {
   encrypt(text: string): { encrypted: string; iv: string; tag: string } {
     const iv = crypto.randomBytes(16);
     const cipher = crypto.createCipheriv(this.algorithm, this.key, iv);
-    
+
     let encrypted = cipher.update(text, 'utf8', 'hex');
     encrypted += cipher.final('hex');
-    
+
     const tag = cipher.getAuthTag();
-    
+
     return {
       encrypted,
       iv: iv.toString('hex'),
@@ -88,31 +90,23 @@ class SecureCredentialStore {
   }
 
   decrypt(encrypted: string, iv: string, tag: string): string {
-    const decipher = crypto.createDecipheriv(
-      this.algorithm,
-      this.key,
-      Buffer.from(iv, 'hex')
-    );
-    
+    const decipher = crypto.createDecipheriv(this.algorithm, this.key, Buffer.from(iv, 'hex'));
+
     decipher.setAuthTag(Buffer.from(tag, 'hex'));
-    
+
     let decrypted = decipher.update(encrypted, 'hex', 'utf8');
     decrypted += decipher.final('utf8');
-    
+
     return decrypted;
   }
 
   storeCredentials(credentials: any): string {
     const data = JSON.stringify(credentials);
     const { encrypted, iv, tag } = this.encrypt(data);
-    
+
     // Create a token containing encrypted credentials
-    const token = jwt.sign(
-      { encrypted, iv, tag },
-      JWT_SECRET,
-      { expiresIn: '1h' }
-    );
-    
+    const token = jwt.sign({ encrypted, iv, tag }, JWT_SECRET, { expiresIn: '1h' });
+
     return token;
   }
 
@@ -134,10 +128,7 @@ class AuditLogger {
   constructor() {
     this.logger = winston.createLogger({
       level: 'info',
-      format: winston.format.combine(
-        winston.format.timestamp(),
-        winston.format.json()
-      ),
+      format: winston.format.combine(winston.format.timestamp(), winston.format.json()),
       transports: [
         new winston.transports.File({ filename: 'audit.log' }),
         new winston.transports.Console({
@@ -157,7 +148,11 @@ class AuditLogger {
     });
   }
 
-  logSecurityEvent(event: string, severity: 'low' | 'medium' | 'high' | 'critical', details: any): void {
+  logSecurityEvent(
+    event: string,
+    severity: 'low' | 'medium' | 'high' | 'critical',
+    details: any,
+  ): void {
     this.logger.warn({
       type: 'security_event',
       event,
@@ -182,25 +177,25 @@ class RateLimiter {
   isAllowed(identifier: string): boolean {
     const now = Date.now();
     const requests = this.requests.get(identifier) || [];
-    
+
     // Remove old requests outside the window
-    const validRequests = requests.filter(time => now - time < this.window);
-    
+    const validRequests = requests.filter((time) => now - time < this.window);
+
     if (validRequests.length >= this.limit) {
       return false;
     }
-    
+
     validRequests.push(now);
     this.requests.set(identifier, validRequests);
-    
+
     return true;
   }
 
   getRemainingRequests(identifier: string): number {
     const requests = this.requests.get(identifier) || [];
     const now = Date.now();
-    const validRequests = requests.filter(time => now - time < this.window);
-    
+    const validRequests = requests.filter((time) => now - time < this.window);
+
     return Math.max(0, this.limit - validRequests.length);
   }
 }
@@ -259,11 +254,10 @@ export class SecureAutomationClient {
     // Check rate limit
     if (!this.rateLimiter.isAllowed(this.userId)) {
       const remaining = this.rateLimiter.getRemainingRequests(this.userId);
-      this.auditLogger.logSecurityEvent(
-        'rate_limit_exceeded',
-        'medium',
-        { userId: this.userId, remaining }
-      );
+      this.auditLogger.logSecurityEvent('rate_limit_exceeded', 'medium', {
+        userId: this.userId,
+        remaining,
+      });
       throw new Error(`Rate limit exceeded. Try again in ${60 - remaining} seconds.`);
     }
 
@@ -272,11 +266,10 @@ export class SecureAutomationClient {
     try {
       validatedParams = AutomationParamsSchema.parse(params);
     } catch (error) {
-      this.auditLogger.logSecurityEvent(
-        'invalid_input',
-        'low',
-        { userId: this.userId, error: error instanceof Error ? error.message : 'Unknown error' }
-      );
+      this.auditLogger.logSecurityEvent('invalid_input', 'low', {
+        userId: this.userId,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
       throw new Error('Invalid input parameters');
     }
 
@@ -305,11 +298,7 @@ export class SecureAutomationClient {
 
       // Handle credentials securely if provided
       if (validatedParams.credentials) {
-        await this.handleCredentials(
-          sessionId,
-          validatedParams.credentials,
-          validatedParams.url
-        );
+        await this.handleCredentials(sessionId, validatedParams.credentials, validatedParams.url);
       }
 
       // Execute actions with validation
@@ -330,17 +319,12 @@ export class SecureAutomationClient {
         success: true,
         data: this.sanitizeOutput(data),
       };
-
     } catch (error) {
-      this.auditLogger.logSecurityEvent(
-        'automation_error',
-        'medium',
-        {
-          userId: this.userId,
-          sessionId,
-          error: error instanceof Error ? error.message : 'Unknown error',
-        }
-      );
+      this.auditLogger.logSecurityEvent('automation_error', 'medium', {
+        userId: this.userId,
+        sessionId,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
       throw error;
     } finally {
       if (sessionId) {
@@ -375,7 +359,7 @@ export class SecureAutomationClient {
   private async secureNavigate(sessionId: string, url: string): Promise<void> {
     // Additional URL validation
     const parsed = new URL(url);
-    
+
     // Check against allowlist
     const allowedDomains = process.env.ALLOWED_DOMAINS?.split(',') || [];
     if (allowedDomains.length > 0 && !allowedDomains.includes(parsed.hostname)) {
@@ -389,14 +373,10 @@ export class SecureAutomationClient {
     });
   }
 
-  private async handleCredentials(
-    sessionId: string,
-    credentials: any,
-    url: string
-  ): Promise<void> {
+  private async handleCredentials(sessionId: string, credentials: any, url: string): Promise<void> {
     // Encrypt credentials for logging
     const credentialToken = this.credentialStore.storeCredentials(credentials);
-    
+
     this.auditLogger.logAction('credentials_used', {
       userId: this.userId,
       sessionId,
@@ -431,7 +411,7 @@ export class SecureAutomationClient {
 
   private async extractDataSecurely(
     sessionId: string,
-    selectors: Record<string, string>
+    selectors: Record<string, string>,
   ): Promise<any> {
     // Build secure extraction script
     const extractionScript = `
@@ -471,11 +451,11 @@ export class SecureAutomationClient {
         .replace(/on\w+\s*=/gi, '')
         .replace(/javascript:/gi, '');
     }
-    
+
     if (Array.isArray(data)) {
-      return data.map(item => this.sanitizeOutput(item));
+      return data.map((item) => this.sanitizeOutput(item));
     }
-    
+
     if (typeof data === 'object' && data !== null) {
       const sanitized: any = {};
       for (const [key, value] of Object.entries(data)) {
@@ -483,7 +463,7 @@ export class SecureAutomationClient {
       }
       return sanitized;
     }
-    
+
     return data;
   }
 
@@ -508,7 +488,7 @@ export class SecureAutomationClient {
 // Example usage with security best practices
 async function runSecureExample() {
   const client = new SecureAutomationClient('user123');
-  
+
   try {
     // Example 1: Secure form submission
     const formResult = await client.runSecureAutomation({
@@ -526,9 +506,9 @@ async function runSecureExample() {
         message: '.success-message, .error-message',
       },
     });
-    
+
     console.log('Form submission result:', formResult);
-    
+
     // Example 2: Secure data extraction
     const dataResult = await client.runSecureAutomation({
       url: 'https://example.com/public-data',
@@ -538,12 +518,11 @@ async function runSecureExample() {
         metadata: '.metadata',
       },
     });
-    
+
     console.log('Extracted data:', dataResult);
-    
+
     // Check security metrics
     console.log('Security metrics:', client.getSecurityMetrics());
-    
   } catch (error) {
     console.error('Secure automation failed:', error);
   }
@@ -596,5 +575,5 @@ export const securityChecklist = {
 if (require.main === module) {
   runSecureExample()
     .then(() => console.log('Secure automation completed'))
-    .catch(error => console.error('Security example failed:', error));
+    .catch((error) => console.error('Security example failed:', error));
 }

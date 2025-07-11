@@ -15,11 +15,7 @@ import { createServerDependencies } from './service-registry.js';
 import { validateServerConfig } from './server-config.js';
 import { performHealthCheck, startHealthMonitoring } from './health-monitor.js';
 import { setupAllProcessHandlers } from './graceful-shutdown.js';
-import { 
-  ServerComponents, 
-  ServerDependencies, 
-  ServerStartupResult
-} from './types.js';
+import { ServerComponents, ServerDependencies, ServerStartupResult } from './types.js';
 import { ServerError } from './server-config.js';
 
 /**
@@ -63,16 +59,16 @@ export class PuppeteerMcpServer {
 
       // Create Express application
       const app = createApp(logger, sessionStore, browserPool);
-      
+
       // Create HTTP/HTTPS server
       const server = createServer(app, serverConfig);
-      
+
       // Create gRPC server
       const grpcServer = createGrpcServerInstance(logger, sessionStore);
 
       // Start WebSocket server after HTTP server needs to be created
       const wsServer = startWebSocketServer(logger, sessionStore, server, serverConfig);
-      
+
       // Store components for lifecycle management
       this.components = {
         app,
@@ -85,12 +81,7 @@ export class PuppeteerMcpServer {
       setupAllProcessHandlers(this.components, this.dependencies);
 
       // Start HTTP server
-      await startHttpServer(
-        server, 
-        serverConfig.port, 
-        serverConfig.host, 
-        logger
-      );
+      await startHttpServer(server, serverConfig.port, serverConfig.host, logger);
 
       // Start gRPC server
       await startGrpcServer(grpcServer, serverConfig, logger);
@@ -111,9 +102,9 @@ export class PuppeteerMcpServer {
         this.components,
         browserPool,
         sessionStore,
-        logger
+        logger,
       );
-      
+
       logger.info({ healthStatus }, 'Initial health check completed');
 
       const protocol = serverConfig.tlsEnabled ? 'https' : 'http';
@@ -130,7 +121,6 @@ export class PuppeteerMcpServer {
       logger.info(result, 'Server startup completed');
 
       return result;
-
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'Unknown error';
       logger.error({ error }, 'Failed to start server');
@@ -160,7 +150,7 @@ export class PuppeteerMcpServer {
       this.components,
       this.dependencies.browserPool,
       this.dependencies.sessionStore,
-      this.dependencies.logger
+      this.dependencies.logger,
     );
   }
 

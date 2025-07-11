@@ -20,7 +20,7 @@ import type { IMetricsCollector } from '../types/strategy.interfaces.js';
 export class MetricsCollector implements IMetricsCollector {
   readonly monitor: EventEmitter;
   readonly config: PerformanceMonitoringConfig;
-  
+
   private dataPoints: Map<PerformanceMetricType, PerformanceDataPoint[]> = new Map();
   private readonly maxDataPoints = 10000;
 
@@ -48,7 +48,7 @@ export class MetricsCollector implements IMetricsCollector {
     value: number,
     metadata?: Record<string, any>,
     tags?: Record<string, string>,
-    source?: string
+    source?: string,
   ): void {
     const dataPoint: PerformanceDataPoint = {
       timestamp: new Date(),
@@ -69,12 +69,12 @@ export class MetricsCollector implements IMetricsCollector {
    */
   getMetrics(
     type?: PerformanceMetricType,
-    timeRange?: TimeRange
+    timeRange?: TimeRange,
   ): Map<PerformanceMetricType, PerformanceDataPoint[]> {
     if (type) {
       const metrics = this.dataPoints.get(type) || [];
       const filtered = timeRange
-        ? metrics.filter(dp => dp.timestamp >= timeRange.start && dp.timestamp <= timeRange.end)
+        ? metrics.filter((dp) => dp.timestamp >= timeRange.start && dp.timestamp <= timeRange.end)
         : metrics;
       return new Map([[type, filtered]]);
     }
@@ -82,7 +82,7 @@ export class MetricsCollector implements IMetricsCollector {
     const result = new Map<PerformanceMetricType, PerformanceDataPoint[]>();
     for (const [metricType, metrics] of this.dataPoints) {
       const filtered = timeRange
-        ? metrics.filter(dp => dp.timestamp >= timeRange.start && dp.timestamp <= timeRange.end)
+        ? metrics.filter((dp) => dp.timestamp >= timeRange.start && dp.timestamp <= timeRange.end)
         : metrics;
       result.set(metricType, filtered);
     }
@@ -97,7 +97,7 @@ export class MetricsCollector implements IMetricsCollector {
     const cutoff = new Date(Date.now() - retentionPeriod);
 
     for (const [type, points] of this.dataPoints) {
-      const filtered = points.filter(dp => dp.timestamp >= cutoff);
+      const filtered = points.filter((dp) => dp.timestamp >= cutoff);
       this.dataPoints.set(type, filtered);
     }
   }
@@ -141,7 +141,7 @@ export class MetricsCollector implements IMetricsCollector {
     oldest?: PerformanceDataPoint;
   } {
     const points = this.dataPoints.get(type) || [];
-    
+
     return {
       count: points.length,
       latest: points.length > 0 ? points[points.length - 1] : undefined,

@@ -16,7 +16,7 @@ const logger = createLogger('circuit-breaker-event-handlers');
  */
 export abstract class BaseEventHandler implements IEventHandler {
   constructor(protected name: string) {}
-  
+
   abstract handle(event: CircuitBreakerEvent): void | Promise<void>;
 }
 
@@ -99,7 +99,7 @@ export class AlertEventHandler extends BaseEventHandler {
       consecutiveFailures: 10,
       openStateDuration: 300000, // 5 minutes
       rejectionRate: 0.8, // 80%
-    }
+    },
   ) {
     super('alert');
   }
@@ -137,13 +137,14 @@ export class AlertEventHandler extends BaseEventHandler {
 
   private checkRejectionRate(): void {
     const fiveMinutesAgo = new Date(Date.now() - 300000);
-    this.recentRejections = this.recentRejections.filter(r => r > fiveMinutesAgo);
-    
+    this.recentRejections = this.recentRejections.filter((r) => r > fiveMinutesAgo);
+
     // Check rejection rate in last minute
     const oneMinuteAgo = new Date(Date.now() - 60000);
-    const recentCount = this.recentRejections.filter(r => r > oneMinuteAgo).length;
-    
-    if (recentCount > 10) { // More than 10 rejections per minute
+    const recentCount = this.recentRejections.filter((r) => r > oneMinuteAgo).length;
+
+    if (recentCount > 10) {
+      // More than 10 rejections per minute
       this.emitAlert('high_rejection_rate', {
         rejections: recentCount,
         timeWindow: '1 minute',
@@ -152,11 +153,14 @@ export class AlertEventHandler extends BaseEventHandler {
   }
 
   private emitAlert(alertType: string, details: any): void {
-    logger.error({
-      handler: this.name,
-      alertType,
-      details,
-    }, 'Circuit breaker alert');
+    logger.error(
+      {
+        handler: this.name,
+        alertType,
+        details,
+      },
+      'Circuit breaker alert',
+    );
   }
 }
 
@@ -178,7 +182,7 @@ export class StateChangeEventFilter implements IEventFilter {
 export class TimeBasedEventFilter implements IEventFilter {
   constructor(
     private startTime: Date,
-    private endTime: Date
+    private endTime: Date,
   ) {}
 
   shouldProcess(event: CircuitBreakerEvent): boolean {
@@ -204,6 +208,6 @@ export class CompositeEventFilter implements IEventFilter {
   constructor(private filters: IEventFilter[]) {}
 
   shouldProcess(event: CircuitBreakerEvent): boolean {
-    return this.filters.every(filter => filter.shouldProcess(event));
+    return this.filters.every((filter) => filter.shouldProcess(event));
   }
 }

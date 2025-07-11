@@ -22,8 +22,8 @@ export { SecurityEventType } from './types.js';
 export { createLogger, createChildLogger } from './logger-factory.js';
 export { logSecurityEvent, logDataAccess } from './security-logger.js';
 export { logger, loggers, cleanupLoggers } from './logger.js';
-export { 
-  runWithRequestContext, 
+export {
+  runWithRequestContext,
   requestContextMiddleware,
   getRequestContext,
 } from './log-context.js';

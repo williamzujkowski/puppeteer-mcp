@@ -102,10 +102,12 @@ export async function handleIncomingMessage(
 
     if (!middlewareResult.success || !middlewareResult.shouldContinue) {
       if (middlewareResult.error) {
-        await deps.errorHandler.handleMessageError(
-          new Error(middlewareResult.error),
-          { ws, connectionId, message: message.data!, connectionManager: deps.connectionManager },
-        );
+        await deps.errorHandler.handleMessageError(new Error(middlewareResult.error), {
+          ws,
+          connectionId,
+          message: message.data!,
+          connectionManager: deps.connectionManager,
+        });
       }
       return;
     }
@@ -197,9 +199,9 @@ async function parseMessage(data: Buffer): Promise<{
     const message = JSON.parse(rawMessage) as WSMessage;
     return { success: true, data: message };
   } catch (parseError) {
-    return { 
-      success: false, 
-      error: parseError instanceof Error ? parseError.message : 'Invalid JSON' 
+    return {
+      success: false,
+      error: parseError instanceof Error ? parseError.message : 'Invalid JSON',
     };
   }
 }

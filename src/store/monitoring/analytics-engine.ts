@@ -4,17 +4,13 @@
  * @nist au-6 "Audit review, analysis, and reporting"
  */
 
-import type {
-  SessionMetrics,
-  MetricsHistoryEntry,
-  UptimeStats
-} from './types.js';
+import type { SessionMetrics, MetricsHistoryEntry, UptimeStats } from './types.js';
 import {
   calculateTrend,
   findPeak,
   getAvgLatency,
   getErrorRate,
-  getTotalOps
+  getTotalOps,
 } from './trend-calculator.js';
 import { pino } from 'pino';
 
@@ -54,7 +50,7 @@ export class AnalyticsEngine {
   addMetricsSnapshot(metrics: SessionMetrics): void {
     this.metricsHistory.push({
       timestamp: new Date(),
-      metrics: JSON.parse(JSON.stringify(metrics))
+      metrics: JSON.parse(JSON.stringify(metrics)),
     });
   }
 
@@ -63,7 +59,7 @@ export class AnalyticsEngine {
    */
   getMetricsHistory(since?: Date): MetricsHistoryEntry[] {
     if (since) {
-      return this.metricsHistory.filter(entry => entry.timestamp >= since);
+      return this.metricsHistory.filter((entry) => entry.timestamp >= since);
     }
     return [...this.metricsHistory];
   }
@@ -74,10 +70,8 @@ export class AnalyticsEngine {
   analyzeTrends(periodMinutes: number = 60): TrendAnalysis {
     const now = new Date();
     const periodStart = new Date(now.getTime() - periodMinutes * 60 * 1000);
-    
-    const periodMetrics = this.metricsHistory.filter(
-      entry => entry.timestamp >= periodStart
-    );
+
+    const periodMetrics = this.metricsHistory.filter((entry) => entry.timestamp >= periodStart);
 
     if (periodMetrics.length < 2) {
       return this.getEmptyTrendAnalysis(periodStart, now);
@@ -98,13 +92,13 @@ export class AnalyticsEngine {
       trends: {
         latency: latencyTrend,
         errors: errorTrend,
-        usage: usageTrend
+        usage: usageTrend,
       },
       peaks: {
         latency: latencyPeak,
         errors: errorPeak,
-        usage: usagePeak
-      }
+        usage: usagePeak,
+      },
     };
   }
 
@@ -113,61 +107,62 @@ export class AnalyticsEngine {
    */
   getUptimeStats(): UptimeStats {
     const uptime = Date.now() - this.startTime;
-    
+
     // Calculate availability based on health checks
     const totalChecks = this.metricsHistory.length;
     const availableChecks = this.metricsHistory.filter(
-      entry => entry.metrics.store.available
+      (entry) => entry.metrics.store.available,
     ).length;
-    
+
     const availability = totalChecks > 0 ? availableChecks / totalChecks : 1;
 
     return {
       startTime: new Date(this.startTime),
       uptime,
-      availability
+      availability,
     };
   }
 
   /**
    * Calculate latency trend
    */
-  private calculateLatencyTrend(
-    metrics: MetricsHistoryEntry[]
-  ): { direction: 'up' | 'down' | 'stable'; change: number } {
-    const avgLatencies = metrics.map(entry => getAvgLatency(entry));
+  private calculateLatencyTrend(metrics: MetricsHistoryEntry[]): {
+    direction: 'up' | 'down' | 'stable';
+    change: number;
+  } {
+    const avgLatencies = metrics.map((entry) => getAvgLatency(entry));
     return calculateTrend(avgLatencies);
   }
 
   /**
    * Calculate error trend
    */
-  private calculateErrorTrend(
-    metrics: MetricsHistoryEntry[]
-  ): { direction: 'up' | 'down' | 'stable'; change: number } {
-    const errorRates = metrics.map(entry => getErrorRate(entry));
+  private calculateErrorTrend(metrics: MetricsHistoryEntry[]): {
+    direction: 'up' | 'down' | 'stable';
+    change: number;
+  } {
+    const errorRates = metrics.map((entry) => getErrorRate(entry));
     return calculateTrend(errorRates);
   }
 
   /**
    * Calculate usage trend
    */
-  private calculateUsageTrend(
-    metrics: MetricsHistoryEntry[]
-  ): { direction: 'up' | 'down' | 'stable'; change: number } {
-    const usageCounts = metrics.map(entry => getTotalOps(entry));
+  private calculateUsageTrend(metrics: MetricsHistoryEntry[]): {
+    direction: 'up' | 'down' | 'stable';
+    change: number;
+  } {
+    const usageCounts = metrics.map((entry) => getTotalOps(entry));
     return calculateTrend(usageCounts);
   }
 
   /**
    * Find latency peak
    */
-  private findLatencyPeak(
-    metrics: MetricsHistoryEntry[]
-  ): { value: number; timestamp: Date } {
-    return findPeak(metrics, entry => {
+  private findLatencyPeak(metrics: MetricsHistoryEntry[]): { value: number; timestamp: Date } {
+    return findPeak(metrics, (entry) => {
       let max = 0;
-      Object.values(entry.metrics.operations).forEach(op => {
+      Object.values(entry.metrics.operations).forEach((op) => {
         max = Math.max(max, op.avgLatency);
       });
       return max;
@@ -177,19 +172,15 @@ export class AnalyticsEngine {
   /**
    * Find error peak
    */
-  private findErrorPeak(
-    metrics: MetricsHistoryEntry[]
-  ): { value: number; timestamp: Date } {
-    return findPeak(metrics, entry => getErrorRate(entry));
+  private findErrorPeak(metrics: MetricsHistoryEntry[]): { value: number; timestamp: Date } {
+    return findPeak(metrics, (entry) => getErrorRate(entry));
   }
 
   /**
    * Find usage peak
    */
-  private findUsagePeak(
-    metrics: MetricsHistoryEntry[]
-  ): { value: number; timestamp: Date } {
-    return findPeak(metrics, entry => getTotalOps(entry));
+  private findUsagePeak(metrics: MetricsHistoryEntry[]): { value: number; timestamp: Date } {
+    return findPeak(metrics, (entry) => getTotalOps(entry));
   }
 
   /**
@@ -201,13 +192,13 @@ export class AnalyticsEngine {
       trends: {
         latency: { direction: 'stable', change: 0 },
         errors: { direction: 'stable', change: 0 },
-        usage: { direction: 'stable', change: 0 }
+        usage: { direction: 'stable', change: 0 },
       },
       peaks: {
         latency: { value: 0, timestamp: new Date() },
         errors: { value: 0, timestamp: new Date() },
-        usage: { value: 0, timestamp: new Date() }
-      }
+        usage: { value: 0, timestamp: new Date() },
+      },
     };
   }
 
@@ -217,7 +208,7 @@ export class AnalyticsEngine {
   clearOldMetrics(retentionPeriod: number): void {
     const cutoffTime = Date.now() - retentionPeriod;
     this.metricsHistory = this.metricsHistory.filter(
-      entry => entry.timestamp.getTime() > cutoffTime
+      (entry) => entry.timestamp.getTime() > cutoffTime,
     );
   }
 

@@ -5,11 +5,11 @@
  */
 
 import { createLogger } from '../../../utils/logger.js';
-import type { 
-  ResourceMonitoringConfig, 
-  MemoryOptimizationOptions, 
+import type {
+  ResourceMonitoringConfig,
+  MemoryOptimizationOptions,
   CpuOptimizationOptions,
-  ResourceThresholds 
+  ResourceThresholds,
 } from './resource-types.js';
 import { SystemResourceMonitor } from './system-resource-monitor.js';
 import { BrowserResourceMonitor } from './browser-resource-monitor.js';
@@ -18,7 +18,10 @@ import { MemoryOptimizationStrategy } from './memory-optimization-strategy.js';
 import { CpuOptimizationStrategy } from './cpu-optimization-strategy.js';
 import { ResourceHistoryManager } from './resource-history-manager.js';
 import { RecyclingDecisionService } from './recycling-decision-service.js';
-import type { ISystemResourceMonitor, IBrowserResourceMonitor } from './resource-monitor.interface.js';
+import type {
+  ISystemResourceMonitor,
+  IBrowserResourceMonitor,
+} from './resource-monitor.interface.js';
 import type { IResourceOptimizationStrategy } from './resource-optimization-strategy.js';
 
 const logger = createLogger('resource-manager-factory');
@@ -46,7 +49,7 @@ export class ResourceManagerFactory {
   static createComponents(
     config: ResourceMonitoringConfig,
     memoryOptimization: MemoryOptimizationOptions,
-    cpuOptimization: CpuOptimizationOptions
+    cpuOptimization: CpuOptimizationOptions,
   ): ResourceManagerComponents {
     logger.info('Creating resource management components');
 
@@ -67,7 +70,7 @@ export class ResourceManagerFactory {
     const optimizationStrategies = this.createOptimizationStrategies(
       config,
       memoryOptimization,
-      cpuOptimization
+      cpuOptimization,
     );
 
     return {
@@ -118,7 +121,7 @@ export class ResourceManagerFactory {
   static createOptimizationStrategies(
     config: ResourceMonitoringConfig,
     memoryOptimization: MemoryOptimizationOptions,
-    cpuOptimization: CpuOptimizationOptions
+    cpuOptimization: CpuOptimizationOptions,
   ): IResourceOptimizationStrategy[] {
     const strategies: IResourceOptimizationStrategy[] = [];
 
@@ -143,7 +146,7 @@ export class ResourceManagerFactory {
    */
   static createRecyclingService(
     thresholds: ResourceThresholds,
-    historyManager: ResourceHistoryManager
+    historyManager: ResourceHistoryManager,
   ): RecyclingDecisionService {
     logger.debug('Creating recycling decision service');
     return new RecyclingDecisionService(thresholds, historyManager);
@@ -154,7 +157,7 @@ export class ResourceManagerFactory {
    */
   static createCustomStrategy(
     name: string,
-    implementation: IResourceOptimizationStrategy
+    implementation: IResourceOptimizationStrategy,
   ): IResourceOptimizationStrategy {
     logger.info({ name }, 'Creating custom optimization strategy');
     return implementation;

@@ -23,7 +23,7 @@ const logger = createLogger('alert-manager');
 export class AlertManager implements IAlertManager {
   readonly monitor: EventEmitter;
   readonly config: PerformanceMonitoringConfig;
-  
+
   private alerts: Map<string, PerformanceAlert> = new Map();
 
   constructor(monitor: EventEmitter, config: PerformanceMonitoringConfig) {
@@ -61,7 +61,7 @@ export class AlertManager implements IAlertManager {
    * @nist au-6 "Audit review, analysis, and reporting"
    */
   getActiveAlerts(): PerformanceAlert[] {
-    return Array.from(this.alerts.values()).filter(alert => !alert.resolved);
+    return Array.from(this.alerts.values()).filter((alert) => !alert.resolved);
   }
 
   /**
@@ -80,12 +80,9 @@ export class AlertManager implements IAlertManager {
     if (alert && !alert.acknowledged) {
       alert.acknowledged = true;
       this.monitor.emit('alert-acknowledged', alert);
-      
-      logger.info(
-        { alertId, alert },
-        'Alert acknowledged'
-      );
-      
+
+      logger.info({ alertId, alert }, 'Alert acknowledged');
+
       return true;
     }
     return false;
@@ -102,12 +99,9 @@ export class AlertManager implements IAlertManager {
       alert.resolvedAt = new Date();
       alert.duration = alert.resolvedAt.getTime() - alert.timestamp.getTime();
       this.monitor.emit('alert-resolved', alert);
-      
-      logger.info(
-        { alertId, alert, duration: alert.duration },
-        'Alert resolved'
-      );
-      
+
+      logger.info({ alertId, alert, duration: alert.duration }, 'Alert resolved');
+
       return true;
     }
     return false;
@@ -137,7 +131,7 @@ export class AlertManager implements IAlertManager {
     byLevel: Record<AlertLevel, number>;
   } {
     const alerts = Array.from(this.alerts.values());
-    
+
     const byLevel = {
       [AlertLevel.INFO]: 0,
       [AlertLevel.WARNING]: 0,
@@ -151,9 +145,9 @@ export class AlertManager implements IAlertManager {
 
     return {
       total: alerts.length,
-      active: alerts.filter(a => !a.resolved).length,
-      resolved: alerts.filter(a => a.resolved).length,
-      acknowledged: alerts.filter(a => a.acknowledged).length,
+      active: alerts.filter((a) => !a.resolved).length,
+      resolved: alerts.filter((a) => a.resolved).length,
+      acknowledged: alerts.filter((a) => a.acknowledged).length,
       byLevel,
     };
   }
@@ -162,7 +156,7 @@ export class AlertManager implements IAlertManager {
    * Get alerts for a specific metric type
    */
   getAlertsForMetric(type: PerformanceMetricType): PerformanceAlert[] {
-    return Array.from(this.alerts.values()).filter(alert => alert.type === type);
+    return Array.from(this.alerts.values()).filter((alert) => alert.type === type);
   }
 
   /**
@@ -170,7 +164,9 @@ export class AlertManager implements IAlertManager {
    */
   hasCriticalAlerts(): boolean {
     return Array.from(this.alerts.values()).some(
-      alert => !alert.resolved && (alert.level === AlertLevel.CRITICAL || alert.level === AlertLevel.EMERGENCY)
+      (alert) =>
+        !alert.resolved &&
+        (alert.level === AlertLevel.CRITICAL || alert.level === AlertLevel.EMERGENCY),
     );
   }
 
@@ -208,7 +204,7 @@ export class AlertManager implements IAlertManager {
     type: PerformanceMetricType,
     level: AlertLevel,
     value: number,
-    threshold: number
+    threshold: number,
   ): void {
     const alertId = `${type}-${level}-${Date.now()}`;
     const alert: PerformanceAlert = {
@@ -226,10 +222,7 @@ export class AlertManager implements IAlertManager {
     this.alerts.set(alertId, alert);
     this.monitor.emit('alert-created', alert);
 
-    logger.warn(
-      { alert },
-      'Performance alert created'
-    );
+    logger.warn({ alert }, 'Performance alert created');
   }
 
   /**
@@ -237,7 +230,7 @@ export class AlertManager implements IAlertManager {
    */
   autoResolveOutdatedAlerts(type: PerformanceMetricType, currentValue: number): void {
     const thresholds = this.config.alertThresholds[type];
-    const activeAlerts = this.getActiveAlerts().filter(alert => alert.type === type);
+    const activeAlerts = this.getActiveAlerts().filter((alert) => alert.type === type);
 
     for (const alert of activeAlerts) {
       let shouldResolve = false;

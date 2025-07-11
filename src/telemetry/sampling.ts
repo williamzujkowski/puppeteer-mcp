@@ -48,7 +48,7 @@ export class AdaptiveSampler implements Sampler {
     _links: Link[],
   ): SamplingResult {
     this.updateStats();
-    
+
     const result = this.sampler.shouldSample(
       context,
       traceId,
@@ -57,12 +57,12 @@ export class AdaptiveSampler implements Sampler {
       attributes,
       _links,
     );
-    
+
     this.traceCount++;
     if (result.decision === SamplingDecision.RECORD_AND_SAMPLED) {
       this.sampleCount++;
     }
-    
+
     return result;
   }
 
@@ -73,10 +73,10 @@ export class AdaptiveSampler implements Sampler {
   private updateStats(): void {
     const now = Date.now();
     const elapsed = now - this.lastReset;
-    
+
     if (elapsed >= this.resetInterval) {
-      const actualRate = this.traceCount > 0 ? this.sampleCount / elapsed * 1000 : 0;
-      
+      const actualRate = this.traceCount > 0 ? (this.sampleCount / elapsed) * 1000 : 0;
+
       // Adjust sampling rate to meet target
       if (actualRate > this.targetRate * 1.1) {
         // Reduce sampling if we're over target
@@ -85,7 +85,7 @@ export class AdaptiveSampler implements Sampler {
         // Increase sampling if we're under target
         this.currentRate = Math.min(1, this.currentRate * 1.1);
       }
-      
+
       this.sampler = new TraceIdRatioBasedSampler(this.currentRate);
       this.traceCount = 0;
       this.sampleCount = 0;
@@ -119,19 +119,27 @@ export class AttributeBasedSampler implements Sampler {
     for (const rule of this.attributeRules) {
       const attrValue = attributes[rule.attribute];
       if (attrValue !== undefined) {
-        const matches = rule.value instanceof RegExp
-          ? rule.value.test(String(attrValue))
-          : String(attrValue) === rule.value;
-          
+        const matches =
+          rule.value instanceof RegExp
+            ? rule.value.test(String(attrValue))
+            : String(attrValue) === rule.value;
+
         if (matches) {
           // Create a temporary sampler with the rule's sampling rate
           const tempSampler = new TraceIdRatioBasedSampler(rule.samplingRate);
           // Use a type assertion since we know TraceIdRatioBasedSampler implements Sampler
-          return (tempSampler as Sampler).shouldSample(context, traceId, spanName, spanKind, attributes, _links);
+          return (tempSampler as Sampler).shouldSample(
+            context,
+            traceId,
+            spanName,
+            spanKind,
+            attributes,
+            _links,
+          );
         }
       }
     }
-    
+
     // Fall back to base sampler
     return this.baseSampler.shouldSample(context, traceId, spanName, spanKind, attributes, _links);
   }
@@ -146,28 +154,25 @@ export class AttributeBasedSampler implements Sampler {
  */
 export function createSampler(config: TelemetryConfig): Sampler {
   const { sampling, tracing } = config;
-  
+
   switch (sampling.strategy) {
     case 'always_on':
       return new AlwaysOnSampler();
-      
+
     case 'always_off':
       return new AlwaysOffSampler();
-      
+
     case 'trace_id_ratio':
       return new TraceIdRatioBasedSampler(tracing.samplingRate);
-      
+
     case 'parent_based':
       return new ParentBasedSampler({
         root: new TraceIdRatioBasedSampler(tracing.samplingRate),
       });
-      
+
     case 'adaptive':
-      return new AdaptiveSampler(
-        sampling.adaptiveTargetRate ?? 100,
-        tracing.samplingRate,
-      );
-      
+      return new AdaptiveSampler(sampling.adaptiveTargetRate ?? 100, tracing.samplingRate);
+
     default:
       return new TraceIdRatioBasedSampler(tracing.samplingRate);
   }
@@ -178,17 +183,17 @@ export function createSampler(config: TelemetryConfig): Sampler {
  */
 export function createEnhancedSampler(config: TelemetryConfig): Sampler {
   const baseSampler = createSampler(config);
-  
+
   // Add common attribute-based rules
   return new AttributeBasedSampler(baseSampler, [
     // Always sample errors
     { attribute: 'error', value: 'true', samplingRate: 1.0 },
     { attribute: 'http.status_code', value: /^[45]\d\d$/, samplingRate: 1.0 },
-    
+
     // Sample health checks at a lower rate
     { attribute: 'http.route', value: '/health', samplingRate: 0.01 },
     { attribute: 'http.route', value: '/metrics', samplingRate: 0.01 },
-    
+
     // Sample specific operations at higher rates
     { attribute: 'operation.type', value: 'browser.launch', samplingRate: 1.0 },
     { attribute: 'operation.type', value: 'auth.login', samplingRate: 1.0 },
@@ -214,7 +219,7 @@ export class PriorityBasedSampler implements Sampler {
     _links: Link[],
   ): SamplingResult {
     const priority = attributes[this.priorityAttribute];
-    
+
     // Always sample high priority traces
     if (priority === 'high' || priority === 1) {
       return {
@@ -223,7 +228,7 @@ export class PriorityBasedSampler implements Sampler {
         traceState: undefined,
       };
     }
-    
+
     // Never sample low priority traces
     if (priority === 'low' || priority === 0) {
       return {
@@ -232,7 +237,7 @@ export class PriorityBasedSampler implements Sampler {
         traceState: undefined,
       };
     }
-    
+
     // Use base sampler for normal priority
     return this.baseSampler.shouldSample(context, traceId, spanName, spanKind, attributes, _links);
   }

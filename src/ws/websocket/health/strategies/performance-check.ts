@@ -13,7 +13,10 @@ import type { HealthMetrics, HealthCheckContext } from '../types.js';
  * @nist au-3 "Content of audit records"
  */
 export class PerformanceCheckStrategy extends HealthCheckStrategy {
-  async check(_context: HealthCheckContext, metrics: HealthMetrics): Promise<HealthCheckStrategyResult> {
+  async check(
+    _context: HealthCheckContext,
+    metrics: HealthMetrics,
+  ): Promise<HealthCheckStrategyResult> {
     const issues: HealthCheckStrategyResult['issues'] = [];
 
     // Check response time
@@ -35,9 +38,8 @@ export class PerformanceCheckStrategy extends HealthCheckStrategy {
     }
 
     // Check error rate
-    const errorRate = metrics.messagesProcessed > 0 
-      ? metrics.errorsCount / metrics.messagesProcessed 
-      : 0;
+    const errorRate =
+      metrics.messagesProcessed > 0 ? metrics.errorsCount / metrics.messagesProcessed : 0;
     const maxErrorRate = this.getThreshold('maxErrorRate', 0.1);
     const warningErrorRate = this.getThreshold('warningErrorRate', 0.05);
 
@@ -76,7 +78,7 @@ export class PerformanceCheckStrategy extends HealthCheckStrategy {
     }
 
     return {
-      passed: issues.filter(i => i.severity === 'critical').length === 0,
+      passed: issues.filter((i) => i.severity === 'critical').length === 0,
       issues,
       metrics: {
         averageResponseTime: metrics.averageResponseTime,

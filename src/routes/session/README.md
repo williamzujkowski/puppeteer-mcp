@@ -1,18 +1,21 @@
 # Session Route Handlers Module
 
-This module contains the refactored session route handlers, organized following SOLID principles and design patterns.
+This module contains the refactored session route handlers, organized following SOLID principles and
+design patterns.
 
 ## Architecture
 
 The session handlers have been modularized into focused components:
 
 ### Handler Factories (Factory Pattern)
+
 - `SessionCreationHandlerFactory` - Handles session creation operations
-- `SessionRetrievalHandlerFactory` - Handles session retrieval operations  
+- `SessionRetrievalHandlerFactory` - Handles session retrieval operations
 - `SessionUpdateHandlerFactory` - Handles token refresh/revoke operations
 - `SessionDeletionHandlerFactory` - Handles session termination operations
 
 ### Supporting Modules
+
 - `schemas.ts` - Zod validation schemas for request validation
 - `validation-middleware.ts` - Reusable middleware for authentication and authorization
 - `response-formatter.ts` - Consistent response formatting utilities
@@ -21,13 +24,15 @@ The session handlers have been modularized into focused components:
 ## Design Patterns Used
 
 1. **Factory Pattern**: Each handler factory creates specialized handlers for different operations
-2. **Middleware Pattern**: Validation middleware for authentication, authorization, and parameter validation
+2. **Middleware Pattern**: Validation middleware for authentication, authorization, and parameter
+   validation
 3. **Chain of Responsibility**: Error handling flows through middleware chain
 4. **Single Responsibility**: Each module has a focused, single purpose
 
 ## Usage
 
-The main `session-handlers.ts` file maintains backward compatibility by wrapping the factory methods:
+The main `session-handlers.ts` file maintains backward compatibility by wrapping the factory
+methods:
 
 ```typescript
 import { SessionCreationHandlerFactory } from './session/index.js';
@@ -69,6 +74,7 @@ src/routes/session/
 ## Module Sizes
 
 All modules are kept under 200-300 lines as required:
+
 - creation-handlers.ts: ~65 lines
 - deletion-handlers.ts: ~170 lines
 - retrieval-handlers.ts: ~65 lines
@@ -81,6 +87,7 @@ All modules are kept under 200-300 lines as required:
 ## ESLint Compliance
 
 All modules follow ESLint rules:
+
 - Using `??` instead of `||` for nullish coalescing
 - Unused parameters prefixed with `_`
 - Maximum 4 parameters per function

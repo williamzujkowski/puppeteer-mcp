@@ -3,7 +3,7 @@
  * @module puppeteer/actions/execution/action-validator
  * @nist si-10 "Information input validation"
  * @nist ac-3 "Access enforcement"
- * 
+ *
  * This file maintains backward compatibility while delegating to modular validators
  */
 
@@ -12,10 +12,7 @@ import type {
   ActionContext,
   ValidationResult,
 } from '../../interfaces/action-executor.interface.js';
-import { 
-  ValidationOrchestrator, 
-  actionValidator as orchestrator
-} from './validation/index.js';
+import { ValidationOrchestrator, actionValidator as orchestrator } from './validation/index.js';
 import { validateAction as originalValidateAction } from '../validation.js';
 import { createLogger } from '../../../utils/logger.js';
 
@@ -31,7 +28,9 @@ export class ActionValidator {
 
   constructor() {
     this.orchestrator = new ValidationOrchestrator();
-    logger.warn('ActionValidator is deprecated. Use ValidationOrchestrator from ./validation/index.js instead');
+    logger.warn(
+      'ActionValidator is deprecated. Use ValidationOrchestrator from ./validation/index.js instead',
+    );
   }
 
   /**

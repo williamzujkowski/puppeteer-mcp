@@ -3,9 +3,9 @@
  * @module tests/telemetry
  */
 
-import { 
-  initializeTelemetry, 
-  shutdownTelemetry, 
+import {
+  initializeTelemetry,
+  shutdownTelemetry,
   isTelemetryInitialized,
   getTracer,
   getMeter,
@@ -74,7 +74,7 @@ describe('OpenTelemetry Integration', () => {
     it('should report healthy status when initialized', async () => {
       await initializeTelemetry();
       const health = await checkTelemetryHealth();
-      
+
       expect(health.initialized).toBe(true);
       expect(health.enabled).toBe(true);
       expect(['healthy', 'degraded']).toContain(health.status);
@@ -85,7 +85,7 @@ describe('OpenTelemetry Integration', () => {
       if (!config.enabled) {
         return; // Skip test if telemetry is disabled
       }
-      
+
       const health = await checkTelemetryHealth();
       expect(health.initialized).toBe(false);
       expect(health.status).toBe('unhealthy');
@@ -96,21 +96,21 @@ describe('OpenTelemetry Integration', () => {
     it('should create and end spans', async () => {
       await initializeTelemetry();
       const tracer = getTracer('test');
-      
+
       const span = tracer.startSpan('test-span');
       expect(span).toBeDefined();
       expect(span.spanContext().traceId).toBeTruthy();
       expect(span.spanContext().spanId).toBeTruthy();
-      
+
       span.setAttributes({
         'test.attribute': 'value',
         'test.number': 123,
       });
-      
+
       span.addEvent('test-event', {
         'event.data': 'test',
       });
-      
+
       span.setStatus({ code: SpanStatusCode.OK });
       span.end();
     });
@@ -118,15 +118,15 @@ describe('OpenTelemetry Integration', () => {
     it('should create nested spans', async () => {
       await initializeTelemetry();
       const tracer = getTracer('test');
-      
+
       const parentSpan = tracer.startSpan('parent-span');
       const childSpan = tracer.startSpan('child-span', {
         parent: parentSpan,
       });
-      
+
       expect(childSpan.spanContext().traceId).toBe(parentSpan.spanContext().traceId);
       expect(childSpan.spanContext().spanId).not.toBe(parentSpan.spanContext().spanId);
-      
+
       childSpan.end();
       parentSpan.end();
     });
@@ -136,11 +136,11 @@ describe('OpenTelemetry Integration', () => {
     it('should create counter metric', async () => {
       await initializeTelemetry();
       const meter = getMeter('test');
-      
+
       const counter = meter.createCounter('test_counter', {
         description: 'Test counter metric',
       });
-      
+
       counter.add(1, { label: 'test' });
       counter.add(5, { label: 'test' });
     });
@@ -148,12 +148,12 @@ describe('OpenTelemetry Integration', () => {
     it('should create histogram metric', async () => {
       await initializeTelemetry();
       const meter = getMeter('test');
-      
+
       const histogram = meter.createHistogram('test_histogram', {
         description: 'Test histogram metric',
         unit: 'ms',
       });
-      
+
       histogram.record(100, { operation: 'test' });
       histogram.record(200, { operation: 'test' });
       histogram.record(150, { operation: 'test' });
@@ -162,16 +162,16 @@ describe('OpenTelemetry Integration', () => {
     it('should create observable gauge', async () => {
       await initializeTelemetry();
       const meter = getMeter('test');
-      
+
       let value = 0;
       const gauge = meter.createObservableGauge('test_gauge', {
         description: 'Test gauge metric',
       });
-      
+
       gauge.addCallback((result) => {
         result.observe(value, { type: 'test' });
       });
-      
+
       value = 42;
     });
   });
@@ -180,7 +180,7 @@ describe('OpenTelemetry Integration', () => {
     it('should create enhanced sampler', () => {
       const config = getTelemetryConfig();
       const sampler = createEnhancedSampler(config);
-      
+
       expect(sampler).toBeDefined();
       expect(sampler.toString()).toBeTruthy();
     });
@@ -188,7 +188,7 @@ describe('OpenTelemetry Integration', () => {
     it('should sample based on configuration', () => {
       const config = getTelemetryConfig();
       const sampler = createEnhancedSampler(config);
-      
+
       // Test error sampling (should always sample)
       const errorResult = sampler.shouldSample(
         trace.setSpanContext(trace.ROOT_CONTEXT, {
@@ -202,7 +202,7 @@ describe('OpenTelemetry Integration', () => {
         { error: 'true' },
         [],
       );
-      
+
       expect(errorResult.decision).toBe(1); // RECORD_AND_SAMPLED
     });
   });

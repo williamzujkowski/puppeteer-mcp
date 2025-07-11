@@ -21,27 +21,27 @@ export class WebSocketMetricsImpl implements WebSocketMetrics {
 
   constructor(meter: Meter) {
     this.meter = meter;
-    
+
     this.wsConnectionsTotal = meter.createCounter('ws_connections_total', {
       description: 'Total number of WebSocket connections',
       unit: '1',
     });
-    
+
     this.wsActiveConnections = meter.createUpDownCounter('ws_active_connections', {
       description: 'Number of active WebSocket connections',
       unit: '1',
     });
-    
+
     this.wsMessagesSent = meter.createCounter('ws_messages_sent_total', {
       description: 'Total number of WebSocket messages sent',
       unit: '1',
     });
-    
+
     this.wsMessagesReceived = meter.createCounter('ws_messages_received_total', {
       description: 'Total number of WebSocket messages received',
       unit: '1',
     });
-    
+
     this.wsMessageSize = meter.createHistogram('ws_message_size_bytes', {
       description: 'WebSocket message size in bytes',
       unit: 'By',
@@ -68,7 +68,7 @@ export class WebSocketMetricsImpl implements WebSocketMetrics {
    */
   recordMessageSent(messageSize: number = 0): void {
     this.wsMessagesSent.add(1);
-    
+
     if (messageSize > 0) {
       this.wsMessageSize.record(messageSize, { direction: 'sent' });
     }
@@ -79,7 +79,7 @@ export class WebSocketMetricsImpl implements WebSocketMetrics {
    */
   recordMessageReceived(messageSize: number = 0): void {
     this.wsMessagesReceived.add(1);
-    
+
     if (messageSize > 0) {
       this.wsMessageSize.record(messageSize, { direction: 'received' });
     }

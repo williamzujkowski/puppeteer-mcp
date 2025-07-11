@@ -1,6 +1,7 @@
 # Puppeteer Browser Pool Management System
 
-A comprehensive browser pool management system for Puppeteer with enterprise-grade security, health monitoring, and automatic recovery capabilities.
+A comprehensive browser pool management system for Puppeteer with enterprise-grade security, health
+monitoring, and automatic recovery capabilities.
 
 ## Overview
 
@@ -35,18 +36,21 @@ This implementation provides:
 ### Key Features
 
 #### Resource Pool Management
+
 - **Configurable Limits**: Maximum browsers and pages per browser
 - **Intelligent Queuing**: Request queuing when pool is at capacity
 - **Browser Reuse**: Efficient reuse of idle browsers
 - **Automatic Cleanup**: Idle timeout and resource recycling
 
 #### Health Monitoring
+
 - **Connection Health**: Browser connectivity checks
 - **Responsiveness**: JavaScript evaluation timeouts
 - **Memory Usage**: Heap size monitoring with configurable limits
 - **Page Count**: Monitor number of open pages per browser
 
 #### Security & Compliance
+
 - **Session Isolation**: Each session gets dedicated browser resources
 - **Access Control**: Session-based authorization for browser operations
 - **Audit Logging**: Comprehensive security event logging
@@ -64,12 +68,12 @@ const pool = new BrowserPool({
   maxPagesPerBrowser: 5,
   launchOptions: {
     headless: true,
-    args: ['--no-sandbox', '--disable-dev-shm-usage']
+    args: ['--no-sandbox', '--disable-dev-shm-usage'],
   },
   idleTimeout: 300000, // 5 minutes
   healthCheckInterval: 60000, // 1 minute
   recycleAfterUses: 100,
-  enableRequestInterception: true
+  enableRequestInterception: true,
 });
 
 await pool.initialize();
@@ -106,7 +110,7 @@ const healthChecker = new BrowserHealthChecker({
   maxPageCount: 10,
   responseTimeout: 5000,
   checkInterval: 30000,
-  enableAutoRecovery: true
+  enableAutoRecovery: true,
 });
 
 // Check individual browser health
@@ -118,10 +122,7 @@ console.log('Memory usage:', health.metrics.memoryUsageMB, 'MB');
 const results = await healthChecker.checkMultiple(browserInstances);
 
 // Auto-recovery
-const recovery = await healthChecker.checkAndRecover(
-  browserInstance, 
-  launchOptions
-);
+const recovery = await healthChecker.checkAndRecover(browserInstance, launchOptions);
 if (recovery.recovered) {
   console.log('Browser restarted successfully');
 }
@@ -144,15 +145,15 @@ console.log('Average Lifetime:', metrics.avgBrowserLifetime + 'ms');
 
 ```typescript
 interface BrowserPoolOptions {
-  maxBrowsers: number;              // Maximum browser instances
-  maxPagesPerBrowser: number;       // Pages per browser limit
-  launchOptions: LaunchOptions;     // Puppeteer launch options
-  idleTimeout: number;              // Idle timeout in ms
-  healthCheckInterval: number;      // Health check frequency
-  recycleAfterUses?: number;        // Recycle threshold
+  maxBrowsers: number; // Maximum browser instances
+  maxPagesPerBrowser: number; // Pages per browser limit
+  launchOptions: LaunchOptions; // Puppeteer launch options
+  idleTimeout: number; // Idle timeout in ms
+  healthCheckInterval: number; // Health check frequency
+  recycleAfterUses?: number; // Recycle threshold
   enableRequestInterception?: boolean;
   userDataDir?: string;
-  acquisitionTimeout?: number;      // Request timeout
+  acquisitionTimeout?: number; // Request timeout
 }
 ```
 
@@ -160,11 +161,11 @@ interface BrowserPoolOptions {
 
 ```typescript
 interface HealthCheckOptions {
-  maxMemoryMB: number;              // Memory limit in MB
-  maxPageCount: number;             // Page count limit
-  responseTimeout: number;          // Response timeout in ms
-  checkInterval: number;            // Check frequency
-  enableAutoRecovery?: boolean;     // Auto-restart capability
+  maxMemoryMB: number; // Memory limit in MB
+  maxPageCount: number; // Page count limit
+  responseTimeout: number; // Response timeout in ms
+  checkInterval: number; // Check frequency
+  enableAutoRecovery?: boolean; // Auto-restart capability
 }
 ```
 
@@ -253,14 +254,14 @@ const productionConfig = {
       '--no-sandbox',
       '--disable-dev-shm-usage',
       '--disable-gpu',
-      '--disable-features=VizDisplayCompositor'
-    ]
+      '--disable-features=VizDisplayCompositor',
+    ],
   },
-  idleTimeout: 600000,     // 10 minutes
+  idleTimeout: 600000, // 10 minutes
   healthCheckInterval: 30000, // 30 seconds
   recycleAfterUses: 50,
   enableRequestInterception: true,
-  acquisitionTimeout: 30000
+  acquisitionTimeout: 30000,
 };
 
 const healthConfig = {
@@ -268,7 +269,7 @@ const healthConfig = {
   maxPageCount: 5,
   responseTimeout: 10000,
   checkInterval: 30000,
-  enableAutoRecovery: true
+  enableAutoRecovery: true,
 };
 ```
 
@@ -303,4 +304,5 @@ When contributing to this system:
 
 ## License
 
-This implementation follows the project's MIT license with enterprise-grade security and compliance features.
+This implementation follows the project's MIT license with enterprise-grade security and compliance
+features.

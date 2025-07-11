@@ -111,7 +111,11 @@ export class PerformanceAnalyzer {
       return [...baseBlockList, 'image', 'stylesheet'];
     }
 
-    if (action.type === 'navigate' && 'waitFor' in action && action.waitFor === 'domcontentloaded') {
+    if (
+      action.type === 'navigate' &&
+      'waitFor' in action &&
+      action.waitFor === 'domcontentloaded'
+    ) {
       return [...baseBlockList, 'image'];
     }
 
@@ -143,10 +147,7 @@ export class PerformanceAnalyzer {
    * @param metrics - Historical metrics
    * @returns Estimated duration in ms
    */
-  private estimateDuration(
-    action: BrowserAction,
-    metrics: AggregatedMetrics,
-  ): number {
+  private estimateDuration(action: BrowserAction, metrics: AggregatedMetrics): number {
     // Use P90 duration if available
     if (metrics.performanceMetrics.p90Duration > 0) {
       return Math.ceil(metrics.performanceMetrics.p90Duration * 1.1);
@@ -195,12 +196,12 @@ export class PerformanceAnalyzer {
     }
 
     const ratio = duration / estimatedDuration;
-    
+
     if (ratio <= 0.8) return 100; // Excellent
-    if (ratio <= 1.0) return 90;  // Good
-    if (ratio <= 1.2) return 70;  // Acceptable
-    if (ratio <= 1.5) return 50;  // Needs improvement
-    
+    if (ratio <= 1.0) return 90; // Good
+    if (ratio <= 1.2) return 70; // Acceptable
+    if (ratio <= 1.5) return 50; // Needs improvement
+
     return Math.max(0, 100 - Math.floor((ratio - 1) * 50));
   }
 }

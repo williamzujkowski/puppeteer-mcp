@@ -46,30 +46,56 @@ export function parseTelemetryConfig(): {
     TELEMETRY_ENVIRONMENT: process.env.TELEMETRY_ENVIRONMENT ?? 'production',
     TELEMETRY_DEPLOYMENT_ENVIRONMENT: process.env.TELEMETRY_DEPLOYMENT_ENVIRONMENT,
     TELEMETRY_EXPORTER_TYPE:
-      (process.env.TELEMETRY_EXPORTER_TYPE as 'console' | 'otlp' | 'jaeger' | 'zipkin' | 'none') ?? 'none',
+      (process.env.TELEMETRY_EXPORTER_TYPE as 'console' | 'otlp' | 'jaeger' | 'zipkin' | 'none') ??
+      'none',
     TELEMETRY_EXPORTER_ENDPOINT: process.env.TELEMETRY_EXPORTER_ENDPOINT,
-    TELEMETRY_EXPORTER_HEADERS: parseJSON<Record<string, string>>(process.env.TELEMETRY_EXPORTER_HEADERS, {}),
+    TELEMETRY_EXPORTER_HEADERS: parseJSON<Record<string, string>>(
+      process.env.TELEMETRY_EXPORTER_HEADERS,
+      {},
+    ),
     TELEMETRY_EXPORTER_TIMEOUT: parseInt(process.env.TELEMETRY_EXPORTER_TIMEOUT, 30000),
-    TELEMETRY_EXPORTER_COMPRESSION: (process.env.TELEMETRY_EXPORTER_COMPRESSION as 'gzip' | 'none') ?? 'none',
+    TELEMETRY_EXPORTER_COMPRESSION:
+      (process.env.TELEMETRY_EXPORTER_COMPRESSION as 'gzip' | 'none') ?? 'none',
     TELEMETRY_SAMPLING_RATIO: parseFloat(process.env.TELEMETRY_SAMPLING_RATIO, 0.1),
     TELEMETRY_LOG_LEVEL:
-      (process.env.TELEMETRY_LOG_LEVEL as 'none' | 'error' | 'warn' | 'info' | 'debug' | 'verbose' | 'all') ??
-      'error',
+      (process.env.TELEMETRY_LOG_LEVEL as
+        | 'none'
+        | 'error'
+        | 'warn'
+        | 'info'
+        | 'debug'
+        | 'verbose'
+        | 'all') ?? 'error',
     TELEMETRY_METRICS_INTERVAL: parseInt(process.env.TELEMETRY_METRICS_INTERVAL, 60000),
     TELEMETRY_METRICS_TIMEOUT: parseInt(process.env.TELEMETRY_METRICS_TIMEOUT, 30000),
-    TELEMETRY_RESOURCE_ATTRIBUTES: parseJSON<Record<string, string>>(process.env.TELEMETRY_RESOURCE_ATTRIBUTES, {}),
+    TELEMETRY_RESOURCE_ATTRIBUTES: parseJSON<Record<string, string>>(
+      process.env.TELEMETRY_RESOURCE_ATTRIBUTES,
+      {},
+    ),
     TELEMETRY_TRACE_ID_RATIO_BASED: parseBoolean(process.env.TELEMETRY_TRACE_ID_RATIO_BASED, true),
     TELEMETRY_TRACE_PARENT_BASED: parseBoolean(process.env.TELEMETRY_TRACE_PARENT_BASED, true),
-    TELEMETRY_PROPAGATORS: parseArray(process.env.TELEMETRY_PROPAGATORS, ['tracecontext', 'baggage']),
+    TELEMETRY_PROPAGATORS: parseArray(process.env.TELEMETRY_PROPAGATORS, [
+      'tracecontext',
+      'baggage',
+    ]),
     TELEMETRY_INSTRUMENTATION_HTTP: parseBoolean(process.env.TELEMETRY_INSTRUMENTATION_HTTP, true),
-    TELEMETRY_INSTRUMENTATION_EXPRESS: parseBoolean(process.env.TELEMETRY_INSTRUMENTATION_EXPRESS, true),
+    TELEMETRY_INSTRUMENTATION_EXPRESS: parseBoolean(
+      process.env.TELEMETRY_INSTRUMENTATION_EXPRESS,
+      true,
+    ),
     TELEMETRY_INSTRUMENTATION_GRPC: parseBoolean(process.env.TELEMETRY_INSTRUMENTATION_GRPC, true),
-    TELEMETRY_INSTRUMENTATION_REDIS: parseBoolean(process.env.TELEMETRY_INSTRUMENTATION_REDIS, true),
+    TELEMETRY_INSTRUMENTATION_REDIS: parseBoolean(
+      process.env.TELEMETRY_INSTRUMENTATION_REDIS,
+      true,
+    ),
     TELEMETRY_INSTRUMENTATION_DNS: parseBoolean(process.env.TELEMETRY_INSTRUMENTATION_DNS, true),
     TELEMETRY_INSTRUMENTATION_NET: parseBoolean(process.env.TELEMETRY_INSTRUMENTATION_NET, true),
     TELEMETRY_BATCH_SPAN_PROCESSOR: parseBoolean(process.env.TELEMETRY_BATCH_SPAN_PROCESSOR, true),
     TELEMETRY_BATCH_MAX_QUEUE_SIZE: parseInt(process.env.TELEMETRY_BATCH_MAX_QUEUE_SIZE, 2048),
-    TELEMETRY_BATCH_MAX_EXPORT_BATCH_SIZE: parseInt(process.env.TELEMETRY_BATCH_MAX_EXPORT_BATCH_SIZE, 512),
+    TELEMETRY_BATCH_MAX_EXPORT_BATCH_SIZE: parseInt(
+      process.env.TELEMETRY_BATCH_MAX_EXPORT_BATCH_SIZE,
+      512,
+    ),
     TELEMETRY_BATCH_SCHEDULED_DELAY: parseInt(process.env.TELEMETRY_BATCH_SCHEDULED_DELAY, 5000),
     TELEMETRY_BATCH_EXPORT_TIMEOUT: parseInt(process.env.TELEMETRY_BATCH_EXPORT_TIMEOUT, 30000),
   };

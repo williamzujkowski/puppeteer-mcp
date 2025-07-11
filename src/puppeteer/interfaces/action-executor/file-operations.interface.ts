@@ -15,10 +15,10 @@ import type { BaseBrowserAction } from './core.interface.js';
  */
 export interface DownloadAction extends BaseBrowserAction {
   type: 'download';
-  
+
   /** URL of file to download */
   url: string;
-  
+
   /** Local path to save downloaded file */
   downloadPath: string;
 }
@@ -36,25 +36,25 @@ export type CookieOperation = 'set' | 'get' | 'delete' | 'clear';
 export interface CookieDefinition {
   /** Cookie name */
   name: string;
-  
+
   /** Cookie value (for set operation) */
   value?: string;
-  
+
   /** Cookie domain */
   domain?: string;
-  
+
   /** Cookie path */
   path?: string;
-  
+
   /** Expiration timestamp */
   expires?: number;
-  
+
   /** HTTP only flag */
   httpOnly?: boolean;
-  
+
   /** Secure flag */
   secure?: boolean;
-  
+
   /** Same site policy */
   sameSite?: 'Strict' | 'Lax' | 'None';
 }
@@ -66,13 +66,13 @@ export interface CookieDefinition {
  */
 export interface CookieAction extends BaseBrowserAction {
   type: 'cookie';
-  
+
   /** Cookie operation type */
   operation: CookieOperation;
-  
+
   /** Cookies for operation */
   cookies?: CookieDefinition[];
-  
+
   /** Cookie names for delete operations */
   names?: string[];
 }

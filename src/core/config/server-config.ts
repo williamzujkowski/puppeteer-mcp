@@ -17,7 +17,7 @@ export function parseServerConfig(): {
 } {
   const trustProxy = process.env.TRUST_PROXY;
   let parsedTrustProxy: boolean | string | number | undefined;
-  
+
   if (trustProxy === 'true') {
     parsedTrustProxy = true;
   } else if (trustProxy === 'false') {
@@ -27,7 +27,7 @@ export function parseServerConfig(): {
   } else if (trustProxy !== null && trustProxy !== '') {
     parsedTrustProxy = trustProxy;
   }
-  
+
   return {
     NODE_ENV: (process.env.NODE_ENV as 'development' | 'test' | 'production') ?? 'development',
     PORT: parseInt(process.env.PORT, 8443),

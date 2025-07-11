@@ -24,16 +24,12 @@ export class ProxyPoolSelector {
    */
   async selectProxy(
     proxies: ProxyInstance[],
-    options: PoolSelectionOptions = {}
+    options: PoolSelectionOptions = {},
   ): Promise<string | null> {
-    const {
-      strategy = 'round-robin',
-      excludeProxyIds = [],
-      requireHealthy = true,
-    } = options;
+    const { strategy = 'round-robin', excludeProxyIds = [], requireHealthy = true } = options;
 
     // Filter proxies based on options
-    let candidateProxies = proxies.filter(proxy => {
+    let candidateProxies = proxies.filter((proxy) => {
       if (excludeProxyIds.includes(proxy.id)) return false;
       if (requireHealthy && !proxy.health.healthy) return false;
       return true;
@@ -42,11 +38,9 @@ export class ProxyPoolSelector {
     if (candidateProxies.length === 0) {
       if (requireHealthy) {
         // Try again without health requirement
-        candidateProxies = proxies.filter(
-          proxy => !excludeProxyIds.includes(proxy.id)
-        );
+        candidateProxies = proxies.filter((proxy) => !excludeProxyIds.includes(proxy.id));
       }
-      
+
       if (candidateProxies.length === 0) {
         logger.warn('No available proxies in pool');
         return null;
@@ -55,7 +49,7 @@ export class ProxyPoolSelector {
 
     // Select based on strategy
     const selectedProxy = await this.selectByStrategy(candidateProxies, strategy);
-    
+
     if (selectedProxy) {
       logger.debug({
         msg: 'Proxy selected from pool',
@@ -74,25 +68,25 @@ export class ProxyPoolSelector {
    */
   private async selectByStrategy(
     proxies: ProxyInstance[],
-    strategy: PoolSelectionOptions['strategy']
+    strategy: PoolSelectionOptions['strategy'],
   ): Promise<ProxyInstance | null> {
     switch (strategy) {
       case 'round-robin':
         return this.selectRoundRobin(proxies);
-      
+
       case 'least-used':
         return this.selectLeastUsed(proxies);
-      
+
       case 'best-health':
       case 'health-based':
         return this.selectBestHealth(proxies);
-      
+
       case 'random':
         return this.selectRandom(proxies);
-      
+
       case 'priority':
         return this.selectByPriority(proxies);
-      
+
       default:
         return this.selectRoundRobin(proxies);
     }
@@ -103,7 +97,7 @@ export class ProxyPoolSelector {
    */
   private selectRoundRobin(proxies: ProxyInstance[]): ProxyInstance | null {
     if (proxies.length === 0) return null;
-    
+
     this.lastSelectedIndex = (this.lastSelectedIndex + 1) % proxies.length;
     return proxies[this.lastSelectedIndex] ?? null;
   }
@@ -113,9 +107,9 @@ export class ProxyPoolSelector {
    */
   private selectLeastUsed(proxies: ProxyInstance[]): ProxyInstance | null {
     if (proxies.length === 0) return null;
-    
-    return proxies.reduce((least, current) => 
-      current.metrics.requestCount < least.metrics.requestCount ? current : least
+
+    return proxies.reduce((least, current) =>
+      current.metrics.requestCount < least.metrics.requestCount ? current : least,
     );
   }
 
@@ -124,10 +118,10 @@ export class ProxyPoolSelector {
    */
   private selectBestHealth(proxies: ProxyInstance[]): ProxyInstance | null {
     if (proxies.length === 0) return null;
-    
-    const healthyProxies = proxies.filter(p => p.health.healthy);
+
+    const healthyProxies = proxies.filter((p) => p.health.healthy);
     if (healthyProxies.length === 0) return proxies[0] ?? null;
-    
+
     return healthyProxies.reduce((best, current) => {
       const bestScore = this.calculateHealthScore(best);
       const currentScore = this.calculateHealthScore(current);
@@ -140,7 +134,7 @@ export class ProxyPoolSelector {
    */
   private selectRandom(proxies: ProxyInstance[]): ProxyInstance | null {
     if (proxies.length === 0) return null;
-    
+
     const index = Math.floor(Math.random() * proxies.length);
     return proxies[index] ?? null;
   }
@@ -150,16 +144,14 @@ export class ProxyPoolSelector {
    */
   private calculateHealthScore(proxy: ProxyInstance): number {
     const { metrics, health } = proxy;
-    
+
     if (!health.healthy) return 0;
-    
-    const successRate = metrics.requestCount > 0
-      ? metrics.successCount / metrics.requestCount
-      : 1;
-    
+
+    const successRate = metrics.requestCount > 0 ? metrics.successCount / metrics.requestCount : 1;
+
     const responseTimeScore = Math.max(0, 1 - metrics.averageResponseTime / 10000);
-    
-    return (successRate * 0.7 + responseTimeScore * 0.3);
+
+    return successRate * 0.7 + responseTimeScore * 0.3;
   }
 
   /**
@@ -167,14 +159,14 @@ export class ProxyPoolSelector {
    */
   private selectByPriority(proxies: ProxyInstance[]): ProxyInstance | null {
     if (proxies.length === 0) return null;
-    
+
     // Sort by priority (higher priority first)
     const sortedByPriority = [...proxies].sort((a, b) => {
       const priorityA = a.config.priority ?? 50;
       const priorityB = b.config.priority ?? 50;
       return priorityB - priorityA;
     });
-    
+
     return sortedByPriority[0] ?? null;
   }
 }

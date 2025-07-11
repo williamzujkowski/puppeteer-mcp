@@ -21,7 +21,7 @@ export class StatsInitializer {
       failedSessions: 0,
       skippedSessions: 0,
       duration: 0,
-      errors: []
+      errors: [],
     };
   }
 
@@ -33,7 +33,7 @@ export class StatsInitializer {
       restored: 0,
       skipped: 0,
       failed: 0,
-      errors: []
+      errors: [],
     };
   }
 }

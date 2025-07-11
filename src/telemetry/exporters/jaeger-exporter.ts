@@ -25,16 +25,19 @@ const DEFAULT_CONFIG = {
 export class JaegerExporterFactory implements ExporterFactory<SpanExporter> {
   create(config: TelemetryConfig): SpanExporter | null {
     const endpoint = config.tracing.endpoints.jaeger;
-    
+
     if (!endpoint || endpoint.trim() === '') {
       logger.warn('Jaeger endpoint not configured');
       return null;
     }
 
-    logger.info({
-      endpoint,
-      maxPacketSize: DEFAULT_CONFIG.maxPacketSize,
-    }, 'Creating Jaeger trace exporter');
+    logger.info(
+      {
+        endpoint,
+        maxPacketSize: DEFAULT_CONFIG.maxPacketSize,
+      },
+      'Creating Jaeger trace exporter',
+    );
 
     return new JaegerExporter({
       endpoint,
@@ -52,7 +55,7 @@ export class JaegerExporterFactory implements ExporterFactory<SpanExporter> {
  */
 export function createJaegerExporter(
   endpoint: string,
-  options: ExporterOptions = {}
+  options: ExporterOptions = {},
 ): SpanExporter {
   const exporterOptions = {
     endpoint,
@@ -70,8 +73,10 @@ export function createJaegerExporter(
 export function validateJaegerEndpoint(endpoint: string): boolean {
   try {
     const url = new URL(endpoint);
-    return (url.protocol === 'http:' || url.protocol === 'https:') && 
-           url.pathname.includes('/api/traces');
+    return (
+      (url.protocol === 'http:' || url.protocol === 'https:') &&
+      url.pathname.includes('/api/traces')
+    );
   } catch {
     return false;
   }
@@ -87,7 +92,10 @@ export function validateJaegerMaxPacketSize(size: number): boolean {
 /**
  * Get default Jaeger endpoint for environment
  */
-export function getDefaultJaegerEndpoint(hostname: string = 'localhost', port: number = 14268): string {
+export function getDefaultJaegerEndpoint(
+  hostname: string = 'localhost',
+  port: number = 14268,
+): string {
   return `http://${hostname}:${port}/api/traces`;
 }
 

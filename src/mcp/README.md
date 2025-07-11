@@ -1,10 +1,12 @@
 # Model Context Protocol (MCP) Integration
 
-This directory contains the MCP server implementation that enables AI agents and LLMs to interact with the multi-protocol API platform.
+This directory contains the MCP server implementation that enables AI agents and LLMs to interact
+with the multi-protocol API platform.
 
 ## Overview
 
 The MCP integration provides a standardized interface for LLMs to:
+
 - Execute API calls across REST, gRPC, and WebSocket protocols
 - Manage sessions and authentication
 - Create and control browser contexts
@@ -18,7 +20,7 @@ MCP Server
 ├── Transport Layer (stdio/HTTP)
 ├── Protocol Adapters
 │   ├── REST Adapter → Express Routes
-│   ├── gRPC Adapter → gRPC Services  
+│   ├── gRPC Adapter → gRPC Services
 │   └── WebSocket Adapter → WS Handlers
 ├── Tools
 │   ├── execute-api
@@ -70,6 +72,7 @@ await mcpServer.start();
 ## Available Tools
 
 ### 1. execute-api
+
 Execute API calls across any protocol.
 
 ```json
@@ -90,6 +93,7 @@ Execute API calls across any protocol.
 ```
 
 ### 2. create-session
+
 Create a new authenticated session.
 
 ```json
@@ -104,6 +108,7 @@ Create a new authenticated session.
 ```
 
 ### 3. list-sessions
+
 List active sessions for a user.
 
 ```json
@@ -116,6 +121,7 @@ List active sessions for a user.
 ```
 
 ### 4. delete-session
+
 Delete an active session.
 
 ```json
@@ -128,6 +134,7 @@ Delete an active session.
 ```
 
 ### 5. create-browser-context
+
 Create a Puppeteer browser context.
 
 ```json
@@ -147,6 +154,7 @@ Create a Puppeteer browser context.
 ```
 
 ### 6. execute-in-context
+
 Execute commands in a browser context.
 
 ```json
@@ -165,9 +173,11 @@ Execute commands in a browser context.
 ## Available Resources
 
 ### api://catalog
+
 Returns a complete catalog of available APIs across all protocols.
 
 ### api://health
+
 Returns current system health and status information.
 
 ## Authentication
@@ -175,7 +185,7 @@ Returns current system health and status information.
 The MCP server supports three authentication methods:
 
 1. **JWT Tokens**: Short-lived access tokens
-2. **API Keys**: Long-lived keys with scoped permissions  
+2. **API Keys**: Long-lived keys with scoped permissions
 3. **Session IDs**: Session-based authentication
 
 ## Security
@@ -188,6 +198,7 @@ The MCP server supports three authentication methods:
 ## Examples
 
 See the `examples/` directory for integration examples:
+
 - `rest-integration.ts` - REST API integration
 - `grpc-integration.ts` - gRPC service integration
 - `ws-integration.ts` - WebSocket integration
@@ -198,6 +209,7 @@ See the `examples/` directory for integration examples:
 Unit tests are located in `tests/unit/mcp/` and integration tests in `tests/integration/mcp/`.
 
 Run tests:
+
 ```bash
 npm test -- tests/unit/mcp/
 ```
@@ -205,6 +217,7 @@ npm test -- tests/unit/mcp/
 ## Development
 
 When adding new tools:
+
 1. Add tool definition in `server.ts` ListToolsRequestSchema handler
 2. Add case in CallToolRequestSchema switch statement
 3. Implement the tool method

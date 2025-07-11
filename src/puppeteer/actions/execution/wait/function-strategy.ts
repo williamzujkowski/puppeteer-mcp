@@ -138,10 +138,10 @@ export class FunctionWaitStrategy extends BaseWaitStrategy {
     const suspiciousRanges = [
       /[\u200B-\u200F]/g, // Zero-width characters
       /[\u202A-\u202E]/g, // Directional formatting
-      /[\uFEFF]/g,        // Zero-width no-break space
+      /[\uFEFF]/g, // Zero-width no-break space
     ];
 
-    return suspiciousRanges.some(pattern => pattern.test(code));
+    return suspiciousRanges.some((pattern) => pattern.test(code));
   }
 
   /**

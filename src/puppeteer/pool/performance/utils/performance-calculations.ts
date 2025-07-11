@@ -4,34 +4,26 @@
  * @nist au-6 "Audit review, analysis, and reporting"
  */
 
-import {
-  PerformanceMetricType,
-  AlertLevel,
-} from '../types/performance-monitor.types.js';
+import { PerformanceMetricType, AlertLevel } from '../types/performance-monitor.types.js';
 import type { IPerformanceCalculations } from '../types/strategy.interfaces.js';
 
 /**
  * Performance calculations utility implementation
  */
 export class PerformanceCalculations implements IPerformanceCalculations {
-  
   /**
    * Calculate overall health score based on metrics and alerts
    * @nist au-6 "Audit review, analysis, and reporting"
    */
-  calculateHealthScore(
-    metrics: any,
-    alertsSummary: any,
-    anomaliesSummary: any
-  ): number {
+  calculateHealthScore(metrics: any, alertsSummary: any, anomaliesSummary: any): number {
     let score = 100;
 
     // Apply penalties for alerts
     score -= this.calculateAlertPenalty(alertsSummary);
-    
+
     // Apply penalties for anomalies
     score -= this.calculateAnomalyPenalty(anomaliesSummary);
-    
+
     // Apply bonuses for good performance
     score += this.calculatePerformanceBonus(metrics);
 
@@ -116,18 +108,14 @@ export class PerformanceCalculations implements IPerformanceCalculations {
   /**
    * Calculate system stress level (0-1 scale)
    */
-  calculateSystemStress(
-    errorRate: number,
-    latency: number,
-    resourceUtilization: number
-  ): number {
+  calculateSystemStress(errorRate: number, latency: number, resourceUtilization: number): number {
     // Normalize each metric to 0-1 scale based on typical thresholds
     const normalizedError = Math.min(errorRate / 20, 1); // 20% error rate = max stress
     const normalizedLatency = Math.min(latency / 5000, 1); // 5000ms latency = max stress
     const normalizedResource = Math.min(resourceUtilization / 100, 1); // 100% utilization = max stress
 
     // Weighted average with error rate being most important
-    return (normalizedError * 0.5 + normalizedLatency * 0.3 + normalizedResource * 0.2);
+    return normalizedError * 0.5 + normalizedLatency * 0.3 + normalizedResource * 0.2;
   }
 
   /**
@@ -135,10 +123,10 @@ export class PerformanceCalculations implements IPerformanceCalculations {
    */
   calculateEfficiencyScore(throughput: number, resourceUtilization: number): number {
     if (resourceUtilization === 0) return 0;
-    
+
     // Efficiency = throughput per unit of resource utilization
     const efficiency = throughput / (resourceUtilization / 100);
-    
+
     // Normalize to 0-100 scale (assuming good efficiency is around 50)
     return Math.min((efficiency / 50) * 100, 100);
   }
@@ -149,13 +137,13 @@ export class PerformanceCalculations implements IPerformanceCalculations {
    */
   private calculateAlertPenalty(alertsSummary: any): number {
     let penalty = 0;
-    
+
     if (alertsSummary?.byLevel) {
       penalty += (alertsSummary.byLevel[AlertLevel.WARNING] || 0) * 2;
       penalty += (alertsSummary.byLevel[AlertLevel.CRITICAL] || 0) * 10;
       penalty += (alertsSummary.byLevel[AlertLevel.EMERGENCY] || 0) * 20;
     }
-    
+
     return Math.min(penalty, 50); // Cap penalty at 50 points
   }
 
@@ -165,13 +153,13 @@ export class PerformanceCalculations implements IPerformanceCalculations {
    */
   private calculateAnomalyPenalty(anomaliesSummary: any): number {
     let penalty = 0;
-    
+
     if (anomaliesSummary?.bySeverity) {
       penalty += (anomaliesSummary.bySeverity.low || 0) * 0.5;
       penalty += (anomaliesSummary.bySeverity.medium || 0) * 2;
       penalty += (anomaliesSummary.bySeverity.high || 0) * 5;
     }
-    
+
     return Math.min(penalty, 30); // Cap penalty at 30 points
   }
 
@@ -181,7 +169,7 @@ export class PerformanceCalculations implements IPerformanceCalculations {
    */
   private calculatePerformanceBonus(metrics: any): number {
     let bonus = 0;
-    
+
     // Bonus for good latency (< 500ms)
     const latencyMetric = metrics[PerformanceMetricType.LATENCY];
     if (latencyMetric && latencyMetric.current < 500) {
@@ -205,7 +193,7 @@ export class PerformanceCalculations implements IPerformanceCalculations {
     if (throughputMetric && throughputMetric.current > 20) {
       bonus += 2;
     }
-    
+
     return Math.min(bonus, 15); // Cap bonus at 15 points
   }
 
@@ -215,15 +203,15 @@ export class PerformanceCalculations implements IPerformanceCalculations {
    */
   private calculatePercentile(sortedValues: number[], percentile: number): number {
     if (sortedValues.length === 0) return 0;
-    
+
     const index = (percentile / 100) * (sortedValues.length - 1);
     const lower = Math.floor(index);
     const upper = Math.ceil(index);
-    
+
     if (lower === upper) {
       return sortedValues[lower] ?? 0;
     }
-    
+
     const weight = index - lower;
     const lowerValue = sortedValues[lower] ?? 0;
     const upperValue = sortedValues[upper] ?? 0;

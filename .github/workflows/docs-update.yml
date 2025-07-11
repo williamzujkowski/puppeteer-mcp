@@ -35,27 +35,27 @@ jobs:
   generate-api-docs:
     name: Generate API Documentation
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20.x'
           cache: 'npm'
-          
+
       - name: Install dependencies
         run: |
           npm ci --prefer-offline --no-audit
           npm install -D typedoc typedoc-plugin-markdown @microsoft/api-extractor @microsoft/api-documenter
-          
+
       - name: Build project
         run: npm run build
-        
+
       - name: Generate TypeDoc documentation
         run: |
           # Create TypeDoc configuration
@@ -81,17 +81,17 @@ jobs:
             ]
           }
           EOF
-          
+
           # Generate API documentation
           npx typedoc
-          
+
       - name: Generate API reference from OpenAPI
         run: |
           # Generate OpenAPI spec from code
           cat > generate-openapi.js << 'EOF'
           const fs = require('fs');
           const path = require('path');
-          
+
           const openApiSpec = {
             openapi: '3.0.0',
             info: {
@@ -120,7 +120,7 @@ jobs:
               }
             }
           };
-          
+
           // Add paths from route files
           // This is a simplified example - in reality, you'd parse the route files
           openApiSpec.paths['/health'] = {
@@ -146,30 +146,30 @@ jobs:
               }
             }
           };
-          
+
           // Save OpenAPI spec
           fs.writeFileSync(
             'docs/api/openapi.json',
             JSON.stringify(openApiSpec, null, 2)
           );
           EOF
-          
+
           node generate-openapi.js
-          
+
           # Generate documentation from OpenAPI spec
           npx @redocly/openapi-cli bundle docs/api/openapi.json -o docs/api/openapi-bundled.json
-          
+
       - name: Generate gRPC documentation
         run: |
           # Install protoc-gen-doc
           npm install -g protoc-gen-doc
-          
+
           # Generate gRPC docs
           protoc \
             --doc_out=docs/api/grpc \
             --doc_opt=markdown,grpc-api.md \
             proto/*.proto || echo "gRPC documentation generated"
-            
+
       - name: Update API examples
         run: |
           # Extract code examples from tests
@@ -177,7 +177,7 @@ jobs:
           const fs = require('fs');
           const path = require('path');
           const glob = require('glob');
-          
+
           function extractExamples(testFiles) {
             const examples = {
               rest: [],
@@ -211,11 +211,11 @@ jobs:
             
             return examples;
           }
-          
+
           // Find test files
           const testFiles = glob.sync('tests/**/*.test.ts');
           const examples = extractExamples(testFiles);
-          
+
           // Generate example documentation
           for (const [api, apiExamples] of Object.entries(examples)) {
             if (apiExamples.length === 0) continue;
@@ -229,10 +229,10 @@ jobs:
             fs.writeFileSync(`docs/api/examples/${api}-examples.md`, content);
           }
           EOF
-          
+
           mkdir -p docs/api/examples
           node extract-examples.js || echo "Examples extracted"
-          
+
       - name: Upload API documentation
         uses: actions/upload-artifact@v4
         with:
@@ -246,45 +246,45 @@ jobs:
     name: Update Guides and Tutorials
     runs-on: ubuntu-latest
     needs: generate-api-docs
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20.x'
           cache: 'npm'
-          
+
       - name: Generate getting started guide
         run: |
           cat > docs/guides/getting-started.md << 'EOF'
           # Getting Started with Puppeteer MCP
-          
+
           ## Installation
-          
+
           ### Global Installation (Recommended)
           ```bash
           npm install -g puppeteer-mcp
           ```
-          
+
           ### Local Installation
           ```bash
           npm install puppeteer-mcp
           ```
-          
+
           ## Quick Start
-          
+
           ### 1. Start the MCP Server
           ```bash
           puppeteer-mcp
           ```
-          
+
           ### 2. Configure Claude Desktop
-          
+
           Add to your Claude Desktop configuration:
-          
+
           ```json
           {
             "mcpServers": {
@@ -294,148 +294,148 @@ jobs:
             }
           }
           ```
-          
+
           ### 3. Basic Usage
-          
+
           #### Using MCP Tools
           ```typescript
           // Navigate to a website
           await navigate({ url: "https://example.com" });
-          
+
           // Take a screenshot
           await screenshot({ path: "example.png" });
-          
+
           // Extract content
           const content = await evaluate({ 
             script: "document.querySelector('h1').textContent" 
           });
           ```
-          
+
           #### Using REST API
           ```bash
           # Create a session
           curl -X POST http://localhost:3000/api/v1/sessions \
             -H "Content-Type: application/json" \
             -d '{"name": "my-session"}'
-          
+
           # Navigate to a page
           curl -X POST http://localhost:3000/api/v1/sessions/{sessionId}/navigate \
             -H "Content-Type: application/json" \
             -d '{"url": "https://example.com"}'
           ```
-          
+
           ## Next Steps
-          
+
           - [API Reference](/docs/api)
           - [Advanced Usage](/docs/guides/advanced)
           - [Best Practices](/docs/guides/best-practices)
           EOF
-          
+
       - name: Generate best practices guide
         run: |
           cat > docs/guides/best-practices.md << 'EOF'
           # Best Practices for Puppeteer MCP
-          
+
           ## Performance Optimization
-          
+
           ### 1. Browser Pool Management
           - Use appropriate pool size based on system resources
           - Monitor pool metrics regularly
           - Implement proper cleanup procedures
-          
+
           ### 2. Session Management
           - Reuse sessions when possible
           - Implement session timeouts
           - Clean up inactive sessions
-          
+
           ### 3. Error Handling
           - Implement retry logic for transient failures
           - Use structured error responses
           - Log errors with context
-          
+
           ## Security Best Practices
-          
+
           ### 1. Authentication
           - Always use API keys or JWT tokens
           - Rotate credentials regularly
           - Implement rate limiting
-          
+
           ### 2. Input Validation
           - Validate all user inputs
           - Sanitize URLs and scripts
           - Use CSP headers
-          
+
           ### 3. Network Security
           - Use HTTPS in production
           - Implement proxy support
           - Monitor for suspicious activity
-          
+
           ## Scaling Considerations
-          
+
           ### 1. Horizontal Scaling
           - Use Redis for session storage
           - Implement load balancing
           - Monitor resource usage
-          
+
           ### 2. Resource Management
           - Set memory limits
           - Implement request timeouts
           - Use connection pooling
           EOF
-          
+
       - name: Generate troubleshooting guide
         run: |
           mkdir -p docs/guides
           cat > docs/guides/troubleshooting.md << 'EOF'
           # Troubleshooting Guide
-          
+
           ## Common Issues
-          
+
           ### Browser Pool Exhaustion
           **Symptoms:**
           - "No available browsers" errors
           - Slow response times
           - High memory usage
-          
+
           **Solutions:**
           1. Increase pool size in configuration
           2. Reduce session timeout
           3. Implement better cleanup
-          
+
           ### Memory Leaks
           **Symptoms:**
           - Increasing memory usage over time
           - Process crashes
           - Performance degradation
-          
+
           **Solutions:**
           1. Enable browser recycling
           2. Implement periodic restarts
           3. Monitor with profiling tools
-          
+
           ### Connection Issues
           **Symptoms:**
           - WebSocket disconnections
           - Timeout errors
           - Network errors
-          
+
           **Solutions:**
           1. Check firewall settings
           2. Increase timeout values
           3. Implement reconnection logic
-          
+
           ## Debugging Tools
-          
+
           ### Enable Debug Logging
           ```bash
           DEBUG=puppeteer-mcp:* puppeteer-mcp
           ```
-          
+
           ### Monitor Performance
           ```bash
           curl http://localhost:3000/api/v1/metrics
           ```
-          
+
           ### Check Health Status
           ```bash
           curl http://localhost:3000/api/v1/health
@@ -447,54 +447,54 @@ jobs:
     name: Build Documentation Site
     runs-on: ubuntu-latest
     needs: [generate-api-docs, update-guides]
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        
+
       - name: Download API documentation
         uses: actions/download-artifact@v4
         with:
           name: api-documentation
           path: docs/api/
-          
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20.x'
           cache: 'npm'
-          
+
       - name: Install Starlight dependencies
         run: |
           cd starlight-docs
           npm install
-          
+
       - name: Update Starlight content
         run: |
           # Copy generated API docs to Starlight
           mkdir -p starlight-docs/src/content/docs/api/reference
           cp -r docs/api/generated/* starlight-docs/src/content/docs/api/reference/ || true
-          
+
           # Copy guides
           mkdir -p starlight-docs/src/content/docs/guides
           cp -r docs/guides/* starlight-docs/src/content/docs/guides/ || true
-          
+
       - name: Update version in documentation
         run: |
           VERSION=$(node -p "require('./package.json').version")
-          
+
           # Update version in Starlight config
           sed -i "s/version: .*/version: '$VERSION'/" starlight-docs/astro.config.mjs || true
-          
+
           # Update version in documentation files
           find starlight-docs/src/content/docs -name "*.md" -o -name "*.mdx" | \
             xargs sed -i "s/puppeteer-mcp@[0-9.]*/puppeteer-mcp@$VERSION/g" || true
-            
+
       - name: Build Starlight documentation
         run: |
           cd starlight-docs
           npm run build
-          
+
       - name: Generate sitemap
         run: |
           cd starlight-docs
@@ -502,17 +502,17 @@ jobs:
           const fs = require('fs');
           const path = require('path');
           const glob = require('glob');
-          
+
           const baseUrl = 'https://puppeteer-mcp.dev';
           const distDir = './dist';
-          
+
           // Find all HTML files
           const htmlFiles = glob.sync('**/*.html', { cwd: distDir });
-          
+
           // Generate sitemap
           let sitemap = '<?xml version="1.0" encoding="UTF-8"?>\n';
           sitemap += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n';
-          
+
           htmlFiles.forEach(file => {
             const url = `${baseUrl}/${file.replace(/index\.html$/, '').replace(/\.html$/, '')}`;
             const lastmod = new Date().toISOString().split('T')[0];
@@ -523,23 +523,23 @@ jobs:
             sitemap += `    <changefreq>weekly</changefreq>\n`;
             sitemap += `  </url>\n`;
           });
-          
+
           sitemap += '</urlset>';
-          
+
           fs.writeFileSync(path.join(distDir, 'sitemap.xml'), sitemap);
           console.log('Sitemap generated successfully');
           EOF
-          
+
           node generate-sitemap.js
-          
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
-        
+
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: ./starlight-docs/dist
-          
+
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
@@ -549,32 +549,32 @@ jobs:
     name: Update Changelog
     runs-on: ubuntu-latest
     if: github.event_name == 'release'
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20.x'
-          
+
       - name: Generate changelog entry
         run: |
           # Get release information
           VERSION="${{ github.event.release.tag_name }}"
           RELEASE_DATE=$(date +%Y-%m-%d)
           RELEASE_NOTES="${{ github.event.release.body }}"
-          
+
           # Create new changelog entry
           cat > new-entry.md << EOF
           ## [$VERSION] - $RELEASE_DATE
-          
+
           $RELEASE_NOTES
           EOF
-          
+
           # Prepend to changelog
           if [ -f CHANGELOG.md ]; then
             # Extract header
@@ -592,17 +592,17 @@ jobs:
             
             rm temp-header.md temp-entries.md new-entry.md
           fi
-          
+
       - name: Create PR for changelog update
         uses: peter-evans/create-pull-request@v6
         with:
           branch: docs/changelog-${{ github.event.release.tag_name }}
-          title: "docs: update changelog for ${{ github.event.release.tag_name }}"
+          title: 'docs: update changelog for ${{ github.event.release.tag_name }}'
           body: |
             Updates CHANGELOG.md with the release notes for ${{ github.event.release.tag_name }}.
-            
+
             This is an automated PR created by the documentation workflow.
-          commit-message: "docs: update changelog for ${{ github.event.release.tag_name }}"
+          commit-message: 'docs: update changelog for ${{ github.event.release.tag_name }}'
           labels: documentation, automated
 
   # Generate documentation report
@@ -611,7 +611,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [generate-api-docs, update-guides, build-docs-site]
     if: always()
-    
+
     steps:
       - name: Create documentation summary
         run: |
@@ -624,7 +624,7 @@ jobs:
           echo "- Guides Update: ${{ needs.update-guides.result }}" >> $GITHUB_STEP_SUMMARY
           echo "- Site Build: ${{ needs.build-docs-site.result }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          
+
           if [ "${{ needs.build-docs-site.result }}" = "success" ]; then
             echo "### 🎉 Documentation deployed successfully!" >> $GITHUB_STEP_SUMMARY
             echo "Visit: [https://puppeteer-mcp.dev](https://puppeteer-mcp.dev)" >> $GITHUB_STEP_SUMMARY

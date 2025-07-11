@@ -23,7 +23,7 @@ export class OptimizationOperations {
     private circuitBreakers: CircuitBreakerRegistry,
     private performanceMonitor: BrowserPoolPerformanceMonitor,
     private resourceManager: BrowserPoolResourceManager,
-    private optimizationEnabled: boolean
+    private optimizationEnabled: boolean,
   ) {}
 
   /**
@@ -34,44 +34,45 @@ export class OptimizationOperations {
   async acquireBrowser(
     sessionId: string,
     baseBrowserAcquisition: (sessionId: string) => Promise<BrowserInstance>,
-    getExtendedMetrics: () => ExtendedPoolMetrics
+    getExtendedMetrics: () => ExtendedPoolMetrics,
   ): Promise<BrowserInstance> {
     if (!this.optimizationEnabled) {
       return baseBrowserAcquisition(sessionId);
     }
 
     const circuitBreaker = this.circuitBreakers.getCircuitBreaker('browser-acquisition');
-    
-    return circuitBreaker.execute(
-      async () => {
-        const startTime = Date.now();
-        const browser = await baseBrowserAcquisition(sessionId);
-        const executionTime = Date.now() - startTime;
 
-        // Record performance metrics
-        this.performanceMonitor.recordMetric(
-          PerformanceMetricType.LATENCY,
-          executionTime,
-          { operation: 'acquire_browser', sessionId }
-        );
+    return circuitBreaker
+      .execute(
+        async () => {
+          const startTime = Date.now();
+          const browser = await baseBrowserAcquisition(sessionId);
+          const executionTime = Date.now() - startTime;
 
-        return browser;
-      },
-      async () => {
-        // Fallback: try to get any available browser
-        const metrics = getExtendedMetrics();
-        if (metrics.idleBrowsers > 0) {
-          return baseBrowserAcquisition(sessionId);
+          // Record performance metrics
+          this.performanceMonitor.recordMetric(PerformanceMetricType.LATENCY, executionTime, {
+            operation: 'acquire_browser',
+            sessionId,
+          });
+
+          return browser;
+        },
+        async () => {
+          // Fallback: try to get any available browser
+          const metrics = getExtendedMetrics();
+          if (metrics.idleBrowsers > 0) {
+            return baseBrowserAcquisition(sessionId);
+          }
+          throw new Error('No browsers available and circuit breaker is open');
+        },
+        `browser-acquisition-${sessionId}`,
+      )
+      .then((result) => {
+        if (result.success && result.result) {
+          return result.result;
         }
-        throw new Error('No browsers available and circuit breaker is open');
-      },
-      `browser-acquisition-${sessionId}`
-    ).then(result => {
-      if (result.success && result.result) {
-        return result.result;
-      }
-      throw result.error || new Error('Browser acquisition failed');
-    });
+        throw result.error || new Error('Browser acquisition failed');
+      });
   }
 
   /**
@@ -81,28 +82,29 @@ export class OptimizationOperations {
   async releaseBrowser(
     browserId: string,
     sessionId: string,
-    baseReleaseBrowser: (browserId: string, sessionId: string) => Promise<void>
+    baseReleaseBrowser: (browserId: string, sessionId: string) => Promise<void>,
   ): Promise<void> {
     const startTime = Date.now();
-    
+
     try {
       await baseReleaseBrowser(browserId, sessionId);
-      
+
       if (this.optimizationEnabled) {
         const executionTime = Date.now() - startTime;
-        this.performanceMonitor.recordMetric(
-          PerformanceMetricType.PROCESSING_TIME,
-          executionTime,
-          { operation: 'release_browser', sessionId, browserId }
-        );
+        this.performanceMonitor.recordMetric(PerformanceMetricType.PROCESSING_TIME, executionTime, {
+          operation: 'release_browser',
+          sessionId,
+          browserId,
+        });
       }
     } catch (error) {
       if (this.optimizationEnabled) {
-        this.performanceMonitor.recordMetric(
-          PerformanceMetricType.ERROR_RATE,
-          1,
-          { operation: 'release_browser', sessionId, browserId, error: (error as Error).message || 'Unknown error' }
-        );
+        this.performanceMonitor.recordMetric(PerformanceMetricType.ERROR_RATE, 1, {
+          operation: 'release_browser',
+          sessionId,
+          browserId,
+          error: (error as Error).message || 'Unknown error',
+        });
       }
       throw error;
     }
@@ -116,42 +118,44 @@ export class OptimizationOperations {
     browserId: string,
     sessionId: string,
     baseCreatePage: (browserId: string, sessionId: string) => Promise<Page>,
-    getBrowser: (browserId: string) => any
+    getBrowser: (browserId: string) => any,
   ): Promise<Page> {
     if (!this.optimizationEnabled) {
       return baseCreatePage(browserId, sessionId);
     }
 
     const circuitBreaker = this.circuitBreakers.getCircuitBreaker('page-creation');
-    
-    return circuitBreaker.execute(
-      async () => {
-        const startTime = Date.now();
-        const page = await baseCreatePage(browserId, sessionId);
-        const executionTime = Date.now() - startTime;
 
-        // Record performance metrics
-        this.performanceMonitor.recordMetric(
-          PerformanceMetricType.RESPONSE_TIME,
-          executionTime,
-          { operation: 'create_page', sessionId, browserId }
-        );
+    return circuitBreaker
+      .execute(
+        async () => {
+          const startTime = Date.now();
+          const page = await baseCreatePage(browserId, sessionId);
+          const executionTime = Date.now() - startTime;
 
-        // Apply resource optimizations
-        const browserInstance = getBrowser(browserId);
-        if (browserInstance) {
-          await this.resourceManager.optimizeBrowser(browserInstance.browser, browserInstance);
+          // Record performance metrics
+          this.performanceMonitor.recordMetric(PerformanceMetricType.RESPONSE_TIME, executionTime, {
+            operation: 'create_page',
+            sessionId,
+            browserId,
+          });
+
+          // Apply resource optimizations
+          const browserInstance = getBrowser(browserId);
+          if (browserInstance) {
+            await this.resourceManager.optimizeBrowser(browserInstance.browser, browserInstance);
+          }
+
+          return page;
+        },
+        undefined,
+        `page-creation-${browserId}-${sessionId}`,
+      )
+      .then((result) => {
+        if (result.success && result.result) {
+          return result.result;
         }
-
-        return page;
-      },
-      undefined,
-      `page-creation-${browserId}-${sessionId}`
-    ).then(result => {
-      if (result.success && result.result) {
-        return result.result;
-      }
-      throw result.error || new Error('Page creation failed');
-    });
+        throw result.error || new Error('Page creation failed');
+      });
   }
 }

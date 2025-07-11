@@ -108,7 +108,7 @@ export class InteractionValidator extends BaseValidator {
         1,
         10,
         errors,
-        'INVALID_CLICK_COUNT'
+        'INVALID_CLICK_COUNT',
       );
     }
 
@@ -119,7 +119,7 @@ export class InteractionValidator extends BaseValidator {
         'button',
         VALID_MOUSE_BUTTONS,
         errors,
-        'INVALID_MOUSE_BUTTON'
+        'INVALID_MOUSE_BUTTON',
       );
     }
 
@@ -130,7 +130,7 @@ export class InteractionValidator extends BaseValidator {
           errors,
           'offset',
           'Both offsetX and offsetY must be numbers',
-          'INVALID_OFFSET'
+          'INVALID_OFFSET',
         );
       }
     }
@@ -145,7 +145,7 @@ export class InteractionValidator extends BaseValidator {
   private validateTypeAction(
     action: TypeAction,
     errors: ValidationError[],
-    warnings: ValidationError[]
+    warnings: ValidationError[],
   ): void {
     // Validate selector
     this.validateRequiredString(action.selector, 'selector', errors, 'MISSING_SELECTOR');
@@ -160,10 +160,10 @@ export class InteractionValidator extends BaseValidator {
           warnings,
           'text',
           'Text is very long and may cause performance issues',
-          'LONG_TEXT'
+          'LONG_TEXT',
         );
       }
-      
+
       // Warn about potential sensitive data
       const sensitivePatterns = [
         /password/i,
@@ -173,13 +173,13 @@ export class InteractionValidator extends BaseValidator {
         /credit[_-]?card/i,
         /ssn/i,
       ];
-      
-      if (sensitivePatterns.some(pattern => pattern.test(action.selector))) {
+
+      if (sensitivePatterns.some((pattern) => pattern.test(action.selector))) {
         this.addWarning(
           warnings,
           'selector',
           'Selector suggests sensitive data entry',
-          'SENSITIVE_DATA_WARNING'
+          'SENSITIVE_DATA_WARNING',
         );
       }
     }
@@ -211,7 +211,7 @@ export class InteractionValidator extends BaseValidator {
           errors,
           `values[${index}]`,
           'Select value must be a string',
-          'INVALID_SELECT_VALUE'
+          'INVALID_SELECT_VALUE',
         );
       }
     });
@@ -228,14 +228,19 @@ export class InteractionValidator extends BaseValidator {
 
     // Validate action type
     if (!action.action) {
-      this.addError(errors, 'action', 'Keyboard action type is required', 'MISSING_KEYBOARD_ACTION');
+      this.addError(
+        errors,
+        'action',
+        'Keyboard action type is required',
+        'MISSING_KEYBOARD_ACTION',
+      );
     } else {
       this.validateEnum(
         action.action,
         'action',
         VALID_KEYBOARD_ACTIONS,
         errors,
-        'INVALID_KEYBOARD_ACTION'
+        'INVALID_KEYBOARD_ACTION',
       );
     }
 
@@ -251,7 +256,7 @@ export class InteractionValidator extends BaseValidator {
               errors,
               `modifiers[${index}]`,
               `Invalid modifier: ${modifier}`,
-              'INVALID_MODIFIER'
+              'INVALID_MODIFIER',
             );
           }
         });
@@ -274,7 +279,7 @@ export class InteractionValidator extends BaseValidator {
         'action',
         VALID_MOUSE_ACTIONS,
         errors,
-        'INVALID_MOUSE_ACTION'
+        'INVALID_MOUSE_ACTION',
       );
     }
 
@@ -290,7 +295,7 @@ export class InteractionValidator extends BaseValidator {
           errors,
           'deltaX/deltaY',
           'Delta values required for wheel action',
-          'MISSING_DELTA'
+          'MISSING_DELTA',
         );
       }
     }
@@ -302,7 +307,7 @@ export class InteractionValidator extends BaseValidator {
         'button',
         VALID_MOUSE_BUTTONS,
         errors,
-        'INVALID_MOUSE_BUTTON'
+        'INVALID_MOUSE_BUTTON',
       );
     }
   }
@@ -332,7 +337,7 @@ export class InteractionValidator extends BaseValidator {
           warnings,
           'selector',
           'Selector contains potentially suspicious content',
-          'SUSPICIOUS_SELECTOR'
+          'SUSPICIOUS_SELECTOR',
         );
         break;
       }

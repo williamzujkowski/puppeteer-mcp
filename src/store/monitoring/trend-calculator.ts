@@ -40,12 +40,12 @@ export function calculateTrend(values: number[]): TrendResult {
  */
 export function findPeak(
   metrics: MetricsHistoryEntry[],
-  getValue: (entry: MetricsHistoryEntry) => number
+  getValue: (entry: MetricsHistoryEntry) => number,
 ): PeakResult {
   let maxValue = 0;
   let peakTimestamp = new Date();
 
-  metrics.forEach(entry => {
+  metrics.forEach((entry) => {
     const value = getValue(entry);
     if (value > maxValue) {
       maxValue = value;
@@ -62,10 +62,7 @@ export function findPeak(
 export function getAvgLatency(entry: MetricsHistoryEntry): number {
   const ops = entry.metrics.operations;
   const totalOps = getTotalOps(entry);
-  const totalLatency = Object.values(ops).reduce(
-    (sum, op) => sum + op.avgLatency * op.count,
-    0
-  );
+  const totalLatency = Object.values(ops).reduce((sum, op) => sum + op.avgLatency * op.count, 0);
   return totalOps > 0 ? totalLatency / totalOps : 0;
 }
 
@@ -83,15 +80,12 @@ export function getErrorRate(entry: MetricsHistoryEntry): number {
  * Get total operations from entry
  */
 export function getTotalOps(entry: MetricsHistoryEntry): number {
-  return Object.values(entry.metrics.operations)
-    .reduce((sum, op) => sum + op.count, 0);
+  return Object.values(entry.metrics.operations).reduce((sum, op) => sum + op.count, 0);
 }
 
 /**
  * Calculate average of values
  */
 export function average(values: number[]): number {
-  return values.length > 0 
-    ? values.reduce((a, b) => a + b, 0) / values.length 
-    : 0;
+  return values.length > 0 ? values.reduce((a, b) => a + b, 0) / values.length : 0;
 }

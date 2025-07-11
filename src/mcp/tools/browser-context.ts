@@ -9,7 +9,10 @@ import type { MCPAuthBridge } from '../auth/mcp-auth.js';
 import type { CreateBrowserContextArgs, ToolResponse } from '../types/tool-types.js';
 import { getPageManager } from '../../puppeteer/pages/page-manager.js';
 import { browserPool } from '../../server.js';
-import { createProxyBrowserContext, cleanupContextProxy } from '../../puppeteer/proxy/proxy-context-integration.js';
+import {
+  createProxyBrowserContext,
+  cleanupContextProxy,
+} from '../../puppeteer/proxy/proxy-context-integration.js';
 // import { ProxyManager } from '../../puppeteer/proxy/proxy-manager.js'; // Unused - proxy initialization handled elsewhere
 import type { ContextProxyConfig } from '../../puppeteer/types/proxy.js';
 
@@ -28,11 +31,15 @@ export class BrowserContextTool {
     try {
       const authContext = await this.validateAndAuthenticate(args.sessionId);
       const proxyConfig = this.prepareProxyConfiguration(args.options?.proxy);
-      
+
       // Note: ProxyManager initialization handled by createProxyBrowserContext
 
       const context = await this.createContextRecord(args, authContext, proxyConfig);
-      const { proxyId } = await this.setupBrowserContextWithProxy(context, proxyConfig, args.sessionId);
+      const { proxyId } = await this.setupBrowserContextWithProxy(
+        context,
+        proxyConfig,
+        args.sessionId,
+      );
 
       this.logContextCreation(context.id, authContext.userId, args.sessionId ?? 'unknown', proxyId);
 
@@ -54,7 +61,9 @@ export class BrowserContextTool {
   /**
    * Validate session ID and authenticate user
    */
-  private async validateAndAuthenticate(sessionId: string | undefined | null): Promise<{ username: string; userId: string }> {
+  private async validateAndAuthenticate(
+    sessionId: string | undefined | null,
+  ): Promise<{ username: string; userId: string }> {
     if (sessionId === undefined || sessionId === null || sessionId === '') {
       throw new Error('Session ID is required');
     }
@@ -65,14 +74,18 @@ export class BrowserContextTool {
     });
 
     await this.authBridge.requireToolPermission(authContext, 'createContext');
-    
-    if (authContext.username === null || authContext.username === undefined || authContext.username === '') {
+
+    if (
+      authContext.username === null ||
+      authContext.username === undefined ||
+      authContext.username === ''
+    ) {
       throw new Error('Username is required in authentication context');
     }
-    
+
     return {
       username: authContext.username,
-      userId: authContext.userId
+      userId: authContext.userId,
     };
   }
 
@@ -101,9 +114,9 @@ export class BrowserContextTool {
    * Create context record in store
    */
   private async createContextRecord(
-    args: CreateBrowserContextArgs, 
-    authContext: { username: string; userId: string }, 
-    proxyConfig?: ContextProxyConfig
+    args: CreateBrowserContextArgs,
+    authContext: { username: string; userId: string },
+    proxyConfig?: ContextProxyConfig,
   ): Promise<{ id: string; name: string; type: string; status: string; createdAt: string }> {
     const context = await contextStore.create({
       sessionId: args.sessionId ?? 'unknown',
@@ -118,7 +131,7 @@ export class BrowserContextTool {
       userId: authContext.userId,
       proxyConfig: proxyConfig as Record<string, unknown> | undefined,
     });
-    
+
     return {
       id: context.id,
       name: context.name,
@@ -132,9 +145,9 @@ export class BrowserContextTool {
    * Setup browser context with proxy if configured
    */
   private async setupBrowserContextWithProxy(
-    context: { id: string }, 
-    proxyConfig?: ContextProxyConfig, 
-    sessionId?: string
+    context: { id: string },
+    proxyConfig?: ContextProxyConfig,
+    sessionId?: string,
   ): Promise<{ proxyId?: string; browserContextId?: string }> {
     if (!proxyConfig) {
       return {};
@@ -169,7 +182,12 @@ export class BrowserContextTool {
   /**
    * Log context creation success
    */
-  private logContextCreation(contextId: string, userId: string, sessionId: string, proxyId?: string): void {
+  private logContextCreation(
+    contextId: string,
+    userId: string,
+    sessionId: string,
+    proxyId?: string,
+  ): void {
     logger.info({
       msg: 'MCP browser context created',
       contextId,
@@ -184,8 +202,8 @@ export class BrowserContextTool {
    * Build successful context creation response
    */
   private buildContextResponse(
-    context: { id: string; name: string; type: string; status: string; createdAt: string }, 
-    proxyId?: string
+    context: { id: string; name: string; type: string; status: string; createdAt: string },
+    proxyId?: string,
   ): ToolResponse {
     return this.successResponse({
       contextId: context.id,
@@ -271,7 +289,10 @@ export class BrowserContextTool {
   /**
    * Validate close context arguments
    */
-  private validateCloseContextArgs(args: { contextId: string; sessionId: string }): ToolResponse | null {
+  private validateCloseContextArgs(args: {
+    contextId: string;
+    sessionId: string;
+  }): ToolResponse | null {
     if (!args.contextId || args.contextId.trim() === '') {
       return this.errorResponse('Context ID is required', 'INVALID_CONTEXT_ID');
     }
@@ -284,7 +305,10 @@ export class BrowserContextTool {
   /**
    * Validate context access permissions
    */
-  private async validateContextAccess(args: { contextId: string; sessionId: string }): Promise<{ proxyId?: string; sessionId: string } | ToolResponse> {
+  private async validateContextAccess(args: {
+    contextId: string;
+    sessionId: string;
+  }): Promise<{ proxyId?: string; sessionId: string } | ToolResponse> {
     const context = await contextStore.get(args.contextId);
     if (!context) {
       return this.errorResponse('Context not found', 'CONTEXT_NOT_FOUND');
@@ -311,8 +335,15 @@ export class BrowserContextTool {
   /**
    * Clean up proxy resources if any
    */
-  private async cleanupContextProxy(context: { proxyId?: string }, contextId: string): Promise<void> {
-    if (context.proxyId !== null && context.proxyId !== undefined && context.proxyId.trim() !== '') {
+  private async cleanupContextProxy(
+    context: { proxyId?: string },
+    contextId: string,
+  ): Promise<void> {
+    if (
+      context.proxyId !== null &&
+      context.proxyId !== undefined &&
+      context.proxyId.trim() !== ''
+    ) {
       await cleanupContextProxy(contextId);
     }
   }
@@ -320,7 +351,12 @@ export class BrowserContextTool {
   /**
    * Log context closure completion
    */
-  private logContextClosure(contextId: string, userId: string, sessionId: string, deleted: boolean): void {
+  private logContextClosure(
+    contextId: string,
+    userId: string,
+    sessionId: string,
+    deleted: boolean,
+  ): void {
     logger.info({
       msg: 'MCP browser context closed',
       contextId,

@@ -1,6 +1,6 @@
 /**
  * MCP (Model Context Protocol) AI Agent Integration Example
- * 
+ *
  * This example demonstrates:
  * - Using MCP tools for browser automation
  * - Integrating with AI agents (Claude, etc.)
@@ -47,33 +47,36 @@ class MCPAgentClient {
 
   async connect(): Promise<void> {
     console.log('Starting MCP server...');
-    
+
     // Spawn the MCP server process
     this.serverProcess = spawn('puppeteer-mcp', [], {
       stdio: ['pipe', 'pipe', 'inherit'],
       env: {
         ...process.env,
-        API_KEY: process.env.API_KEY || 'your-api-key'
-      }
+        API_KEY: process.env.API_KEY || 'your-api-key',
+      },
     });
 
     // Create transport
     this.transport = new StdioClientTransport({
       command: 'puppeteer-mcp',
-      args: []
+      args: [],
     });
 
     // Create client
-    this.client = new Client({
-      name: 'mcp-agent-example',
-      version: '1.0.0'
-    }, {
-      capabilities: {
-        tools: true,
-        resources: true,
-        prompts: true
-      }
-    });
+    this.client = new Client(
+      {
+        name: 'mcp-agent-example',
+        version: '1.0.0',
+      },
+      {
+        capabilities: {
+          tools: true,
+          resources: true,
+          prompts: true,
+        },
+      },
+    );
 
     // Connect
     await this.client.connect(this.transport);
@@ -88,14 +91,14 @@ class MCPAgentClient {
 
     // List tools
     const tools = await this.client.listTools();
-    tools.tools.forEach(tool => {
+    tools.tools.forEach((tool) => {
       this.availableTools.set(tool.name, tool);
       console.log(`Tool discovered: ${tool.name}`);
     });
 
     // List resources
     const resources = await this.client.listResources();
-    resources.resources.forEach(resource => {
+    resources.resources.forEach((resource) => {
       this.availableResources.set(resource.uri, resource);
       console.log(`Resource discovered: ${resource.uri}`);
     });
@@ -113,7 +116,7 @@ class MCPAgentClient {
 
     console.log(`Calling tool: ${toolName}`, args);
     const result = await this.client.callTool({ name: toolName, arguments: args });
-    
+
     return result;
   }
 
@@ -130,11 +133,11 @@ class MCPAgentClient {
     if (this.client) {
       await this.client.close();
     }
-    
+
     if (this.serverProcess) {
       this.serverProcess.kill();
     }
-    
+
     console.log('Disconnected from MCP server');
   }
 
@@ -150,34 +153,34 @@ class MCPAgentClient {
 // Example 1: AI-guided web scraping workflow
 async function aiWebScrapingWorkflow() {
   const agent = new MCPAgentClient();
-  
+
   try {
     await agent.connect();
-    
+
     // Create a browser session
     const sessionResult = await agent.callTool('browser_create_session', {
       capabilities: {
         browserName: 'chrome',
-        acceptInsecureCerts: true
-      }
+        acceptInsecureCerts: true,
+      },
     });
-    
+
     const sessionId = sessionResult.content[0].data?.sessionId;
     console.log(`Session created: ${sessionId}`);
-    
+
     // Navigate to target website
     await agent.callTool('browser_navigate', {
       sessionId,
-      url: 'https://news.ycombinator.com'
+      url: 'https://news.ycombinator.com',
     });
-    
+
     // Wait for content to load
     await agent.callTool('browser_wait', {
       sessionId,
       selector: '.itemlist',
-      timeout: 10000
+      timeout: 10000,
     });
-    
+
     // Extract article data
     const articlesResult = await agent.callTool('browser_evaluate', {
       sessionId,
@@ -195,12 +198,12 @@ async function aiWebScrapingWorkflow() {
             comments: parseInt(commentsEl?.textContent || '0')
           };
         })
-      `
+      `,
     });
-    
+
     const articles = articlesResult.content[0].data;
     console.log(`Extracted ${articles.length} articles`);
-    
+
     // AI analysis prompt (simulated)
     const analysisPrompt = `
       Analyze these Hacker News articles and identify:
@@ -210,14 +213,13 @@ async function aiWebScrapingWorkflow() {
       
       Articles: ${JSON.stringify(articles, null, 2)}
     `;
-    
+
     console.log('Analysis prompt prepared for AI agent');
-    
+
     // Clean up
     await agent.callTool('browser_close_session', { sessionId });
-    
+
     return articles;
-    
   } finally {
     await agent.disconnect();
   }
@@ -226,20 +228,20 @@ async function aiWebScrapingWorkflow() {
 // Example 2: Multi-step form automation with AI decision making
 async function intelligentFormAutomation() {
   const agent = new MCPAgentClient();
-  
+
   try {
     await agent.connect();
-    
+
     // Create session
     const sessionResult = await agent.callTool('browser_create_session', {});
     const sessionId = sessionResult.content[0].data?.sessionId;
-    
+
     // Navigate to form
     await agent.callTool('browser_navigate', {
       sessionId,
-      url: 'https://example.com/application-form'
+      url: 'https://example.com/application-form',
     });
-    
+
     // Analyze form structure
     const formAnalysis = await agent.callTool('browser_evaluate', {
       sessionId,
@@ -260,12 +262,12 @@ async function intelligentFormAutomation() {
           method: form.method,
           fields
         };
-      `
+      `,
     });
-    
+
     const formData = formAnalysis.content[0].data;
     console.log('Form structure analyzed:', formData);
-    
+
     // AI decides how to fill the form (simulated)
     const fillStrategy = {
       '#firstName': 'John',
@@ -273,9 +275,9 @@ async function intelligentFormAutomation() {
       '#email': 'john.doe@example.com',
       '#country': 'USA',
       '#experience': '5-10 years',
-      '#interests': ['technology', 'automation', 'ai']
+      '#interests': ['technology', 'automation', 'ai'],
     };
-    
+
     // Fill form fields based on AI strategy
     for (const [selector, value] of Object.entries(fillStrategy)) {
       if (Array.isArray(value)) {
@@ -283,7 +285,7 @@ async function intelligentFormAutomation() {
         for (const v of value) {
           await agent.callTool('browser_click', {
             sessionId,
-            selector: `${selector} option[value="${v}"]`
+            selector: `${selector} option[value="${v}"]`,
           });
         }
       } else {
@@ -291,32 +293,32 @@ async function intelligentFormAutomation() {
         await agent.callTool('browser_type', {
           sessionId,
           selector,
-          text: value
+          text: value,
         });
       }
     }
-    
+
     // Take screenshot before submission
     const screenshotResult = await agent.callTool('browser_screenshot', {
       sessionId,
-      fullPage: true
+      fullPage: true,
     });
-    
+
     console.log('Form filled, screenshot taken');
-    
+
     // Submit form
     await agent.callTool('browser_click', {
       sessionId,
-      selector: 'button[type="submit"]'
+      selector: 'button[type="submit"]',
     });
-    
+
     // Wait for response
     await agent.callTool('browser_wait', {
       sessionId,
       selector: '.success-message, .error-message',
-      timeout: 10000
+      timeout: 10000,
     });
-    
+
     // Check result
     const result = await agent.callTool('browser_evaluate', {
       sessionId,
@@ -328,14 +330,13 @@ async function intelligentFormAutomation() {
           success: !!success,
           message: (success || error)?.textContent || 'Unknown result'
         };
-      `
+      `,
     });
-    
+
     console.log('Form submission result:', result.content[0].data);
-    
+
     // Clean up
     await agent.callTool('browser_close_session', { sessionId });
-    
   } finally {
     await agent.disconnect();
   }
@@ -344,53 +345,53 @@ async function intelligentFormAutomation() {
 // Example 3: Intelligent web testing with visual regression
 async function visualRegressionTesting() {
   const agent = new MCPAgentClient();
-  
+
   try {
     await agent.connect();
-    
+
     const testCases = [
       { url: 'https://example.com', name: 'homepage' },
       { url: 'https://example.com/about', name: 'about' },
-      { url: 'https://example.com/contact', name: 'contact' }
+      { url: 'https://example.com/contact', name: 'contact' },
     ];
-    
+
     const results = [];
-    
+
     for (const testCase of testCases) {
       console.log(`Testing: ${testCase.name}`);
-      
+
       // Create session for each test
       const sessionResult = await agent.callTool('browser_create_session', {
         capabilities: {
-          viewport: { width: 1920, height: 1080 }
-        }
+          viewport: { width: 1920, height: 1080 },
+        },
       });
-      
+
       const sessionId = sessionResult.content[0].data?.sessionId;
-      
+
       try {
         // Navigate to page
         await agent.callTool('browser_navigate', {
           sessionId,
-          url: testCase.url
+          url: testCase.url,
         });
-        
+
         // Wait for page to stabilize
         await agent.callTool('browser_wait', {
           sessionId,
           condition: 'load',
-          timeout: 10000
+          timeout: 10000,
         });
-        
+
         // Additional wait for dynamic content
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+
         // Take screenshot
         const screenshotResult = await agent.callTool('browser_screenshot', {
           sessionId,
-          fullPage: true
+          fullPage: true,
         });
-        
+
         // Extract page metrics
         const metricsResult = await agent.callTool('browser_evaluate', {
           sessionId,
@@ -415,35 +416,33 @@ async function visualRegressionTesting() {
             };
             
             return metrics;
-          `
+          `,
         });
-        
+
         results.push({
           testCase: testCase.name,
           url: testCase.url,
           screenshot: screenshotResult.content[0].data,
           metrics: metricsResult.content[0].data,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         });
-        
       } finally {
         // Clean up session
         await agent.callTool('browser_close_session', { sessionId });
       }
     }
-    
+
     // AI analysis of results (simulated)
     console.log('\nVisual Regression Test Results:');
-    results.forEach(result => {
+    results.forEach((result) => {
       console.log(`\n${result.testCase}:`);
       console.log(`  Load time: ${result.metrics.loadTime}ms`);
       console.log(`  DOM elements: ${result.metrics.domElements}`);
       console.log(`  Broken images: ${result.metrics.brokenImages}`);
       console.log(`  Missing alt text: ${result.metrics.missingAltText}`);
     });
-    
+
     return results;
-    
   } finally {
     await agent.disconnect();
   }
@@ -452,80 +451,78 @@ async function visualRegressionTesting() {
 // Example 4: Conversational browser automation
 async function conversationalAutomation() {
   const agent = new MCPAgentClient();
-  
+
   try {
     await agent.connect();
-    
+
     // Simulate a conversation with an AI agent
     const conversation = [
       { role: 'user', content: 'Search for "puppeteer automation" on Google' },
       { role: 'assistant', content: 'I\'ll search for "puppeteer automation" on Google for you.' },
       { role: 'user', content: 'Click on the first result' },
-      { role: 'assistant', content: 'I\'ll click on the first search result.' },
+      { role: 'assistant', content: "I'll click on the first search result." },
       { role: 'user', content: 'Take a screenshot of the page' },
-      { role: 'assistant', content: 'I\'ll take a screenshot of the current page.' }
+      { role: 'assistant', content: "I'll take a screenshot of the current page." },
     ];
-    
+
     // Create session
     const sessionResult = await agent.callTool('browser_create_session', {});
     const sessionId = sessionResult.content[0].data?.sessionId;
-    
+
     // Execute conversation steps
     for (let i = 0; i < conversation.length; i += 2) {
       const userMessage = conversation[i];
       const assistantMessage = conversation[i + 1];
-      
+
       console.log(`User: ${userMessage.content}`);
       console.log(`Assistant: ${assistantMessage.content}`);
-      
+
       // Parse intent and execute (simplified)
       if (userMessage.content.includes('Search for')) {
         const searchTerm = userMessage.content.match(/"([^"]+)"/)?.[1] || '';
-        
+
         await agent.callTool('browser_navigate', {
           sessionId,
-          url: 'https://www.google.com'
+          url: 'https://www.google.com',
         });
-        
+
         await agent.callTool('browser_type', {
           sessionId,
           selector: 'input[name="q"]',
-          text: searchTerm
+          text: searchTerm,
         });
-        
+
         await agent.callTool('browser_keyboard', {
           sessionId,
-          key: 'Enter'
+          key: 'Enter',
         });
-        
+
         await agent.callTool('browser_wait', {
           sessionId,
           selector: '#search',
-          timeout: 5000
+          timeout: 5000,
         });
-        
       } else if (userMessage.content.includes('Click on the first result')) {
         await agent.callTool('browser_click', {
           sessionId,
-          selector: '#search .g:first-child a'
+          selector: '#search .g:first-child a',
         });
-        
+
         await agent.callTool('browser_wait', {
           sessionId,
           condition: 'load',
-          timeout: 10000
+          timeout: 10000,
         });
-        
       } else if (userMessage.content.includes('Take a screenshot')) {
         const screenshotResult = await agent.callTool('browser_screenshot', {
           sessionId,
-          fullPage: false
+          fullPage: false,
         });
-        
+
         console.log('Screenshot captured successfully');
       }
     }
-    
+
     // Get final page info
     const pageInfo = await agent.callTool('browser_evaluate', {
       sessionId,
@@ -535,14 +532,13 @@ async function conversationalAutomation() {
           title: document.title,
           description: document.querySelector('meta[name="description"]')?.content || ''
         })
-      `
+      `,
     });
-    
+
     console.log('\nFinal page info:', pageInfo.content[0].data);
-    
+
     // Clean up
     await agent.callTool('browser_close_session', { sessionId });
-    
   } finally {
     await agent.disconnect();
   }
@@ -552,23 +548,22 @@ async function conversationalAutomation() {
 if (require.main === module) {
   (async () => {
     console.log('MCP AI Agent Integration Examples\n');
-    
+
     try {
       console.log('1. AI-Guided Web Scraping');
       await aiWebScrapingWorkflow();
       console.log('\n---\n');
-      
+
       console.log('2. Intelligent Form Automation');
       await intelligentFormAutomation();
       console.log('\n---\n');
-      
+
       console.log('3. Visual Regression Testing');
       await visualRegressionTesting();
       console.log('\n---\n');
-      
+
       console.log('4. Conversational Automation');
       await conversationalAutomation();
-      
     } catch (error) {
       console.error('Example failed:', error);
     }

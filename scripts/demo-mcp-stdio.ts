@@ -17,7 +17,7 @@ async function runDemo() {
   // Initialize without REST adapter (simulating stdio mode)
   const sessionStore = new InMemorySessionStore(logger);
   const authBridge = new MCPAuthBridge(sessionStore, logger);
-  
+
   const executeInContextTool = new ExecuteInContextTool(undefined); // No REST adapter
   const sessionTools = new SessionTools(sessionStore);
   const browserContextTool = new BrowserContextTool(authBridge);
@@ -59,7 +59,7 @@ async function runDemo() {
   console.log(`✅ Screenshot: ${screenshotData.success ? 'Success' : 'Failed'}`);
 
   console.log('\n🎉 MCP browser automation works without REST adapter!');
-  
+
   // Quick exit to avoid timeout
   process.exit(0);
 }

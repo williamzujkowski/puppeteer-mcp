@@ -38,10 +38,10 @@ export class StoreSwitchManager {
     instanceId: string,
     instance: SessionStoreFactoryResult,
     newType: 'memory' | 'redis',
-    options: StoreSwitchOptions = {}
+    options: StoreSwitchOptions = {},
   ): Promise<void> {
     this.validateSwitchRequest(instanceId, instance, newType);
-    
+
     const newStore = this.createNewStore(newType);
     await this.migrateDataIfRequested(instance, newStore, options);
     await this.cleanupOldStore(instance.store);
@@ -53,10 +53,13 @@ export class StoreSwitchManager {
   private validateSwitchRequest(
     instanceId: string,
     instance: SessionStoreFactoryResult,
-    newType: 'memory' | 'redis'
+    newType: 'memory' | 'redis',
   ): void {
     if (instance.type === newType) {
-      this.logger.info({ instanceId, type: newType }, 'Store type already matches, no action needed');
+      this.logger.info(
+        { instanceId, type: newType },
+        'Store type already matches, no action needed',
+      );
       return;
     }
 
@@ -64,15 +67,18 @@ export class StoreSwitchManager {
       throw new Error('Cannot switch to Redis store: Redis not available');
     }
 
-    this.logger.info({
-      instanceId,
-      fromType: instance.type,
-      toType: newType
-    }, 'Switching store type');
+    this.logger.info(
+      {
+        instanceId,
+        fromType: instance.type,
+        toType: newType,
+      },
+      'Switching store type',
+    );
   }
 
   private createNewStore(newType: 'memory' | 'redis'): SessionStore {
-    return newType === 'redis' 
+    return newType === 'redis'
       ? new RedisSessionStore(this.logger)
       : new InMemorySessionStore(this.logger);
   }
@@ -80,12 +86,12 @@ export class StoreSwitchManager {
   private async migrateDataIfRequested(
     instance: SessionStoreFactoryResult,
     newStore: SessionStore,
-    options: StoreSwitchOptions
+    options: StoreSwitchOptions,
   ): Promise<void> {
     if (options.migrateData && instance.migration) {
       await instance.migration.migrate(instance.store, newStore, {
         skipExisting: options.skipExisting,
-        deleteAfterMigration: options.deleteAfterMigration
+        deleteAfterMigration: options.deleteAfterMigration,
       });
     }
   }
@@ -100,7 +106,7 @@ export class StoreSwitchManager {
   private updateInstanceStore(
     instance: SessionStoreFactoryResult,
     newStore: SessionStore,
-    newType: 'memory' | 'redis'
+    newType: 'memory' | 'redis',
   ): void {
     instance.store = newStore;
     instance.type = newType;
@@ -108,7 +114,7 @@ export class StoreSwitchManager {
 
   private async updateComponents(
     instance: SessionStoreFactoryResult,
-    newStore: SessionStore
+    newStore: SessionStore,
   ): Promise<void> {
     await this.updateMonitoring(instance, newStore);
     await this.updateReplication(instance, newStore);
@@ -116,55 +122,66 @@ export class StoreSwitchManager {
 
   private async updateMonitoring(
     instance: SessionStoreFactoryResult,
-    newStore: SessionStore
+    newStore: SessionStore,
   ): Promise<void> {
     if (!instance.monitor) {
       return;
     }
 
     await instance.monitor.destroy();
-    instance.monitor = new SessionStoreMonitor(newStore, {
-      healthCheckInterval: 30000,
-      metricsRetentionPeriod: 24 * 60 * 60 * 1000,
-      enableDetailedMetrics: true,
-      enableAlerting: true
-    }, this.logger);
+    instance.monitor = new SessionStoreMonitor(
+      newStore,
+      {
+        healthCheckInterval: 30000,
+        metricsRetentionPeriod: 24 * 60 * 60 * 1000,
+        enableDetailedMetrics: true,
+        enableAlerting: true,
+      },
+      this.logger,
+    );
     await instance.monitor.start();
   }
 
   private async updateReplication(
     instance: SessionStoreFactoryResult,
-    newStore: SessionStore
+    newStore: SessionStore,
   ): Promise<void> {
     if (!instance.replication) {
       return;
     }
 
     await instance.replication.destroy();
-    instance.replication = new SessionReplicationManager(newStore, {
-      maxRetries: config.REDIS_MAX_RETRIES,
-      retryDelay: config.REDIS_RETRY_DELAY
-    }, this.logger);
+    instance.replication = new SessionReplicationManager(
+      newStore,
+      {
+        maxRetries: config.REDIS_MAX_RETRIES,
+        retryDelay: config.REDIS_RETRY_DELAY,
+      },
+      this.logger,
+    );
   }
 
   private async logSwitch(
     instanceId: string,
     fromType: 'memory' | 'redis',
     toType: 'memory' | 'redis',
-    options: StoreSwitchOptions
+    options: StoreSwitchOptions,
   ): Promise<void> {
     await logDataAccess('WRITE', `session-store/${instanceId}`, {
       action: 'switch-type',
       instanceId,
       fromType,
       toType,
-      migrateData: options.migrateData
+      migrateData: options.migrateData,
     });
 
-    this.logger.info({
-      instanceId,
-      newType: toType,
-      migrateData: options.migrateData
-    }, 'Store type switched successfully');
+    this.logger.info(
+      {
+        instanceId,
+        newType: toType,
+        migrateData: options.migrateData,
+      },
+      'Store type switched successfully',
+    );
   }
 }

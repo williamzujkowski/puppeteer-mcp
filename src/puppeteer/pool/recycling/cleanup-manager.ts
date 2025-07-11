@@ -32,10 +32,10 @@ export class CleanupManager {
   async executeCleanup(
     candidates: RecyclingCandidate[],
     recycleCallback: (browserId: string) => Promise<void>,
-    batchSize: number
+    batchSize: number,
   ): Promise<RecyclingEvent[]> {
     const events: RecyclingEvent[] = [];
-    
+
     // Filter and prioritize candidates
     const toRecycle = this.prioritizeCandidates(candidates, batchSize);
 
@@ -45,7 +45,7 @@ export class CleanupManager {
         selectedForRecycling: toRecycle.length,
         batchSize,
       },
-      'Starting browser cleanup execution'
+      'Starting browser cleanup execution',
     );
 
     // Execute recycling for each candidate
@@ -62,15 +62,15 @@ export class CleanupManager {
    */
   async recycleBrowser(
     candidate: RecyclingCandidate,
-    recycleCallback: (browserId: string) => Promise<void>
+    recycleCallback: (browserId: string) => Promise<void>,
   ): Promise<RecyclingEvent> {
     const startTime = Date.now();
     let success = false;
-    
+
     try {
       await recycleCallback(candidate.browserId);
       success = true;
-      
+
       logger.info(
         {
           browserId: candidate.browserId,
@@ -78,7 +78,7 @@ export class CleanupManager {
           score: candidate.score,
           executionTimeMs: Date.now() - startTime,
         },
-        'Browser recycled successfully'
+        'Browser recycled successfully',
       );
     } catch (error) {
       logger.error(
@@ -87,7 +87,7 @@ export class CleanupManager {
           error,
           reasons: candidate.reasons,
         },
-        'Error recycling browser'
+        'Error recycling browser',
       );
     }
 
@@ -107,24 +107,24 @@ export class CleanupManager {
    */
   prioritizeCandidates(
     candidates: RecyclingCandidate[],
-    maxBatchSize: number
+    maxBatchSize: number,
   ): RecyclingCandidate[] {
     // Separate by urgency
-    const critical = candidates.filter(c => c.urgency === 'critical');
-    const high = candidates.filter(c => c.urgency === 'high');
-    const medium = candidates.filter(c => c.urgency === 'medium');
-    
+    const critical = candidates.filter((c) => c.urgency === 'critical');
+    const high = candidates.filter((c) => c.urgency === 'high');
+    const medium = candidates.filter((c) => c.urgency === 'medium');
+
     const prioritized: RecyclingCandidate[] = [];
-    
+
     // Always include critical candidates
     prioritized.push(...critical);
-    
+
     // Add high priority candidates if space remains
     const remainingSpace = maxBatchSize - prioritized.length;
     if (remainingSpace > 0) {
       prioritized.push(...high.slice(0, remainingSpace));
     }
-    
+
     // Add medium priority if still space
     const stillRemaining = maxBatchSize - prioritized.length;
     if (stillRemaining > 0) {
@@ -139,7 +139,7 @@ export class CleanupManager {
         selected: prioritized.length,
         maxBatchSize,
       },
-      'Candidates prioritized for recycling'
+      'Candidates prioritized for recycling',
     );
 
     return prioritized;
@@ -151,7 +151,7 @@ export class CleanupManager {
   validateCleanupOperation(
     candidates: RecyclingCandidate[],
     isInCooldown: boolean,
-    isEnabled: boolean
+    isEnabled: boolean,
   ): { valid: boolean; reason?: string } {
     if (!isEnabled) {
       return { valid: false, reason: 'Recycling is disabled' };
@@ -163,7 +163,7 @@ export class CleanupManager {
 
     if (isInCooldown) {
       // Allow critical candidates even during cooldown
-      const hasCritical = candidates.some(c => c.urgency === 'critical');
+      const hasCritical = candidates.some((c) => c.urgency === 'critical');
       if (!hasCritical) {
         return { valid: false, reason: 'In cooldown period, no critical candidates' };
       }
@@ -178,7 +178,7 @@ export class CleanupManager {
   prepareCleanupBatch(
     candidates: RecyclingCandidate[],
     batchRecyclingEnabled: boolean,
-    maxBatchSize: number
+    maxBatchSize: number,
   ): RecyclingCandidate[] {
     if (!batchRecyclingEnabled) {
       // Only take the highest priority candidate

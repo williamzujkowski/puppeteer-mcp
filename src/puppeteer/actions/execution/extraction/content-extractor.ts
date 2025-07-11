@@ -59,8 +59,7 @@ export class ContentExtractor {
     await page.waitForSelector(selector, { timeout });
 
     const contentResult = await page.$eval(selector, (element: Element) => {
-      if (element instanceof HTMLInputElement || 
-          element instanceof HTMLTextAreaElement) {
+      if (element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement) {
         return { content: element.value, type: 'value' };
       }
       const htmlElement = element as HTMLElement;
@@ -68,7 +67,7 @@ export class ContentExtractor {
       const type = htmlElement.textContent ? 'text' : 'element';
       return { content, type };
     });
-    
+
     const content = (contentResult as { content: string; type: string }).content;
     const contentType = (contentResult as { content: string; type: string }).type;
 
@@ -129,11 +128,7 @@ export class ContentExtractor {
    * @returns Action result
    * @nist au-3 "Content of audit records"
    */
-  private buildErrorResult(
-    error: unknown,
-    action: ContentAction,
-    duration: number,
-  ): ActionResult {
+  private buildErrorResult(error: unknown, action: ContentAction, duration: number): ActionResult {
     const errorMessage = error instanceof Error ? error.message : 'Content action failed';
 
     return {
@@ -157,11 +152,7 @@ export class ContentExtractor {
    * @nist ac-3 "Access enforcement"
    * @nist au-3 "Content of audit records"
    */
-  async execute(
-    action: ContentAction,
-    page: Page,
-    context: ActionContext,
-  ): Promise<ActionResult> {
+  async execute(action: ContentAction, page: Page, context: ActionContext): Promise<ActionResult> {
     const startTime = Date.now();
 
     try {
@@ -172,7 +163,7 @@ export class ContentExtractor {
       });
 
       const timeout = action.timeout ?? DEFAULT_CONFIG.TIMEOUT.element;
-      
+
       const contentResult = action.selector
         ? await this.extractElementContent(page, action.selector, timeout)
         : await this.extractPageContent(page);

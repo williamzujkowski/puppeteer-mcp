@@ -60,7 +60,10 @@ export abstract class HealthCheckStrategy {
   /**
    * Execute health check
    */
-  abstract check(context: HealthCheckContext, metrics: HealthMetrics): Promise<HealthCheckStrategyResult>;
+  abstract check(
+    context: HealthCheckContext,
+    metrics: HealthMetrics,
+  ): Promise<HealthCheckStrategyResult>;
 
   /**
    * Get threshold value

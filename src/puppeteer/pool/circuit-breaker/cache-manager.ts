@@ -42,14 +42,13 @@ export class CacheManager<T = any> extends CacheOperations<T> {
 
   constructor(
     name: string,
-    private config: CacheConfig = DEFAULT_CACHE_CONFIG
+    private config: CacheConfig = DEFAULT_CACHE_CONFIG,
   ) {
     super(name, config.maxSize, config.maxAge);
     if (config.enableAutoCleanup) {
       this.startAutoCleanup();
     }
   }
-
 
   /**
    * Update cache configuration
@@ -70,11 +69,14 @@ export class CacheManager<T = any> extends CacheOperations<T> {
       this.startAutoCleanup();
     }
 
-    logger.info({
-      cache: this.name,
-      oldConfig,
-      newConfig: this.config,
-    }, 'Cache configuration updated');
+    logger.info(
+      {
+        cache: this.name,
+        oldConfig,
+        newConfig: this.config,
+      },
+      'Cache configuration updated',
+    );
   }
 
   /**
@@ -84,13 +86,15 @@ export class CacheManager<T = any> extends CacheOperations<T> {
     for (const { key, value } of entries) {
       this.set(key, value);
     }
-    
-    logger.info({
-      cache: this.name,
-      entriesCount: entries.length,
-    }, 'Cache warmed up');
-  }
 
+    logger.info(
+      {
+        cache: this.name,
+        entriesCount: entries.length,
+      },
+      'Cache warmed up',
+    );
+  }
 
   /**
    * Start automatic cleanup
@@ -117,10 +121,13 @@ export class CacheManager<T = any> extends CacheOperations<T> {
   destroy(): void {
     this.stopAutoCleanup();
     this.clear();
-    
-    logger.info({
-      cache: this.name,
-      finalStats: this.getStats(),
-    }, 'Cache manager destroyed');
+
+    logger.info(
+      {
+        cache: this.name,
+        finalStats: this.getStats(),
+      },
+      'Cache manager destroyed',
+    );
   }
 }

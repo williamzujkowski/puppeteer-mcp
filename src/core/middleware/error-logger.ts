@@ -61,7 +61,7 @@ export class ErrorLogger {
         headers: {
           'user-agent': req.get('user-agent'),
           'content-type': req.get('content-type'),
-          'authorization': req.get('authorization') !== undefined ? '[REDACTED]' : undefined,
+          authorization: req.get('authorization') !== undefined ? '[REDACTED]' : undefined,
         },
         query: req.query,
         params: req.params,
@@ -102,19 +102,21 @@ export class ErrorLogger {
    */
   private logSecurityIncident(error: EnhancedAppError, req: Request): void {
     if (error.getCategory() === ErrorCategory.SECURITY) {
-      this.logger.error({
-        event: 'security_incident',
-        errorCode: error.errorContext.errorCode,
-        userId: error.getUserId(),
-        ipAddress: req.ip,
-        userAgent: req.get('user-agent'),
-        requestId: error.getRequestId(),
-        timestamp: new Date().toISOString(),
-        severity: error.getSeverity(),
-        details: this.config.sanitizeSensitiveData === true
-          ? '[REDACTED]' 
-          : error.getTechnicalDetails(),
-      }, 'Security error detected');
+      this.logger.error(
+        {
+          event: 'security_incident',
+          errorCode: error.errorContext.errorCode,
+          userId: error.getUserId(),
+          ipAddress: req.ip,
+          userAgent: req.get('user-agent'),
+          requestId: error.getRequestId(),
+          timestamp: new Date().toISOString(),
+          severity: error.getSeverity(),
+          details:
+            this.config.sanitizeSensitiveData === true ? '[REDACTED]' : error.getTechnicalDetails(),
+        },
+        'Security error detected',
+      );
     }
   }
 }

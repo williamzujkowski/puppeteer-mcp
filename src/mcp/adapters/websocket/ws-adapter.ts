@@ -136,7 +136,9 @@ export class WebSocketAdapter implements ProtocolAdapter {
     } catch (error) {
       // Handle operation error
       await this.errorHandler.handleOperationError(
-        params.operation !== null && params.operation !== undefined ? String((params.operation as { type?: string }).type) : 'unknown',
+        params.operation !== null && params.operation !== undefined
+          ? String((params.operation as { type?: string }).type)
+          : 'unknown',
         error as Error,
         params.sessionId,
         { operation: params.operation },
@@ -145,7 +147,6 @@ export class WebSocketAdapter implements ProtocolAdapter {
       throw error;
     }
   }
-
 
   /**
    * List available WebSocket endpoints

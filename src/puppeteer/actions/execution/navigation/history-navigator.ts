@@ -6,10 +6,7 @@
  */
 
 import type { Page, HTTPResponse } from 'puppeteer';
-import type {
-  ActionResult,
-  ActionContext,
-} from '../../../interfaces/action-executor.interface.js';
+import type { ActionResult, ActionContext } from '../../../interfaces/action-executor.interface.js';
 import type { NavigationWaitOptions } from '../types.js';
 import { DEFAULT_CONFIG } from '../types.js';
 import { createLogger } from '../../../../utils/logger.js';
@@ -82,7 +79,7 @@ export class HistoryNavigator {
 
   constructor(config?: HistoryNavigationConfig) {
     this.performanceMonitor = config?.performanceMonitor;
-    
+
     this.config = {
       defaultTimeout: config?.defaultTimeout ?? DEFAULT_CONFIG.TIMEOUT.navigation,
       defaultWaitUntil: config?.defaultWaitUntil ?? 'load',
@@ -106,11 +103,7 @@ export class HistoryNavigator {
    * @returns Navigation result
    * @nist ac-3 "Access enforcement"
    */
-  async goBack(
-    page: Page,
-    context: ActionContext,
-    timeout?: number
-  ): Promise<ActionResult> {
+  async goBack(page: Page, context: ActionContext, timeout?: number): Promise<ActionResult> {
     return this.executeHistoryNavigation('goBack', page, context, timeout);
   }
 
@@ -122,11 +115,7 @@ export class HistoryNavigator {
    * @returns Navigation result
    * @nist ac-3 "Access enforcement"
    */
-  async goForward(
-    page: Page,
-    context: ActionContext,
-    timeout?: number
-  ): Promise<ActionResult> {
+  async goForward(page: Page, context: ActionContext, timeout?: number): Promise<ActionResult> {
     return this.executeHistoryNavigation('goForward', page, context, timeout);
   }
 
@@ -138,11 +127,7 @@ export class HistoryNavigator {
    * @returns Navigation result
    * @nist ac-3 "Access enforcement"
    */
-  async refresh(
-    page: Page,
-    context: ActionContext,
-    timeout?: number
-  ): Promise<ActionResult> {
+  async refresh(page: Page, context: ActionContext, timeout?: number): Promise<ActionResult> {
     return this.executeHistoryNavigation('refresh', page, context, timeout);
   }
 
@@ -159,7 +144,7 @@ export class HistoryNavigator {
     type: HistoryNavigationType,
     page: Page,
     context: ActionContext,
-    timeout?: number
+    timeout?: number,
   ): Promise<ActionResult> {
     const startTime = Date.now();
     let performanceMetrics: any;
@@ -186,7 +171,7 @@ export class HistoryNavigator {
             startTime,
             validationResult.reason ?? `Cannot ${type}`,
             page,
-            performanceMetrics
+            performanceMetrics,
           );
         }
       }
@@ -195,19 +180,18 @@ export class HistoryNavigator {
       const options = this.prepareNavigationOptions(timeout);
 
       // Attempt navigation
-      const navigationResult = await this.attemptHistoryNavigation(
-        type,
-        page,
-        options,
-        context
-      );
+      const navigationResult = await this.attemptHistoryNavigation(type, page, options, context);
 
       // End performance monitoring
-      if (this.config.enablePerformanceMonitoring && this.performanceMonitor && performanceMetrics) {
+      if (
+        this.config.enablePerformanceMonitoring &&
+        this.performanceMonitor &&
+        performanceMetrics
+      ) {
         await this.performanceMonitor.endNavigation(
           performanceMetrics.id,
           navigationResult.success,
-          navigationResult.finalUrl
+          navigationResult.finalUrl,
         );
       }
 
@@ -217,21 +201,15 @@ export class HistoryNavigator {
           startTime,
           navigationResult.error?.message ?? `${type} failed`,
           page,
-          performanceMetrics
+          performanceMetrics,
         );
       }
 
       // Create success result
-      return this.createSuccessResult(
-        type,
-        startTime,
-        navigationResult,
-        performanceMetrics
-      );
-
+      return this.createSuccessResult(type, startTime, navigationResult, performanceMetrics);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : `${type} failed`;
-      
+
       logger.error(`${type} navigation error`, {
         sessionId: context.sessionId,
         contextId: context.contextId,
@@ -250,7 +228,7 @@ export class HistoryNavigator {
    */
   private async validateHistoryOperation(
     type: HistoryNavigationType,
-    page: Page
+    page: Page,
   ): Promise<{ canProceed: boolean; reason?: string }> {
     try {
       if (type === 'refresh') {
@@ -275,13 +253,12 @@ export class HistoryNavigator {
       }
 
       return { canProceed: true };
-
     } catch (error) {
       logger.warn('History validation failed', {
         type,
         error: error instanceof Error ? error.message : 'Unknown error',
       });
-      
+
       // Allow operation to proceed if validation fails
       return { canProceed: true };
     }
@@ -311,7 +288,7 @@ export class HistoryNavigator {
     type: HistoryNavigationType,
     page: Page,
     options: NavigationWaitOptions,
-    context: ActionContext
+    context: ActionContext,
   ): Promise<HistoryNavigationResult> {
     const attemptStartTime = Date.now();
 
@@ -361,7 +338,6 @@ export class HistoryNavigator {
         duration,
         capability,
       };
-
     } catch (error) {
       const duration = Date.now() - attemptStartTime;
       const navigationError = error instanceof Error ? error : new Error(`Unknown ${type} error`);
@@ -503,7 +479,7 @@ export class HistoryNavigator {
     type: HistoryNavigationType,
     startTime: number,
     navigationResult: HistoryNavigationResult,
-    performanceMetrics?: any
+    performanceMetrics?: any,
   ): ActionResult {
     const duration = Date.now() - startTime;
 
@@ -554,7 +530,7 @@ export class HistoryNavigator {
     startTime: number,
     errorMessage: string,
     page: Page,
-    performanceMetrics?: any
+    performanceMetrics?: any,
   ): ActionResult {
     const duration = Date.now() - startTime;
 

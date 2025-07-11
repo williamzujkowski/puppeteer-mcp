@@ -15,22 +15,22 @@ import { getCorrelationIds } from './context.js';
 export function createCorrelationMixin(): pino.MixinFn {
   return () => {
     const correlationIds = getCorrelationIds();
-    
+
     // Only add fields that have values
     const mixin: Record<string, string> = {};
-    
+
     if (correlationIds.traceId) {
       mixin.traceId = correlationIds.traceId;
     }
-    
+
     if (correlationIds.spanId) {
       mixin.spanId = correlationIds.spanId;
     }
-    
+
     if (correlationIds.requestId) {
       mixin.requestId = correlationIds.requestId;
     }
-    
+
     return mixin;
   };
 }
@@ -57,7 +57,7 @@ export function logAndTrace(
 ): void {
   // Log normally
   logger[level](obj, msg);
-  
+
   // Add as span event if we have an active span
   const span = trace.getActiveSpan();
   if (span && (level === 'warn' || level === 'error' || level === 'fatal')) {
@@ -65,11 +65,11 @@ export function logAndTrace(
     const attributes: Record<string, any> = {
       'log.severity': level,
     };
-    
+
     if (msg) {
       attributes['log.message'] = msg;
     }
-    
+
     if (obj && typeof obj === 'object') {
       // Add safe attributes from the log object
       const logObj = obj as Record<string, any>;
@@ -82,9 +82,9 @@ export function logAndTrace(
         }
       }
     }
-    
+
     span.addEvent(eventName, attributes);
-    
+
     // Set error status on span for errors
     if (level === 'error' || level === 'fatal') {
       span.setStatus({
@@ -100,31 +100,31 @@ export function logAndTrace(
  */
 export class CorrelatedLogger {
   constructor(private logger: pino.Logger) {}
-  
+
   trace(obj: unknown, msg?: string): void {
     logAndTrace(this.logger, 'trace', obj, msg);
   }
-  
+
   debug(obj: unknown, msg?: string): void {
     logAndTrace(this.logger, 'debug', obj, msg);
   }
-  
+
   info(obj: unknown, msg?: string): void {
     logAndTrace(this.logger, 'info', obj, msg);
   }
-  
+
   warn(obj: unknown, msg?: string): void {
     logAndTrace(this.logger, 'warn', obj, msg);
   }
-  
+
   error(obj: unknown, msg?: string): void {
     logAndTrace(this.logger, 'error', obj, msg);
   }
-  
+
   fatal(obj: unknown, msg?: string): void {
     logAndTrace(this.logger, 'fatal', obj, msg);
   }
-  
+
   child(bindings: pino.Bindings): CorrelatedLogger {
     return new CorrelatedLogger(this.logger.child(bindings));
   }
@@ -154,17 +154,17 @@ export interface TelemetryEvent {
 export function logTelemetryEvent(logger: pino.Logger, event: TelemetryEvent): void {
   const span = trace.getActiveSpan();
   const level = event.status === 'failed' ? 'error' : 'info';
-  
+
   const logObj: Record<string, any> = {
     telemetry: true,
     operation: event.operation,
     status: event.status,
   };
-  
+
   if (event.duration !== undefined) {
     logObj.duration = event.duration;
   }
-  
+
   if (event.error) {
     logObj.error = {
       name: event.error.name,
@@ -172,20 +172,20 @@ export function logTelemetryEvent(logger: pino.Logger, event: TelemetryEvent): v
       stack: event.error.stack,
     };
   }
-  
+
   if (event.metadata) {
     logObj.metadata = event.metadata;
   }
-  
+
   logger[level](logObj, `Telemetry: ${event.operation} ${event.status}`);
-  
+
   // Add to span if available
   if (span) {
     span.addEvent(`telemetry.${event.operation}.${event.status}`, {
       ...logObj,
       timestamp: new Date().toISOString(),
     });
-    
+
     if (event.status === 'failed' && event.error) {
       span.recordException(event.error);
       span.setStatus({

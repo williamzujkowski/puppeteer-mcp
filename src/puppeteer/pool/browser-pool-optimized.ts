@@ -27,10 +27,7 @@ import { BrowserPoolPerformanceMonitor } from './browser-pool-performance-monito
 import type { ExtendedPoolMetrics } from './browser-pool-metrics.js';
 
 // Import optimization modules
-import {
-  mergeOptimizationConfig,
-  updateOptimizationConfig,
-} from './optimization-config.js';
+import { mergeOptimizationConfig, updateOptimizationConfig } from './optimization-config.js';
 import type { OptimizationConfig, OptimizationStatus } from './optimization-config.js';
 import { OptimizationOperations } from './optimization-operations.js';
 import { OptimizationMonitoring } from './optimization-monitoring.js';
@@ -59,10 +56,10 @@ export class OptimizedBrowserPool extends BrowserPool implements IBrowserPool {
 
   constructor(
     options: Partial<BrowserPoolOptions> = {},
-    optimizationConfig: Partial<OptimizationConfig> = {}
+    optimizationConfig: Partial<OptimizationConfig> = {},
   ) {
     super(options);
-    
+
     this.optimizationConfig = mergeOptimizationConfig(optimizationConfig);
     this.optimizationEnabled = this.optimizationConfig.enabled;
 
@@ -76,26 +73,47 @@ export class OptimizedBrowserPool extends BrowserPool implements IBrowserPool {
   private initializeComponents(): void {
     // Initialize optimization components
     this.scaler = new BrowserPoolScaling('balanced');
-    this.resourceManager = new BrowserPoolResourceManager(this.optimizationConfig.resourceMonitoring);
+    this.resourceManager = new BrowserPoolResourceManager(
+      this.optimizationConfig.resourceMonitoring,
+    );
     this.recycler = new BrowserPoolRecycler(this.optimizationConfig.recycling);
-    this.circuitBreakers = new CircuitBreakerRegistry({ globalConfig: this.optimizationConfig.circuitBreaker });
-    this.performanceMonitor = new BrowserPoolPerformanceMonitor(this.optimizationConfig.performanceMonitoring);
+    this.circuitBreakers = new CircuitBreakerRegistry({
+      globalConfig: this.optimizationConfig.circuitBreaker,
+    });
+    this.performanceMonitor = new BrowserPoolPerformanceMonitor(
+      this.optimizationConfig.performanceMonitoring,
+    );
 
     // Initialize optimization modules
     this.operations = new OptimizationOperations(
-      this.circuitBreakers, this.performanceMonitor, this.resourceManager, this.optimizationEnabled
+      this.circuitBreakers,
+      this.performanceMonitor,
+      this.resourceManager,
+      this.optimizationEnabled,
     );
 
     this.monitoring = new OptimizationMonitoring(
-      this.optimizationConfig, this.scaler, this.resourceManager, this.recycler,
-      this.circuitBreakers, this.performanceMonitor, this.optimizationEnabled,
-      this.lastOptimizationCheck, this.optimizationActions.value
+      this.optimizationConfig,
+      this.scaler,
+      this.resourceManager,
+      this.recycler,
+      this.circuitBreakers,
+      this.performanceMonitor,
+      this.optimizationEnabled,
+      this.lastOptimizationCheck,
+      this.optimizationActions.value,
     );
 
     this.engine = new OptimizationEngine(
-      this.optimizationConfig, this.scaler, this.resourceManager, this.recycler,
-      this.circuitBreakers, this.performanceMonitor, this.optimizationEnabled,
-      this.lastOptimizationCheck, this.optimizationActions
+      this.optimizationConfig,
+      this.scaler,
+      this.resourceManager,
+      this.recycler,
+      this.circuitBreakers,
+      this.performanceMonitor,
+      this.optimizationEnabled,
+      this.lastOptimizationCheck,
+      this.optimizationActions,
     );
   }
 
@@ -117,7 +135,10 @@ export class OptimizedBrowserPool extends BrowserPool implements IBrowserPool {
         this.engine.startOptimizationMonitoring(() => this.performOptimizationCheck());
       }
 
-      logger.info({ optimizationConfig: this.optimizationConfig }, 'Optimization features initialized');
+      logger.info(
+        { optimizationConfig: this.optimizationConfig },
+        'Optimization features initialized',
+      );
       await this.logInitialization();
     } catch (error) {
       logger.error({ error }, 'Failed to initialize optimization features');
@@ -129,22 +150,22 @@ export class OptimizedBrowserPool extends BrowserPool implements IBrowserPool {
     return this.operations.acquireBrowser(
       sessionId,
       (sessionId) => super.acquireBrowser(sessionId),
-      () => this.getExtendedMetrics()
+      () => this.getExtendedMetrics(),
     );
   }
 
   override async releaseBrowser(browserId: string, sessionId: string): Promise<void> {
-    return this.operations.releaseBrowser(
-      browserId, sessionId,
-      (browserId, sessionId) => super.releaseBrowser(browserId, sessionId)
+    return this.operations.releaseBrowser(browserId, sessionId, (browserId, sessionId) =>
+      super.releaseBrowser(browserId, sessionId),
     );
   }
 
   override async createPage(browserId: string, sessionId: string): Promise<Page> {
     return this.operations.createPage(
-      browserId, sessionId,
+      browserId,
+      sessionId,
       (browserId, sessionId) => super.createPage(browserId, sessionId),
-      (browserId) => this.getBrowser(browserId)
+      (browserId) => this.getBrowser(browserId),
     );
   }
 
@@ -165,7 +186,10 @@ export class OptimizedBrowserPool extends BrowserPool implements IBrowserPool {
     this.optimizationConfig = updateOptimizationConfig(this.optimizationConfig, newConfig);
 
     await this.engine.updateComponentConfigurations(newConfig);
-    logger.info({ newConfig: this.optimizationConfig, changes: Object.keys(newConfig) }, 'Configuration updated');
+    logger.info(
+      { newConfig: this.optimizationConfig, changes: Object.keys(newConfig) },
+      'Configuration updated',
+    );
 
     await logSecurityEvent(SecurityEventType.CONFIG_CHANGE, {
       resource: 'browser_pool_optimization',
@@ -195,7 +219,7 @@ export class OptimizedBrowserPool extends BrowserPool implements IBrowserPool {
     await this.engine.performOptimizationCheck(
       () => this.getBrowsersInternal(),
       () => this.getExtendedMetrics(),
-      (browserId) => this.recycleBrowser(browserId)
+      (browserId) => this.recycleBrowser(browserId),
     );
   }
 
@@ -217,12 +241,16 @@ export class OptimizedBrowserPool extends BrowserPool implements IBrowserPool {
 
   private setupEventForwarding(): void {
     const events = [
-      'scaling-recommendation', 'browsers-recycled', 'optimization-scaling-action',
-      'optimization-resource-alert', 'optimization-browsers-recycled',
-      'optimization-performance-alert', 'optimization-recommendation'
+      'scaling-recommendation',
+      'browsers-recycled',
+      'optimization-scaling-action',
+      'optimization-resource-alert',
+      'optimization-browsers-recycled',
+      'optimization-performance-alert',
+      'optimization-recommendation',
     ];
 
-    events.forEach(event => {
+    events.forEach((event) => {
       this.engine.on(event, (data) => this.emit(event, data));
     });
 

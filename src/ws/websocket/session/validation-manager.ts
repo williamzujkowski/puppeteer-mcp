@@ -60,7 +60,7 @@ export class SessionValidationManager {
     connectionManager?: ConnectionManager,
   ): Promise<SessionValidationResult> {
     const session = this.stateManager.getSession(sessionId);
-    
+
     if (!session) {
       return {
         valid: false,
@@ -252,7 +252,7 @@ export class SessionValidationManager {
   private async handleValidationFailure(sessionId: string, reason: string): Promise<void> {
     await this.securityLogger.logValidationFailure(sessionId, reason);
     this.eventEmitter.emit('validation:failed', sessionId, reason);
-    
+
     this.logger.warn('Session validation failed', { sessionId, reason });
   }
 }

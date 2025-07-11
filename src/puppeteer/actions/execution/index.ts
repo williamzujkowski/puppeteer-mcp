@@ -43,10 +43,7 @@ export type {
   ValidationError,
 } from './types.js';
 
-export {
-  ActionExecutionError,
-  DEFAULT_CONFIG,
-} from './types.js';
+export { ActionExecutionError, DEFAULT_CONFIG } from './types.js';
 
 // Re-export commonly used types from main interfaces
 export type {
@@ -76,7 +73,9 @@ export type {
  * @param pageManager - Optional page manager instance
  * @returns Configured action executor
  */
-export function createBrowserActionExecutor(pageManager?: import('../../interfaces/page-manager.interface.js').PageManager) {
+export function createBrowserActionExecutor(
+  pageManager?: import('../../interfaces/page-manager.interface.js').PageManager,
+) {
   // Import is now synchronous using require
   const { ModularBrowserActionExecutor } = require('./action-executor.js');
   return new ModularBrowserActionExecutor(pageManager);

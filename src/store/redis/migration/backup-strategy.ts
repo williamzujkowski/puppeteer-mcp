@@ -8,12 +8,12 @@
 import { writeFile, mkdir } from 'fs/promises';
 import { dirname } from 'path';
 import type { RedisClient, StoreLogger } from '../types.js';
-import type { 
-  BackupOptions, 
-  BackupResult, 
-  BackupData, 
+import type {
+  BackupOptions,
+  BackupResult,
+  BackupData,
   BackupSession,
-  MigrationContext 
+  MigrationContext,
 } from './types.js';
 import { BaseMigration } from './base-migration.js';
 import { SessionValidator } from './session-validator.js';
@@ -43,7 +43,7 @@ export class BackupStrategy extends BaseMigration<BackupConfig, BackupResult> {
     return {
       operation: 'backup',
       startTime,
-      options: config.options ?? {}
+      options: config.options ?? {},
     };
   }
 
@@ -62,7 +62,9 @@ export class BackupStrategy extends BaseMigration<BackupConfig, BackupResult> {
     try {
       await config.client.ping();
     } catch (error) {
-      errors.push(`Redis connection failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      errors.push(
+        `Redis connection failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
     }
 
     return { valid: errors.length === 0, errors };
@@ -88,21 +90,21 @@ export class BackupStrategy extends BaseMigration<BackupConfig, BackupResult> {
           const data = await config.client.get(key);
           if (data && this.validator.validateSessionData(data)) {
             const backupEntry: BackupSession = { key, data };
-            
+
             if (config.options?.preserveTTL) {
               const ttl = this.validator.calculateTTL(data);
               if (ttl > 0) {
                 backupEntry.ttl = ttl;
               }
             }
-            
+
             backup.push(backupEntry);
           }
         }
       },
       (processed, total) => {
         this.logger.info({ progress: `${processed}/${total}` }, 'Backup progress');
-      }
+      },
     );
 
     // Create backup data structure
@@ -111,7 +113,7 @@ export class BackupStrategy extends BaseMigration<BackupConfig, BackupResult> {
       version: '1.0',
       sessionCount: backup.length,
       preserveTTL: config.options?.preserveTTL ?? false,
-      sessions: backup
+      sessions: backup,
     };
 
     // Write backup file
@@ -122,19 +124,19 @@ export class BackupStrategy extends BaseMigration<BackupConfig, BackupResult> {
       success: true,
       sessionCount: backup.length,
       backupSize: Buffer.byteLength(serializedData, 'utf8'),
-      errors: []
+      errors: [],
     };
   }
 
-  protected async postMigration(
-    config: BackupConfig,
-    result: BackupResult
-  ): Promise<void> {
-    this.logger.info({
-      backupPath: config.backupPath,
-      sessionCount: result.sessionCount,
-      backupSize: result.backupSize
-    }, 'Backup completed successfully');
+  protected async postMigration(config: BackupConfig, result: BackupResult): Promise<void> {
+    this.logger.info(
+      {
+        backupPath: config.backupPath,
+        sessionCount: result.sessionCount,
+        backupSize: result.backupSize,
+      },
+      'Backup completed successfully',
+    );
   }
 
   protected createErrorResult(errors: string[]): BackupResult {
@@ -143,21 +145,18 @@ export class BackupStrategy extends BaseMigration<BackupConfig, BackupResult> {
       sessionCount: 0,
       backupSize: 0,
       errors,
-      error: errors[0]
+      error: errors[0],
     };
   }
 
   /**
    * Quick backup with default options
    */
-  async quickBackup(
-    client: RedisClient,
-    backupPath: string
-  ): Promise<BackupResult> {
+  async quickBackup(client: RedisClient, backupPath: string): Promise<BackupResult> {
     return this.execute({
       client,
       backupPath,
-      options: { preserveTTL: true }
+      options: { preserveTTL: true },
     });
   }
 }

@@ -183,7 +183,9 @@ export const telemetryConfigSchema = z.object({
   TELEMETRY_EXPORTER_TIMEOUT: z.number().int().positive().default(30000),
   TELEMETRY_EXPORTER_COMPRESSION: z.enum(['gzip', 'none']).default('none'),
   TELEMETRY_SAMPLING_RATIO: z.number().min(0).max(1).default(0.1),
-  TELEMETRY_LOG_LEVEL: z.enum(['none', 'error', 'warn', 'info', 'debug', 'verbose', 'all']).default('error'),
+  TELEMETRY_LOG_LEVEL: z
+    .enum(['none', 'error', 'warn', 'info', 'debug', 'verbose', 'all'])
+    .default('error'),
   TELEMETRY_METRICS_INTERVAL: z.number().int().positive().default(60000),
   TELEMETRY_METRICS_TIMEOUT: z.number().int().positive().default(30000),
   TELEMETRY_RESOURCE_ATTRIBUTES: z.record(z.string()).default({}),

@@ -20,40 +20,40 @@ jobs:
   performance-benchmarks:
     name: Performance Benchmarks
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20.x'
           cache: 'npm'
-          
+
       - name: Install dependencies
         run: npm ci --prefer-offline --no-audit
-        
+
       - name: Build project
         run: npm run build
-        
+
       - name: Setup benchmark environment
         run: |
           # Install benchmark dependencies
           npm install -D benchmark microtime
-          
+
           # Create benchmarks directory
           mkdir -p benchmarks/results
-          
+
       - name: Run startup performance benchmark
         run: |
           cat > benchmarks/startup-benchmark.cjs << 'EOF'
           const { performance } = require('perf_hooks');
           const { fork } = require('child_process');
           const path = require('path');
-          
+
           async function measureStartupTime() {
             const results = [];
             
@@ -89,7 +89,7 @@ jobs:
               results
             };
           }
-          
+
           measureStartupTime().then(results => {
             console.log('Startup Performance Results:', results);
             require('fs').writeFileSync(
@@ -98,15 +98,15 @@ jobs:
             );
           });
           EOF
-          
+
           node benchmarks/startup-benchmark.cjs || echo "Startup benchmark completed"
-          
+
       - name: Run browser pool performance benchmark
         run: |
           cat > benchmarks/browser-pool-benchmark.js << 'EOF'
           import { performance } from 'perf_hooks';
           import { BrowserPool } from '../dist/puppeteer/pool/browser-pool.js';
-          
+
           async function runBrowserPoolBenchmarks() {
             const results = {
               initialization: [],
@@ -165,7 +165,7 @@ jobs:
             
             return results;
           }
-          
+
           runBrowserPoolBenchmarks().then(results => {
             console.log('Browser Pool Performance Results:', JSON.stringify(results, null, 2));
             require('fs').writeFileSync(
@@ -174,15 +174,15 @@ jobs:
             );
           }).catch(console.error);
           EOF
-          
+
           node --loader tsx benchmarks/browser-pool-benchmark.js || echo "Browser pool benchmark completed"
-          
+
       - name: Run memory usage benchmark
         run: |
           cat > benchmarks/memory-benchmark.cjs << 'EOF'
           const { performance } = require('perf_hooks');
           const v8 = require('v8');
-          
+
           function getMemoryUsage() {
             const usage = process.memoryUsage();
             const heap = v8.getHeapStatistics();
@@ -195,7 +195,7 @@ jobs:
               heapLimit: heap.heap_size_limit / 1024 / 1024
             };
           }
-          
+
           async function measureMemoryUsage() {
             const results = {
               baseline: getMemoryUsage(),
@@ -234,7 +234,7 @@ jobs:
             
             return results;
           }
-          
+
           measureMemoryUsage().then(results => {
             console.log('Memory Usage Results:', JSON.stringify(results, null, 2));
             require('fs').writeFileSync(
@@ -243,15 +243,15 @@ jobs:
             );
           }).catch(console.error);
           EOF
-          
+
           node benchmarks/memory-benchmark.cjs || echo "Memory benchmark completed"
-          
+
       - name: Run API response time benchmark
         run: |
           cat > benchmarks/api-benchmark.cjs << 'EOF'
           const http = require('http');
           const { performance } = require('perf_hooks');
-          
+
           async function makeRequest(path, method = 'GET') {
             return new Promise((resolve, reject) => {
               const start = performance.now();
@@ -281,7 +281,7 @@ jobs:
               req.end();
             });
           }
-          
+
           async function benchmarkAPIs() {
             // Start server
             const { spawn } = require('child_process');
@@ -334,7 +334,7 @@ jobs:
             
             return results;
           }
-          
+
           benchmarkAPIs().then(results => {
             console.log('API Performance Results:', JSON.stringify(results, null, 2));
             require('fs').writeFileSync(
@@ -343,15 +343,15 @@ jobs:
             );
           }).catch(console.error);
           EOF
-          
+
           node benchmarks/api-benchmark.cjs || echo "API benchmark completed"
-          
+
       - name: Analyze benchmark results
         run: |
           cat > benchmarks/analyze-results.cjs << 'EOF'
           const fs = require('fs');
           const path = require('path');
-          
+
           function loadResults() {
             const resultsDir = path.join(__dirname, 'results');
             const results = {};
@@ -368,7 +368,7 @@ jobs:
             
             return results;
           }
-          
+
           function generateReport(results) {
             const report = {
               timestamp: new Date().toISOString(),
@@ -413,26 +413,26 @@ jobs:
             
             return report;
           }
-          
+
           const results = loadResults();
           const report = generateReport(results);
-          
+
           console.log('Performance Report:', JSON.stringify(report, null, 2));
-          
+
           fs.writeFileSync(
             'benchmarks/performance-report.json',
             JSON.stringify(report, null, 2)
           );
-          
+
           // Generate markdown report
           const markdown = `# Performance Report
-          
+
           **Date:** ${report.timestamp}
           **Commit:** ${report.commit}
           **Branch:** ${report.branch}
-          
+
           ## Summary
-          
+
           | Metric | Value | Status |
           |--------|-------|--------|
           | Startup Time | ${report.summary.startup?.average?.toFixed(2) || 'N/A'}ms | ${report.summary.startup?.status || 'N/A'} |
@@ -440,12 +440,12 @@ jobs:
           | Memory Usage | ${report.summary.memory?.heapUsed?.toFixed(2) || 'N/A'}MB | ${report.summary.memory?.status || 'N/A'} |
           | API Response Time | ${report.summary.api?.averageResponseTime?.toFixed(2) || 'N/A'}ms | ${report.summary.api?.status || 'N/A'} |
           `;
-          
+
           fs.writeFileSync('benchmarks/performance-report.md', markdown);
           EOF
-          
+
           node benchmarks/analyze-results.cjs
-          
+
       - name: Upload benchmark results
         uses: actions/upload-artifact@v4
         with:
@@ -455,7 +455,7 @@ jobs:
             benchmarks/performance-report.json
             benchmarks/performance-report.md
           retention-days: 30
-          
+
       - name: Comment PR with results
         if: github.event_name == 'pull_request'
         uses: actions/github-script@v7
@@ -463,30 +463,30 @@ jobs:
           script: |
             const fs = require('fs');
             const report = fs.readFileSync('benchmarks/performance-report.md', 'utf8');
-            
+
             // Find existing comment
             const { data: comments } = await github.rest.issues.listComments({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number
             });
-            
+
             const botComment = comments.find(comment => 
               comment.user.type === 'Bot' && 
               comment.body.includes('# Performance Report')
             );
-            
+
             const body = `${report}
-            
+
             <details>
             <summary>View Detailed Results</summary>
-            
+
             \`\`\`json
             ${fs.readFileSync('benchmarks/performance-report.json', 'utf8')}
             \`\`\`
-            
+
             </details>`;
-            
+
             if (botComment) {
               await github.rest.issues.updateComment({
                 owner: context.repo.owner,
@@ -509,57 +509,57 @@ jobs:
     runs-on: ubuntu-latest
     needs: performance-benchmarks
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        
+
       - name: Download current results
         uses: actions/download-artifact@v4
         with:
           name: performance-benchmarks
           path: current-benchmarks/
-          
+
       - name: Setup tracking
         run: |
           # Create tracking directory
           mkdir -p performance-tracking
-          
+
           # Initialize tracking file if it doesn't exist
           if [ ! -f performance-tracking/history.json ]; then
             echo '{"entries": []}' > performance-tracking/history.json
           fi
-          
+
       - name: Update performance history
         run: |
           cat > update-history.cjs << 'EOF'
           const fs = require('fs');
-          
+
           // Load current results
           const currentReport = JSON.parse(
             fs.readFileSync('current-benchmarks/performance-report.json', 'utf8')
           );
-          
+
           // Load history
           const historyFile = 'performance-tracking/history.json';
           const history = JSON.parse(fs.readFileSync(historyFile, 'utf8'));
-          
+
           // Add current results to history
           history.entries.push({
             ...currentReport,
             date: new Date().toISOString()
           });
-          
+
           // Keep only last 90 days
           const cutoffDate = new Date();
           cutoffDate.setDate(cutoffDate.getDate() - 90);
           history.entries = history.entries.filter(
             entry => new Date(entry.date) > cutoffDate
           );
-          
+
           // Save updated history
           fs.writeFileSync(historyFile, JSON.stringify(history, null, 2));
-          
+
           // Generate trend analysis
           if (history.entries.length >= 2) {
             const latest = history.entries[history.entries.length - 1];
@@ -587,14 +587,14 @@ jobs:
             fs.writeFileSync('performance-tracking/trends.json', JSON.stringify(trends, null, 2));
           }
           EOF
-          
+
           node update-history.cjs
-          
+
       - name: Generate performance dashboard
         run: |
           echo "## 📊 Performance Dashboard" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          
+
           if [ -f "performance-tracking/trends.json" ]; then
             echo "### Trends vs Previous Run" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
@@ -612,41 +612,41 @@ jobs:
               }
             " >> $GITHUB_STEP_SUMMARY
           fi
-          
+
       - name: Check performance thresholds
         run: |
           cat > check-thresholds.cjs << 'EOF'
           const fs = require('fs');
-          
+
           const report = JSON.parse(
             fs.readFileSync('current-benchmarks/performance-report.json', 'utf8')
           );
-          
+
           const thresholds = {
             startup: { max: 5000, unit: 'ms' },
             memory: { max: 512, unit: 'MB' },
             api: { max: 100, unit: 'ms' },
             browserPoolInit: { max: 10000, unit: 'ms' }
           };
-          
+
           let failed = false;
           const failures = [];
-          
+
           if (report.summary.startup?.average > thresholds.startup.max) {
             failed = true;
             failures.push(`Startup time (${report.summary.startup.average.toFixed(2)}ms) exceeds threshold (${thresholds.startup.max}ms)`);
           }
-          
+
           if (report.summary.memory?.heapUsed > thresholds.memory.max) {
             failed = true;
             failures.push(`Memory usage (${report.summary.memory.heapUsed.toFixed(2)}MB) exceeds threshold (${thresholds.memory.max}MB)`);
           }
-          
+
           if (report.summary.api?.averageResponseTime > thresholds.api.max) {
             failed = true;
             failures.push(`API response time (${report.summary.api.averageResponseTime.toFixed(2)}ms) exceeds threshold (${thresholds.api.max}ms)`);
           }
-          
+
           if (failed) {
             console.error('❌ Performance thresholds exceeded:');
             failures.forEach(f => console.error(`  - ${f}`));
@@ -655,5 +655,5 @@ jobs:
             console.log('✅ All performance metrics within thresholds');
           }
           EOF
-          
+
           node check-thresholds.cjs || echo "::warning::Performance thresholds exceeded"

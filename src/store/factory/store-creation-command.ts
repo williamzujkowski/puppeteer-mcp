@@ -6,7 +6,11 @@
  */
 
 import type { SessionStore } from '../session-store.interface.js';
-import type { SessionStoreFactoryConfig, SessionStoreFactoryResult, ExtractedConfiguration } from './types.js';
+import type {
+  SessionStoreFactoryConfig,
+  SessionStoreFactoryResult,
+  ExtractedConfiguration,
+} from './types.js';
 import type { StoreSelectionResult } from './store-selection-strategies.js';
 import { StoreSelectionStrategyFactory } from './store-selection-strategies.js';
 import { SessionStoreBuilder } from './session-store-builder.js';
@@ -27,7 +31,7 @@ export class StoreCreationCommand {
     private instanceId: string,
     private factoryConfig: SessionStoreFactoryConfig,
     private logger: pino.Logger,
-    private instances: Map<string, SessionStoreFactoryResult>
+    private instances: Map<string, SessionStoreFactoryResult>,
   ) {
     this.configExtractor = new ConfigurationExtractor(logger);
     this.componentFactory = new ComponentFactoryManager();
@@ -55,7 +59,10 @@ export class StoreCreationCommand {
     return strategy.selectStore(isRedisAvailable(), config.logger);
   }
 
-  private createBuilder(storeResult: StoreSelectionResult, _config: ExtractedConfiguration): SessionStoreBuilder {
+  private createBuilder(
+    storeResult: StoreSelectionResult,
+    _config: ExtractedConfiguration,
+  ): SessionStoreBuilder {
     return new SessionStoreBuilder()
       .withStore(storeResult.store, storeResult.type, storeResult.fallbackReason)
       .withMetadata(this.factoryConfig, isRedisAvailable());
@@ -64,36 +71,30 @@ export class StoreCreationCommand {
   private async addComponents(
     builder: SessionStoreBuilder,
     store: SessionStore,
-    config: ExtractedConfiguration
+    config: ExtractedConfiguration,
   ): Promise<void> {
     const monitor = await this.componentFactory.createMonitoring(
       store,
       config.enableMonitoring,
       config.monitoringConfig,
-      config.logger
+      config.logger,
     );
-    
+
     const replication = this.componentFactory.createReplication(
       store,
       config.enableReplication,
       config.replicationConfig,
-      config.logger
-    );
-    
-    const migration = this.componentFactory.createMigration(
-      config.enableMigration,
-      config.logger
+      config.logger,
     );
 
-    builder
-      .withMonitoring(monitor)
-      .withReplication(replication)
-      .withMigration(migration);
+    const migration = this.componentFactory.createMigration(config.enableMigration, config.logger);
+
+    builder.withMonitoring(monitor).withReplication(replication).withMigration(migration);
   }
 
   private async finalizeCreation(
     result: SessionStoreFactoryResult,
-    config: ExtractedConfiguration
+    config: ExtractedConfiguration,
   ): Promise<void> {
     this.instances.set(this.instanceId, result);
     await this.logCreation(result, config);
@@ -101,7 +102,7 @@ export class StoreCreationCommand {
 
   private async logCreation(
     result: SessionStoreFactoryResult,
-    extractedConfig: ExtractedConfiguration
+    extractedConfig: ExtractedConfiguration,
   ): Promise<void> {
     await logDataAccess('WRITE', `session-store/${this.instanceId}`, {
       action: 'create',
@@ -111,17 +112,20 @@ export class StoreCreationCommand {
       fallbackReason: result.metadata.fallbackReason,
       enableMonitoring: extractedConfig.enableMonitoring,
       enableReplication: extractedConfig.enableReplication,
-      enableMigration: extractedConfig.enableMigration
+      enableMigration: extractedConfig.enableMigration,
     });
 
-    this.logger.info({
-      instanceId: this.instanceId,
-      storeType: result.type,
-      redisAvailable: result.metadata.redisAvailable,
-      fallbackReason: result.metadata.fallbackReason,
-      enableMonitoring: extractedConfig.enableMonitoring,
-      enableReplication: extractedConfig.enableReplication,
-      enableMigration: extractedConfig.enableMigration
-    }, 'Session store created');
+    this.logger.info(
+      {
+        instanceId: this.instanceId,
+        storeType: result.type,
+        redisAvailable: result.metadata.redisAvailable,
+        fallbackReason: result.metadata.fallbackReason,
+        enableMonitoring: extractedConfig.enableMonitoring,
+        enableReplication: extractedConfig.enableReplication,
+        enableMigration: extractedConfig.enableMigration,
+      },
+      'Session store created',
+    );
   }
 }

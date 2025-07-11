@@ -79,7 +79,7 @@ export const DEFAULT_OPTIMIZATION_CONFIG: OptimizationConfig = {
  * Merge optimization configuration with defaults
  */
 export function mergeOptimizationConfig(
-  config: Partial<OptimizationConfig> = {}
+  config: Partial<OptimizationConfig> = {},
 ): OptimizationConfig {
   return {
     ...DEFAULT_OPTIMIZATION_CONFIG,
@@ -97,7 +97,7 @@ export function mergeOptimizationConfig(
  */
 export function updateOptimizationConfig(
   currentConfig: OptimizationConfig,
-  newConfig: Partial<OptimizationConfig>
+  newConfig: Partial<OptimizationConfig>,
 ): OptimizationConfig {
   return mergeOptimizationConfig({ ...currentConfig, ...newConfig });
 }

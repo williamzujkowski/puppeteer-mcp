@@ -40,38 +40,38 @@ export enum RecyclingReason {
 export interface RecyclingConfig {
   enabled: boolean;
   strategy: RecyclingStrategy;
-  
+
   // Time-based settings
   maxLifetimeMs: number;
   maxIdleTimeMs: number;
-  
+
   // Usage-based settings
   maxUseCount: number;
   maxPageCount: number;
-  
+
   // Health-based settings
   healthCheckInterval: number;
   healthThreshold: number;
   consecutiveFailuresLimit: number;
-  
+
   // Resource-based settings
   maxMemoryUsageMB: number;
   maxCpuUsagePercent: number;
   maxConnectionCount: number;
   maxHandleCount: number;
-  
+
   // Hybrid settings
   weightTimeBasedScore: number;
   weightUsageBasedScore: number;
   weightHealthBasedScore: number;
   weightResourceBasedScore: number;
-  
+
   // Recycling behavior
   recyclingThreshold: number;
   batchRecyclingEnabled: boolean;
   maxBatchSize: number;
   recyclingCooldownMs: number;
-  
+
   // Maintenance settings
   scheduledMaintenanceEnabled: boolean;
   maintenanceInterval: number;
@@ -171,8 +171,8 @@ export const DEFAULT_RECYCLING_CONFIG: RecyclingConfig = {
   maxHandleCount: 1000,
   weightTimeBasedScore: 0.25,
   weightUsageBasedScore: 0.25,
-  weightHealthBasedScore: 0.30,
-  weightResourceBasedScore: 0.20,
+  weightHealthBasedScore: 0.3,
+  weightResourceBasedScore: 0.2,
   recyclingThreshold: 80,
   batchRecyclingEnabled: true,
   maxBatchSize: 3,

@@ -32,23 +32,23 @@ export class ErrorAnalytics {
     const metrics = await this.tracker.getMetrics(timeWindow);
     const halfWindow = Math.floor(timeWindow / 2);
     const firstHalfMetrics = await this.tracker.getMetrics(halfWindow);
-    
+
     const firstHalfCount = firstHalfMetrics.total;
     const secondHalfCount = metrics.total - firstHalfCount;
-    
+
     let trend: 'increasing' | 'decreasing' | 'stable' = 'stable';
     let changePercentage = 0;
-    
+
     if (firstHalfCount > 0) {
       changePercentage = ((secondHalfCount - firstHalfCount) / firstHalfCount) * 100;
-      
+
       if (changePercentage > 10) {
         trend = 'increasing';
       } else if (changePercentage < -10) {
         trend = 'decreasing';
       }
     }
-    
+
     const now = new Date();
     const periods = [
       {
@@ -62,7 +62,7 @@ export class ErrorAnalytics {
         count: secondHalfCount,
       },
     ];
-    
+
     return {
       trend,
       changePercentage,
@@ -75,28 +75,28 @@ export class ErrorAnalytics {
    */
   async getHealthScore(timeWindow = 1440): Promise<number> {
     const metrics = await this.tracker.getMetrics(timeWindow);
-    
+
     // Score based on error count, severity distribution, and resolution rate
     let score = 100;
-    
+
     // Penalize for high error counts
     if (metrics.total > 100) {
       score -= Math.min(50, (metrics.total - 100) / 10);
     }
-    
+
     // Penalize for high severity errors
     const criticalWeight = metrics.bySeverity[ErrorSeverity.CRITICAL] * 10;
     const highWeight = metrics.bySeverity[ErrorSeverity.HIGH] * 5;
     const mediumWeight = metrics.bySeverity[ErrorSeverity.MEDIUM] * 2;
-    
+
     const severityPenalty = Math.min(30, (criticalWeight + highWeight + mediumWeight) / 10);
     score -= severityPenalty;
-    
+
     // Bonus for high retry success rate
     if (metrics.retrySuccessRate > 0.8) {
       score += 5;
     }
-    
+
     return Math.max(0, Math.min(100, score));
   }
 }

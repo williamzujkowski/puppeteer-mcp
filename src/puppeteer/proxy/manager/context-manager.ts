@@ -23,7 +23,7 @@ export class ProxyContextManager extends EventEmitter {
    */
   assignProxy(contextId: string, proxyId: string): void {
     this.contextProxies.set(contextId, proxyId);
-    
+
     logger.info({
       msg: 'Proxy assigned to context',
       contextId,
@@ -46,7 +46,7 @@ export class ProxyContextManager extends EventEmitter {
     if (proxyId !== undefined) {
       this.contextProxies.delete(contextId);
       this.clearRotationTimer(contextId);
-      
+
       logger.info({
         msg: 'Context proxy assignment removed',
         contextId,
@@ -61,7 +61,7 @@ export class ProxyContextManager extends EventEmitter {
   async rotateProxy(
     contextId: string,
     newProxyId: string,
-    reason: 'scheduled' | 'error' | 'health' | 'manual'
+    reason: 'scheduled' | 'error' | 'health' | 'manual',
   ): Promise<ProxyRotationEvent> {
     const oldProxyId = this.contextProxies.get(contextId);
     this.contextProxies.set(contextId, newProxyId);
@@ -99,7 +99,7 @@ export class ProxyContextManager extends EventEmitter {
   scheduleRotation(
     contextId: string,
     intervalMs: number,
-    rotationCallback: () => Promise<void>
+    rotationCallback: () => Promise<void>,
   ): void {
     this.clearRotationTimer(contextId);
 
@@ -118,7 +118,7 @@ export class ProxyContextManager extends EventEmitter {
     }, intervalMs);
 
     this.rotationTimers.set(contextId, timer);
-    
+
     logger.info({
       msg: 'Proxy rotation scheduled',
       contextId,

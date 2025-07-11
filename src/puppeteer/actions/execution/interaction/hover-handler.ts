@@ -6,7 +6,11 @@
  */
 
 import type { Page } from 'puppeteer';
-import type { ActionResult, ActionContext, HoverAction } from '../../../interfaces/action-executor.interface.js';
+import type {
+  ActionResult,
+  ActionContext,
+  HoverAction,
+} from '../../../interfaces/action-executor.interface.js';
 import { BaseInteractionHandler } from './base-handler.js';
 import { DEFAULT_CONFIG } from '../types.js';
 
@@ -26,11 +30,7 @@ export class HoverHandler extends BaseInteractionHandler<HoverAction> {
    * @nist ac-3 "Access enforcement"
    * @nist si-10 "Information input validation"
    */
-  async execute(
-    action: HoverAction,
-    page: Page,
-    context: ActionContext,
-  ): Promise<ActionResult> {
+  async execute(action: HoverAction, page: Page, context: ActionContext): Promise<ActionResult> {
     const startTime = Date.now();
 
     try {
@@ -56,19 +56,15 @@ export class HoverHandler extends BaseInteractionHandler<HoverAction> {
         duration,
       });
 
-      return this.createActionResult(
-        true,
-        this.actionType,
-        {
-          data: {
-            selector: sanitizedSelector,
-          },
-          duration,
-          metadata: {
-            originalSelector: action.selector,
-          },
+      return this.createActionResult(true, this.actionType, {
+        data: {
+          selector: sanitizedSelector,
         },
-      );
+        duration,
+        metadata: {
+          originalSelector: action.selector,
+        },
+      });
     } catch (error) {
       const duration = Date.now() - startTime;
       const errorMessage = error instanceof Error ? error.message : 'Hover action failed';
@@ -79,17 +75,13 @@ export class HoverHandler extends BaseInteractionHandler<HoverAction> {
         duration,
       });
 
-      return this.createActionResult(
-        false,
-        this.actionType,
-        {
-          error: errorMessage,
-          duration,
-          metadata: {
-            selector: action.selector,
-          },
+      return this.createActionResult(false, this.actionType, {
+        error: errorMessage,
+        duration,
+        metadata: {
+          selector: action.selector,
         },
-      );
+      });
     }
   }
 }

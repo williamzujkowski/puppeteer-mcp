@@ -21,7 +21,7 @@ async function testMCPBrowserAutomation() {
     // Initialize dependencies
     const sessionStore = new InMemorySessionStore(logger);
     const authBridge = new MCPAuthBridge(sessionStore, logger);
-    
+
     // Create tools WITHOUT REST adapter (simulating stdio mode)
     const executeInContextTool = new ExecuteInContextTool(undefined);
     const sessionTools = new SessionTools(sessionStore);
@@ -124,7 +124,6 @@ async function testMCPBrowserAutomation() {
 
     console.log('\n✅ All tests completed successfully!');
     console.log('   MCP browser automation works without REST adapter! 🎉');
-
   } catch (error) {
     console.error('\n❌ Test failed:', error);
     process.exit(1);

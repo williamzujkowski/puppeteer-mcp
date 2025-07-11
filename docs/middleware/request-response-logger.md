@@ -1,6 +1,8 @@
 # Request/Response Logger Middleware
 
-The `request-response-logger` middleware provides comprehensive logging of HTTP requests and responses with configurable verbosity levels, security features, and performance monitoring capabilities.
+The `request-response-logger` middleware provides comprehensive logging of HTTP requests and
+responses with configurable verbosity levels, security features, and performance monitoring
+capabilities.
 
 ## Features
 
@@ -18,7 +20,10 @@ The `request-response-logger` middleware provides comprehensive logging of HTTP 
 The middleware is part of the puppeteer-mcp core middleware package:
 
 ```typescript
-import { createRequestResponseLogger, VerbosityLevel } from '../src/core/middleware/request-response-logger.js';
+import {
+  createRequestResponseLogger,
+  VerbosityLevel,
+} from '../src/core/middleware/request-response-logger.js';
 ```
 
 ## Basic Usage
@@ -43,13 +48,15 @@ app.get('/api/users', (req, res) => {
 ### Verbosity Levels
 
 #### Minimal
+
 Logs only essential information (method, path, status, duration):
 
 ```typescript
 app.use(createRequestResponseLogger.minimal());
 ```
 
-#### Standard  
+#### Standard
+
 Includes basic request/response information with timing:
 
 ```typescript
@@ -57,6 +64,7 @@ app.use(createRequestResponseLogger.standard());
 ```
 
 #### Verbose
+
 Includes headers and request bodies (sanitized):
 
 ```typescript
@@ -64,6 +72,7 @@ app.use(createRequestResponseLogger.verbose());
 ```
 
 #### Debug
+
 Includes all available information for troubleshooting:
 
 ```typescript
@@ -73,57 +82,69 @@ app.use(createRequestResponseLogger.debug());
 ## Preset Configurations
 
 ### Production
+
 Optimized for production environments with security focus:
 
 ```typescript
-app.use(createRequestResponseLogger.production({
-  auditLogging: true,
-  includeHeaders: false,
-  includeRequestBody: false,
-  includeResponseBody: false,
-  slowRequestThreshold: 2000,
-}));
+app.use(
+  createRequestResponseLogger.production({
+    auditLogging: true,
+    includeHeaders: false,
+    includeRequestBody: false,
+    includeResponseBody: false,
+    slowRequestThreshold: 2000,
+  }),
+);
 ```
 
 ### Development
+
 Verbose logging for development environments:
 
 ```typescript
-app.use(createRequestResponseLogger.development({
-  includeHeaders: true,
-  includeRequestBody: true,
-  includeResponseBody: true,
-  slowRequestThreshold: 500,
-}));
+app.use(
+  createRequestResponseLogger.development({
+    includeHeaders: true,
+    includeRequestBody: true,
+    includeResponseBody: true,
+    slowRequestThreshold: 500,
+  }),
+);
 ```
 
 ### Security
+
 Enhanced security monitoring with audit logging:
 
 ```typescript
-app.use(createRequestResponseLogger.security({
-  auditLogging: true,
-  includeHeaders: true,
-  includeRequestBody: true,
-  includeResponseBody: false,
-  skipPaths: [], // Log everything
-  highPrecisionTiming: true,
-}));
+app.use(
+  createRequestResponseLogger.security({
+    auditLogging: true,
+    includeHeaders: true,
+    includeRequestBody: true,
+    includeResponseBody: false,
+    skipPaths: [], // Log everything
+    highPrecisionTiming: true,
+  }),
+);
 ```
 
 ### Performance
+
 Minimal logging focused on performance metrics:
 
 ```typescript
-app.use(createRequestResponseLogger.performance({
-  verbosity: VerbosityLevel.MINIMAL,
-  auditLogging: false,
-  includeHeaders: false,
-  includeRequestBody: false,
-  includeResponseBody: false,
-  slowRequestThreshold: 100,
-  highPrecisionTiming: true,
-}));
+app.use(
+  createRequestResponseLogger.performance({
+    verbosity: VerbosityLevel.MINIMAL,
+    auditLogging: false,
+    includeHeaders: false,
+    includeRequestBody: false,
+    includeResponseBody: false,
+    slowRequestThreshold: 100,
+    highPrecisionTiming: true,
+  }),
+);
 ```
 
 ## Custom Configuration
@@ -135,83 +156,71 @@ import { createLogger } from '../src/utils/logger.js';
 
 const customLogger = createLogger('custom-request-logger');
 
-app.use(createRequestResponseLogger.verbose({
-  logger: customLogger,
-  verbosity: VerbosityLevel.VERBOSE,
-  
-  // Content logging
-  includeHeaders: true,
-  includeResponseHeaders: true,
-  includeRequestBody: true,
-  includeResponseBody: true,
-  maxBodySize: 8192, // 8KB
-  
-  // Content type filtering
-  loggedContentTypes: [
-    'application/json',
-    'application/x-www-form-urlencoded',
-    'text/plain'
-  ],
-  
-  // Security - sensitive data redaction
-  sensitiveHeaders: [
-    'authorization',
-    'cookie',
-    'x-api-key',
-    'x-auth-token'
-  ],
-  sensitiveBodyFields: [
-    'password',
-    'token',
-    'secret',
-    'apiKey'
-  ],
-  
-  // Performance monitoring
-  highPrecisionTiming: true,
-  slowRequestThreshold: 1000, // 1 second
-  
-  // Filtering
-  skipPaths: ['/health', '/metrics'],
-  skipMethods: ['OPTIONS'],
-  errorsOnly: false,
-  
-  // Audit logging
-  auditLogging: true,
-  
-  // Custom metadata
-  metadataExtractor: (req, res) => ({
-    userRole: req.user?.roles?.[0],
-    endpoint: req.path,
-    apiVersion: req.get('api-version'),
+app.use(
+  createRequestResponseLogger.verbose({
+    logger: customLogger,
+    verbosity: VerbosityLevel.VERBOSE,
+
+    // Content logging
+    includeHeaders: true,
+    includeResponseHeaders: true,
+    includeRequestBody: true,
+    includeResponseBody: true,
+    maxBodySize: 8192, // 8KB
+
+    // Content type filtering
+    loggedContentTypes: ['application/json', 'application/x-www-form-urlencoded', 'text/plain'],
+
+    // Security - sensitive data redaction
+    sensitiveHeaders: ['authorization', 'cookie', 'x-api-key', 'x-auth-token'],
+    sensitiveBodyFields: ['password', 'token', 'secret', 'apiKey'],
+
+    // Performance monitoring
+    highPrecisionTiming: true,
+    slowRequestThreshold: 1000, // 1 second
+
+    // Filtering
+    skipPaths: ['/health', '/metrics'],
+    skipMethods: ['OPTIONS'],
+    errorsOnly: false,
+
+    // Audit logging
+    auditLogging: true,
+
+    // Custom metadata
+    metadataExtractor: (req, res) => ({
+      userRole: req.user?.roles?.[0],
+      endpoint: req.path,
+      apiVersion: req.get('api-version'),
+    }),
   }),
-}));
+);
 ```
 
 ## Configuration Options
 
 ### RequestResponseLoggerOptions
 
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `verbosity` | `VerbosityLevel` | `STANDARD` | Logging verbosity level |
-| `logger` | `Logger` | Auto-generated | Custom Pino logger instance |
-| `includeHeaders` | `boolean` | Varies by verbosity | Include request headers |
-| `includeResponseHeaders` | `boolean` | Varies by verbosity | Include response headers |
-| `includeRequestBody` | `boolean` | Varies by verbosity | Include request body |
-| `includeResponseBody` | `boolean` | Varies by verbosity | Include response body |
-| `maxBodySize` | `number` | `8192` | Maximum body size to log (bytes) |
-| `loggedContentTypes` | `string[]` | JSON, form, text | Content types to log body for |
-| `sensitiveHeaders` | `string[]` | auth, cookie, etc. | Headers to redact |
-| `sensitiveBodyFields` | `string[]` | password, token, etc. | Body fields to redact |
-| `auditLogging` | `boolean` | `true` | Enable audit trail logging |
-| `requestIdHeader` | `string` | `'x-request-id'` | Request ID header name |
-| `highPrecisionTiming` | `boolean` | `false` | Use high-resolution timing |
-| `skipPaths` | `string[]` | `['/health', '/metrics']` | Paths to skip logging |
-| `skipMethods` | `string[]` | `[]` | HTTP methods to skip |
-| `slowRequestThreshold` | `number` | `1000` | Slow request threshold (ms) |
-| `errorsOnly` | `boolean` | `false` | Log only error responses |
-| `metadataExtractor` | `Function` | `undefined` | Custom metadata extractor |
+| Option                   | Type             | Default                   | Description                      |
+| ------------------------ | ---------------- | ------------------------- | -------------------------------- |
+| `verbosity`              | `VerbosityLevel` | `STANDARD`                | Logging verbosity level          |
+| `logger`                 | `Logger`         | Auto-generated            | Custom Pino logger instance      |
+| `includeHeaders`         | `boolean`        | Varies by verbosity       | Include request headers          |
+| `includeResponseHeaders` | `boolean`        | Varies by verbosity       | Include response headers         |
+| `includeRequestBody`     | `boolean`        | Varies by verbosity       | Include request body             |
+| `includeResponseBody`    | `boolean`        | Varies by verbosity       | Include response body            |
+| `maxBodySize`            | `number`         | `8192`                    | Maximum body size to log (bytes) |
+| `loggedContentTypes`     | `string[]`       | JSON, form, text          | Content types to log body for    |
+| `sensitiveHeaders`       | `string[]`       | auth, cookie, etc.        | Headers to redact                |
+| `sensitiveBodyFields`    | `string[]`       | password, token, etc.     | Body fields to redact            |
+| `auditLogging`           | `boolean`        | `true`                    | Enable audit trail logging       |
+| `requestIdHeader`        | `string`         | `'x-request-id'`          | Request ID header name           |
+| `highPrecisionTiming`    | `boolean`        | `false`                   | Use high-resolution timing       |
+| `skipPaths`              | `string[]`       | `['/health', '/metrics']` | Paths to skip logging            |
+| `skipMethods`            | `string[]`       | `[]`                      | HTTP methods to skip             |
+| `slowRequestThreshold`   | `number`         | `1000`                    | Slow request threshold (ms)      |
+| `errorsOnly`             | `boolean`        | `false`                   | Log only error responses         |
+| `metadataExtractor`      | `Function`       | `undefined`               | Custom metadata extractor        |
 
 ## Security Features
 
@@ -295,14 +304,16 @@ await logSecurityEvent(SecurityEventType.HTTP_REQUEST_COMPLETED, {
 ### Monitoring Slow Requests
 
 ```typescript
-app.use(createRequestResponseLogger.standard({
-  slowRequestThreshold: 1000, // 1 second
-  highPrecisionTiming: true,
-  metadataExtractor: (req, res) => ({
-    endpoint: req.path,
-    userAgent: req.get('user-agent'),
+app.use(
+  createRequestResponseLogger.standard({
+    slowRequestThreshold: 1000, // 1 second
+    highPrecisionTiming: true,
+    metadataExtractor: (req, res) => ({
+      endpoint: req.path,
+      userAgent: req.get('user-agent'),
+    }),
   }),
-}));
+);
 ```
 
 ## Integration Examples
@@ -314,13 +325,15 @@ import { authMiddleware } from '../src/auth/middleware.js';
 import { createRequestResponseLogger } from '../src/core/middleware/request-response-logger.js';
 
 app.use(authMiddleware());
-app.use(createRequestResponseLogger.security({
-  metadataExtractor: (req, res) => ({
-    userId: req.user?.userId,
-    userRole: req.user?.roles?.[0],
-    sessionId: req.user?.sessionId,
+app.use(
+  createRequestResponseLogger.security({
+    metadataExtractor: (req, res) => ({
+      userId: req.user?.userId,
+      userRole: req.user?.roles?.[0],
+      sessionId: req.user?.sessionId,
+    }),
   }),
-}));
+);
 ```
 
 ### With Rate Limiting
@@ -330,12 +343,14 @@ import { rateLimiter } from '../src/core/middleware/rate-limiter.js';
 import { createRequestResponseLogger } from '../src/core/middleware/request-response-logger.js';
 
 app.use(rateLimiter());
-app.use(createRequestResponseLogger.verbose({
-  metadataExtractor: (req, res) => ({
-    rateLimitRemaining: res.get('x-ratelimit-remaining'),
-    rateLimitReset: res.get('x-ratelimit-reset'),
+app.use(
+  createRequestResponseLogger.verbose({
+    metadataExtractor: (req, res) => ({
+      rateLimitRemaining: res.get('x-ratelimit-remaining'),
+      rateLimitReset: res.get('x-ratelimit-reset'),
+    }),
   }),
-}));
+);
 ```
 
 ## Log Output Examples
@@ -477,13 +492,15 @@ The middleware includes comprehensive error handling:
 Enable debug mode for detailed logging:
 
 ```typescript
-app.use(createRequestResponseLogger.debug({
-  skipPaths: [], // Log everything
-  includeHeaders: true,
-  includeRequestBody: true,
-  includeResponseBody: true,
-  maxBodySize: 32768, // 32KB
-}));
+app.use(
+  createRequestResponseLogger.debug({
+    skipPaths: [], // Log everything
+    includeHeaders: true,
+    includeRequestBody: true,
+    includeResponseBody: true,
+    maxBodySize: 32768, // 32KB
+  }),
+);
 ```
 
 ## Contributing

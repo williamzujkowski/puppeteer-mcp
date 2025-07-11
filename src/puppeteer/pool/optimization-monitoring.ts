@@ -31,7 +31,7 @@ export class OptimizationMonitoring {
     private performanceMonitor: BrowserPoolPerformanceMonitor,
     private optimizationEnabled: boolean,
     private lastOptimizationCheck: Date,
-    private optimizationActions: number
+    private optimizationActions: number,
   ) {}
 
   /**
@@ -39,20 +39,19 @@ export class OptimizationMonitoring {
    * @nist si-4 "Information system monitoring"
    */
   async healthCheck(
-    baseHealthCheck: () => Promise<Map<string, boolean>>
+    baseHealthCheck: () => Promise<Map<string, boolean>>,
   ): Promise<Map<string, boolean>> {
     const startTime = Date.now();
-    
+
     try {
       const results = await baseHealthCheck();
-      
+
       if (this.optimizationEnabled) {
         const executionTime = Date.now() - startTime;
-        this.performanceMonitor.recordMetric(
-          PerfMetricType.PROCESSING_TIME,
-          executionTime,
-          { operation: 'health_check', browserCount: results.size }
-        );
+        this.performanceMonitor.recordMetric(PerfMetricType.PROCESSING_TIME, executionTime, {
+          operation: 'health_check',
+          browserCount: results.size,
+        });
 
         // Update recycler health metrics
         for (const [browserId, healthy] of results) {
@@ -63,11 +62,10 @@ export class OptimizationMonitoring {
       return results;
     } catch (error) {
       if (this.optimizationEnabled) {
-        this.performanceMonitor.recordMetric(
-          PerfMetricType.ERROR_RATE,
-          1,
-          { operation: 'health_check', error: (error as Error).message || 'Unknown error' }
-        );
+        this.performanceMonitor.recordMetric(PerfMetricType.ERROR_RATE, 1, {
+          operation: 'health_check',
+          error: (error as Error).message || 'Unknown error',
+        });
       }
       throw error;
     }
@@ -98,15 +96,15 @@ export class OptimizationMonitoring {
         scalingHistory: scalingHistory.slice(-20), // Last 20 data points
       },
     };
-    
+
     // Store additional optimization data in a way that doesn't break the interface
     (extendedMetrics as any)._optimizationData = {
       resourceMetrics,
       recyclingStats,
       circuitBreakerStatus,
-      performanceSummary
+      performanceSummary,
     };
-    
+
     return extendedMetrics;
   }
 
@@ -129,7 +127,7 @@ export class OptimizationMonitoring {
       lastOptimizationCheck: this.lastOptimizationCheck,
       optimizationActions: this.optimizationActions,
       overallHealth: performanceSummary.healthScore,
-      recommendations: recommendations.slice(0, 10).map(r => ({
+      recommendations: recommendations.slice(0, 10).map((r) => ({
         type: r.type,
         priority: r.priority,
         description: r.description,
@@ -145,11 +143,11 @@ export class OptimizationMonitoring {
     // Simple throughput calculation based on active browsers and their efficiency
     const activeBrowsers = metrics.activeBrowsers;
     const averagePageCreationTime = metrics.avgPageCreationTime;
-    
+
     if (averagePageCreationTime > 0) {
       return (activeBrowsers * 1000) / averagePageCreationTime; // Operations per second
     }
-    
+
     return activeBrowsers;
   }
 
@@ -159,30 +157,26 @@ export class OptimizationMonitoring {
   calculateAvailability(metrics: ExtendedPoolMetrics): number {
     const totalBrowsers = metrics.totalBrowsers;
     const healthyBrowsers = totalBrowsers - (metrics.errors.totalErrors || 0);
-    
+
     return totalBrowsers > 0 ? (healthyBrowsers / totalBrowsers) * 100 : 100;
   }
 
   /**
    * Handle metrics collection request
    */
-  handleMetricsCollectionRequest(
-    getExtendedMetrics: () => ExtendedPoolMetrics
-  ): void {
+  handleMetricsCollectionRequest(getExtendedMetrics: () => ExtendedPoolMetrics): void {
     // Collect and provide metrics to the performance monitor
     const metrics = getExtendedMetrics();
-    
+
     // Record various metrics
     this.performanceMonitor.recordMetric(
       PerfMetricType.AVAILABILITY,
       this.calculateAvailability(metrics),
-      { timestamp: new Date() }
+      { timestamp: new Date() },
     );
 
-    this.performanceMonitor.recordMetric(
-      PerfMetricType.QUEUE_TIME,
-      metrics.queue.averageWaitTime,
-      { timestamp: new Date() }
-    );
+    this.performanceMonitor.recordMetric(PerfMetricType.QUEUE_TIME, metrics.queue.averageWaitTime, {
+      timestamp: new Date(),
+    });
   }
 }

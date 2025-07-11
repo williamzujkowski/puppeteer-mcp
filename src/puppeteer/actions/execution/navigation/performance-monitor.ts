@@ -115,10 +115,10 @@ export class PerformanceMonitor {
 
   constructor(config?: Partial<PerformanceConfig>) {
     this.config = { ...DEFAULT_CONFIG, ...config };
-    
+
     // Start cleanup interval
     this.startCleanupInterval();
-    
+
     logger.debug('Performance monitor initialized', {
       enableDetailedMetrics: this.config.enableDetailedMetrics,
       enableMemoryTracking: this.config.enableMemoryTracking,
@@ -144,7 +144,7 @@ export class PerformanceMonitor {
 
     // Store metrics
     this.metrics.set(metricsId, metrics);
-    
+
     // Track session metrics
     if (!this.sessionMetrics.has(sessionId)) {
       this.sessionMetrics.set(sessionId, []);
@@ -176,7 +176,7 @@ export class PerformanceMonitor {
     metricsId: string,
     success: boolean,
     finalUrl?: string,
-    additionalMetrics?: Partial<NavigationMetrics>
+    additionalMetrics?: Partial<NavigationMetrics>,
   ): Promise<NavigationMetrics | null> {
     const metrics = this.metrics.get(metricsId);
     if (!metrics) {
@@ -234,7 +234,7 @@ export class PerformanceMonitor {
   getSessionMetrics(sessionId: string): NavigationMetrics[] {
     const metricIds = this.sessionMetrics.get(sessionId) ?? [];
     return metricIds
-      .map(id => this.metrics.get(id))
+      .map((id) => this.metrics.get(id))
       .filter((metric): metric is NavigationMetrics => metric !== undefined);
   }
 
@@ -245,21 +245,21 @@ export class PerformanceMonitor {
    * @nist au-6 "Audit review, analysis, and reporting"
    */
   getStatistics(sessionId?: string): PerformanceStats {
-    const relevantMetrics = sessionId 
+    const relevantMetrics = sessionId
       ? this.getSessionMetrics(sessionId)
       : Array.from(this.metrics.values());
 
-    const completedMetrics = relevantMetrics.filter(m => m.duration !== undefined);
-    const successfulMetrics = completedMetrics.filter(m => m.success === true);
-    const failedMetrics = completedMetrics.filter(m => m.success === false);
+    const completedMetrics = relevantMetrics.filter((m) => m.duration !== undefined);
+    const successfulMetrics = completedMetrics.filter((m) => m.success === true);
+    const failedMetrics = completedMetrics.filter((m) => m.success === false);
 
-    const durations = completedMetrics.map(m => m.duration!).sort((a, b) => a - b);
+    const durations = completedMetrics.map((m) => m.duration!).sort((a, b) => a - b);
     const ttfbs = completedMetrics
-      .map(m => m.ttfb)
+      .map((m) => m.ttfb)
       .filter((ttfb): ttfb is number => ttfb !== undefined)
       .sort((a, b) => a - b);
     const domTimes = completedMetrics
-      .map(m => m.domContentLoadedTime)
+      .map((m) => m.domContentLoadedTime)
       .filter((time): time is number => time !== undefined)
       .sort((a, b) => a - b);
 
@@ -272,9 +272,10 @@ export class PerformanceMonitor {
       p95Duration: this.calculatePercentile(durations, 95),
       averageTtfb: this.calculateAverage(ttfbs),
       averageDomContentLoaded: this.calculateAverage(domTimes),
-      successRate: completedMetrics.length > 0 
-        ? (successfulMetrics.length / completedMetrics.length) * 100 
-        : 0,
+      successRate:
+        completedMetrics.length > 0
+          ? (successfulMetrics.length / completedMetrics.length) * 100
+          : 0,
     };
   }
 
@@ -284,13 +285,13 @@ export class PerformanceMonitor {
    */
   clearSessionMetrics(sessionId: string): void {
     const metricIds = this.sessionMetrics.get(sessionId) ?? [];
-    
+
     for (const id of metricIds) {
       this.metrics.delete(id);
     }
-    
+
     this.sessionMetrics.delete(sessionId);
-    
+
     logger.debug('Cleared session metrics', {
       sessionId,
       clearedCount: metricIds.length,
@@ -305,7 +306,7 @@ export class PerformanceMonitor {
     this.metrics.clear();
     this.sessionMetrics.clear();
     this.metricsCounter = 0;
-    
+
     logger.info('Cleared all metrics', { totalCount });
   }
 
@@ -317,7 +318,7 @@ export class PerformanceMonitor {
     try {
       // In a real implementation, this would collect metrics from the browser
       // For now, we'll simulate some basic metrics
-      
+
       // These would typically come from Performance API or browser devtools
       metrics.dnsLookupTime = Math.random() * 50;
       metrics.tcpConnectTime = Math.random() * 100;
@@ -329,7 +330,6 @@ export class PerformanceMonitor {
       metrics.largestContentfulPaint = Math.random() * 1200;
       metrics.cumulativeLayoutShift = Math.random() * 0.1;
       metrics.timeToInteractive = Math.random() * 2000;
-      
     } catch (error) {
       logger.warn('Failed to collect detailed metrics', {
         metricsId: metrics.id,
@@ -346,13 +346,12 @@ export class PerformanceMonitor {
     try {
       // In a real implementation, this would collect memory usage from the browser
       // For now, we'll simulate memory metrics
-      
+
       metrics.memoryUsage = {
         usedJSMemory: Math.floor(Math.random() * 50000000), // 0-50MB
         totalJSMemory: Math.floor(Math.random() * 100000000), // 0-100MB
         jsMemoryLimit: 2147483648, // 2GB typical limit
       };
-      
     } catch (error) {
       logger.warn('Failed to collect memory metrics', {
         metricsId: metrics.id,
@@ -391,7 +390,7 @@ export class PerformanceMonitor {
       if (metrics.startTime < cutoffTime) {
         this.metrics.delete(id);
         removedCount++;
-        
+
         // Remove from session tracking
         const sessionMetrics = this.sessionMetrics.get(metrics.sessionId);
         if (sessionMetrics) {
@@ -408,15 +407,16 @@ export class PerformanceMonitor {
 
     // Enforce max history limit
     if (this.metrics.size > this.config.maxMetricsHistory) {
-      const sortedMetrics = Array.from(this.metrics.entries())
-        .sort(([, a], [, b]) => a.startTime - b.startTime);
-      
+      const sortedMetrics = Array.from(this.metrics.entries()).sort(
+        ([, a], [, b]) => a.startTime - b.startTime,
+      );
+
       const toRemove = sortedMetrics.slice(0, this.metrics.size - this.config.maxMetricsHistory);
-      
+
       for (const [id, metrics] of toRemove) {
         this.metrics.delete(id);
         removedCount++;
-        
+
         // Remove from session tracking
         const sessionMetrics = this.sessionMetrics.get(metrics.sessionId);
         if (sessionMetrics) {
@@ -459,7 +459,7 @@ export class PerformanceMonitor {
     const mid = Math.floor(numbers.length / 2);
     return numbers.length % 2 === 0
       ? ((numbers[mid - 1] || 0) + (numbers[mid] || 0)) / 2
-      : (numbers[mid] || 0);
+      : numbers[mid] || 0;
   }
 
   /**

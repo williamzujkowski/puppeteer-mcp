@@ -6,16 +6,12 @@
  */
 
 import type { Page } from 'puppeteer';
-import type {
-  ActionResult,
-  ActionContext,
-} from '../../../interfaces/action-executor.interface.js';
+import type { ActionResult, ActionContext } from '../../../interfaces/action-executor.interface.js';
 import { DEFAULT_CONFIG } from '../types.js';
 import { sanitizeSelector } from '../../validation.js';
 import { createLogger } from '../../../../utils/logger.js';
 
 const logger = createLogger('puppeteer:attribute-extractor');
-
 
 /**
  * Attribute extractor for extracting element attributes
@@ -42,12 +38,11 @@ export class AttributeExtractor {
 
     // Use typed evaluation to ensure safe return
     const getValue = (el: Element, attr: string): string | null => {
-       
       return el.getAttribute(attr);
     };
-    
+
     const result = await page.$eval(selector, getValue, attribute);
-    
+
     return result;
   }
 
@@ -139,7 +134,12 @@ export class AttributeExtractor {
         attribute: options.attribute,
       });
 
-      const value = await this.extractAttribute(page, options.selector, options.attribute, actualTimeout);
+      const value = await this.extractAttribute(
+        page,
+        options.selector,
+        options.attribute,
+        actualTimeout,
+      );
       const duration = Date.now() - startTime;
 
       logger.info('getAttribute action completed', {

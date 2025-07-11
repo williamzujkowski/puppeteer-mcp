@@ -37,7 +37,7 @@ export const logAuditEvent = async (
     duration: auditData.duration,
     isSlowRequest: auditData.isSlowRequest,
   });
-  
+
   await logSecurityEvent(SecurityEventType.HTTP_REQUEST_COMPLETED, {
     userId: req.user?.userId,
     resource: req.path,
@@ -56,19 +56,22 @@ export const logAuthenticationAudit = async (
   success: boolean,
   reason?: string,
 ): Promise<void> => {
-  await logSecurityEvent(success ? SecurityEventType.AUTH_SUCCESS : SecurityEventType.AUTH_FAILURE, {
-    userId: req.user?.userId,
-    resource: req.path,
-    action: 'AUTHENTICATE',
-    result: success ? 'success' : 'failure',
-    reason,
-    metadata: {
-      ip: req.ip,
-      userAgent: req.get('user-agent'),
-      method: req.method,
-      path: req.path,
+  await logSecurityEvent(
+    success ? SecurityEventType.AUTH_SUCCESS : SecurityEventType.AUTH_FAILURE,
+    {
+      userId: req.user?.userId,
+      resource: req.path,
+      action: 'AUTHENTICATE',
+      result: success ? 'success' : 'failure',
+      reason,
+      metadata: {
+        ip: req.ip,
+        userAgent: req.get('user-agent'),
+        method: req.method,
+        path: req.path,
+      },
     },
-  });
+  );
 };
 
 /**
@@ -79,19 +82,22 @@ export const logAuthorizationAudit = async (
   success: boolean,
   reason?: string,
 ): Promise<void> => {
-  await logSecurityEvent(success ? SecurityEventType.ACCESS_GRANTED : SecurityEventType.ACCESS_DENIED, {
-    userId: req.user?.userId,
-    resource: req.path,
-    action: 'AUTHORIZE',
-    result: success ? 'success' : 'failure',
-    reason,
-    metadata: {
-      ip: req.ip,
-      userAgent: req.get('user-agent'),
-      method: req.method,
-      path: req.path,
+  await logSecurityEvent(
+    success ? SecurityEventType.ACCESS_GRANTED : SecurityEventType.ACCESS_DENIED,
+    {
+      userId: req.user?.userId,
+      resource: req.path,
+      action: 'AUTHORIZE',
+      result: success ? 'success' : 'failure',
+      reason,
+      metadata: {
+        ip: req.ip,
+        userAgent: req.get('user-agent'),
+        method: req.method,
+        path: req.path,
+      },
     },
-  });
+  );
 };
 
 /**

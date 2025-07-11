@@ -3,7 +3,7 @@
  * @module puppeteer/actions/execution/extraction-executor
  * @nist ac-3 "Access enforcement"
  * @nist au-3 "Content of audit records"
- * 
+ *
  * This file maintains backward compatibility while delegating to modular components
  */
 
@@ -63,11 +63,7 @@ export class ExtractionExecutor {
    * @returns Action result
    * @deprecated Use ExtractionFactory directly for new implementations
    */
-  async executePDF(
-    action: PDFAction,
-    page: Page,
-    context: ActionContext,
-  ): Promise<ActionResult> {
+  async executePDF(action: PDFAction, page: Page, context: ActionContext): Promise<ActionResult> {
     logger.debug('Delegating PDF action to factory', {
       sessionId: context.sessionId,
       contextId: context.contextId,
@@ -157,11 +153,7 @@ export class ExtractionExecutor {
    * @param context - Execution context
    * @returns Action result
    */
-  async execute(
-    action: BrowserAction,
-    page: Page,
-    context: ActionContext,
-  ): Promise<ActionResult> {
+  async execute(action: BrowserAction, page: Page, context: ActionContext): Promise<ActionResult> {
     logger.debug('Executing extraction action via factory', {
       sessionId: context.sessionId,
       contextId: context.contextId,

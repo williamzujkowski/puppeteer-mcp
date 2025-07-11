@@ -177,15 +177,15 @@ export abstract class BaseWaitStrategy implements WaitStrategy {
     result: WaitResult,
   ): Record<string, unknown> {
     const data: Record<string, unknown> = {};
-    
+
     if (config.selector) {
       data.selector = sanitizeSelector(config.selector);
     }
-    
+
     if (result.details) {
       Object.assign(data, result.details);
     }
-    
+
     return data;
   }
 
@@ -196,15 +196,15 @@ export abstract class BaseWaitStrategy implements WaitStrategy {
    */
   protected getMetadata(config: WaitConditionConfig): Record<string, unknown> {
     const metadata: Record<string, unknown> = {};
-    
+
     if (config.selector) {
       metadata.originalSelector = config.selector;
     }
-    
+
     if (config.duration) {
       metadata.requestedDuration = config.duration;
     }
-    
+
     return metadata;
   }
 }

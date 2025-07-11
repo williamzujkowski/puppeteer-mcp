@@ -1,6 +1,6 @@
 /**
  * Basic Screenshot Capture Example
- * 
+ *
  * This example demonstrates how to:
  * - Create a session
  * - Navigate to a URL
@@ -25,7 +25,7 @@ interface Session {
 
 async function captureScreenshot() {
   let sessionId: string | null = null;
-  
+
   try {
     // 1. Create a new session
     console.log('Creating session...');
@@ -34,40 +34,40 @@ async function captureScreenshot() {
       {
         capabilities: {
           acceptInsecureCerts: true,
-          browserName: 'chrome'
-        }
+          browserName: 'chrome',
+        },
       },
       {
         headers: {
           'X-API-Key': API_KEY,
-          'Content-Type': 'application/json'
-        }
-      }
+          'Content-Type': 'application/json',
+        },
+      },
     );
-    
+
     const session: Session = sessionResponse.data.data;
     sessionId = session.id;
     console.log(`Session created: ${sessionId}`);
-    
+
     // 2. Navigate to a URL
     const url = 'https://example.com';
     console.log(`Navigating to ${url}...`);
-    
+
     await axios.post(
       `${API_BASE_URL}/sessions/${sessionId}/execute`,
       {
         script: 'goto',
         args: [url],
-        context: {}
+        context: {},
       },
       {
         headers: {
           'X-API-Key': API_KEY,
-          'Content-Type': 'application/json'
-        }
-      }
+          'Content-Type': 'application/json',
+        },
+      },
     );
-    
+
     // 3. Take a screenshot
     console.log('Taking screenshot...');
     const screenshotResponse = await axios.post(
@@ -75,26 +75,25 @@ async function captureScreenshot() {
       {
         script: 'screenshot',
         args: [{ fullPage: true }],
-        context: {}
+        context: {},
       },
       {
         headers: {
           'X-API-Key': API_KEY,
-          'Content-Type': 'application/json'
-        }
-      }
+          'Content-Type': 'application/json',
+        },
+      },
     );
-    
+
     // 4. Save the screenshot
     const screenshotData = screenshotResponse.data.data.result;
     const buffer = Buffer.from(screenshotData, 'base64');
     const outputPath = path.join(__dirname, 'screenshots', `example-${Date.now()}.png`);
-    
+
     await fs.mkdir(path.dirname(outputPath), { recursive: true });
     await fs.writeFile(outputPath, buffer);
-    
+
     console.log(`Screenshot saved to: ${outputPath}`);
-    
   } catch (error) {
     console.error('Error:', error);
   } finally {
@@ -103,7 +102,7 @@ async function captureScreenshot() {
       try {
         console.log('Cleaning up session...');
         await axios.delete(`${API_BASE_URL}/sessions/${sessionId}`, {
-          headers: { 'X-API-Key': API_KEY }
+          headers: { 'X-API-Key': API_KEY },
         });
         console.log('Session deleted successfully');
       } catch (cleanupError) {
@@ -117,5 +116,5 @@ async function captureScreenshot() {
 if (require.main === module) {
   captureScreenshot()
     .then(() => console.log('Example completed'))
-    .catch(error => console.error('Example failed:', error));
+    .catch((error) => console.error('Example failed:', error));
 }

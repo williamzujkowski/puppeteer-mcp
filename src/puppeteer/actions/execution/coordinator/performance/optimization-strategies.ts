@@ -102,7 +102,7 @@ export class ResourceBlockingStrategy implements OptimizationStrategy {
 
   async apply(page: Page, action: BrowserAction): Promise<void> {
     const blockList = this.getResourceBlockList(action);
-    
+
     if (blockList.length === 0) {
       return;
     }
@@ -114,8 +114,8 @@ export class ResourceBlockingStrategy implements OptimizationStrategy {
       const resourceType = request.resourceType();
 
       // Check if resource should be blocked
-      const shouldBlock = blockList.includes(resourceType) ||
-        this.blockPatterns.some(pattern => pattern.test(url));
+      const shouldBlock =
+        blockList.includes(resourceType) || this.blockPatterns.some((pattern) => pattern.test(url));
 
       if (shouldBlock) {
         request.abort();
@@ -151,7 +151,11 @@ export class ResourceBlockingStrategy implements OptimizationStrategy {
       return [...baseBlockList, 'image', 'stylesheet'];
     }
 
-    if (action.type === 'navigate' && 'waitFor' in action && action.waitFor === 'domcontentloaded') {
+    if (
+      action.type === 'navigate' &&
+      'waitFor' in action &&
+      action.waitFor === 'domcontentloaded'
+    ) {
       return [...baseBlockList, 'image'];
     }
 

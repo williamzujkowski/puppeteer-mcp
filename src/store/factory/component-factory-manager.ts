@@ -23,24 +23,30 @@ export class ComponentFactoryManager {
     store: SessionStore,
     enabled: boolean,
     monitoringConfig: NonNullable<SessionStoreFactoryConfig['monitoringConfig']>,
-    logger: pino.Logger
+    logger: pino.Logger,
   ): Promise<SessionStoreMonitor | undefined> {
     if (!enabled) {
       return undefined;
     }
 
-    const monitor = new SessionStoreMonitor(store, {
-      healthCheckInterval: monitoringConfig.healthCheckInterval,
-      metricsRetentionPeriod: monitoringConfig.metricsRetentionPeriod,
-      alertThresholds: monitoringConfig.alertThresholds ? {
-        maxLatency: monitoringConfig.alertThresholds.maxLatency ?? 1000,
-        maxErrorRate: monitoringConfig.alertThresholds.maxErrorRate ?? 0.05,
-        maxFallbackTime: 300000,
-        minAvailability: 0.99
-      } : undefined,
-      enableDetailedMetrics: true,
-      enableAlerting: true
-    }, logger);
+    const monitor = new SessionStoreMonitor(
+      store,
+      {
+        healthCheckInterval: monitoringConfig.healthCheckInterval,
+        metricsRetentionPeriod: monitoringConfig.metricsRetentionPeriod,
+        alertThresholds: monitoringConfig.alertThresholds
+          ? {
+              maxLatency: monitoringConfig.alertThresholds.maxLatency ?? 1000,
+              maxErrorRate: monitoringConfig.alertThresholds.maxErrorRate ?? 0.05,
+              maxFallbackTime: 300000,
+              minAvailability: 0.99,
+            }
+          : undefined,
+        enableDetailedMetrics: true,
+        enableAlerting: true,
+      },
+      logger,
+    );
 
     await monitor.start();
     logger.info('Session store monitoring enabled');
@@ -54,21 +60,25 @@ export class ComponentFactoryManager {
     store: SessionStore,
     enabled: boolean,
     replicationConfig: NonNullable<SessionStoreFactoryConfig['replicationConfig']>,
-    logger: pino.Logger
+    logger: pino.Logger,
   ): SessionReplicationManager | undefined {
     if (!enabled) {
       return undefined;
     }
 
-    const replication = new SessionReplicationManager(store, {
-      mode: replicationConfig.mode,
-      syncInterval: replicationConfig.syncInterval,
-      conflictResolution: replicationConfig.conflictResolution,
-      syncDeletions: true,
-      syncExpired: false,
-      maxRetries: config.REDIS_MAX_RETRIES,
-      retryDelay: config.REDIS_RETRY_DELAY
-    }, logger);
+    const replication = new SessionReplicationManager(
+      store,
+      {
+        mode: replicationConfig.mode,
+        syncInterval: replicationConfig.syncInterval,
+        conflictResolution: replicationConfig.conflictResolution,
+        syncDeletions: true,
+        syncExpired: false,
+        maxRetries: config.REDIS_MAX_RETRIES,
+        retryDelay: config.REDIS_RETRY_DELAY,
+      },
+      logger,
+    );
 
     logger.info('Session store replication enabled');
     return replication;
@@ -77,10 +87,7 @@ export class ComponentFactoryManager {
   /**
    * Create migration component if enabled
    */
-  createMigration(
-    enabled: boolean,
-    logger: pino.Logger
-  ): SessionMigration | undefined {
+  createMigration(enabled: boolean, logger: pino.Logger): SessionMigration | undefined {
     if (!enabled) {
       return undefined;
     }

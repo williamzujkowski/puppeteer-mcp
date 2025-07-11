@@ -62,16 +62,14 @@ export class ProxyMetricsTracker {
    */
   getPerformanceScore(proxy: ProxyInstance): number {
     const { metrics, health } = proxy;
-    
+
     if (!health.healthy) return 0;
-    
-    const successRate = metrics.requestCount > 0
-      ? metrics.successCount / metrics.requestCount
-      : 1;
-    
+
+    const successRate = metrics.requestCount > 0 ? metrics.successCount / metrics.requestCount : 1;
+
     const responseTimeScore = Math.max(0, 1 - metrics.averageResponseTime / 10000);
-    
-    return (successRate * 0.7 + responseTimeScore * 0.3);
+
+    return successRate * 0.7 + responseTimeScore * 0.3;
   }
 
   /**

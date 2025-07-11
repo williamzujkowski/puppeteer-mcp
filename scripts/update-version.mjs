@@ -36,21 +36,17 @@ const filesToUpdate = [
   'NPM_PUBLISHING_CHECKLIST.md',
 ];
 
-const directoriesToSearch = [
-  'starlight-docs/src/content/docs',
-  'testing',
-  'src/mcp/auth',
-];
+const directoriesToSearch = ['starlight-docs/src/content/docs', 'testing', 'src/mcp/auth'];
 
 // Function to recursively find all markdown files
 function findMarkdownFiles(dir, files = []) {
   try {
     const items = readdirSync(dir);
-    
+
     for (const item of items) {
       const fullPath = join(dir, item);
       const stat = statSync(fullPath);
-      
+
       if (stat.isDirectory()) {
         // Skip node_modules and .git directories
         if (item !== 'node_modules' && item !== '.git' && item !== 'dist') {
@@ -63,7 +59,7 @@ function findMarkdownFiles(dir, files = []) {
   } catch (error) {
     console.warn(`⚠️  Could not read directory ${dir}: ${error.message}`);
   }
-  
+
   return files;
 }
 
@@ -97,7 +93,7 @@ function updateVersionInFile(filePath, dryRun = false) {
       }
       return true;
     }
-    
+
     return false;
   } catch (error) {
     console.error(`❌ Error updating ${filePath}: ${error.message}`);
@@ -109,7 +105,7 @@ function updateVersionInFile(filePath, dryRun = false) {
 function main() {
   const args = process.argv.slice(2);
   const dryRun = args.includes('--dry-run');
-  
+
   if (dryRun) {
     console.log('🔍 Running in dry-run mode (no files will be modified)...\n');
   }
@@ -132,7 +128,7 @@ function main() {
   for (const dir of directoriesToSearch) {
     const dirPath = join(projectRoot, dir);
     const markdownFiles = findMarkdownFiles(dirPath);
-    
+
     for (const file of markdownFiles) {
       totalFilesChecked++;
       if (updateVersionInFile(file, dryRun)) {
@@ -148,13 +144,13 @@ function main() {
   console.log(`Current version: ${currentVersion}`);
   console.log(`Files checked: ${totalFilesChecked}`);
   console.log(`Files ${dryRun ? 'to be updated' : 'updated'}: ${totalFilesUpdated}`);
-  
+
   if (!dryRun && totalFilesUpdated > 0) {
-    console.log('\n💡 Don\'t forget to commit these changes!');
+    console.log("\n💡 Don't forget to commit these changes!");
     console.log('   git add -A');
     console.log(`   git commit -m "chore: update documentation to version ${currentVersion}"`);
   }
-  
+
   if (dryRun && totalFilesUpdated > 0) {
     console.log('\n💡 Run without --dry-run to apply these changes:');
     console.log('   npm run update:version');

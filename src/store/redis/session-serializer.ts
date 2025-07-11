@@ -40,7 +40,7 @@ export class SessionSerializer {
   deserialize(data: string): Session {
     try {
       const parsed: SerializedSession = JSON.parse(data);
-      
+
       // Validate required fields
       if (!parsed.id || !parsed.data || !parsed.lastAccessedAt) {
         throw new Error('Invalid session data structure');
@@ -65,9 +65,9 @@ export class SessionSerializer {
       const parsed = JSON.parse(data);
       return Boolean(
         parsed &&
-        typeof parsed.id === 'string' &&
-        parsed.data &&
-        typeof parsed.lastAccessedAt === 'string'
+          typeof parsed.id === 'string' &&
+          parsed.data &&
+          typeof parsed.lastAccessedAt === 'string',
       );
     } catch {
       return false;
@@ -106,12 +106,12 @@ export class SessionSerializer {
     try {
       return Boolean(
         session &&
-        typeof session.id === 'string' &&
-        session.data &&
-        typeof session.data.userId === 'string' &&
-        typeof session.data.username === 'string' &&
-        typeof session.data.expiresAt === 'string' &&
-        typeof session.lastAccessedAt === 'string'
+          typeof session.id === 'string' &&
+          session.data &&
+          typeof session.data.userId === 'string' &&
+          typeof session.data.username === 'string' &&
+          typeof session.data.expiresAt === 'string' &&
+          typeof session.lastAccessedAt === 'string',
       );
     } catch {
       return false;

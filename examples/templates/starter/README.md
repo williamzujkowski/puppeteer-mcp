@@ -1,6 +1,7 @@
 # Puppeteer MCP Starter Template
 
-This is a starter template for building automation projects with Puppeteer MCP. It includes a pre-configured project structure, common utilities, and best practices.
+This is a starter template for building automation projects with Puppeteer MCP. It includes a
+pre-configured project structure, common utilities, and best practices.
 
 ## Features
 
@@ -53,6 +54,7 @@ cp .env.example .env
 ```
 
 Edit `.env` with your configuration:
+
 - `API_KEY`: Your Puppeteer MCP API key
 - `API_BASE_URL`: The API endpoint URL
 
@@ -80,15 +82,15 @@ import { AutomationResult } from '../types';
 export class MyAutomation extends BaseAutomation {
   async run(params: any): Promise<AutomationResult> {
     const session = await this.createSession();
-    
+
     try {
       // Your automation logic here
       await this.navigate(session.id, 'https://example.com');
       const title = await this.getPageTitle(session.id);
-      
+
       return {
         success: true,
-        data: { title }
+        data: { title },
       };
     } finally {
       await this.cleanup(session.id);
@@ -103,7 +105,9 @@ export class MyAutomation extends BaseAutomation {
 import { MyAutomation } from './automations/my-automation';
 
 const automation = new MyAutomation(client);
-const result = await automation.run({ /* params */ });
+const result = await automation.run({
+  /* params */
+});
 ```
 
 ## Common Patterns
@@ -128,16 +132,13 @@ try {
 ```typescript
 import { retry } from './utils/retry';
 
-const result = await retry(
-  () => automation.run(params),
-  {
-    maxAttempts: 3,
-    delay: 1000,
-    onRetry: (error, attempt) => {
-      logger.warn(`Retry attempt ${attempt}`, { error });
-    }
-  }
-);
+const result = await retry(() => automation.run(params), {
+  maxAttempts: 3,
+  delay: 1000,
+  onRetry: (error, attempt) => {
+    logger.warn(`Retry attempt ${attempt}`, { error });
+  },
+});
 ```
 
 ### Session Pool
@@ -169,7 +170,7 @@ describe('MyAutomation', () => {
   it('should extract page title', async () => {
     const automation = new MyAutomation(mockClient);
     const result = await automation.run({ url: 'https://example.com' });
-    
+
     expect(result.success).toBe(true);
     expect(result.data.title).toBe('Example Domain');
   });
@@ -208,16 +209,19 @@ pm2 start ecosystem.config.js
 ## Troubleshooting
 
 ### Session Creation Fails
+
 - Check if the Puppeteer MCP server is running
 - Verify your API key is correct
 - Ensure the API URL is accessible
 
 ### Timeout Errors
+
 - Increase timeout values in configuration
 - Check if selectors are correct
 - Verify the target website is accessible
 
 ### Memory Issues
+
 - Ensure sessions are properly cleaned up
 - Limit concurrent sessions
 - Monitor resource usage

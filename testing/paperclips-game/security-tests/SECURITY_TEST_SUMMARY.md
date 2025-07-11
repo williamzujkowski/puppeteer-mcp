@@ -2,7 +2,9 @@
 
 ## Overview
 
-I have created a comprehensive security test suite for puppeteer-mcp that validates input sanitization, XSS prevention, and protection against various security vulnerabilities. The test suite covers all major security vulnerability categories relevant to browser automation.
+I have created a comprehensive security test suite for puppeteer-mcp that validates input
+sanitization, XSS prevention, and protection against various security vulnerabilities. The test
+suite covers all major security vulnerability categories relevant to browser automation.
 
 ## Test Scripts Created
 
@@ -160,18 +162,18 @@ Based on the initial test run, several areas require attention:
 
 ## Test Coverage Summary
 
-| Category | Tests | Coverage |
-|----------|-------|----------|
-| XSS Prevention | 6 | ✅ Comprehensive |
-| Path Traversal | 5 | ✅ Comprehensive |
-| Command Injection | 6 | ✅ Comprehensive |
-| SSRF | 8 | ✅ Comprehensive |
-| CSP Bypass | 10 | ✅ Comprehensive |
-| Cookie Security | 11 | ✅ Comprehensive |
-| Authentication | 9 | ✅ Comprehensive |
-| Resource Exhaustion | 8 | ✅ Comprehensive |
-| Prototype Pollution | 8 | ✅ Comprehensive |
-| JS Execution | 10 | ✅ Comprehensive |
+| Category            | Tests | Coverage         |
+| ------------------- | ----- | ---------------- |
+| XSS Prevention      | 6     | ✅ Comprehensive |
+| Path Traversal      | 5     | ✅ Comprehensive |
+| Command Injection   | 6     | ✅ Comprehensive |
+| SSRF                | 8     | ✅ Comprehensive |
+| CSP Bypass          | 10    | ✅ Comprehensive |
+| Cookie Security     | 11    | ✅ Comprehensive |
+| Authentication      | 9     | ✅ Comprehensive |
+| Resource Exhaustion | 8     | ✅ Comprehensive |
+| Prototype Pollution | 8     | ✅ Comprehensive |
+| JS Execution        | 10    | ✅ Comprehensive |
 
 **Total: 81 Security Test Scenarios**
 
@@ -186,6 +188,7 @@ Based on the initial test run, several areas require attention:
 ## Files Location
 
 All security tests are located in:
+
 ```
 /home/william/git/puppeteer-mcp/testing/paperclips-game/security-tests/
 ```

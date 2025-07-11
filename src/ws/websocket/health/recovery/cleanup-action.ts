@@ -17,12 +17,13 @@ import { HealthStatus } from '../types.js';
 export class CleanupRecoveryAction extends RecoveryAction {
   protected canHandle(context: RecoveryContext): boolean {
     // Handle warning or critical status with connection or memory issues
-    return context.status !== HealthStatus.HEALTHY &&
-           (context.issues.some(issue => 
-             issue.includes('connection') || 
-             issue.includes('memory') ||
-             issue.includes('turnover')
-           ));
+    return (
+      context.status !== HealthStatus.HEALTHY &&
+      context.issues.some(
+        (issue) =>
+          issue.includes('connection') || issue.includes('memory') || issue.includes('turnover'),
+      )
+    );
   }
 
   protected async execute(context: RecoveryContext): Promise<RecoveryActionResult> {
@@ -74,7 +75,10 @@ export class CleanupRecoveryAction extends RecoveryAction {
     }
   }
 
-  protected override shouldContinueChain(context: RecoveryContext, _result: RecoveryActionResult): boolean {
+  protected override shouldContinueChain(
+    context: RecoveryContext,
+    _result: RecoveryActionResult,
+  ): boolean {
     // Continue if status is still critical
     return context.status === HealthStatus.CRITICAL;
   }

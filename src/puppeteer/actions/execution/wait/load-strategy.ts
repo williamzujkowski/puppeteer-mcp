@@ -56,11 +56,7 @@ export class LoadStateWaitStrategy extends BaseWaitStrategy {
   ): Promise<WaitResult> {
     const startTime = Date.now();
 
-    await page.waitForFunction(
-      (state) => document.readyState === state,
-      { timeout },
-      readyState
-    );
+    await page.waitForFunction((state) => document.readyState === state, { timeout }, readyState);
 
     return {
       success: true,
@@ -83,7 +79,7 @@ export class LoadStateWaitStrategy extends BaseWaitStrategy {
 
     await page.waitForFunction(
       () => document.readyState === 'interactive' || document.readyState === 'complete',
-      { timeout }
+      { timeout },
     );
 
     return {

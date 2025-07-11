@@ -1,12 +1,14 @@
 # Puppeteer Testing Targets Reference
 
-A comprehensive guide to publicly available, stable, and testing-friendly websites, APIs, and services suitable for automated testing with Puppeteer.
+A comprehensive guide to publicly available, stable, and testing-friendly websites, APIs, and
+services suitable for automated testing with Puppeteer.
 
 ## 1. Public Testing Websites
 
 ### Purpose-Built Testing Playgrounds
 
 #### UI Test Automation Playground
+
 - **URL**: http://uitestingplayground.com/
 - **Good for**: Testing common UI automation pitfalls and edge cases
 - **Features**: Dynamic IDs, AJAX data, client-side delays, hidden layers
@@ -14,6 +16,7 @@ A comprehensive guide to publicly available, stable, and testing-friendly websit
 - **Limitations**: None - designed for automation
 
 #### The Internet (Heroku App)
+
 - **URL**: https://the-internet.herokuapp.com/
 - **Good for**: Various testing scenarios including authentication, dynamic content
 - **Features**: A/B testing, drag & drop, file uploads, broken images, challenging DOM
@@ -21,6 +24,7 @@ A comprehensive guide to publicly available, stable, and testing-friendly websit
 - **Limitations**: May have occasional Heroku free-tier downtimes
 
 #### TestPages Herokuapp
+
 - **URL**: https://testpages.herokuapp.com/
 - **Good for**: JavaScript interactions, forms, AJAX
 - **Features**: Styled pages, JavaScript games, HTML5 features
@@ -30,10 +34,11 @@ A comprehensive guide to publicly available, stable, and testing-friendly websit
 ### E-Commerce Demo Sites
 
 #### Sauce Demo (Swag Labs)
+
 - **URL**: https://www.saucedemo.com/
 - **Good for**: Complete e-commerce flow testing
 - **Features**: Multiple user types, shopping cart, checkout process
-- **Test Credentials**: 
+- **Test Credentials**:
   - standard_user / secret_sauce
   - locked_out_user / secret_sauce
   - problem_user / secret_sauce
@@ -42,6 +47,7 @@ A comprehensive guide to publicly available, stable, and testing-friendly websit
 - **Limitations**: None - designed for testing
 
 #### Automation Practice
+
 - **URL**: http://automationpractice.com/
 - **Good for**: Full e-commerce workflow automation
 - **Features**: User registration, product search, cart, payment flow
@@ -49,6 +55,7 @@ A comprehensive guide to publicly available, stable, and testing-friendly websit
 - **Limitations**: Occasional maintenance windows
 
 #### Demo OpenCart
+
 - **URL**: https://demo.opencart.com/
 - **Good for**: Enterprise e-commerce testing
 - **Features**: Admin panel, product management, multi-store
@@ -56,6 +63,7 @@ A comprehensive guide to publicly available, stable, and testing-friendly websit
 - **Limitations**: Data resets periodically
 
 #### nopCommerce Demo
+
 - **URL**: https://frontend.nopcommerce.com/
 - **Good for**: Large-scale e-commerce testing
 - **Features**: Multilingual, advanced search, user reviews
@@ -67,6 +75,7 @@ A comprehensive guide to publicly available, stable, and testing-friendly websit
 ### Testing-Specific APIs
 
 #### HTTPBin
+
 - **URL**: https://httpbin.org/
 - **Good for**: HTTP request/response testing
 - **Features**: All HTTP methods, authentication, status codes, cookies
@@ -75,6 +84,7 @@ A comprehensive guide to publicly available, stable, and testing-friendly websit
 - **Example**: `GET https://httpbin.org/get`
 
 #### JSONPlaceholder
+
 - **URL**: https://jsonplaceholder.typicode.com/
 - **Good for**: REST API testing with fake data
 - **Features**: Posts, comments, users, todos
@@ -83,6 +93,7 @@ A comprehensive guide to publicly available, stable, and testing-friendly websit
 - **Example**: `GET https://jsonplaceholder.typicode.com/posts`
 
 #### ReqRes
+
 - **URL**: https://reqres.in/
 - **Good for**: Testing CRUD operations
 - **Features**: User data, delayed responses, various HTTP methods
@@ -93,6 +104,7 @@ A comprehensive guide to publicly available, stable, and testing-friendly websit
 ### Data APIs (No Auth Required)
 
 #### Random User Generator
+
 - **URL**: https://randomuser.me/api/
 - **Good for**: User data generation
 - **Features**: Configurable user profiles, multiple nationalities
@@ -101,14 +113,17 @@ A comprehensive guide to publicly available, stable, and testing-friendly websit
 - **Example**: `GET https://randomuser.me/api/?results=10`
 
 #### Open-Meteo Weather API
+
 - **URL**: https://api.open-meteo.com/v1/forecast
 - **Good for**: Weather data testing
 - **Features**: No auth required, global coverage
 - **Stability**: Excellent
 - **Rate Limits**: Very generous for free tier
-- **Example**: `GET https://api.open-meteo.com/v1/forecast?latitude=52.52&longitude=13.41&current_weather=true`
+- **Example**:
+  `GET https://api.open-meteo.com/v1/forecast?latitude=52.52&longitude=13.41&current_weather=true`
 
 #### REST Countries
+
 - **URL**: https://restcountries.com/v3.1/all
 - **Good for**: Country data testing
 - **Features**: Comprehensive country information
@@ -120,6 +135,7 @@ A comprehensive guide to publicly available, stable, and testing-friendly websit
 ### United States
 
 #### api.data.gov
+
 - **URL**: https://api.data.gov/
 - **Good for**: Various government datasets
 - **Features**: 450+ APIs from 25 agencies
@@ -128,6 +144,7 @@ A comprehensive guide to publicly available, stable, and testing-friendly websit
 - **Limitations**: Some endpoints require registration
 
 #### NASA APIs
+
 - **URL**: https://api.nasa.gov/
 - **Good for**: Space data, images
 - **Features**: APOD, Mars Rover photos, asteroids
@@ -137,6 +154,7 @@ A comprehensive guide to publicly available, stable, and testing-friendly websit
 ### India
 
 #### APISetu
+
 - **URL**: https://apisetu.gov.in/
 - **Good for**: Indian government services
 - **Features**: KYC, university data, employment info
@@ -146,6 +164,7 @@ A comprehensive guide to publicly available, stable, and testing-friendly websit
 ### International
 
 #### World Bank API
+
 - **URL**: https://api.worldbank.org/v2/
 - **Good for**: Economic and development data
 - **Features**: Country indicators, projects, climate data
@@ -158,6 +177,7 @@ A comprehensive guide to publicly available, stable, and testing-friendly websit
 ### Forms and Validation
 
 #### ToolsQA Practice Form
+
 - **URL**: https://demoqa.com/automation-practice-form
 - **Good for**: Complex form interactions
 - **Features**: Various input types, file uploads, date pickers
@@ -167,6 +187,7 @@ A comprehensive guide to publicly available, stable, and testing-friendly websit
 ### Single Page Applications (SPAs)
 
 #### React Shopping Cart Demo
+
 - **URL**: https://react-shopping-cart-67954.firebaseapp.com/
 - **Good for**: React SPA testing
 - **Features**: Dynamic content, state management
@@ -174,6 +195,7 @@ A comprehensive guide to publicly available, stable, and testing-friendly websit
 - **Limitations**: May change without notice
 
 #### Angular Demo (XYZ Bank)
+
 - **URL**: https://www.globalsqa.com/angularJs-protractor/BankingProject/
 - **Good for**: Angular application testing
 - **Features**: Banking operations, transactions
@@ -183,6 +205,7 @@ A comprehensive guide to publicly available, stable, and testing-friendly websit
 ### News/Content Sites
 
 #### Hacker News
+
 - **URL**: https://news.ycombinator.com/
 - **Good for**: Content scraping, pagination
 - **Features**: Consistent structure, API available
@@ -216,7 +239,7 @@ async function retryOperation(operation, maxRetries = 3) {
       return await operation();
     } catch (error) {
       if (i === maxRetries - 1) throw error;
-      await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, i)));
+      await new Promise((resolve) => setTimeout(resolve, 1000 * Math.pow(2, i)));
     }
   }
 }
@@ -228,38 +251,43 @@ async function retryOperation(operation, maxRetries = 3) {
 const TEST_TARGETS = {
   development: {
     ecommerce: 'https://www.saucedemo.com/',
-    api: 'https://jsonplaceholder.typicode.com/'
+    api: 'https://jsonplaceholder.typicode.com/',
   },
   ci: {
     ecommerce: 'https://www.saucedemo.com/',
-    api: 'https://httpbin.org/'
-  }
+    api: 'https://httpbin.org/',
+  },
 };
 ```
 
 ## 6. Testing Scenarios by Category
 
 ### Authentication Testing
+
 - The Internet: Basic Auth, Form Auth
 - Sauce Demo: Multiple user types
 - ReqRes: Token-based auth simulation
 
 ### Form Testing
+
 - UI Test Automation Playground: Various form challenges
 - ToolsQA: Complex form elements
 - TestPages: Form validation scenarios
 
 ### E-commerce Testing
+
 - Sauce Demo: Complete purchase flow
 - Automation Practice: User registration to checkout
 - Demo OpenCart: Admin and customer flows
 
 ### API Testing
+
 - HTTPBin: All HTTP scenarios
 - JSONPlaceholder: CRUD operations
 - ReqRes: RESTful patterns
 
 ### Performance Testing
+
 - Sauce Demo: performance_glitch_user
 - UI Test Automation Playground: Client-side delays
 - HTTPBin: Delayed responses endpoint

@@ -51,7 +51,7 @@ export class RecyclingConfigManager extends EventEmitter {
         newConfig: this.config,
         changes: Object.keys(newConfig),
       },
-      'Recycling configuration updated'
+      'Recycling configuration updated',
     );
 
     this.emit('config-updated', { oldConfig, newConfig: this.config });
@@ -100,7 +100,7 @@ export class RecyclingConfigManager extends EventEmitter {
       config.weightUsageBasedScore,
       config.weightHealthBasedScore,
       config.weightResourceBasedScore,
-    ].filter(w => w !== undefined);
+    ].filter((w) => w !== undefined);
 
     if (weights.length === 4) {
       const sum = weights.reduce((acc, w) => acc + (w ?? 0), 0);

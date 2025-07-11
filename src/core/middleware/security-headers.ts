@@ -43,7 +43,9 @@ export const securityHeaders = (): RequestHandler => {
         objectSrc: ["'none'"],
         mediaSrc: ["'self'"],
         frameSrc: ["'none'"],
-        ...(parseCSPDirectives(typeof config.CSP_DIRECTIVES === 'string' ? config.CSP_DIRECTIVES : '')),
+        ...parseCSPDirectives(
+          typeof config.CSP_DIRECTIVES === 'string' ? config.CSP_DIRECTIVES : '',
+        ),
       },
     },
 
@@ -136,7 +138,8 @@ export const additionalSecurityHeaders = (): RequestHandler => {
  * @nist ac-4 "Information flow enforcement"
  */
 export const createCORSMiddleware = (): RequestHandler => {
-  const allowedOrigins = config.CORS_ORIGIN?.split(',').map((origin) => origin.trim()) ?? config.ALLOWED_ORIGINS;
+  const allowedOrigins =
+    config.CORS_ORIGIN?.split(',').map((origin) => origin.trim()) ?? config.ALLOWED_ORIGINS;
 
   return (req: Request, res: Response, next: NextFunction) => {
     const origin = req.headers.origin;

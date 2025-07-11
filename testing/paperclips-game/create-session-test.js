@@ -15,13 +15,13 @@ const BASE_URL = 'http://localhost:3000';
 async function makeRequest(method, endpoint, data = null, headers = {}) {
   try {
     const url = endpoint.startsWith('http') ? endpoint : `${BASE_URL}${endpoint}`;
-    
+
     const requestOptions = {
       method,
       headers: {
         'Content-Type': 'application/json',
-        ...headers
-      }
+        ...headers,
+      },
     };
 
     if (data) {
@@ -30,7 +30,7 @@ async function makeRequest(method, endpoint, data = null, headers = {}) {
 
     const response = await fetch(url, requestOptions);
     const responseData = await response.text();
-    
+
     let parsedData;
     try {
       parsedData = JSON.parse(responseData);
@@ -42,19 +42,19 @@ async function makeRequest(method, endpoint, data = null, headers = {}) {
       success: response.ok,
       status: response.status,
       data: parsedData,
-      headers: Object.fromEntries(response.headers.entries())
+      headers: Object.fromEntries(response.headers.entries()),
     };
   } catch (error) {
     return {
       success: false,
-      error: error.message
+      error: error.message,
     };
   }
 }
 
 async function exploreApiEndpoints() {
   console.log('🔍 Exploring API endpoints...\n');
-  
+
   // Test different potential endpoints
   const endpoints = [
     { method: 'GET', path: '/api/v1/' },
@@ -67,27 +67,33 @@ async function exploreApiEndpoints() {
     { method: 'GET', path: '/openapi.json' },
     { method: 'GET', path: '/api/v1/openapi.json' },
     { method: 'GET', path: '/docs' },
-    { method: 'GET', path: '/api/v1/docs' }
+    { method: 'GET', path: '/api/v1/docs' },
   ];
 
   for (const endpoint of endpoints) {
     const response = await makeRequest(endpoint.method, endpoint.path);
-    console.log(`${endpoint.method} ${endpoint.path}: ${response.status} - ${response.success ? 'SUCCESS' : 'FAIL'}`);
+    console.log(
+      `${endpoint.method} ${endpoint.path}: ${response.status} - ${response.success ? 'SUCCESS' : 'FAIL'}`,
+    );
     if (response.success && typeof response.data === 'object') {
       console.log(`  Response:`, JSON.stringify(response.data, null, 2).substring(0, 200), '...\n');
     } else {
-      console.log(`  Error:`, response.data ? String(response.data).substring(0, 100) : 'No data', '\n');
+      console.log(
+        `  Error:`,
+        response.data ? String(response.data).substring(0, 100) : 'No data',
+        '\n',
+      );
     }
   }
 }
 
 async function testTokenlessAccess() {
   console.log('\n🔒 Testing access without authentication...\n');
-  
+
   // Try accessing endpoints without tokens
   const protectedEndpoints = [
     { method: 'GET', path: '/api/v1/contexts' },
-    { method: 'POST', path: '/api/v1/contexts', data: { name: 'test' } }
+    { method: 'POST', path: '/api/v1/contexts', data: { name: 'test' } },
   ];
 
   for (const endpoint of protectedEndpoints) {
@@ -104,9 +110,9 @@ async function main() {
     console.error('❌ Server is not running. Please start it first.');
     process.exit(1);
   }
-  
+
   console.log('✅ Server is running\n');
-  
+
   await exploreApiEndpoints();
   await testTokenlessAccess();
 }

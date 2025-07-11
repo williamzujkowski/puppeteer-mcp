@@ -17,7 +17,10 @@ export class BackupRestoreManager {
   /**
    * Create a backup of all session data
    */
-  async createBackup(instanceId: string, instance: SessionStoreFactoryResult): Promise<BackupResult> {
+  async createBackup(
+    instanceId: string,
+    instance: SessionStoreFactoryResult,
+  ): Promise<BackupResult> {
     if (!instance.migration) {
       throw new Error(`Migration not enabled for store '${instanceId}'`);
     }
@@ -29,14 +32,17 @@ export class BackupRestoreManager {
       storeType: instance.type,
       sessionCount: sessions.length,
       createdAt: new Date(),
-      data: sessions
+      data: sessions,
     };
 
-    this.logger.info({
-      instanceId,
-      storeType: instance.type,
-      sessionCount: sessions.length
-    }, 'Session backup created');
+    this.logger.info(
+      {
+        instanceId,
+        storeType: instance.type,
+        sessionCount: sessions.length,
+      },
+      'Session backup created',
+    );
 
     return backup;
   }
@@ -54,18 +60,25 @@ export class BackupRestoreManager {
     options: {
       overwrite?: boolean;
       skipExpired?: boolean;
-    } = {}
+    } = {},
   ): Promise<RestoreStats> {
     if (!instance.migration) {
       throw new Error(`Migration not enabled for store '${instanceId}'`);
     }
 
-    const stats = await instance.migration.restore(instance.store, backup.data as Parameters<typeof instance.migration.restore>[1], options);
+    const stats = await instance.migration.restore(
+      instance.store,
+      backup.data as Parameters<typeof instance.migration.restore>[1],
+      options,
+    );
 
-    this.logger.info({
-      instanceId,
-      ...stats
-    }, 'Session backup restored');
+    this.logger.info(
+      {
+        instanceId,
+        ...stats,
+      },
+      'Session backup restored',
+    );
 
     return stats;
   }

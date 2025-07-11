@@ -25,11 +25,7 @@ export {
 } from './navigation-factory.js';
 
 // Individual navigators
-export {
-  PageNavigator,
-  createPageNavigator,
-  type PageNavigationConfig,
-} from './page-navigator.js';
+export { PageNavigator, createPageNavigator, type PageNavigationConfig } from './page-navigator.js';
 
 export {
   HistoryNavigator,
@@ -76,9 +72,7 @@ export type {
   ActionContext,
 } from '../../../interfaces/action-executor.interface.js';
 
-export type {
-  NavigationWaitOptions,
-} from '../types.js';
+export type { NavigationWaitOptions } from '../types.js';
 
 // Import the function to ensure it's available
 import { createNavigationExecutor } from './navigation-executor.js';

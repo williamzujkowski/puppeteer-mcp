@@ -20,34 +20,34 @@ services:
     container_name: puppeteer-mcp-app
     hostname: puppeteer-mcp
     ports:
-      - "8443:8443"        # HTTPS API
-      - "50051:50051"      # gRPC
-      - "9229:9229"        # Node.js debugger
-      - "9464:9464"        # Prometheus metrics
+      - '8443:8443' # HTTPS API
+      - '50051:50051' # gRPC
+      - '9229:9229' # Node.js debugger
+      - '9464:9464' # Prometheus metrics
     environment:
       - NODE_ENV=development
       - PORT=8443
       - GRPC_PORT=50051
       - LOG_LEVEL=debug
       - LOG_FORMAT=pretty
-      
+
       # Security
       - JWT_SECRET=${JWT_SECRET:-dev-jwt-secret-change-in-production}
       - SESSION_SECRET=${SESSION_SECRET:-dev-session-secret-change-in-production}
-      - TLS_ENABLED=false  # Disabled for local dev
-      
+      - TLS_ENABLED=false # Disabled for local dev
+
       # Redis
       - REDIS_URL=redis://:redis-dev-password@redis:6379
       - REDIS_TLS=false
-      
+
       # PostgreSQL
       - DATABASE_URL=postgresql://mcp:mcp-password@postgres:5432/puppeteer_mcp
-      
+
       # Puppeteer
       - PUPPETEER_HEADLESS=true
       - BROWSER_POOL_MAX_SIZE=3
       - BROWSER_IDLE_TIMEOUT=300000
-      
+
       # Telemetry
       - TELEMETRY_ENABLED=true
       - TELEMETRY_SERVICE_NAME=puppeteer-mcp
@@ -58,7 +58,7 @@ services:
       - TELEMETRY_METRICS_PROMETHEUS_PORT=9464
       - TELEMETRY_TRACE_SAMPLING_RATE=1.0
       - TELEMETRY_DEBUG=true
-      
+
       # Node.js debugging
       - NODE_OPTIONS=--inspect=0.0.0.0:9229 --enable-source-maps --max-old-space-size=512
     volumes:
@@ -84,9 +84,9 @@ services:
     cap_drop:
       - ALL
     cap_add:
-      - SYS_ADMIN  # Required for Puppeteer
+      - SYS_ADMIN # Required for Puppeteer
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8443/health"]
+      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:8443/health']
       interval: 30s
       timeout: 10s
       retries: 3
@@ -105,14 +105,14 @@ services:
       --maxmemory-policy allkeys-lru
       --loglevel debug
     ports:
-      - "6379:6379"
+      - '6379:6379'
     volumes:
       - redis-data:/data
       - ./docker/redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
     environment:
       - REDIS_REPLICATION_MODE=master
     healthcheck:
-      test: ["CMD", "redis-cli", "--no-auth-warning", "-a", "redis-dev-password", "ping"]
+      test: ['CMD', 'redis-cli', '--no-auth-warning', '-a', 'redis-dev-password', 'ping']
       interval: 10s
       timeout: 3s
       retries: 5
@@ -127,7 +127,7 @@ services:
     container_name: puppeteer-mcp-postgres
     hostname: postgres
     ports:
-      - "5432:5432"
+      - '5432:5432'
     environment:
       - POSTGRES_USER=mcp
       - POSTGRES_PASSWORD=mcp-password
@@ -138,7 +138,7 @@ services:
       - postgres-data:/var/lib/postgresql/data
       - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U mcp -d puppeteer_mcp"]
+      test: ['CMD-SHELL', 'pg_isready -U mcp -d puppeteer_mcp']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -162,22 +162,22 @@ services:
       - BADGER_DIRECTORY_VALUE=/badger/data
       - BADGER_DIRECTORY_KEY=/badger/key
     ports:
-      - "5775:5775/udp"   # Zipkin compact thrift
-      - "6831:6831/udp"   # Jaeger compact thrift
-      - "6832:6832/udp"   # Jaeger binary thrift
-      - "5778:5778"       # Config HTTP
-      - "16686:16686"     # Jaeger UI
-      - "14268:14268"     # Jaeger HTTP collector
-      - "14250:14250"     # Jaeger gRPC
-      - "9411:9411"       # Zipkin
-      - "4317:4317"       # OTLP gRPC
-      - "4318:4318"       # OTLP HTTP
+      - '5775:5775/udp' # Zipkin compact thrift
+      - '6831:6831/udp' # Jaeger compact thrift
+      - '6832:6832/udp' # Jaeger binary thrift
+      - '5778:5778' # Config HTTP
+      - '16686:16686' # Jaeger UI
+      - '14268:14268' # Jaeger HTTP collector
+      - '14250:14250' # Jaeger gRPC
+      - '9411:9411' # Zipkin
+      - '4317:4317' # OTLP gRPC
+      - '4318:4318' # OTLP HTTP
     volumes:
       - jaeger-data:/badger
     networks:
       - mcp-network
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:16686/"]
+      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:16686/']
       interval: 30s
       timeout: 10s
       retries: 3
@@ -187,7 +187,7 @@ services:
     container_name: puppeteer-mcp-prometheus
     hostname: prometheus
     ports:
-      - "9090:9090"
+      - '9090:9090'
     volumes:
       - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - ./docker/prometheus/alerts.yml:/etc/prometheus/alerts.yml:ro
@@ -204,7 +204,8 @@ services:
     depends_on:
       - app
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9090/-/healthy"]
+      test:
+        ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:9090/-/healthy']
       interval: 30s
       timeout: 10s
       retries: 3
@@ -214,7 +215,7 @@ services:
     container_name: puppeteer-mcp-grafana
     hostname: grafana
     ports:
-      - "3000:3000"
+      - '3000:3000'
     environment:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=admin-dev-password
@@ -230,7 +231,8 @@ services:
       - prometheus
       - jaeger
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      test:
+        ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:3000/api/health']
       interval: 30s
       timeout: 10s
       retries: 3
@@ -241,7 +243,7 @@ services:
     container_name: puppeteer-mcp-adminer
     hostname: adminer
     ports:
-      - "8080:8080"
+      - '8080:8080'
     environment:
       - ADMINER_DEFAULT_SERVER=postgres
       - ADMINER_DESIGN=pepa-linha
@@ -257,7 +259,7 @@ services:
     container_name: puppeteer-mcp-redis-commander
     hostname: redis-commander
     ports:
-      - "8081:8081"
+      - '8081:8081'
     environment:
       - REDIS_HOSTS=local:redis:6379:0:redis-dev-password
       - HTTP_USER=admin
@@ -275,7 +277,7 @@ services:
     container_name: puppeteer-mcp-node-exporter
     hostname: node-exporter
     ports:
-      - "9100:9100"
+      - '9100:9100'
     command:
       - '--path.rootfs=/host'
       - '--path.procfs=/host/proc'
@@ -296,7 +298,7 @@ services:
     container_name: puppeteer-mcp-redis-exporter
     hostname: redis-exporter
     ports:
-      - "9121:9121"
+      - '9121:9121'
     environment:
       - REDIS_ADDR=redis://redis:6379
       - REDIS_PASSWORD=redis-dev-password
@@ -313,7 +315,7 @@ services:
     container_name: puppeteer-mcp-postgres-exporter
     hostname: postgres-exporter
     ports:
-      - "9187:9187"
+      - '9187:9187'
     environment:
       - DATA_SOURCE_NAME=postgresql://mcp:mcp-password@postgres:5432/puppeteer_mcp?sslmode=disable
     depends_on:
@@ -346,8 +348,8 @@ networks:
         - subnet: 172.28.0.0/16
     driver_opts:
       com.docker.network.bridge.name: br-mcp-dev
-      com.docker.network.bridge.enable_icc: "true"
-      com.docker.network.bridge.enable_ip_masquerade: "true"
+      com.docker.network.bridge.enable_icc: 'true'
+      com.docker.network.bridge.enable_ip_masquerade: 'true'
 
 volumes:
   redis-data:

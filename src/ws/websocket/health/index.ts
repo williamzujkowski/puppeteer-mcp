@@ -26,8 +26,8 @@ export { HealthStatus, HealthEventType } from './types.js';
 
 // Strategy management
 export { StrategyManager } from './strategy-manager.js';
-export { 
-  HealthCheckStrategy, 
+export {
+  HealthCheckStrategy,
   type HealthCheckStrategyResult,
   type HealthCheckIssue,
 } from './strategies/index.js';
@@ -39,8 +39,8 @@ export { HealthEventManager } from './health-event-manager.js';
 export { MetricsCollector } from './metrics-collector.js';
 
 // Recovery actions
-export { 
-  RecoveryAction, 
+export {
+  RecoveryAction,
   type RecoveryContext,
   CleanupRecoveryAction,
   ConnectionLimitRecoveryAction,

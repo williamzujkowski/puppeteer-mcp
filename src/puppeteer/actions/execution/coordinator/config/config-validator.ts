@@ -33,15 +33,15 @@ export class ConfigValidator {
     if (retry.maxAttempts < 1 || retry.maxAttempts > 10) {
       throw new Error('retry.maxAttempts must be between 1 and 10');
     }
-    
+
     if (retry.initialDelay < 0) {
       throw new Error('retry.initialDelay must be non-negative');
     }
-    
+
     if (retry.maxDelay < retry.initialDelay) {
       throw new Error('retry.maxDelay must be greater than or equal to initialDelay');
     }
-    
+
     if (retry.backoffMultiplier < 1) {
       throw new Error('retry.backoffMultiplier must be at least 1');
     }
@@ -70,7 +70,7 @@ export class ConfigValidator {
     if (performance.maxMetricsStorage < 100 || performance.maxMetricsStorage > 100000) {
       throw new Error('performance.maxMetricsStorage must be between 100 and 100000');
     }
-    
+
     if (performance.metricsFlushInterval < 0) {
       throw new Error('performance.metricsFlushInterval must be non-negative');
     }
@@ -85,7 +85,9 @@ export class ConfigValidator {
     const MAX_PAYLOAD_SIZE = 104857600; // 100MB
 
     if (security.maxPayloadSize < MIN_PAYLOAD_SIZE || security.maxPayloadSize > MAX_PAYLOAD_SIZE) {
-      throw new Error(`security.maxPayloadSize must be between ${MIN_PAYLOAD_SIZE} and ${MAX_PAYLOAD_SIZE} bytes`);
+      throw new Error(
+        `security.maxPayloadSize must be between ${MIN_PAYLOAD_SIZE} and ${MAX_PAYLOAD_SIZE} bytes`,
+      );
     }
 
     // Validate allowed domains
@@ -104,7 +106,7 @@ export class ConfigValidator {
     if (cache.maxCacheSize < 0 || cache.maxCacheSize > 1000) {
       throw new Error('cache.maxCacheSize must be between 0 and 1000');
     }
-    
+
     if (cache.cacheTimeout < 0) {
       throw new Error('cache.cacheTimeout must be non-negative');
     }

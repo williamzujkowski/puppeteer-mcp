@@ -21,92 +21,92 @@ const NETWORK_ERROR_TESTS = {
     {
       name: 'non_existent_domain',
       url: 'https://this-domain-absolutely-does-not-exist-' + Date.now() + '.com',
-      expectedErrors: ['ENOTFOUND', 'DNS_FAIL', 'ERR_NAME_NOT_RESOLVED']
+      expectedErrors: ['ENOTFOUND', 'DNS_FAIL', 'ERR_NAME_NOT_RESOLVED'],
     },
     {
       name: 'invalid_tld',
       url: 'https://example.invalid-tld-12345',
-      expectedErrors: ['ENOTFOUND', 'DNS_FAIL', 'ERR_NAME_NOT_RESOLVED']
+      expectedErrors: ['ENOTFOUND', 'DNS_FAIL', 'ERR_NAME_NOT_RESOLVED'],
     },
     {
       name: 'malformed_domain',
       url: 'https://sub..domain..com',
-      expectedErrors: ['ENOTFOUND', 'DNS_FAIL', 'ERR_NAME_NOT_RESOLVED', 'ERR_INVALID_URL']
-    }
+      expectedErrors: ['ENOTFOUND', 'DNS_FAIL', 'ERR_NAME_NOT_RESOLVED', 'ERR_INVALID_URL'],
+    },
   ],
   connectionRefused: [
     {
       name: 'localhost_closed_port',
       url: 'http://localhost:65432', // Unlikely to be open
-      expectedErrors: ['ECONNREFUSED', 'ERR_CONNECTION_REFUSED']
+      expectedErrors: ['ECONNREFUSED', 'ERR_CONNECTION_REFUSED'],
     },
     {
       name: 'local_ip_closed_port',
       url: 'http://127.0.0.1:65431',
-      expectedErrors: ['ECONNREFUSED', 'ERR_CONNECTION_REFUSED']
+      expectedErrors: ['ECONNREFUSED', 'ERR_CONNECTION_REFUSED'],
     },
     {
       name: 'private_ip_unreachable',
       url: 'http://192.168.255.254:80', // Unlikely to exist
-      expectedErrors: ['ETIMEDOUT', 'ECONNREFUSED', 'ERR_CONNECTION_TIMED_OUT']
-    }
+      expectedErrors: ['ETIMEDOUT', 'ECONNREFUSED', 'ERR_CONNECTION_TIMED_OUT'],
+    },
   ],
   networkUnreachable: [
     {
       name: 'ipv6_loopback_closed',
       url: 'http://[::1]:65430',
-      expectedErrors: ['ECONNREFUSED', 'ENETUNREACH', 'ERR_CONNECTION_REFUSED']
+      expectedErrors: ['ECONNREFUSED', 'ENETUNREACH', 'ERR_CONNECTION_REFUSED'],
     },
     {
       name: 'reserved_ip_block',
       url: 'http://240.0.0.1', // Reserved for future use
-      expectedErrors: ['ETIMEDOUT', 'ENETUNREACH', 'ERR_ADDRESS_UNREACHABLE']
-    }
+      expectedErrors: ['ETIMEDOUT', 'ENETUNREACH', 'ERR_ADDRESS_UNREACHABLE'],
+    },
   ],
   certificateErrors: [
     {
       name: 'expired_certificate',
       url: 'https://expired.badssl.com/',
-      expectedErrors: ['ERR_CERT_DATE_INVALID', 'CERT_HAS_EXPIRED']
+      expectedErrors: ['ERR_CERT_DATE_INVALID', 'CERT_HAS_EXPIRED'],
     },
     {
       name: 'wrong_host_certificate',
       url: 'https://wrong.host.badssl.com/',
-      expectedErrors: ['ERR_CERT_COMMON_NAME_INVALID', 'CERT_INVALID']
+      expectedErrors: ['ERR_CERT_COMMON_NAME_INVALID', 'CERT_INVALID'],
     },
     {
       name: 'self_signed_certificate',
       url: 'https://self-signed.badssl.com/',
-      expectedErrors: ['ERR_CERT_AUTHORITY_INVALID', 'SELF_SIGNED_CERT']
+      expectedErrors: ['ERR_CERT_AUTHORITY_INVALID', 'SELF_SIGNED_CERT'],
     },
     {
       name: 'untrusted_root',
       url: 'https://untrusted-root.badssl.com/',
-      expectedErrors: ['ERR_CERT_AUTHORITY_INVALID', 'UNABLE_TO_VERIFY']
-    }
+      expectedErrors: ['ERR_CERT_AUTHORITY_INVALID', 'UNABLE_TO_VERIFY'],
+    },
   ],
   httpErrors: [
     {
       name: 'server_error_500',
       url: 'https://httpstat.us/500',
-      expectedErrors: ['500', 'Internal Server Error']
+      expectedErrors: ['500', 'Internal Server Error'],
     },
     {
       name: 'bad_gateway_502',
       url: 'https://httpstat.us/502',
-      expectedErrors: ['502', 'Bad Gateway']
+      expectedErrors: ['502', 'Bad Gateway'],
     },
     {
       name: 'service_unavailable_503',
       url: 'https://httpstat.us/503',
-      expectedErrors: ['503', 'Service Unavailable']
+      expectedErrors: ['503', 'Service Unavailable'],
     },
     {
       name: 'gateway_timeout_504',
       url: 'https://httpstat.us/504',
-      expectedErrors: ['504', 'Gateway Timeout']
-    }
-  ]
+      expectedErrors: ['504', 'Gateway Timeout'],
+    },
+  ],
 };
 
 // Helper functions
@@ -115,7 +115,7 @@ async function setupSession() {
     const response = await axios.post(
       `${API_BASE}/v1/sessions/dev-create`,
       {},
-      { headers: { Authorization: `Bearer ${TOKEN}` } }
+      { headers: { Authorization: `Bearer ${TOKEN}` } },
     );
     // Store the token for later use
     if (response.data.data?.tokens?.accessToken) {
@@ -142,7 +142,7 @@ async function testNetworkError(sessionId, test, category) {
     errorMessage: null,
     responseTime: 0,
     httpStatus: null,
-    errorHandled: false
+    errorHandled: false,
   };
 
   try {
@@ -151,16 +151,16 @@ async function testNetworkError(sessionId, test, category) {
       {
         sessionId,
         action: 'navigate',
-        params: { 
+        params: {
           url: test.url,
-          ignoreHTTPSErrors: category === 'certificateErrors' // Allow cert errors for testing
-        }
+          ignoreHTTPSErrors: category === 'certificateErrors', // Allow cert errors for testing
+        },
       },
-      { 
+      {
         headers: { Authorization: `Bearer ${TOKEN}` },
         timeout: 30000,
-        validateStatus: () => true
-      }
+        validateStatus: () => true,
+      },
     );
 
     result.responseTime = Date.now() - startTime;
@@ -184,31 +184,32 @@ async function testNetworkError(sessionId, test, category) {
       result.errorCode = response.data.code || response.status;
       result.errorMessage = response.data.message || response.statusText;
       result.details = response.data.details;
-      
+
       // Check if error matches expected
       result.errorHandled = true;
-      result.success = test.expectedErrors.some(expected => 
-        result.actualError.includes(expected) ||
-        result.errorMessage?.includes(expected) ||
-        result.errorCode?.toString().includes(expected)
+      result.success = test.expectedErrors.some(
+        (expected) =>
+          result.actualError.includes(expected) ||
+          result.errorMessage?.includes(expected) ||
+          result.errorCode?.toString().includes(expected),
       );
     }
   } catch (error) {
     result.responseTime = Date.now() - startTime;
     result.actualError = error.code || 'NETWORK_ERROR';
     result.errorMessage = error.message;
-    
+
     if (error.response) {
       result.httpStatus = error.response.status;
       result.errorCode = error.response.data?.code || error.response.status;
       result.details = error.response.data;
     }
-    
+
     // Network errors are expected for these tests
     result.errorHandled = true;
-    result.success = test.expectedErrors.some(expected => 
-      result.actualError.includes(expected) ||
-      result.errorMessage?.includes(expected)
+    result.success = test.expectedErrors.some(
+      (expected) =>
+        result.actualError.includes(expected) || result.errorMessage?.includes(expected),
     );
   }
 
@@ -221,7 +222,7 @@ async function testOfflineMode(sessionId) {
     test: 'offline_mode_simulation',
     timestamp: new Date().toISOString(),
     success: false,
-    steps: []
+    steps: [],
   };
 
   try {
@@ -231,14 +232,14 @@ async function testOfflineMode(sessionId) {
       {
         sessionId,
         action: 'navigate',
-        params: { url: 'https://williamzujkowski.github.io/' }
+        params: { url: 'https://williamzujkowski.github.io/' },
       },
-      { headers: { Authorization: `Bearer ${TOKEN}` } }
+      { headers: { Authorization: `Bearer ${TOKEN}` } },
     );
 
     result.steps.push({
       step: 'initial_online_navigation',
-      success: onlineNav.status === 200
+      success: onlineNav.status === 200,
     });
 
     // Step 2: Simulate offline mode (if supported)
@@ -247,7 +248,7 @@ async function testOfflineMode(sessionId) {
       {
         sessionId,
         action: 'evaluate',
-        params: { 
+        params: {
           script: `
             if (window.navigator.onLine !== undefined) {
               // Try to simulate offline
@@ -258,19 +259,19 @@ async function testOfflineMode(sessionId) {
               };
             }
             return { supported: false };
-          `
-        }
+          `,
+        },
       },
-      { 
+      {
         headers: { Authorization: `Bearer ${TOKEN}` },
-        validateStatus: () => true
-      }
+        validateStatus: () => true,
+      },
     );
 
     result.steps.push({
       step: 'offline_mode_check',
       success: offlineMode.status === 200,
-      details: offlineMode.data.data?.result
+      details: offlineMode.data.data?.result,
     });
 
     // Step 3: Try navigation while "offline"
@@ -279,23 +280,22 @@ async function testOfflineMode(sessionId) {
       {
         sessionId,
         action: 'navigate',
-        params: { url: 'https://example.com' }
+        params: { url: 'https://example.com' },
       },
-      { 
+      {
         headers: { Authorization: `Bearer ${TOKEN}` },
-        validateStatus: () => true
-      }
+        validateStatus: () => true,
+      },
     );
 
     result.steps.push({
       step: 'offline_navigation_attempt',
       success: offlineNav.status >= 400, // Should fail
       error: offlineNav.data.error,
-      message: offlineNav.data.message
+      message: offlineNav.data.message,
     });
 
-    result.success = result.steps.every(step => step.success);
-
+    result.success = result.steps.every((step) => step.success);
   } catch (error) {
     result.error = error.message;
   }
@@ -309,12 +309,12 @@ async function testNetworkThrottling(sessionId) {
     test: 'network_throttling',
     timestamp: new Date().toISOString(),
     success: false,
-    conditions: []
+    conditions: [],
   };
 
   const throttleConditions = [
     { name: 'slow_3g', latency: 400, downloadThroughput: 50 * 1024, uploadThroughput: 50 * 1024 },
-    { name: 'offline', latency: 0, downloadThroughput: -1, uploadThroughput: -1 }
+    { name: 'offline', latency: 0, downloadThroughput: -1, uploadThroughput: -1 },
   ];
 
   try {
@@ -323,7 +323,7 @@ async function testNetworkThrottling(sessionId) {
         condition: condition.name,
         applied: false,
         navigationTime: 0,
-        error: null
+        error: null,
       };
 
       // Try to apply network conditions (if supported)
@@ -332,17 +332,17 @@ async function testNetworkThrottling(sessionId) {
         {
           sessionId,
           action: 'evaluate',
-          params: { 
+          params: {
             script: `
               // Check if we can access Chrome DevTools Protocol
               return { cdpAvailable: typeof window.chrome !== 'undefined' };
-            `
-          }
+            `,
+          },
         },
-        { 
+        {
           headers: { Authorization: `Bearer ${TOKEN}` },
-          validateStatus: () => true
-        }
+          validateStatus: () => true,
+        },
       );
 
       conditionResult.cdpInfo = applyConditions.data.data?.result;
@@ -354,22 +354,22 @@ async function testNetworkThrottling(sessionId) {
         {
           sessionId,
           action: 'navigate',
-          params: { 
+          params: {
             url: 'https://williamzujkowski.github.io/paperclips/index2.html',
-            timeout: 20000
-          }
+            timeout: 20000,
+          },
         },
-        { 
+        {
           headers: { Authorization: `Bearer ${TOKEN}` },
           timeout: 25000,
-          validateStatus: () => true
-        }
+          validateStatus: () => true,
+        },
       );
 
       conditionResult.navigationTime = Date.now() - navStart;
-      conditionResult.success = navResult.status === 200 || 
-                                (condition.name === 'offline' && navResult.status >= 400);
-      
+      conditionResult.success =
+        navResult.status === 200 || (condition.name === 'offline' && navResult.status >= 400);
+
       if (navResult.status >= 400) {
         conditionResult.error = navResult.data.error;
       }
@@ -378,7 +378,6 @@ async function testNetworkThrottling(sessionId) {
     }
 
     result.success = result.conditions.length > 0;
-
   } catch (error) {
     result.error = error.message;
   }
@@ -392,13 +391,13 @@ async function testErrorRecovery(sessionId) {
     test: 'network_error_recovery',
     timestamp: new Date().toISOString(),
     success: false,
-    recoveryTests: []
+    recoveryTests: [],
   };
 
   const errorScenarios = [
     { type: 'dns_failure', url: 'https://non-existent-' + Date.now() + '.com' },
     { type: 'connection_refused', url: 'http://localhost:65433' },
-    { type: 'timeout', url: 'https://httpstat.us/200?sleep=1000' }
+    { type: 'timeout', url: 'https://httpstat.us/200?sleep=1000' },
   ];
 
   try {
@@ -407,7 +406,7 @@ async function testErrorRecovery(sessionId) {
         scenario: scenario.type,
         errorOccurred: false,
         recovered: false,
-        details: {}
+        details: {},
       };
 
       // Cause the error
@@ -416,13 +415,13 @@ async function testErrorRecovery(sessionId) {
         {
           sessionId,
           action: 'navigate',
-          params: { url: scenario.url, timeout: 3000 }
+          params: { url: scenario.url, timeout: 3000 },
         },
-        { 
+        {
           headers: { Authorization: `Bearer ${TOKEN}` },
           timeout: 5000,
-          validateStatus: () => true
-        }
+          validateStatus: () => true,
+        },
       );
 
       recoveryTest.errorOccurred = errorResult.status >= 400;
@@ -434,28 +433,25 @@ async function testErrorRecovery(sessionId) {
         {
           sessionId,
           action: 'navigate',
-          params: { url: 'https://williamzujkowski.github.io/' }
+          params: { url: 'https://williamzujkowski.github.io/' },
         },
-        { 
+        {
           headers: { Authorization: `Bearer ${TOKEN}` },
           timeout: 10000,
-          validateStatus: () => true
-        }
+          validateStatus: () => true,
+        },
       );
 
       recoveryTest.recovered = recoveryResult.status === 200;
       recoveryTest.details.recovery = {
         status: recoveryResult.status,
-        url: recoveryResult.data.data?.url
+        url: recoveryResult.data.data?.url,
       };
 
       result.recoveryTests.push(recoveryTest);
     }
 
-    result.success = result.recoveryTests.every(test => 
-      test.errorOccurred && test.recovered
-    );
-
+    result.success = result.recoveryTests.every((test) => test.errorOccurred && test.recovered);
   } catch (error) {
     result.error = error.message;
   }
@@ -465,7 +461,7 @@ async function testErrorRecovery(sessionId) {
 
 async function runTests() {
   console.log('Starting Network Error Handling Tests...\n');
-  
+
   const results = {
     testSuite: 'network-error-handling',
     timestamp: new Date().toISOString(),
@@ -473,12 +469,12 @@ async function runTests() {
       total: 0,
       passed: 0,
       failed: 0,
-      categories: {}
+      categories: {},
     },
     tests: [],
     offlineMode: null,
     throttling: null,
-    recovery: null
+    recovery: null,
   };
 
   let sessionId;
@@ -493,20 +489,20 @@ async function runTests() {
     for (const [category, tests] of Object.entries(NETWORK_ERROR_TESTS)) {
       console.log(`\nTesting ${category}:`);
       console.log('='.repeat(50));
-      
+
       results.summary.categories[category] = {
         total: tests.length,
         passed: 0,
-        failed: 0
+        failed: 0,
       };
 
       for (const test of tests) {
         process.stdout.write(`Testing ${test.name}...`);
         const result = await testNetworkError(sessionId, test, category);
-        
+
         results.tests.push(result);
         results.summary.total++;
-        
+
         if (result.success) {
           results.summary.passed++;
           results.summary.categories[category].passed++;
@@ -521,7 +517,7 @@ async function runTests() {
         }
 
         // Small delay between tests
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise((resolve) => setTimeout(resolve, 500));
       }
     }
 
@@ -529,13 +525,13 @@ async function runTests() {
     console.log('\n\nTesting Offline Mode:');
     console.log('='.repeat(50));
     results.offlineMode = await testOfflineMode(sessionId);
-    
+
     if (results.offlineMode.success) {
       console.log('✓ Offline mode handling verified');
     } else {
       console.log('✗ Offline mode test incomplete');
     }
-    results.offlineMode.steps.forEach(step => {
+    results.offlineMode.steps.forEach((step) => {
       console.log(`  - ${step.step}: ${step.success ? '✓' : '✗'}`);
     });
 
@@ -543,10 +539,10 @@ async function runTests() {
     console.log('\n\nTesting Network Throttling:');
     console.log('='.repeat(50));
     results.throttling = await testNetworkThrottling(sessionId);
-    
+
     if (results.throttling.success) {
       console.log('✓ Network condition tests completed');
-      results.throttling.conditions.forEach(cond => {
+      results.throttling.conditions.forEach((cond) => {
         console.log(`  - ${cond.condition}: ${cond.navigationTime}ms`);
       });
     } else {
@@ -557,16 +553,17 @@ async function runTests() {
     console.log('\n\nTesting Error Recovery:');
     console.log('='.repeat(50));
     results.recovery = await testErrorRecovery(sessionId);
-    
+
     if (results.recovery.success) {
       console.log('✓ All network errors recovered successfully');
     } else {
       console.log('✗ Some recovery tests failed');
     }
-    results.recovery.recoveryTests?.forEach(test => {
-      console.log(`  - ${test.scenario}: Error=${test.errorOccurred ? '✓' : '✗'}, Recovery=${test.recovered ? '✓' : '✗'}`);
+    results.recovery.recoveryTests?.forEach((test) => {
+      console.log(
+        `  - ${test.scenario}: Error=${test.errorOccurred ? '✓' : '✗'}, Recovery=${test.recovered ? '✓' : '✗'}`,
+      );
     });
-
   } catch (error) {
     console.error('\nTest suite error:', error.message);
     results.error = error.message;
@@ -574,10 +571,9 @@ async function runTests() {
     // Cleanup
     if (sessionId) {
       try {
-        await axios.delete(
-          `${API_BASE}/v1/sessions/dev-create/${sessionId}`,
-          { headers: { Authorization: `Bearer ${TOKEN}` } }
-        );
+        await axios.delete(`${API_BASE}/v1/sessions/dev-create/${sessionId}`, {
+          headers: { Authorization: `Bearer ${TOKEN}` },
+        });
         console.log('\nTest session cleaned up');
       } catch (error) {
         console.error('Failed to cleanup session:', error.message);
@@ -594,37 +590,39 @@ async function runTests() {
   console.log('\n\nTest Summary:');
   console.log('='.repeat(50));
   console.log(`Total Tests: ${results.summary.total}`);
-  console.log(`Passed: ${results.summary.passed} (${(results.summary.passed/results.summary.total*100).toFixed(1)}%)`);
+  console.log(
+    `Passed: ${results.summary.passed} (${((results.summary.passed / results.summary.total) * 100).toFixed(1)}%)`,
+  );
   console.log(`Failed: ${results.summary.failed}`);
-  
+
   console.log('\nBy Category:');
   for (const [category, stats] of Object.entries(results.summary.categories)) {
-    const percentage = (stats.passed/stats.total*100).toFixed(1);
+    const percentage = ((stats.passed / stats.total) * 100).toFixed(1);
     console.log(`  ${category}: ${stats.passed}/${stats.total} passed (${percentage}%)`);
   }
 
   // Network error handling analysis
   console.log('\n\nNetwork Error Handling Analysis:');
   console.log('='.repeat(50));
-  
-  const handledErrors = results.tests.filter(t => t.errorHandled);
+
+  const handledErrors = results.tests.filter((t) => t.errorHandled);
   console.log(`✓ ${handledErrors.length}/${results.tests.length} network errors properly handled`);
-  
-  const unhandledErrors = results.tests.filter(t => !t.errorHandled && !t.success);
+
+  const unhandledErrors = results.tests.filter((t) => !t.errorHandled && !t.success);
   if (unhandledErrors.length > 0) {
     console.log(`\n⚠️  ${unhandledErrors.length} unhandled network errors:`);
-    unhandledErrors.forEach(e => {
+    unhandledErrors.forEach((e) => {
       console.log(`  - ${e.test}: ${e.actualError}`);
     });
   }
 
   // Error categorization
   const errorTypes = {};
-  results.tests.forEach(test => {
+  results.tests.forEach((test) => {
     const error = test.actualError || 'UNKNOWN';
     errorTypes[error] = (errorTypes[error] || 0) + 1;
   });
-  
+
   console.log('\nError Distribution:');
   Object.entries(errorTypes)
     .sort((a, b) => b[1] - a[1])

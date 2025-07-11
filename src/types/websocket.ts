@@ -74,11 +74,13 @@ export const wsAuthSuccessMessageSchema = wsBaseMessageSchema.extend({
  */
 export const wsAuthErrorMessageSchema = wsBaseMessageSchema.extend({
   type: z.literal(WSMessageType.AUTH_ERROR),
-  error: z.object({
-    code: z.string(),
-    message: z.string(),
-    details: z.unknown().optional(),
-  }).optional(),
+  error: z
+    .object({
+      code: z.string(),
+      message: z.string(),
+      details: z.unknown().optional(),
+    })
+    .optional(),
 });
 
 /**

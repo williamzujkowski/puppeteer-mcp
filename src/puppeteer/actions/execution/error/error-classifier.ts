@@ -68,12 +68,12 @@ export class ErrorClassifier {
     }
 
     const message = error.message.toLowerCase();
-    
+
     // Check each pattern
     for (const pattern of this.errorPatterns) {
       if (this.matchesPattern(message, pattern.patterns)) {
         const context = pattern.extractor?.(message) ?? {};
-        
+
         return {
           type: pattern.type,
           message: this.formatErrorMessage(pattern.type, error.message),
@@ -97,7 +97,7 @@ export class ErrorClassifier {
    * Check if message matches any of the patterns
    */
   private matchesPattern(message: string, patterns: string[]): boolean {
-    return patterns.every(pattern => message.includes(pattern));
+    return patterns.every((pattern) => message.includes(pattern));
   }
 
   /**
@@ -159,7 +159,7 @@ export class ErrorClassifier {
   private extractUrl(message: string): string | undefined {
     const urlMatch = message.match(/url[:\s]*['"`]([^'"`]+)['"`]/i);
     if (urlMatch) return urlMatch[1];
-    
+
     // Try to match HTTP(S) URLs
     const httpMatch = message.match(/(https?:\/\/[^\s]+)/i);
     return httpMatch?.[1];
@@ -176,7 +176,7 @@ export class ErrorClassifier {
     }
 
     const message = error.message.toLowerCase();
-    
+
     // Non-retryable patterns
     const nonRetryablePatterns = [
       'page closed',
@@ -189,7 +189,7 @@ export class ErrorClassifier {
       'not supported',
     ];
 
-    if (nonRetryablePatterns.some(pattern => message.includes(pattern))) {
+    if (nonRetryablePatterns.some((pattern) => message.includes(pattern))) {
       return false;
     }
 
@@ -205,7 +205,7 @@ export class ErrorClassifier {
       'navigation failed',
     ];
 
-    if (retryablePatterns.some(pattern => message.includes(pattern))) {
+    if (retryablePatterns.some((pattern) => message.includes(pattern))) {
       return true;
     }
 

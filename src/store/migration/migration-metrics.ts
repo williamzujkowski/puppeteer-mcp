@@ -53,12 +53,15 @@ export class MigrationMetrics {
   recordMigrationCompletion(context: MigrationContext): void {
     context.stats.duration = Date.now() - context.startTime;
 
-    this.logger.info({
-      migrated: context.stats.migratedSessions,
-      failed: context.stats.failedSessions,
-      skipped: context.stats.skippedSessions,
-      duration: context.stats.duration
-    }, 'Session migration completed');
+    this.logger.info(
+      {
+        migrated: context.stats.migratedSessions,
+        failed: context.stats.failedSessions,
+        skipped: context.stats.skippedSessions,
+        duration: context.stats.duration,
+      },
+      'Session migration completed',
+    );
   }
 
   /**
@@ -66,13 +69,13 @@ export class MigrationMetrics {
    */
   recordMigrationError(context: MigrationContext, error: unknown): void {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    
+
     this.logger.error({ error: errorMessage }, 'Session migration failed');
-    
+
     context.stats.duration = Date.now() - context.startTime;
     context.stats.errors.push({
       sessionId: 'migration',
-      error: errorMessage
+      error: errorMessage,
     });
   }
 
@@ -98,16 +101,19 @@ export class MigrationMetrics {
   recordSessionMigrationFailure(stats: MigrationStats, sessionId: string, error: unknown): void {
     stats.failedSessions++;
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    
+
     stats.errors.push({
       sessionId,
-      error: errorMessage
+      error: errorMessage,
     });
 
-    this.logger.error({ 
-      sessionId, 
-      error: errorMessage 
-    }, 'Failed to migrate session');
+    this.logger.error(
+      {
+        sessionId,
+        error: errorMessage,
+      },
+      'Failed to migrate session',
+    );
   }
 
   /**
@@ -130,16 +136,19 @@ export class MigrationMetrics {
   recordRestoreError(stats: RestoreStats, sessionId: string, error: unknown): void {
     stats.failed++;
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    
+
     stats.errors.push({
       sessionId,
-      error: errorMessage
+      error: errorMessage,
     });
 
-    this.logger.error({ 
-      sessionId, 
-      error: errorMessage 
-    }, 'Failed to restore session');
+    this.logger.error(
+      {
+        sessionId,
+        error: errorMessage,
+      },
+      'Failed to restore session',
+    );
   }
 
   /**

@@ -21,17 +21,17 @@ export class ErrorMetrics {
       description: 'Total number of navigation errors',
       unit: '1',
     });
-    
+
     this.evaluationErrors = meter.createCounter('browser_evaluation_errors_total', {
       description: 'Total number of JavaScript evaluation errors',
       unit: '1',
     });
-    
+
     this.timeoutErrors = meter.createCounter('browser_timeout_errors_total', {
       description: 'Total number of timeout errors',
       unit: '1',
     });
-    
+
     this.poolExhaustedErrors = meter.createCounter('pool_exhausted_errors_total', {
       description: 'Total number of pool exhaustion errors',
       unit: '1',
@@ -45,7 +45,7 @@ export class ErrorMetrics {
     const labels = {
       domain: new URL(url).hostname,
     };
-    
+
     this.navigationErrors.add(1, labels);
   }
 

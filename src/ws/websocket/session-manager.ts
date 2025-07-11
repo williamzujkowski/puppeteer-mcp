@@ -3,7 +3,7 @@
  * @module ws/websocket/session-manager
  * @nist ac-3 "Access enforcement"
  * @nist au-3 "Content of audit records"
- * 
+ *
  * This file maintains backward compatibility while delegating to modular components
  */
 
@@ -17,7 +17,7 @@ import type { SessionInfo, SessionStats } from './session/types.js';
  * WebSocket session state management
  * Manages session lifecycle, validation, and cleanup
  * @nist ac-3 "Access enforcement"
- * 
+ *
  * This class now delegates to modular components while maintaining the original API
  */
 export class SessionManager {
@@ -25,10 +25,7 @@ export class SessionManager {
   private options: SessionManagementOptions;
   private components: SessionManagerComponents;
 
-  constructor(
-    dependencies: WSComponentDependencies,
-    options: SessionManagementOptions = {},
-  ) {
+  constructor(dependencies: WSComponentDependencies, options: SessionManagementOptions = {}) {
     this.logger = dependencies.logger.child({ module: 'ws-session-manager' });
     this.options = {
       sessionTimeout: 3600000, // 1 hour default
@@ -79,7 +76,7 @@ export class SessionManager {
   ): Promise<boolean> {
     try {
       let session = this.components.stateManager.getSession(sessionId);
-      
+
       if (session) {
         // Update existing session
         this.components.stateManager.addConnection(sessionId, connectionId);
@@ -88,9 +85,11 @@ export class SessionManager {
           roles: options?.roles,
           permissions: options?.permissions,
           scopes: options?.scopes,
-          metadata: options?.metadata ? { ...session.metadata, ...options.metadata } : session.metadata,
+          metadata: options?.metadata
+            ? { ...session.metadata, ...options.metadata }
+            : session.metadata,
         });
-        
+
         if (updatedSession) {
           this.components.eventEmitter.emit('session:updated', updatedSession, options ?? {});
           await this.components.persistenceManager.queueSession(updatedSession);
@@ -103,7 +102,7 @@ export class SessionManager {
           connectionId,
           options,
         );
-        
+
         if (!newSession) {
           return false;
         }
@@ -168,10 +167,7 @@ export class SessionManager {
    * Validate session
    * @nist ac-3 "Access enforcement"
    */
-  async validateSession(
-    sessionId: string,
-    connectionManager: ConnectionManager,
-  ): Promise<boolean> {
+  async validateSession(sessionId: string, connectionManager: ConnectionManager): Promise<boolean> {
     const result = await this.components.validationManager.validateSession(
       sessionId,
       connectionManager,

@@ -4,11 +4,7 @@
  * @nist au-5 "Response to audit processing failures"
  */
 
-import {
-  CircuitBreakerState,
-  ExecutionResult,
-  StateTransitionContext,
-} from './types.js';
+import { CircuitBreakerState, ExecutionResult, StateTransitionContext } from './types.js';
 import { CircuitBreakerStateMachine } from './state-management.js';
 import { MetricsCollector } from './metrics-monitor.js';
 import { CacheManager } from './cache-manager.js';
@@ -26,7 +22,7 @@ export class ExecutionHandler {
     private stateMachine: CircuitBreakerStateMachine,
     private metricsCollector: MetricsCollector,
     private cacheManager: CacheManager,
-    private emitEvent: (event: any) => void
+    private emitEvent: (event: any) => void,
   ) {}
 
   /**
@@ -37,10 +33,10 @@ export class ExecutionHandler {
     startTime: number,
     cacheKey?: string,
     failureDetectionStrategy?: any,
-    config?: any
+    config?: any,
   ): Promise<ExecutionResult<T>> {
     const executionTime = Date.now() - startTime;
-    
+
     // Record metrics
     this.metricsCollector.recordSuccess(executionTime);
 
@@ -58,7 +54,7 @@ export class ExecutionHandler {
     if (this.stateMachine.getState() === CircuitBreakerState.HALF_OPEN) {
       const shouldClose = failureDetectionStrategy?.shouldClose(
         this.metricsCollector.getRecentSuccesses(),
-        config
+        config,
       );
 
       if (shouldClose) {
@@ -96,10 +92,10 @@ export class ExecutionHandler {
     cacheKey?: string,
     startTime?: number,
     failureDetectionStrategy?: any,
-    config?: any
+    config?: any,
   ): Promise<ExecutionResult<T>> {
     const executionTime = startTime ? Date.now() - startTime : 0;
-    
+
     // Record metrics
     this.metricsCollector.recordFailure(error);
 
@@ -114,7 +110,7 @@ export class ExecutionHandler {
       const shouldOpen = failureDetectionStrategy?.shouldOpen(
         this.metricsCollector.getRecentFailures(),
         this.metricsCollector.getRecentRequests(),
-        config
+        config,
       );
 
       if (shouldOpen) {
@@ -165,10 +161,10 @@ export class ExecutionHandler {
   async handleOpenCircuit<T>(
     fallback?: () => Promise<T>,
     cacheKey?: string,
-    startTime?: number
+    startTime?: number,
   ): Promise<ExecutionResult<T>> {
     const executionTime = startTime ? Date.now() - startTime : 0;
-    
+
     this.emitEvent({
       type: 'rejection',
       state: this.stateMachine.getState(),
@@ -202,7 +198,7 @@ export class ExecutionHandler {
    */
   private async tryFallback<T>(
     fallback?: () => Promise<T>,
-    cacheKey?: string
+    cacheKey?: string,
   ): Promise<{ result: T; fromCache: boolean } | null> {
     // Try fallback function first
     if (fallback) {
@@ -210,10 +206,13 @@ export class ExecutionHandler {
         const result = await fallback();
         return { result, fromCache: false };
       } catch (fallbackError) {
-        logger.debug({
-          circuitBreaker: this.name,
-          error: fallbackError,
-        }, 'Fallback execution failed');
+        logger.debug(
+          {
+            circuitBreaker: this.name,
+            error: fallbackError,
+          },
+          'Fallback execution failed',
+        );
       }
     }
 

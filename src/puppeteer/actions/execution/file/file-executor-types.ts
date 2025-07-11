@@ -24,11 +24,7 @@ export interface FileOperationExecutor {
    * @param context - Execution context
    * @returns Action result
    */
-  execute(
-    action: BrowserAction,
-    page: Page,
-    context: ActionContext,
-  ): Promise<ActionResult>;
+  execute(action: BrowserAction, page: Page, context: ActionContext): Promise<ActionResult>;
 
   /**
    * Get supported action type

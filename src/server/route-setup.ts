@@ -57,9 +57,9 @@ export function setupRootRoute(app: Application, routeConfig: RouteConfig): void
  * Setup health check routes
  */
 export function setupHealthRoutes(
-  app: Application, 
-  routeConfig: RouteConfig, 
-  browserPool: BrowserPool
+  app: Application,
+  routeConfig: RouteConfig,
+  browserPool: BrowserPool,
 ): void {
   if (!routeConfig.enableHealthRoutes) {
     return;
@@ -78,10 +78,7 @@ export function setupHealthRoutes(
 /**
  * Create API router with versioned routes
  */
-export function createApiRouter(
-  sessionStore: SessionStore,
-  browserPool: BrowserPool
-): Router {
+export function createApiRouter(sessionStore: SessionStore, browserPool: BrowserPool): Router {
   const apiRouter = express.Router();
 
   // CSRF token endpoint (requires session but not CSRF protection)
@@ -107,7 +104,7 @@ export function setupApiRoutes(
   app: Application,
   routeConfig: RouteConfig,
   sessionStore: SessionStore,
-  browserPool: BrowserPool
+  browserPool: BrowserPool,
 ): void {
   if (!routeConfig.enableApiRoutes) {
     return;
@@ -147,7 +144,7 @@ export function setupAllRoutes(
   app: Application,
   logger: Logger,
   sessionStore: SessionStore,
-  browserPool: BrowserPool
+  browserPool: BrowserPool,
 ): void {
   const routeConfig = createRouteConfig();
 

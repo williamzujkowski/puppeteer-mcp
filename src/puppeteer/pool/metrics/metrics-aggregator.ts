@@ -79,7 +79,7 @@ export class MetricsAggregator {
    */
   getMetrics(
     browsers: Map<string, InternalBrowserInstance>,
-    maxBrowsers: number
+    maxBrowsers: number,
   ): ExtendedPoolMetrics {
     // Get base pool metrics
     const baseMetrics = getPoolMetrics(browsers, maxBrowsers);

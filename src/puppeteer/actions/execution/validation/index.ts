@@ -45,10 +45,10 @@ export class ValidationOrchestrator {
   async validate(
     action: BrowserAction,
     context: ActionContext,
-    options: ValidationOptions = {}
+    options: ValidationOptions = {},
   ): Promise<ValidationResult> {
     const startTime = Date.now();
-    
+
     try {
       logger.debug('Starting action validation', {
         sessionId: context.sessionId,
@@ -58,8 +58,9 @@ export class ValidationOrchestrator {
       });
 
       // Get applicable validators
-      const validators = ValidatorFactory.getValidatorsForAction(action)
-        .filter(v => !options.skipValidators?.includes(v.constructor.name));
+      const validators = ValidatorFactory.getValidatorsForAction(action).filter(
+        (v) => !options.skipValidators?.includes(v.constructor.name),
+      );
 
       if (validators.length === 0) {
         logger.warn('No validators found for action', {
@@ -98,11 +99,13 @@ export class ValidationOrchestrator {
 
       return {
         valid: false,
-        errors: [{
-          field: 'validation',
-          message: error instanceof Error ? error.message : 'Validation failed',
-          code: 'VALIDATION_ORCHESTRATION_ERROR',
-        }],
+        errors: [
+          {
+            field: 'validation',
+            message: error instanceof Error ? error.message : 'Validation failed',
+            code: 'VALIDATION_ORCHESTRATION_ERROR',
+          },
+        ],
       };
     }
   }
@@ -117,7 +120,7 @@ export class ValidationOrchestrator {
   async validateBatch(
     actions: BrowserAction[],
     context: ActionContext,
-    options: ValidationOptions = {}
+    options: ValidationOptions = {},
   ): Promise<ValidationResult[]> {
     logger.debug('Starting batch validation', {
       sessionId: context.sessionId,
@@ -126,10 +129,10 @@ export class ValidationOrchestrator {
     });
 
     const results = await Promise.all(
-      actions.map(action => this.validate(action, context, options))
+      actions.map((action) => this.validate(action, context, options)),
     );
 
-    const validCount = results.filter(r => r.valid).length;
+    const validCount = results.filter((r) => r.valid).length;
     logger.debug('Batch validation completed', {
       sessionId: context.sessionId,
       contextId: context.contextId,
@@ -150,18 +153,17 @@ export class ValidationOrchestrator {
    * @returns Validation results
    */
   private async runParallel(
-    validators: Array<{ validate: (action: BrowserAction, context: ActionContext) => Promise<ValidationResult> }>,
+    validators: Array<{
+      validate: (action: BrowserAction, context: ActionContext) => Promise<ValidationResult>;
+    }>,
     action: BrowserAction,
     context: ActionContext,
-    options: ValidationOptions
+    options: ValidationOptions,
   ): Promise<ValidationResult[]> {
     const timeout = options.timeout ?? 5000;
-    
-    const promises = validators.map(validator =>
-      Promise.race([
-        validator.validate(action, context),
-        this.createTimeoutPromise(timeout),
-      ])
+
+    const promises = validators.map((validator) =>
+      Promise.race([validator.validate(action, context), this.createTimeoutPromise(timeout)]),
     );
 
     return Promise.all(promises);
@@ -176,10 +178,12 @@ export class ValidationOrchestrator {
    * @returns Validation results
    */
   private async runSequential(
-    validators: Array<{ validate: (action: BrowserAction, context: ActionContext) => Promise<ValidationResult> }>,
+    validators: Array<{
+      validate: (action: BrowserAction, context: ActionContext) => Promise<ValidationResult>;
+    }>,
     action: BrowserAction,
     context: ActionContext,
-    options: ValidationOptions
+    options: ValidationOptions,
   ): Promise<ValidationResult[]> {
     const results: ValidationResult[] = [];
     const timeout = options.timeout ?? 5000;
@@ -257,7 +261,6 @@ export class ValidationOrchestrator {
       warnings: warnings.length > 0 ? warnings : undefined,
     };
   }
-
 }
 
 // Export commonly used items for convenience

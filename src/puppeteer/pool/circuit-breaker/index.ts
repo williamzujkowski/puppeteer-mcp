@@ -10,9 +10,7 @@ export { CircuitBreaker } from './circuit-breaker-core.js';
 export { CircuitBreakerRegistry } from './registry.js';
 
 // Type exports
-export {
-  CircuitBreakerState,
-} from './types.js';
+export { CircuitBreakerState } from './types.js';
 
 export type {
   CircuitBreakerConfig,
@@ -27,10 +25,7 @@ export type {
 } from './types.js';
 
 // Configuration exports
-export {
-  ConfigValidator,
-  ConfigManager,
-} from './config.js';
+export { ConfigValidator, ConfigManager } from './config.js';
 
 export {
   DEFAULT_CIRCUIT_BREAKER_CONFIG,
@@ -63,46 +58,25 @@ export {
 } from './failure-strategies.js';
 
 // Metrics exports
-export {
-  MetricsCollector,
-} from './metrics-monitor.js';
+export { MetricsCollector } from './metrics-monitor.js';
 
-export {
-  PerformanceMonitor,
-  DEFAULT_PERFORMANCE_THRESHOLDS,
-} from './performance-monitor.js';
+export { PerformanceMonitor, DEFAULT_PERFORMANCE_THRESHOLDS } from './performance-monitor.js';
 
-export type {
-  PerformanceThresholds,
-} from './performance-monitor.js';
+export type { PerformanceThresholds } from './performance-monitor.js';
 
 // Cache exports
-export {
-  CacheManager,
-  DEFAULT_CACHE_CONFIG,
-} from './cache-manager.js';
+export { CacheManager, DEFAULT_CACHE_CONFIG } from './cache-manager.js';
 
-export type {
-  CacheConfig,
-} from './cache-manager.js';
+export type { CacheConfig } from './cache-manager.js';
 
-export {
-  CacheOperations,
-} from './cache-operations.js';
+export { CacheOperations } from './cache-operations.js';
 
-export type {
-  CacheStats,
-} from './cache-operations.js';
+export type { CacheStats } from './cache-operations.js';
 
 // Event system exports
-export {
-  EventAggregator,
-} from './event-system.js';
+export { EventAggregator } from './event-system.js';
 
-export type {
-  IEventHandler,
-  IEventFilter,
-} from './event-system.js';
+export type { IEventHandler, IEventFilter } from './event-system.js';
 
 export {
   BaseEventHandler,
@@ -116,14 +90,9 @@ export {
 } from './event-handlers.js';
 
 // Timeout management exports
-export {
-  TimeoutManager,
-  AdaptiveTimeoutManager,
-} from './timeout-manager.js';
+export { TimeoutManager, AdaptiveTimeoutManager } from './timeout-manager.js';
 
-export type {
-  ITimeoutStrategy,
-} from './timeout-manager.js';
+export type { ITimeoutStrategy } from './timeout-manager.js';
 
 export {
   FixedTimeoutStrategy,
@@ -135,10 +104,7 @@ export {
 } from './timeout-strategies.js';
 
 // Registry exports
-export type {
-  RegistryStatus,
-  RegistryOptions,
-} from './registry.js';
+export type { RegistryStatus, RegistryOptions } from './registry.js';
 
 export {
   findByState,
@@ -150,14 +116,10 @@ export {
   evictCircuitBreaker,
 } from './registry-utils.js';
 
-export type {
-  RegistryExportData,
-} from './registry-utils.js';
+export type { RegistryExportData } from './registry-utils.js';
 
 // Execution handler exports
-export {
-  ExecutionHandler,
-} from './execution-handler.js';
+export { ExecutionHandler } from './execution-handler.js';
 
 // Setup exports
 export {

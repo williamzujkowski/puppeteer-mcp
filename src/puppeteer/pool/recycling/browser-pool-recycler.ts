@@ -42,13 +42,13 @@ export class BrowserPoolRecycler extends EventEmitter {
   private lifecycleManager: BrowserLifecycleManager;
   private cleanupManager: CleanupManager;
   private metricsCollector: RecyclingMetricsCollector;
-  
+
   private strategyManager: StrategyManager;
   private evaluationEngine: EvaluationEngine;
 
   constructor(config: Partial<RecyclingConfig> = {}) {
     super();
-    
+
     // Initialize components
     this.configManager = new RecyclingConfigManager(config);
     this.healthChecker = new BrowserHealthChecker();
@@ -58,16 +58,16 @@ export class BrowserPoolRecycler extends EventEmitter {
     this.cleanupManager = new CleanupManager();
     this.metricsCollector = new RecyclingMetricsCollector();
     this.strategyManager = new StrategyManager();
-    
+
     // Initialize evaluation engine
     this.evaluationEngine = new EvaluationEngine({
       healthChecker: this.healthChecker,
       resourceAnalyzer: this.resourceAnalyzer,
       strategyManager: this.strategyManager,
       lifecycleManager: this.lifecycleManager,
-      getConfig: () => this.configManager.getConfig()
+      getConfig: () => this.configManager.getConfig(),
     });
-    
+
     // Wire up events
     this.wireUpEvents();
   }
@@ -81,7 +81,7 @@ export class BrowserPoolRecycler extends EventEmitter {
     this.scheduler.on('scheduled-maintenance-trigger', () => {
       this.emit('scheduled-maintenance-trigger');
     });
-    
+
     this.scheduler.on('cooldown-expired', () => {
       this.emit('cooldown-expired');
     });
@@ -110,12 +110,12 @@ export class BrowserPoolRecycler extends EventEmitter {
    */
   evaluateBrowsers(
     browsers: Map<string, InternalBrowserInstance>,
-    resourceUsage: Map<string, BrowserResourceUsage>
+    resourceUsage: Map<string, BrowserResourceUsage>,
   ): RecyclingCandidate[] {
     return this.evaluationEngine.evaluateBrowsers(
       browsers,
       resourceUsage,
-      this.configManager.getValue('recyclingThreshold')
+      this.configManager.getValue('recyclingThreshold'),
     );
   }
 
@@ -125,12 +125,12 @@ export class BrowserPoolRecycler extends EventEmitter {
    */
   evaluateBrowser(
     instance: InternalBrowserInstance,
-    resourceUsage?: BrowserResourceUsage
+    resourceUsage?: BrowserResourceUsage,
   ): RecyclingCandidate {
     return this.evaluationEngine.evaluateBrowser(
       instance,
       resourceUsage,
-      this.configManager.getValue('recyclingThreshold')
+      this.configManager.getValue('recyclingThreshold'),
     );
   }
 
@@ -148,39 +148,39 @@ export class BrowserPoolRecycler extends EventEmitter {
    */
   async executeRecycling(
     candidates: RecyclingCandidate[],
-    recycleCallback: (browserId: string) => Promise<void>
+    recycleCallback: (browserId: string) => Promise<void>,
   ): Promise<RecyclingEvent[]> {
     // Validate operation
     const validation = this.cleanupManager.validateCleanupOperation(
       candidates,
       this.scheduler.isInCooldown(),
-      this.configManager.isEnabled()
+      this.configManager.isEnabled(),
     );
-    
+
     if (!validation.valid) {
       logger.debug(validation.reason, 'Recycling operation skipped');
       return [];
     }
-    
+
     // Prepare batch
     const toRecycle = this.cleanupManager.prepareCleanupBatch(
       candidates,
       this.configManager.getValue('batchRecyclingEnabled'),
-      this.configManager.getValue('maxBatchSize')
+      this.configManager.getValue('maxBatchSize'),
     );
-    
+
     // Mark browsers as recycling
     for (const candidate of toRecycle) {
       this.lifecycleManager.markAsRecycling(candidate.browserId);
     }
-    
+
     // Execute cleanup
     const events = await this.cleanupManager.executeCleanup(
       toRecycle,
       recycleCallback,
-      this.configManager.getValue('maxBatchSize')
+      this.configManager.getValue('maxBatchSize'),
     );
-    
+
     // Update metrics and lifecycle
     for (const event of events) {
       this.metricsCollector.addRecyclingEvent(event);
@@ -189,12 +189,12 @@ export class BrowserPoolRecycler extends EventEmitter {
         this.healthChecker.clearHealthMetrics(event.browserId);
       }
     }
-    
+
     if (events.length > 0) {
       this.scheduler.updateLastRecyclingTime();
       this.emit('browsers-recycled', events);
     }
-    
+
     return events;
   }
 
@@ -217,13 +217,13 @@ export class BrowserPoolRecycler extends EventEmitter {
       logger.error({ errors }, 'Invalid recycling configuration');
       return;
     }
-    
+
     // Update config manager
     this.configManager.updateConfig(newConfig);
-    
+
     // Update scheduler config
     this.scheduler.updateConfig(this.configManager.getConfig());
-    
+
     // Forward config update event
     this.configManager.once('config-updated', (event) => {
       this.emit('config-updated', event);
@@ -243,5 +243,4 @@ export class BrowserPoolRecycler extends EventEmitter {
   getPerformanceMetrics(): ReturnType<RecyclingMetricsCollector['getPerformanceMetrics']> {
     return this.metricsCollector.getPerformanceMetrics();
   }
-
 }

@@ -18,7 +18,7 @@ const colors = {
   green: '\x1b[32m',
   yellow: '\x1b[33m',
   blue: '\x1b[34m',
-  cyan: '\x1b[36m'
+  cyan: '\x1b[36m',
 };
 
 // Checklist items
@@ -29,29 +29,29 @@ const checklist = [
       {
         name: 'All tests passing',
         command: 'npm test',
-        critical: true
+        critical: true,
       },
       {
         name: 'No TypeScript errors',
         command: 'npm run typecheck',
-        critical: true
+        critical: true,
       },
       {
         name: 'No ESLint errors',
         command: 'npm run lint',
-        critical: true
+        critical: true,
       },
       {
         name: 'Code formatted',
         command: 'npm run format:check',
-        critical: false
+        critical: false,
       },
       {
         name: 'Build successful',
         command: 'npm run build',
-        critical: true
-      }
-    ]
+        critical: true,
+      },
+    ],
   },
   {
     category: 'Security',
@@ -59,20 +59,20 @@ const checklist = [
       {
         name: 'No high/critical vulnerabilities',
         command: 'npm audit --production --audit-level=high',
-        critical: true
+        critical: true,
       },
       {
         name: 'Security checks pass',
         command: 'npm run security:check',
-        critical: true
+        critical: true,
       },
       {
         name: 'Dependencies up to date',
         command: 'npm outdated || true',
         critical: false,
-        manual: true
-      }
-    ]
+        manual: true,
+      },
+    ],
   },
   {
     category: 'Documentation',
@@ -81,26 +81,30 @@ const checklist = [
         name: 'CHANGELOG.md updated',
         check: () => {
           const changelog = readFileSync(join(projectRoot, 'CHANGELOG.md'), 'utf8');
-          const version = JSON.parse(readFileSync(join(projectRoot, 'package.json'), 'utf8')).version;
+          const version = JSON.parse(
+            readFileSync(join(projectRoot, 'package.json'), 'utf8'),
+          ).version;
           return changelog.includes(`[${version}]`);
         },
-        critical: true
+        critical: true,
       },
       {
         name: 'README.md version updated',
         check: () => {
           const readme = readFileSync(join(projectRoot, 'README.md'), 'utf8');
-          const version = JSON.parse(readFileSync(join(projectRoot, 'package.json'), 'utf8')).version;
+          const version = JSON.parse(
+            readFileSync(join(projectRoot, 'package.json'), 'utf8'),
+          ).version;
           return readme.includes(version);
         },
-        critical: false
+        critical: false,
       },
       {
         name: 'API documentation generated',
         command: 'ls docs/api/generated',
-        critical: false
-      }
-    ]
+        critical: false,
+      },
+    ],
   },
   {
     category: 'Version Management',
@@ -108,27 +112,27 @@ const checklist = [
       {
         name: 'Version consistency',
         command: 'npm run version:check',
-        critical: true
+        critical: true,
       },
       {
         name: 'Git working directory clean',
         command: 'git status --porcelain',
         check: (output) => output.trim() === '',
-        critical: true
+        critical: true,
       },
       {
         name: 'On main branch',
         command: 'git branch --show-current',
         check: (output) => output.trim() === 'main',
-        critical: true
+        critical: true,
       },
       {
         name: 'Up to date with remote',
         command: 'git fetch && git status -uno',
         check: (output) => output.includes('Your branch is up to date'),
-        critical: true
-      }
-    ]
+        critical: true,
+      },
+    ],
   },
   {
     category: 'Performance',
@@ -136,7 +140,7 @@ const checklist = [
       {
         name: 'Performance benchmarks within limits',
         command: 'node scripts/check-performance.js',
-        critical: false
+        critical: false,
       },
       {
         name: 'Bundle size acceptable',
@@ -145,32 +149,32 @@ const checklist = [
           const sizeInMB = parseFloat(stats.split('\t')[0].replace('M', ''));
           return sizeInMB < 50; // 50MB limit
         },
-        critical: false
-      }
-    ]
-  }
+        critical: false,
+      },
+    ],
+  },
 ];
 
 // Run checklist
 async function runChecklist() {
   console.log(`${colors.bright}${colors.cyan}🚀 Release Preparation Checklist${colors.reset}\n`);
-  
+
   const results = {
     passed: 0,
     failed: 0,
     warnings: 0,
-    critical: []
+    critical: [],
   };
-  
+
   for (const category of checklist) {
     console.log(`${colors.bright}${colors.blue}${category.category}${colors.reset}`);
-    
+
     for (const item of category.items) {
       process.stdout.write(`  • ${item.name}... `);
-      
+
       try {
         let passed = false;
-        
+
         if (item.manual) {
           // Manual check - just run command for info
           if (item.command) {
@@ -180,14 +184,14 @@ async function runChecklist() {
           results.warnings++;
           continue;
         }
-        
+
         if (item.command) {
-          const output = execSync(item.command, { 
-            cwd: projectRoot, 
+          const output = execSync(item.command, {
+            cwd: projectRoot,
             stdio: 'pipe',
-            encoding: 'utf8'
+            encoding: 'utf8',
           });
-          
+
           if (item.check) {
             passed = item.check(output);
           } else {
@@ -196,7 +200,7 @@ async function runChecklist() {
         } else if (item.check) {
           passed = item.check();
         }
-        
+
         if (passed) {
           console.log(`${colors.green}✓${colors.reset}`);
           results.passed++;
@@ -206,38 +210,42 @@ async function runChecklist() {
       } catch (error) {
         console.log(`${colors.red}✗${colors.reset}`);
         results.failed++;
-        
+
         if (item.critical) {
           results.critical.push(item.name);
         }
-        
+
         if (error.message && error.message !== 'Check failed') {
           console.log(`    ${colors.red}Error: ${error.message}${colors.reset}`);
         }
       }
     }
-    
+
     console.log('');
   }
-  
+
   // Summary
   console.log(`${colors.bright}Summary:${colors.reset}`);
   console.log(`  ${colors.green}Passed: ${results.passed}${colors.reset}`);
   console.log(`  ${colors.red}Failed: ${results.failed}${colors.reset}`);
   console.log(`  ${colors.yellow}Warnings: ${results.warnings}${colors.reset}`);
-  
+
   if (results.critical.length > 0) {
     console.log(`\n${colors.bright}${colors.red}❌ Critical issues found:${colors.reset}`);
-    results.critical.forEach(issue => {
+    results.critical.forEach((issue) => {
       console.log(`  • ${issue}`);
     });
-    console.log(`\n${colors.red}Release cannot proceed until critical issues are resolved.${colors.reset}`);
+    console.log(
+      `\n${colors.red}Release cannot proceed until critical issues are resolved.${colors.reset}`,
+    );
     process.exit(1);
   } else if (results.failed > 0) {
-    console.log(`\n${colors.yellow}⚠️  Non-critical issues found. Review before proceeding.${colors.reset}`);
+    console.log(
+      `\n${colors.yellow}⚠️  Non-critical issues found. Review before proceeding.${colors.reset}`,
+    );
   } else {
     console.log(`\n${colors.green}✅ All checks passed! Ready for release.${colors.reset}`);
-    
+
     // Generate release command
     const version = JSON.parse(readFileSync(join(projectRoot, 'package.json'), 'utf8')).version;
     console.log(`\n${colors.bright}Next steps:${colors.reset}`);
@@ -266,7 +274,7 @@ process.exit(0);
 
 // Main execution
 createPerformanceCheck();
-runChecklist().catch(error => {
+runChecklist().catch((error) => {
   console.error(`${colors.red}Error running checklist: ${error.message}${colors.reset}`);
   process.exit(1);
 });

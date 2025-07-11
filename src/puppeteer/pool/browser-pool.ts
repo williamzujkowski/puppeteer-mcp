@@ -81,12 +81,10 @@ export class BrowserPool extends EventEmitter implements IBrowserPool {
     this.queue = components.queue;
     this.maintenance = components.maintenance;
     this.metrics = new BrowserPoolMetrics();
-    
+
     // Initialize handler modules
-    this.eventLogger = new BrowserPoolEventLogger(
-      this.browsers,
-      this.options,
-      (event, data) => this.emit(event, data),
+    this.eventLogger = new BrowserPoolEventLogger(this.browsers, this.options, (event, data) =>
+      this.emit(event, data),
     );
     this.resourceMonitor = new BrowserPoolResourceMonitor(this.browsers, this.metrics);
     this.metricsHandler = new BrowserPoolMetricsHandler(
@@ -101,7 +99,7 @@ export class BrowserPool extends EventEmitter implements IBrowserPool {
       this.metricsHandler,
       (browserId, sessionId) => this.releaseBrowser(browserId, sessionId),
     );
-    
+
     // Initialize lifecycle handler
     this.lifecycleHandler = new BrowserPoolLifecycleHandler(
       this.browsers,
@@ -123,7 +121,9 @@ export class BrowserPool extends EventEmitter implements IBrowserPool {
     // Log browser pool initialization
     await this.eventLogger.logPoolInitialization();
 
-    await initializePoolWithBrowsers(this, this.options.maxBrowsers, () => this.lifecycleHandler.launchNewBrowser());
+    await initializePoolWithBrowsers(this, this.options.maxBrowsers, () =>
+      this.lifecycleHandler.launchNewBrowser(),
+    );
 
     // Start resource monitoring every 30 seconds
     this.resourceMonitor.startResourceMonitoring();
@@ -138,7 +138,7 @@ export class BrowserPool extends EventEmitter implements IBrowserPool {
     const helpers = createBrowserPoolHelpers(this.browsers, this.options, (event, data) =>
       this.emit(event, data),
     );
-    
+
     try {
       const browser = await acquireBrowserFacade({
         sessionId,
@@ -222,10 +222,10 @@ export class BrowserPool extends EventEmitter implements IBrowserPool {
   async shutdown(): Promise<void> {
     this.isShuttingDown = true;
     this.resourceMonitor.stopResourceMonitoring();
-    
+
     try {
       await shutdownBrowserPool(this.browsers, this.healthMonitor, this.queue, this.maintenance);
-      
+
       // Log successful shutdown
       await this.eventLogger.logPoolShutdown(true);
     } catch (error) {
@@ -237,7 +237,6 @@ export class BrowserPool extends EventEmitter implements IBrowserPool {
       throw error;
     }
   }
-
 
   /**
    * Create a new page in a browser
@@ -301,7 +300,7 @@ export class BrowserPool extends EventEmitter implements IBrowserPool {
     this.options = configure(this.options, options, this.maintenance, () =>
       this.lifecycleHandler.performMaintenance(),
     );
-    
+
     // Log configuration change
     void this.eventLogger.logConfigurationChange(oldOptions, this.options, Object.keys(options));
   }
@@ -313,9 +312,7 @@ export class BrowserPool extends EventEmitter implements IBrowserPool {
     return this.lifecycleHandler.performMaintenance();
   }
 
-
   private queueAcquisition(sessionId: string): Promise<BrowserInstance> {
     return this.lifecycleHandler.queueAcquisition(sessionId);
   }
-
 }

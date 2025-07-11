@@ -6,9 +6,9 @@ describe('Command Injection Security Tests', () => {
   let page: Page;
 
   beforeAll(async () => {
-    browser = await puppeteer.launch({ 
+    browser = await puppeteer.launch({
       headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox'] // Run in sandboxed mode
+      args: ['--no-sandbox', '--disable-setuid-sandbox'], // Run in sandboxed mode
     });
     page = await browser.newPage();
   });
@@ -37,7 +37,7 @@ describe('Command Injection Security Tests', () => {
         '\r\n/bin/sh\r\n',
         '; exec /bin/sh',
         '| python -c "import os; os.system(\'whoami\')"',
-        '; node -e "require(\'child_process\').exec(\'id\')"',
+        "; node -e \"require('child_process').exec('id')\"",
         '&& perl -e "system(\'ls -la\')"',
         '| ruby -e "system(\'pwd\')"',
         '; php -r "system(\'whoami\');"',
@@ -53,9 +53,9 @@ describe('Command Injection Security Tests', () => {
         '; /proc/self/exe',
         '&& /bin/sh -c id',
         '; awk \'BEGIN {system("whoami")}\'',
-        '| sed \'1s/.*/whoami/e\'',
+        "| sed '1s/.*/whoami/e'",
         '; find / -name passwd -exec cat {} \\;',
-        '&& xargs -I {} /bin/sh -c \'{}\'',
+        "&& xargs -I {} /bin/sh -c '{}'",
         '|| tar cf - /etc/passwd | base64',
         '; zip -r - /etc/ | base64',
         '| dd if=/etc/passwd',
@@ -69,7 +69,7 @@ describe('Command Injection Security Tests', () => {
         '; su -',
         '| doas whoami',
         '; docker run --rm alpine cat /etc/passwd',
-        '&& kubectl get pods'
+        '&& kubectl get pods',
       ];
 
       for (const payload of commandInjectionPayloads) {
@@ -87,7 +87,7 @@ describe('Command Injection Security Tests', () => {
           const processInfo = await page.evaluate(() => {
             return {
               platform: navigator.platform,
-              userAgent: navigator.userAgent
+              userAgent: navigator.userAgent,
             };
           });
 
@@ -128,7 +128,7 @@ describe('Command Injection Security Tests', () => {
         'Error.constructor.constructor("return process")().exit()',
         'RegExp.constructor.constructor("return process")().exit()',
         'Date.constructor.constructor("return process")().exit()',
-        'Object.constructor.constructor("return process")().exit()'
+        'Object.constructor.constructor("return process")().exit()',
       ];
 
       for (const attempt of processSpawnAttempts) {
@@ -143,7 +143,9 @@ describe('Command Injection Security Tests', () => {
 
           // Should either throw error or return error object
           if (typeof result === 'object' && result.error) {
-            expect(result.error).toMatch(/require is not defined|process is not defined|Cannot read|not a function/);
+            expect(result.error).toMatch(
+              /require is not defined|process is not defined|Cannot read|not a function/,
+            );
           } else {
             // Should not successfully execute
             expect(result).not.toBeTruthy();
@@ -181,7 +183,7 @@ describe('Command Injection Security Tests', () => {
         '--renderer-cmd-prefix="gdb -batch -ex run -ex bt"',
         '--utility-cmd-prefix="/bin/sh -c"',
         '--ppapi-flash-path=/tmp/malicious.so',
-        '--register-pepper-plugins="/tmp/evil.so;application/x-evil"'
+        '--register-pepper-plugins="/tmp/evil.so;application/x-evil"',
       ];
 
       for (const arg of maliciousArgs) {
@@ -189,23 +191,23 @@ describe('Command Injection Security Tests', () => {
           // Attempt to launch browser with malicious arguments
           const maliciousBrowser = await puppeteer.launch({
             headless: true,
-            args: [arg]
+            args: [arg],
           });
 
           // Check if dangerous features are enabled
           const maliciousPage = await maliciousBrowser.newPage();
-          
+
           // Test if security features are still active
           const securityState = await maliciousPage.evaluate(() => {
             return {
               crossOriginIsolated: self.crossOriginIsolated,
               isSecureContext: self.isSecureContext,
-              origin: self.origin
+              origin: self.origin,
             };
           });
 
           expect(securityState.isSecureContext).toBe(true);
-          
+
           await maliciousBrowser.close();
         } catch (error) {
           // Some malicious args should cause launch to fail
@@ -218,25 +220,59 @@ describe('Command Injection Security Tests', () => {
       await page.goto('https://williamzujkowski.github.io/paperclips/index2.html');
 
       const shellMetacharacters = [
-        '$()', '${}', '``',
-        '|', '||', '&', '&&',
-        ';', '\n', '\r\n',
-        '>', '>>', '<', '<<',
-        '*', '?', '[', ']',
-        '(', ')', '{', '}',
-        '!', '~', '\\',
-        '$IFS', '${IFS}',
-        '%0a', '%0d', '%0d%0a',
-        '%00', '\\x00', '\\0',
-        '\\x0a', '\\x0d', '\\n', '\\r',
-        '$PATH', '${PATH}',
-        '$HOME', '${HOME}',
-        '$USER', '${USER}',
-        '$SHELL', '${SHELL}',
-        '$(id)', '${id}',
-        '`id`', '${`id`}',
-        '\\$(whoami)', '\\${whoami}',
-        '\\`pwd\\`', '${\\`pwd\\`}'
+        '$()',
+        '${}',
+        '``',
+        '|',
+        '||',
+        '&',
+        '&&',
+        ';',
+        '\n',
+        '\r\n',
+        '>',
+        '>>',
+        '<',
+        '<<',
+        '*',
+        '?',
+        '[',
+        ']',
+        '(',
+        ')',
+        '{',
+        '}',
+        '!',
+        '~',
+        '\\',
+        '$IFS',
+        '${IFS}',
+        '%0a',
+        '%0d',
+        '%0d%0a',
+        '%00',
+        '\\x00',
+        '\\0',
+        '\\x0a',
+        '\\x0d',
+        '\\n',
+        '\\r',
+        '$PATH',
+        '${PATH}',
+        '$HOME',
+        '${HOME}',
+        '$USER',
+        '${USER}',
+        '$SHELL',
+        '${SHELL}',
+        '$(id)',
+        '${id}',
+        '`id`',
+        '${`id`}',
+        '\\$(whoami)',
+        '\\${whoami}',
+        '\\`pwd\\`',
+        '${\\`pwd\\`}',
       ];
 
       for (const char of shellMetacharacters) {
@@ -248,7 +284,7 @@ describe('Command Injection Security Tests', () => {
 
         // Should return the literal string, not execute
         expect(result).toBe(`echo ${char}`);
-        
+
         // Verify no command execution occurred
         const pageTitle = await page.title();
         expect(pageTitle).toBeDefined();
@@ -264,7 +300,7 @@ describe('Command Injection Security Tests', () => {
         '<%= 7*7 %>',
         '#{7*7}',
         '*{7*7}',
-        '{{\'7\'*7}}',
+        "{{'7'*7}}",
         '{{[].__class__.__base__.__subclasses__()}}',
         '{{config.items()}}',
         '{{request.environ}}',
@@ -279,7 +315,7 @@ describe('Command Injection Security Tests', () => {
         '<#assign ex="freemarker.template.utility.Execute"?new()>${ex("id")}',
         '${"freemarker.template.utility.Execute"?new()("id")}',
         '\\u0024\\u007b\\u0037\\u002a\\u0037\\u007d',
-        '\\x24\\x7b\\x37\\x2a\\x37\\x7d'
+        '\\x24\\x7b\\x37\\x2a\\x37\\x7d',
       ];
 
       for (const payload of templateInjectionPayloads) {
@@ -316,7 +352,7 @@ describe('Command Injection Security Tests', () => {
         'return globalThis.process',
         'return Object.getPrototypeOf(global).process',
         'return Reflect.get(global, "process")',
-        'return new Proxy({}, {get: (t,p) => process[p]})'
+        'return new Proxy({}, {get: (t,p) => process[p]})',
       ];
 
       for (const payload of functionInjectionPayloads) {
@@ -332,7 +368,9 @@ describe('Command Injection Security Tests', () => {
 
           // Should throw error or return error object
           if (typeof result === 'object' && result.error) {
-            expect(result.error).toMatch(/process is not defined|require is not defined|Cannot read|import/);
+            expect(result.error).toMatch(
+              /process is not defined|require is not defined|Cannot read|import/,
+            );
           } else {
             expect(result).toBeUndefined();
           }

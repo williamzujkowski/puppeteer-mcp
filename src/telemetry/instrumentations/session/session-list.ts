@@ -15,7 +15,7 @@ export function instrumentGetByUserId(ctx: InstrumentationContext): void {
   const { tracer, store } = ctx;
   const originalGetByUserId = store.getByUserId.bind(store);
 
-  store.getByUserId = async function(userId: string): Promise<Session[]> {
+  store.getByUserId = async function (userId: string): Promise<Session[]> {
     const span = tracer.startSpan('session.getByUserId', {
       kind: SpanKind.CLIENT,
       attributes: {
@@ -25,9 +25,8 @@ export function instrumentGetByUserId(ctx: InstrumentationContext): void {
     });
 
     try {
-      const sessions = await context.with(
-        trace.setSpan(context.active(), span),
-        async () => originalGetByUserId(userId)
+      const sessions = await context.with(trace.setSpan(context.active(), span), async () =>
+        originalGetByUserId(userId),
       );
 
       span.setAttributes({
@@ -39,13 +38,13 @@ export function instrumentGetByUserId(ctx: InstrumentationContext): void {
       return sessions;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      
+
       span.recordException(error as Error);
       span.setStatus({
         code: SpanStatusCode.ERROR,
         message: errorMessage,
       });
-      
+
       span.setAttributes({
         'session.success': false,
         'session.error': errorMessage,

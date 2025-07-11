@@ -6,16 +6,12 @@
  */
 
 import type { Page } from 'puppeteer';
-import type {
-  ActionResult,
-  ActionContext,
-} from '../../../interfaces/action-executor.interface.js';
+import type { ActionResult, ActionContext } from '../../../interfaces/action-executor.interface.js';
 import { DEFAULT_CONFIG } from '../types.js';
 import { sanitizeSelector } from '../../validation.js';
 import { createLogger } from '../../../../utils/logger.js';
 
 const logger = createLogger('puppeteer:text-extractor');
-
 
 /**
  * Text extractor for extracting text content from elements
@@ -31,26 +27,20 @@ export class TextExtractor {
    * @returns Text content
    * @nist ac-3 "Access enforcement"
    */
-  private async extractText(
-    page: Page,
-    selector: string,
-    timeout: number,
-  ): Promise<string> {
+  private async extractText(page: Page, selector: string, timeout: number): Promise<string> {
     await page.waitForSelector(selector, { timeout });
 
     // Use typed evaluation to ensure safe return
     const getText = (element: Element): string => {
-      if (element instanceof HTMLInputElement || 
-          element instanceof HTMLTextAreaElement) {
-         
+      if (element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement) {
         return element.value;
       }
-       
+
       return (element as HTMLElement).textContent?.trim() ?? '';
     };
-    
+
     const result = await page.$eval(selector, getText);
-    
+
     return result;
   }
 
@@ -62,11 +52,7 @@ export class TextExtractor {
    * @returns Action result
    * @nist au-3 "Content of audit records"
    */
-  private buildSuccessResult(
-    text: string,
-    selector: string,
-    duration: number,
-  ): ActionResult {
+  private buildSuccessResult(text: string, selector: string, duration: number): ActionResult {
     const sanitizedSelector = sanitizeSelector(selector);
 
     return {
@@ -93,11 +79,7 @@ export class TextExtractor {
    * @returns Action result
    * @nist au-3 "Content of audit records"
    */
-  private buildErrorResult(
-    error: unknown,
-    selector: string,
-    duration: number,
-  ): ActionResult {
+  private buildErrorResult(error: unknown, selector: string, duration: number): ActionResult {
     const errorMessage = error instanceof Error ? error.message : 'getText action failed';
 
     return {

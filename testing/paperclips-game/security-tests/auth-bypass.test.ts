@@ -31,72 +31,72 @@ describe('Authentication Bypass Security Tests', () => {
         "' or 1=1/*",
         "') or '1'='1--",
         "') or ('1'='1--",
-        
+
         // Union-based injection
         "' UNION SELECT NULL--",
         "' UNION SELECT NULL,NULL--",
         "' UNION SELECT NULL,NULL,NULL--",
         "' UNION ALL SELECT NULL--",
         "' UNION ALL SELECT 'admin','password'--",
-        
+
         // Time-based blind injection
         "' OR SLEEP(5)--",
         "' OR pg_sleep(5)--",
         "'; WAITFOR DELAY '00:00:05'--",
         "' OR BENCHMARK(1000000,MD5('A'))--",
-        
+
         // Boolean-based blind injection
         "' AND '1'='1",
         "' AND '1'='2",
         "' OR '1'='1' AND 'a'='a",
         "' OR '1'='1' AND 'a'='b",
-        
+
         // Stacked queries
         "'; DROP TABLE users--",
         "'; INSERT INTO users VALUES ('admin','password')--",
         "'; UPDATE users SET password='hacked'--",
-        
+
         // Out-of-band injection
         "' OR EXISTS(SELECT * FROM users WHERE username='admin')--",
         "' OR (SELECT COUNT(*) FROM users) > 0--",
-        
+
         // NoSQL injection
         '{"$ne": null}',
         '{"$gt": ""}',
         '{"$regex": ".*"}',
         '{"username": {"$ne": null}, "password": {"$ne": null}}',
         '{"$where": "this.username == \'admin\'"}',
-        
+
         // LDAP injection
         '*',
         '*)(&',
         '*)(uid=*',
         'admin)(&',
         '*)(|(uid=*',
-        
+
         // XPath injection
         "' or '1'='1",
         "') or ('1'='1",
         "' or ''='",
         "x' or 1=1 or 'x'='y",
-        
+
         // Header injection
-        "admin\r\nX-Admin: true",
-        "admin\nAuthorization: Bearer fake-token",
-        
+        'admin\r\nX-Admin: true',
+        'admin\nAuthorization: Bearer fake-token',
+
         // Unicode variations
-        "' OR '1'='1",  // Unicode apostrophe
-        "＇ OR ＇1＇=＇1",  // Full-width characters
-        "\' OR \'1\'=\'1",  // Escaped quotes
-        
+        "' OR '1'='1", // Unicode apostrophe
+        '＇ OR ＇1＇=＇1', // Full-width characters
+        "\' OR \'1\'=\'1", // Escaped quotes
+
         // Double encoding
-        "%27%20OR%20%271%27%3D%271",
-        "%2527%2520OR%2520%25271%2527%253D%25271",
-        
+        '%27%20OR%20%271%27%3D%271',
+        '%2527%2520OR%2520%25271%2527%253D%25271',
+
         // Case variations
         "' Or '1'='1",
         "' oR '1'='1",
-        "' OR '1'='1"
+        "' OR '1'='1",
       ];
 
       // Test login form inputs if they exist
@@ -104,13 +104,17 @@ describe('Authentication Bypass Security Tests', () => {
       if (loginForm) {
         for (const payload of sqlInjectionPayloads) {
           // Fill username field
-          const usernameInput = await page.$('input[name="username"], input[type="text"], input#username');
+          const usernameInput = await page.$(
+            'input[name="username"], input[type="text"], input#username',
+          );
           if (usernameInput) {
             await usernameInput.type(payload);
           }
 
           // Fill password field
-          const passwordInput = await page.$('input[name="password"], input[type="password"], input#password');
+          const passwordInput = await page.$(
+            'input[name="password"], input[type="password"], input#password',
+          );
           if (passwordInput) {
             await passwordInput.type(payload);
           }
@@ -156,7 +160,7 @@ describe('Authentication Bypass Security Tests', () => {
             'undefined',
             'None',
             'none',
-            '{}'
+            '{}',
           ];
 
           for (const token of jwtPayloads) {
@@ -164,7 +168,7 @@ describe('Authentication Bypass Security Tests', () => {
             localStorage.setItem('jwt', token);
             localStorage.setItem('access_token', token);
             sessionStorage.setItem('token', token);
-            
+
             // Check if manipulated token grants access
             const hasAccess = await page.evaluate(() => {
               return !!(
@@ -187,14 +191,14 @@ describe('Authentication Bypass Security Tests', () => {
             { name: 'user_id', value: '1' },
             { name: 'is_admin', value: 'yes' },
             { name: 'authenticated', value: '1' },
-            { name: 'access_level', value: '999' }
+            { name: 'access_level', value: '999' },
           ];
 
           for (const cookie of cookiePayloads) {
             await page.setCookie({
               ...cookie,
               domain: 'williamzujkowski.github.io',
-              path: '/'
+              path: '/',
             });
           }
 
@@ -221,7 +225,7 @@ describe('Authentication Bypass Security Tests', () => {
               { key: 'permissions', value: JSON.stringify(['all']) },
               { key: 'isAuthenticated', value: 'true' },
               { key: 'userRole', value: 'superadmin' },
-              { key: 'accessLevel', value: '9999' }
+              { key: 'accessLevel', value: '9999' },
             ];
 
             sessionPayloads.forEach(({ key, value }) => {
@@ -239,7 +243,7 @@ describe('Authentication Bypass Security Tests', () => {
           });
 
           expect(hasElevatedAccess).toBe(false);
-        }
+        },
       ];
 
       for (const test of tokenManipulationTests) {
@@ -253,26 +257,26 @@ describe('Authentication Bypass Security Tests', () => {
         'https://williamzujkowski.github.io/paperclips/index2.html?user=guest&user=admin',
         'https://williamzujkowski.github.io/paperclips/index2.html?role=user&role=admin',
         'https://williamzujkowski.github.io/paperclips/index2.html?id=100&id=1',
-        
+
         // Array notation pollution
         'https://williamzujkowski.github.io/paperclips/index2.html?user[]=guest&user[]=admin',
         'https://williamzujkowski.github.io/paperclips/index2.html?role[0]=user&role[1]=admin',
-        
+
         // Object notation pollution
         'https://williamzujkowski.github.io/paperclips/index2.html?user[role]=admin',
         'https://williamzujkowski.github.io/paperclips/index2.html?user[permissions][]=all',
-        
+
         // Mixed encoding
         'https://williamzujkowski.github.io/paperclips/index2.html?user=guest&%75ser=admin',
         'https://williamzujkowski.github.io/paperclips/index2.html?role=user&%72%6f%6c%65=admin',
-        
+
         // Special characters
         'https://williamzujkowski.github.io/paperclips/index2.html?user=guest&user%00=admin',
         'https://williamzujkowski.github.io/paperclips/index2.html?user=guest&user%20=admin',
-        
+
         // JSON pollution
         'https://williamzujkowski.github.io/paperclips/index2.html?data={"role":"user"}&data={"role":"admin"}',
-        'https://williamzujkowski.github.io/paperclips/index2.html?config={"user":"guest"}&config[user]=admin'
+        'https://williamzujkowski.github.io/paperclips/index2.html?config={"user":"guest"}&config[user]=admin',
       ];
 
       for (const url of parameterPollutionUrls) {
@@ -284,7 +288,7 @@ describe('Authentication Bypass Security Tests', () => {
           const params = new URLSearchParams(window.location.search);
           const userParam = params.get('user');
           const roleParam = params.get('role');
-          
+
           // Check if app incorrectly handles duplicate parameters
           return (
             userParam === 'admin' ||
@@ -304,14 +308,14 @@ describe('Authentication Bypass Security Tests', () => {
       // Simulate concurrent authentication attempts
       const raceConditionTest = async () => {
         const promises = [];
-        
+
         // Attempt multiple simultaneous logins
         for (let i = 0; i < 10; i++) {
           promises.push(
             page.evaluate((attemptId) => {
               // Simulate login attempt
               localStorage.setItem(`login_attempt_${attemptId}`, Date.now().toString());
-              
+
               // Check if any attempt succeeded when it shouldn't
               return {
                 attemptId,
@@ -320,16 +324,16 @@ describe('Authentication Bypass Security Tests', () => {
                   localStorage.getItem('authenticated') ||
                   sessionStorage.getItem('authenticated') ||
                   document.cookie.includes('authenticated')
-                )
+                ),
               };
-            }, i)
+            }, i),
           );
         }
 
         const results = await Promise.all(promises);
-        
+
         // No attempt should authenticate without proper credentials
-        const authenticatedAttempts = results.filter(r => r.authenticated);
+        const authenticatedAttempts = results.filter((r) => r.authenticated);
         expect(authenticatedAttempts.length).toBe(0);
       };
 
@@ -343,18 +347,18 @@ describe('Authentication Bypass Security Tests', () => {
         'https://williamzujkowski.github.io/paperclips/index2.html?uid=0',
         'https://williamzujkowski.github.io/paperclips/index2.html?id=-1',
         'https://williamzujkowski.github.io/paperclips/index2.html?account=999999',
-        
+
         // Path traversal in IDs
         'https://williamzujkowski.github.io/paperclips/index2.html?file=../../../etc/passwd',
         'https://williamzujkowski.github.io/paperclips/index2.html?doc=..\\..\\..\\windows\\win.ini',
-        
+
         // Array index manipulation
         'https://williamzujkowski.github.io/paperclips/index2.html?item[0]=public&item[1]=private',
         'https://williamzujkowski.github.io/paperclips/index2.html?data[-1]=admin',
-        
+
         // Predictable IDs
         'https://williamzujkowski.github.io/paperclips/index2.html?session=1234567890',
-        'https://williamzujkowski.github.io/paperclips/index2.html?token=aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee'
+        'https://williamzujkowski.github.io/paperclips/index2.html?token=aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
       ];
 
       for (const url of idorUrls) {
@@ -369,11 +373,11 @@ describe('Authentication Bypass Security Tests', () => {
             /private/i,
             /confidential/i,
             /ssn/i,
-            /credit.?card/i
+            /credit.?card/i,
           ];
 
           const pageContent = document.body.textContent || '';
-          return sensitivePatterns.some(pattern => pattern.test(pageContent));
+          return sensitivePatterns.some((pattern) => pattern.test(pageContent));
         });
 
         expect(hasUnauthorizedAccess).toBe(false);
@@ -401,10 +405,10 @@ describe('Authentication Bypass Security Tests', () => {
         'X-Forwarded-User': 'admin',
         'X-User': 'admin',
         'X-Auth-User': 'admin',
-        'Authorization': 'Basic YWRtaW46YWRtaW4=', // admin:admin
-        'Cookie': 'admin=true; authenticated=1',
+        Authorization: 'Basic YWRtaW46YWRtaW4=', // admin:admin
+        Cookie: 'admin=true; authenticated=1',
         'X-Admin': 'true',
-        'X-Authenticated': 'true'
+        'X-Authenticated': 'true',
       };
 
       await page.setExtraHTTPHeaders(bypassHeaders);
@@ -429,14 +433,14 @@ describe('Authentication Bypass Security Tests', () => {
       // Test CORS bypass attempts
       const corsTests = await page.evaluate(async () => {
         const results = [];
-        
+
         // Try to make cross-origin requests with credentials
         const endpoints = [
           '/api/admin',
           '/api/user/1',
           '/api/sensitive-data',
           '/admin',
-          '/dashboard'
+          '/dashboard',
         ];
 
         for (const endpoint of endpoints) {
@@ -445,22 +449,22 @@ describe('Authentication Bypass Security Tests', () => {
               mode: 'cors',
               credentials: 'include',
               headers: {
-                'Origin': 'http://evil.com',
-                'X-Requested-With': 'XMLHttpRequest'
-              }
+                Origin: 'http://evil.com',
+                'X-Requested-With': 'XMLHttpRequest',
+              },
             });
 
             results.push({
               endpoint,
               status: response.status,
               hasCredentials: response.headers.get('Access-Control-Allow-Credentials') === 'true',
-              allowsOrigin: response.headers.get('Access-Control-Allow-Origin') === '*'
+              allowsOrigin: response.headers.get('Access-Control-Allow-Origin') === '*',
             });
           } catch (error) {
             results.push({
               endpoint,
               error: true,
-              message: error.message
+              message: error.message,
             });
           }
         }
@@ -491,7 +495,7 @@ describe('Authentication Bypass Security Tests', () => {
             localStorage.setItem('userRole', 'admin');
             sessionStorage.setItem('role', 'administrator');
             document.cookie = 'role=superuser; path=/';
-            
+
             // Try to modify global objects
             if (window.user) window.user.role = 'admin';
             if (window.currentUser) window.currentUser.isAdmin = true;
@@ -507,7 +511,7 @@ describe('Authentication Bypass Security Tests', () => {
               Object.prototype.isAdmin = true;
               Object.prototype.role = 'admin';
               Object.prototype.permissions = ['all'];
-              
+
               // Try to pollute array prototype
               Array.prototype.includes = () => true;
             } catch (e) {
@@ -529,12 +533,12 @@ describe('Authentication Bypass Security Tests', () => {
               // Functions might be protected
             }
           });
-        }
+        },
       ];
 
       for (const attempt of escalationAttempts) {
         await attempt();
-        
+
         // Check if escalation succeeded
         const hasEscalatedPrivileges = await page.evaluate(() => {
           return !!(
@@ -560,14 +564,14 @@ describe('Authentication Bypass Security Tests', () => {
       for (let i = 0; i < bruteForceAttempts; i++) {
         const attempt = await page.evaluate((attemptNumber) => {
           const timestamp = Date.now();
-          
+
           // Simulate login attempt
           const loginEvent = new CustomEvent('login-attempt', {
             detail: {
               username: 'admin',
               password: `password${attemptNumber}`,
-              timestamp
-            }
+              timestamp,
+            },
           });
           document.dispatchEvent(loginEvent);
 
@@ -580,23 +584,25 @@ describe('Authentication Bypass Security Tests', () => {
               document.querySelector('[data-error*="rate"]') ||
               document.body.textContent?.includes('Too many attempts') ||
               document.body.textContent?.includes('Rate limit')
-            )
+            ),
           };
         }, i);
 
         attempts.push(attempt);
-        
+
         // Small delay between attempts
         await page.waitForTimeout(10);
       }
 
       // Check if rate limiting kicked in
-      const blockedAttempts = attempts.filter(a => a.blocked);
-      
+      const blockedAttempts = attempts.filter((a) => a.blocked);
+
       // Some attempts should be blocked if rate limiting is implemented
       // If no rate limiting, this test serves as a warning
       if (blockedAttempts.length === 0) {
-        console.warn('No rate limiting detected - application may be vulnerable to brute force attacks');
+        console.warn(
+          'No rate limiting detected - application may be vulnerable to brute force attacks',
+        );
       }
     });
   });

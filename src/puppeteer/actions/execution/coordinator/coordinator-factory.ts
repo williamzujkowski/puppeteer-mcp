@@ -69,15 +69,11 @@ export class CoordinatorFactory {
     });
 
     // Create configuration manager first
-    const configManager = new ConfigurationManager(
-      options.config,
-      options.pageManager,
-    );
+    const configManager = new ConfigurationManager(options.config, options.pageManager);
 
     // Create metrics collector
-    const metricsCollector = options.enableMetrics !== false
-      ? new MetricsCollector()
-      : this.createNoOpMetricsCollector();
+    const metricsCollector =
+      options.enableMetrics !== false ? new MetricsCollector() : this.createNoOpMetricsCollector();
 
     // Create security coordinator
     const securityCoordinator = new SecurityEventCoordinator(
@@ -85,9 +81,10 @@ export class CoordinatorFactory {
     );
 
     // Create performance optimizer
-    const performanceOptimizer = options.enablePerformanceOptimization !== false
-      ? new PerformanceOptimizer(configManager, metricsCollector)
-      : this.createNoOpPerformanceOptimizer();
+    const performanceOptimizer =
+      options.enablePerformanceOptimization !== false
+        ? new PerformanceOptimizer(configManager, metricsCollector)
+        : this.createNoOpPerformanceOptimizer();
 
     // Create core components
     const validator = new ActionValidator();
@@ -152,12 +149,12 @@ export class CoordinatorFactory {
    */
   private static createNoOpMetricsCollector(): MetricsCollector {
     const noOpCollector = new MetricsCollector();
-    
+
     // Override methods to do nothing
     noOpCollector.recordExecutionStart = () => {};
     noOpCollector.recordExecutionEnd = () => {};
     noOpCollector.recordRetryAttempt = () => {};
-    
+
     return noOpCollector;
   }
 

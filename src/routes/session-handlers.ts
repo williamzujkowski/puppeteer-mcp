@@ -3,7 +3,7 @@
  * @module routes/session-handlers
  * @nist ac-12 "Session termination"
  * @nist au-2 "Audit events"
- * 
+ *
  * This file maintains backward compatibility by re-exporting handlers
  * from the modularized session components.
  */

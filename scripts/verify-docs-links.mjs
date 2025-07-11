@@ -52,7 +52,7 @@ const PAGES_TO_CHECK = [
   '/troubleshooting',
   '/ai/routing-patterns',
   '/lessons/implementation',
-  '/lessons/project-planning'
+  '/lessons/project-planning',
 ];
 
 class DocsVerifier {
@@ -63,7 +63,7 @@ class DocsVerifier {
       successfulPages: 0,
       brokenLinks: [],
       pageErrors: [],
-      contentIssues: []
+      contentIssues: [],
     };
   }
 
@@ -72,12 +72,12 @@ class DocsVerifier {
       const response = await fetch(`${API_BASE}/sessions`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${AUTH_TOKEN}`,
-          'Content-Type': 'application/json'
+          Authorization: `Bearer ${AUTH_TOKEN}`,
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          baseUrl: BASE_URL
-        })
+          baseUrl: BASE_URL,
+        }),
       });
 
       if (!response.ok) {
@@ -99,10 +99,10 @@ class DocsVerifier {
       const response = await fetch(`${API_BASE}/sessions/${this.sessionId}/navigate`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${AUTH_TOKEN}`,
-          'Content-Type': 'application/json'
+          Authorization: `Bearer ${AUTH_TOKEN}`,
+          'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ url })
+        body: JSON.stringify({ url }),
       });
 
       if (!response.ok) {
@@ -122,8 +122,8 @@ class DocsVerifier {
       const response = await fetch(`${API_BASE}/sessions/${this.sessionId}/evaluate`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${AUTH_TOKEN}`,
-          'Content-Type': 'application/json'
+          Authorization: `Bearer ${AUTH_TOKEN}`,
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           expression: `
@@ -164,8 +164,8 @@ class DocsVerifier {
               
               return results;
             })()
-          `
-        })
+          `,
+        }),
       });
 
       if (!response.ok) {
@@ -183,7 +183,7 @@ class DocsVerifier {
   async checkLink(link, fromPage) {
     try {
       let checkUrl = link.href;
-      
+
       // Convert relative links to absolute
       if (!link.href.startsWith('http')) {
         if (link.href.startsWith('/')) {
@@ -198,28 +198,28 @@ class DocsVerifier {
       if (!link.isExternal && checkUrl.includes('williamzujkowski.github.io')) {
         const path = new URL(checkUrl).pathname.replace('/puppeteer-mcp', '');
         await this.navigateToPage(path);
-        
+
         // Wait a bit for page to load
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
+        await new Promise((resolve) => setTimeout(resolve, 500));
+
         const content = await this.getPageContent();
-        
+
         if (content.has404 || content.hasError) {
           return {
             success: false,
-            reason: content.has404 ? '404 Page Not Found' : content.errorText
+            reason: content.has404 ? '404 Page Not Found' : content.errorText,
           };
         }
-        
+
         return { success: true };
       }
-      
+
       // For external links, just log them
       return { success: true, external: true };
     } catch (error) {
       return {
         success: false,
-        reason: error.message
+        reason: error.message,
       };
     }
   }
@@ -230,17 +230,17 @@ class DocsVerifier {
 
     try {
       await this.navigateToPage(path);
-      
+
       // Wait for page to load
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
       const content = await this.getPageContent();
-      
+
       // Check if page loaded successfully
       if (content.has404) {
         this.results.pageErrors.push({
           page: path,
-          error: '404 - Page not found'
+          error: '404 - Page not found',
         });
         console.log('  ❌ 404 - Page not found');
         return;
@@ -249,7 +249,7 @@ class DocsVerifier {
       if (content.hasError) {
         this.results.pageErrors.push({
           page: path,
-          error: content.errorText
+          error: content.errorText,
         });
         console.log(`  ❌ Error: ${content.errorText}`);
         return;
@@ -259,8 +259,8 @@ class DocsVerifier {
       this.results.successfulPages++;
 
       // Check a sample of links (checking all would take too long)
-      const linksToCheck = content.links.filter(l => !l.isExternal).slice(0, 5);
-      
+      const linksToCheck = content.links.filter((l) => !l.isExternal).slice(0, 5);
+
       for (const link of linksToCheck) {
         const result = await this.checkLink(link, path);
         if (!result.success) {
@@ -268,16 +268,15 @@ class DocsVerifier {
             fromPage: path,
             link: link.href,
             text: link.text,
-            reason: result.reason
+            reason: result.reason,
           });
           console.log(`  ❌ Broken link: ${link.href} - ${result.reason}`);
         }
       }
-
     } catch (error) {
       this.results.pageErrors.push({
         page: path,
-        error: error.message
+        error: error.message,
       });
       console.log(`  ❌ Failed to verify: ${error.message}`);
     }
@@ -290,8 +289,8 @@ class DocsVerifier {
       await fetch(`${API_BASE}/sessions/${this.sessionId}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${AUTH_TOKEN}`
-        }
+          Authorization: `Bearer ${AUTH_TOKEN}`,
+        },
       });
       console.log('✅ Closed browser session');
     } catch (error) {
@@ -303,32 +302,32 @@ class DocsVerifier {
     console.log('\n' + '='.repeat(80));
     console.log('📊 DOCUMENTATION VERIFICATION REPORT');
     console.log('='.repeat(80));
-    
+
     console.log(`\n📈 Summary:`);
     console.log(`  Total pages checked: ${this.results.totalPages}`);
     console.log(`  Successful pages: ${this.results.successfulPages}`);
     console.log(`  Pages with errors: ${this.results.pageErrors.length}`);
     console.log(`  Broken links found: ${this.results.brokenLinks.length}`);
-    
+
     if (this.results.pageErrors.length > 0) {
       console.log(`\n❌ Page Errors:`);
-      this.results.pageErrors.forEach(error => {
+      this.results.pageErrors.forEach((error) => {
         console.log(`  - ${error.page}: ${error.error}`);
       });
     }
-    
+
     if (this.results.brokenLinks.length > 0) {
       console.log(`\n🔗 Broken Links:`);
-      this.results.brokenLinks.forEach(broken => {
+      this.results.brokenLinks.forEach((broken) => {
         console.log(`  - From: ${broken.fromPage}`);
         console.log(`    Link: ${broken.link} ("${broken.text}")`);
         console.log(`    Reason: ${broken.reason}`);
       });
     }
-    
-    const successRate = (this.results.successfulPages / this.results.totalPages * 100).toFixed(1);
+
+    const successRate = ((this.results.successfulPages / this.results.totalPages) * 100).toFixed(1);
     console.log(`\n✨ Success Rate: ${successRate}%`);
-    
+
     if (this.results.pageErrors.length === 0 && this.results.brokenLinks.length === 0) {
       console.log('\n🎉 All documentation pages and links are working correctly!');
     }
@@ -337,19 +336,18 @@ class DocsVerifier {
   async run() {
     console.log('🚀 Starting Puppeteer MCP Documentation Verification...');
     console.log(`📍 Target: ${BASE_URL}`);
-    
+
     try {
       await this.createSession();
-      
+
       // Check main pages
       for (const page of PAGES_TO_CHECK) {
         await this.verifyPage(page);
         // Small delay between pages
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise((resolve) => setTimeout(resolve, 500));
       }
-      
+
       this.printReport();
-      
     } catch (error) {
       console.error('\n❌ Verification failed:', error.message);
     } finally {

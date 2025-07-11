@@ -86,9 +86,9 @@ export abstract class BaseInteractionHandler<T> implements InteractionHandler<T>
     if (!isVisible) {
       // Scroll element into view
       await element.scrollIntoView();
-      
+
       // Wait a bit for scroll to complete
-      await new Promise<void>(resolve => {
+      await new Promise<void>((resolve) => {
         setTimeout(resolve, 100);
       });
     }
@@ -96,10 +96,12 @@ export abstract class BaseInteractionHandler<T> implements InteractionHandler<T>
     // Check if element is enabled (for form elements)
     try {
       const isDisabled = await element.evaluate((el) => {
-        if (el instanceof HTMLInputElement || 
-            el instanceof HTMLButtonElement || 
-            el instanceof HTMLSelectElement || 
-            el instanceof HTMLTextAreaElement) {
+        if (
+          el instanceof HTMLInputElement ||
+          el instanceof HTMLButtonElement ||
+          el instanceof HTMLSelectElement ||
+          el instanceof HTMLTextAreaElement
+        ) {
           return el.disabled;
         }
         return false;

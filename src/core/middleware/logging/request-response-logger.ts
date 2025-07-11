@@ -33,16 +33,21 @@ export const requestResponseLogger = (
   const verbosity = options.verbosity ?? VerbosityLevel.STANDARD;
   const config = { ...getDefaultConfig(verbosity), ...options };
   const logger = options.logger ?? createLogger('request-response-logger');
-  
+
   return (req: ExtendedRequest, res: Response, next: NextFunction): void => {
     const startTime = Date.now();
     const timing = createTiming(config.highPrecisionTiming);
 
     // Generate or extract request ID
-    const requestId = req.id ??
-      (config.requestIdHeader !== null && config.requestIdHeader !== undefined && config.requestIdHeader !== '' ? req.get(config.requestIdHeader) : undefined) ??
+    const requestId =
+      req.id ??
+      (config.requestIdHeader !== null &&
+      config.requestIdHeader !== undefined &&
+      config.requestIdHeader !== ''
+        ? req.get(config.requestIdHeader)
+        : undefined) ??
       randomUUID();
-    
+
     // Attach request logging data
     attachRequestLogging(req, requestId, startTime);
 
@@ -67,14 +72,26 @@ export const requestResponseLogger = (
       // Calculate final timing
       const endTiming = config.highPrecisionTiming === true ? calculateTiming(timing) : timing;
       const responseBody = getResponseBody();
-      
+
       // Log response
-      setupResponseLogging({ req, res, requestId, startTime, timing: endTiming, responseBody, config, logger });
-      
+      setupResponseLogging({
+        req,
+        res,
+        requestId,
+        startTime,
+        timing: endTiming,
+        responseBody,
+        config,
+        logger,
+      });
+
       // Log audit event
-      const duration = endTiming.duration ?? (Date.now() - startTime);
-      const isSlowRequestValue = config.slowRequestThreshold !== null && config.slowRequestThreshold !== undefined ? duration > config.slowRequestThreshold : duration > 1000;
-      
+      const duration = endTiming.duration ?? Date.now() - startTime;
+      const isSlowRequestValue =
+        config.slowRequestThreshold !== null && config.slowRequestThreshold !== undefined
+          ? duration > config.slowRequestThreshold
+          : duration > 1000;
+
       await logAuditEvent(req, res, {
         requestId,
         duration,

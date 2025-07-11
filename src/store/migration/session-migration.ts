@@ -8,14 +8,14 @@
 import type { pino } from 'pino';
 import type { SessionStore } from '../session-store.interface.js';
 import type { Session } from '../../types/session.js';
-import type { 
-  MigrationOptions, 
-  MigrationStats, 
-  RestoreOptions, 
+import type {
+  MigrationOptions,
+  MigrationStats,
+  RestoreOptions,
   RestoreStats,
   BackupOptions,
   ValidationOptions,
-  ValidationResult
+  ValidationResult,
 } from './types.js';
 import { MigrationOrchestrator } from './migration-orchestrator.js';
 import { SessionRestorer } from './session-restorer.js';
@@ -41,7 +41,7 @@ export class SessionMigration {
   async migrate(
     sourceStore: SessionStore,
     targetStore: SessionStore,
-    options: MigrationOptions = {}
+    options: MigrationOptions = {},
   ): Promise<MigrationStats> {
     return this.orchestrator.migrate(sourceStore, targetStore, options);
   }
@@ -52,7 +52,7 @@ export class SessionMigration {
   async validateMigration(
     sourceStore: SessionStore,
     targetStore: SessionStore,
-    options: ValidationOptions = {}
+    options: ValidationOptions = {},
   ): Promise<ValidationResult> {
     const validator = this.orchestrator.getValidator();
     return validator.validateMigration(sourceStore, targetStore, options);
@@ -61,10 +61,7 @@ export class SessionMigration {
   /**
    * Create a backup of all sessions from a store
    */
-  async backup(
-    store: SessionStore,
-    options: BackupOptions = {}
-  ): Promise<Session[]> {
+  async backup(store: SessionStore, options: BackupOptions = {}): Promise<Session[]> {
     return this.orchestrator.backup(store, options);
   }
 
@@ -74,7 +71,7 @@ export class SessionMigration {
   async restore(
     store: SessionStore,
     sessions: Session[],
-    options: RestoreOptions = {}
+    options: RestoreOptions = {},
   ): Promise<RestoreStats> {
     return this.restorer.restore(store, sessions, options);
   }

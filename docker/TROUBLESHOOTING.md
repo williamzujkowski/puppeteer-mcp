@@ -1,6 +1,7 @@
 # Docker Troubleshooting Guide
 
-This guide helps diagnose and resolve common issues with the puppeteer-mcp Docker development environment.
+This guide helps diagnose and resolve common issues with the puppeteer-mcp Docker development
+environment.
 
 ## 🔍 Diagnostic Commands
 
@@ -38,6 +39,7 @@ docker-compose logs -t app
 ### 1. Application Won't Start
 
 **Symptoms:**
+
 - Container exits immediately
 - Health check fails
 - Can't access http://localhost:8443
@@ -66,6 +68,7 @@ docker-compose build --no-cache app
 ### 2. Database Connection Errors
 
 **Symptoms:**
+
 - "ECONNREFUSED" errors
 - "connection refused" in logs
 - Database migrations fail
@@ -94,6 +97,7 @@ docker-compose up -d postgres
 ### 3. Redis Connection Issues
 
 **Symptoms:**
+
 - Session storage errors
 - "Redis connection failed"
 - Rate limiting not working
@@ -120,6 +124,7 @@ docker-compose exec redis redis-cli -a redis-dev-password monitor
 ### 4. Browser/Puppeteer Issues
 
 **Symptoms:**
+
 - "Browser disconnected"
 - "Failed to launch browser"
 - Timeout errors
@@ -151,6 +156,7 @@ const puppeteer = require('puppeteer');
 ### 5. Memory/Performance Issues
 
 **Symptoms:**
+
 - Containers getting killed
 - "OOMKilled" status
 - Slow response times
@@ -185,6 +191,7 @@ setInterval(() => {
 ### 6. Network Issues
 
 **Symptoms:**
+
 - Services can't communicate
 - "Name or service not known"
 - Connection timeouts
@@ -211,6 +218,7 @@ docker-compose up -d
 ### 7. Volume Permission Issues
 
 **Symptoms:**
+
 - "Permission denied" errors
 - Can't write to mounted volumes
 - Missing files
@@ -236,6 +244,7 @@ docker-compose up -d
 ### 8. Hot Reload Not Working
 
 **Symptoms:**
+
 - Changes not reflected
 - Need to restart containers
 - TypeScript compilation errors
@@ -318,42 +327,49 @@ console.log({
 When encountering issues, go through this checklist:
 
 1. **Check Docker is running**
+
    ```bash
    docker version
    docker-compose version
    ```
 
 2. **Verify all services are up**
+
    ```bash
    docker-compose ps
    ./docker/health-check.sh
    ```
 
 3. **Check logs for errors**
+
    ```bash
    docker-compose logs | grep -i error
    docker-compose logs | grep -i warning
    ```
 
 4. **Verify environment configuration**
+
    ```bash
    cat .env
    docker-compose config
    ```
 
 5. **Test network connectivity**
+
    ```bash
    docker-compose exec app ping redis
    docker-compose exec app ping postgres
    ```
 
 6. **Check resource usage**
+
    ```bash
    docker stats
    docker system df
    ```
 
 7. **Verify file permissions**
+
    ```bash
    docker-compose exec app ls -la /app
    ```
@@ -368,6 +384,7 @@ When encountering issues, go through this checklist:
 If you're still experiencing issues:
 
 1. **Collect diagnostic information**
+
    ```bash
    docker-compose logs > docker-logs.txt
    docker-compose ps > docker-status.txt

@@ -39,7 +39,7 @@ export class RecyclingMetricsCollector {
         success: event.success,
         executionTimeMs: event.executionTimeMs,
       },
-      'Recycling event recorded'
+      'Recycling event recorded',
     );
   }
 
@@ -48,12 +48,13 @@ export class RecyclingMetricsCollector {
    */
   getRecyclingStats(): RecyclingStats {
     const totalRecycled = this.recyclingHistory.length;
-    const successfulRecycling = this.recyclingHistory.filter(e => e.success).length;
+    const successfulRecycling = this.recyclingHistory.filter((e) => e.success).length;
     const successRate = totalRecycled > 0 ? (successfulRecycling / totalRecycled) * 100 : 0;
-    
-    const avgExecutionTime = totalRecycled > 0 
-      ? this.recyclingHistory.reduce((sum, e) => sum + e.executionTimeMs, 0) / totalRecycled
-      : 0;
+
+    const avgExecutionTime =
+      totalRecycled > 0
+        ? this.recyclingHistory.reduce((sum, e) => sum + e.executionTimeMs, 0) / totalRecycled
+        : 0;
 
     const reasonBreakdown = this.calculateReasonBreakdown();
     const recentEvents = this.recyclingHistory.slice(-20);
@@ -79,7 +80,7 @@ export class RecyclingMetricsCollector {
    */
   getEventsByTimeRange(startTime: Date, endTime: Date): RecyclingEvent[] {
     return this.recyclingHistory.filter(
-      event => event.timestamp >= startTime && event.timestamp <= endTime
+      (event) => event.timestamp >= startTime && event.timestamp <= endTime,
     );
   }
 
@@ -87,7 +88,7 @@ export class RecyclingMetricsCollector {
    * Get events by reason
    */
   getEventsByReason(reason: RecyclingReason): RecyclingEvent[] {
-    return this.recyclingHistory.filter(event => event.reason === reason);
+    return this.recyclingHistory.filter((event) => event.reason === reason);
   }
 
   /**
@@ -99,11 +100,10 @@ export class RecyclingMetricsCollector {
     failuresByReason: Record<RecyclingReason, number>;
     avgFailureExecutionTime: number;
   } {
-    const failures = this.recyclingHistory.filter(e => !e.success);
+    const failures = this.recyclingHistory.filter((e) => !e.success);
     const totalFailures = failures.length;
-    const failureRate = this.recyclingHistory.length > 0
-      ? (totalFailures / this.recyclingHistory.length) * 100
-      : 0;
+    const failureRate =
+      this.recyclingHistory.length > 0 ? (totalFailures / this.recyclingHistory.length) * 100 : 0;
 
     const failuresByReason = {} as Record<RecyclingReason, number>;
     for (const event of failures) {
@@ -112,9 +112,10 @@ export class RecyclingMetricsCollector {
       failuresByReason[reason] = (failuresByReason[reason] ?? 0) + 1;
     }
 
-    const avgFailureExecutionTime = totalFailures > 0
-      ? failures.reduce((sum, e) => sum + e.executionTimeMs, 0) / totalFailures
-      : 0;
+    const avgFailureExecutionTime =
+      totalFailures > 0
+        ? failures.reduce((sum, e) => sum + e.executionTimeMs, 0) / totalFailures
+        : 0;
 
     return {
       totalFailures,
@@ -143,7 +144,7 @@ export class RecyclingMetricsCollector {
     }
 
     const executionTimes = this.recyclingHistory
-      .map(e => e.executionTimeMs)
+      .map((e) => e.executionTimeMs)
       .sort((a, b) => a - b);
 
     const fastestRecycling = executionTimes[0] ?? 0;
@@ -173,7 +174,7 @@ export class RecyclingMetricsCollector {
    */
   private calculateReasonBreakdown(): Record<RecyclingReason, number> {
     const breakdown = {} as Record<RecyclingReason, number>;
-    
+
     for (const event of this.recyclingHistory) {
       const reason = event.reason;
       // eslint-disable-next-line security/detect-object-injection
@@ -189,13 +190,13 @@ export class RecyclingMetricsCollector {
    */
   private calculateMedian(values: number[]): number {
     if (values.length === 0) return 0;
-    
+
     const mid = Math.floor(values.length / 2);
-    
+
     if (values.length % 2 === 0) {
       return ((values[mid - 1] ?? 0) + (values[mid] ?? 0)) / 2;
     }
-    
+
     return values[mid] ?? 0;
   }
 
@@ -205,7 +206,7 @@ export class RecyclingMetricsCollector {
    */
   private calculatePercentile(values: number[], percentile: number): number {
     if (values.length === 0) return 0;
-    
+
     const index = Math.ceil((percentile / 100) * values.length) - 1;
     return values[Math.min(index, values.length - 1)] ?? 0;
   }

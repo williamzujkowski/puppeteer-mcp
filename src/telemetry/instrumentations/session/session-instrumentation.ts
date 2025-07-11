@@ -22,7 +22,7 @@ import type { InstrumentationContext } from './types.js';
  */
 export function instrumentSessionStore(store: SessionStore): SessionStore {
   const tracer = getTracer('session-store');
-  
+
   const context: InstrumentationContext = {
     tracer,
     store,

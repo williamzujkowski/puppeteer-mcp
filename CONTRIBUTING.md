@@ -2,12 +2,12 @@
 
 Thank you for your interest in contributing to Puppeteer MCP!
 
-## =Ú Full Contributing Guidelines
+## =ï¿½ Full Contributing Guidelines
 
 Please visit our comprehensive contributing documentation at:
 [https://williamzujkowski.github.io/puppeteer-mcp/contributing/](https://williamzujkowski.github.io/puppeteer-mcp/contributing/)
 
-## =€ Quick Start
+## =ï¿½ Quick Start
 
 1. **Fork** the repository
 2. **Clone** your fork: `git clone https://github.com/YOUR_USERNAME/puppeteer-mcp.git`
@@ -19,11 +19,14 @@ Please visit our comprehensive contributing documentation at:
 8. **Push** to your fork
 9. **Create** a Pull Request
 
-## =Ë Before You Contribute
+## =ï¿½ Before You Contribute
 
-- Read our [Code of Conduct](https://williamzujkowski.github.io/puppeteer-mcp/contributing/code-of-conduct)
-- Check existing [issues](https://github.com/williamzujkowski/puppeteer-mcp/issues) and [pull requests](https://github.com/williamzujkowski/puppeteer-mcp/pulls)
-- Follow our [coding standards](https://williamzujkowski.github.io/puppeteer-mcp/development/standards)
+- Read our
+  [Code of Conduct](https://williamzujkowski.github.io/puppeteer-mcp/contributing/code-of-conduct)
+- Check existing [issues](https://github.com/williamzujkowski/puppeteer-mcp/issues) and
+  [pull requests](https://github.com/williamzujkowski/puppeteer-mcp/pulls)
+- Follow our
+  [coding standards](https://williamzujkowski.github.io/puppeteer-mcp/development/standards)
 - Write tests for new features
 - Update documentation as needed
 

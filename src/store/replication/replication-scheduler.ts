@@ -32,13 +32,13 @@ export class ReplicationScheduler extends EventEmitter {
 
     this.syncCallback = callback;
     this.isRunning = true;
-    
+
     // Start periodic sync
     this.syncInterval = setInterval(() => {
-      this.runSync().catch(error => {
+      this.runSync().catch((error) => {
         this.logger.error(
           { error: error instanceof Error ? error.message : String(error) },
-          'Scheduled sync failed'
+          'Scheduled sync failed',
         );
         this.emit('sync:error', error);
       });
@@ -93,26 +93,26 @@ export class ReplicationScheduler extends EventEmitter {
     }
 
     const startTime = Date.now();
-    
+
     try {
       this.emit('sync:started');
       await this.syncCallback();
-      
+
       const duration = Date.now() - startTime;
       this.logger.debug({ duration }, 'Scheduled sync completed');
-      
+
       this.emit('sync:completed', { duration });
     } catch (error) {
       const duration = Date.now() - startTime;
-      
+
       this.logger.error(
-        { 
+        {
           error: error instanceof Error ? error.message : String(error),
-          duration 
+          duration,
         },
-        'Scheduled sync failed'
+        'Scheduled sync failed',
       );
-      
+
       this.emit('sync:failed', error);
       throw error;
     }
@@ -133,7 +133,7 @@ export class ReplicationScheduler extends EventEmitter {
 
     this.stop();
     this.start(newInterval, callback);
-    
+
     this.logger.info({ newInterval }, 'Sync interval updated');
   }
 
@@ -149,18 +149,19 @@ export class ReplicationScheduler extends EventEmitter {
       return {
         isRunning: false,
         nextSync: null,
-        interval: null
+        interval: null,
       };
     }
 
     // Note: This is approximate since we can't get exact timer info
-    const interval = (this.syncInterval as unknown as { _idleTimeout?: number })._idleTimeout ?? null;
+    const interval =
+      (this.syncInterval as unknown as { _idleTimeout?: number })._idleTimeout ?? null;
     const nextSync = interval !== null ? new Date(Date.now() + interval) : null;
 
     return {
       isRunning: this.isRunning,
       nextSync,
-      interval
+      interval,
     };
   }
 

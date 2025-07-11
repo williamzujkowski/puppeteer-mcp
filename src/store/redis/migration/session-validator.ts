@@ -27,10 +27,10 @@ export class SessionValidator {
       const session = JSON.parse(data);
       return Boolean(
         session &&
-        typeof session.id === 'string' &&
-        session.data &&
-        typeof session.data.userId === 'string' &&
-        typeof session.lastAccessedAt === 'string'
+          typeof session.id === 'string' &&
+          session.data &&
+          typeof session.data.userId === 'string' &&
+          typeof session.lastAccessedAt === 'string',
       );
     } catch {
       return false;
@@ -53,15 +53,15 @@ export class SessionValidator {
     }
 
     const backup = data as Record<string, unknown>;
-    
+
     return Boolean(
       backup.timestamp &&
-      typeof backup.timestamp === 'string' &&
-      backup.version &&
-      typeof backup.version === 'string' &&
-      Array.isArray(backup.sessions) &&
-      typeof backup.sessionCount === 'number' &&
-      typeof backup.preserveTTL === 'boolean'
+        typeof backup.timestamp === 'string' &&
+        backup.version &&
+        typeof backup.version === 'string' &&
+        Array.isArray(backup.sessions) &&
+        typeof backup.sessionCount === 'number' &&
+        typeof backup.preserveTTL === 'boolean',
     );
   }
 
@@ -74,14 +74,14 @@ export class SessionValidator {
     }
 
     const backupSession = session as Record<string, unknown>;
-    
+
     return Boolean(
       backupSession.key &&
-      typeof backupSession.key === 'string' &&
-      this.validateSessionKey(backupSession.key) &&
-      backupSession.data &&
-      typeof backupSession.data === 'string' &&
-      (backupSession.ttl === undefined || typeof backupSession.ttl === 'number')
+        typeof backupSession.key === 'string' &&
+        this.validateSessionKey(backupSession.key) &&
+        backupSession.data &&
+        typeof backupSession.data === 'string' &&
+        (backupSession.ttl === undefined || typeof backupSession.ttl === 'number'),
     );
   }
 
@@ -99,9 +99,10 @@ export class SessionValidator {
     try {
       const session = JSON.parse(sessionData);
       if (session.data?.expiresAt) {
-        const ttl = Math.max(0, Math.ceil(
-          (new Date(session.data.expiresAt).getTime() - Date.now()) / 1000
-        ));
+        const ttl = Math.max(
+          0,
+          Math.ceil((new Date(session.data.expiresAt).getTime() - Date.now()) / 1000),
+        );
         return this.validateTTL(ttl) ? ttl : 0;
       }
     } catch (error) {
@@ -115,10 +116,10 @@ export class SessionValidator {
    */
   async validateSessions(
     sessions: unknown[],
-    options: { 
-      sampleSize?: number; 
+    options: {
+      sampleSize?: number;
       strict?: boolean;
-    } = {}
+    } = {},
   ): Promise<{
     valid: boolean;
     validCount: number;
@@ -129,7 +130,7 @@ export class SessionValidator {
       valid: false,
       validCount: 0,
       invalidCount: 0,
-      errors: [] as string[]
+      errors: [] as string[],
     };
 
     const samplesToCheck = options.sampleSize ?? sessions.length;
@@ -139,7 +140,7 @@ export class SessionValidator {
       if (!this.validateBackupSession(session)) {
         result.invalidCount++;
         result.errors.push(`Invalid session at index ${index}`);
-        
+
         if (options.strict) {
           break;
         }
@@ -150,7 +151,7 @@ export class SessionValidator {
       if (!this.validateSessionData(backupSession.data)) {
         result.invalidCount++;
         result.errors.push(`Invalid session data for key: ${backupSession.key}`);
-        
+
         if (options.strict) {
           break;
         }
@@ -159,9 +160,7 @@ export class SessionValidator {
       }
     }
 
-    result.valid = options.strict 
-      ? result.invalidCount === 0 
-      : result.validCount > 0;
+    result.valid = options.strict ? result.invalidCount === 0 : result.validCount > 0;
 
     return result;
   }

@@ -1,6 +1,6 @@
 /**
  * OpenTelemetry Monitoring Setup
- * 
+ *
  * This example demonstrates:
  * - Distributed tracing for browser automation
  * - Custom metrics collection
@@ -50,12 +50,15 @@ export function initializeMonitoring() {
   });
 
   // Configure Prometheus exporter for local metrics
-  const prometheusExporter = new PrometheusExporter({
-    port: 9090,
-    endpoint: '/metrics',
-  }, () => {
-    console.log('Prometheus metrics available at http://localhost:9090/metrics');
-  });
+  const prometheusExporter = new PrometheusExporter(
+    {
+      port: 9090,
+      endpoint: '/metrics',
+    },
+    () => {
+      console.log('Prometheus metrics available at http://localhost:9090/metrics');
+    },
+  );
 
   // Initialize SDK
   const sdk = new NodeSDK({
@@ -80,7 +83,7 @@ export function initializeMonitoring() {
   sdk.start();
 
   console.log('OpenTelemetry monitoring initialized');
-  
+
   return { sdk, prometheusExporter };
 }
 
@@ -88,25 +91,25 @@ export function initializeMonitoring() {
 export class PuppeteerInstrumentation {
   private tracer = trace.getTracer(SERVICE_NAME, SERVICE_VERSION);
   private meter = metrics.getMeter(SERVICE_NAME, SERVICE_VERSION);
-  
+
   // Metrics
   private sessionCounter = this.meter.createCounter('puppeteer.sessions.created', {
     description: 'Number of browser sessions created',
   });
-  
+
   private pageLoadHistogram = this.meter.createHistogram('puppeteer.page.load_time', {
     description: 'Page load time in milliseconds',
     unit: 'ms',
   });
-  
+
   private errorCounter = this.meter.createCounter('puppeteer.errors', {
     description: 'Number of errors encountered',
   });
-  
+
   private activeSessionsGauge = this.meter.createUpDownCounter('puppeteer.sessions.active', {
     description: 'Number of active browser sessions',
   });
-  
+
   private memoryGauge = this.meter.createObservableGauge('puppeteer.memory.usage', {
     description: 'Memory usage in bytes',
     unit: 'bytes',
@@ -128,7 +131,7 @@ export class PuppeteerInstrumentation {
   // Trace browser session creation
   async traceSessionCreation<T>(
     operation: () => Promise<T>,
-    attributes: Record<string, any> = {}
+    attributes: Record<string, any> = {},
   ): Promise<T> {
     const span = this.tracer.startSpan('puppeteer.session.create', {
       attributes: {
@@ -139,13 +142,13 @@ export class PuppeteerInstrumentation {
 
     try {
       const result = await operation();
-      
+
       this.sessionCounter.add(1, {
         'session.type': attributes.browserName || 'chrome',
       });
-      
+
       this.activeSessionsGauge.add(1);
-      
+
       span.setStatus({ code: SpanStatusCode.OK });
       return result;
     } catch (error) {
@@ -154,11 +157,11 @@ export class PuppeteerInstrumentation {
         code: SpanStatusCode.ERROR,
         message: error instanceof Error ? error.message : 'Unknown error',
       });
-      
+
       this.errorCounter.add(1, {
         'error.type': 'session_creation',
       });
-      
+
       throw error;
     } finally {
       span.end();
@@ -166,10 +169,7 @@ export class PuppeteerInstrumentation {
   }
 
   // Trace page navigation
-  async traceNavigation<T>(
-    url: string,
-    operation: () => Promise<T>
-  ): Promise<T> {
+  async traceNavigation<T>(url: string, operation: () => Promise<T>): Promise<T> {
     const span = this.tracer.startSpan('puppeteer.page.navigate', {
       attributes: {
         'http.url': url,
@@ -182,14 +182,14 @@ export class PuppeteerInstrumentation {
     try {
       const result = await operation();
       const loadTime = Date.now() - startTime;
-      
+
       this.pageLoadHistogram.record(loadTime, {
         'page.url': new URL(url).hostname,
       });
-      
+
       span.setAttribute('page.load_time', loadTime);
       span.setStatus({ code: SpanStatusCode.OK });
-      
+
       return result;
     } catch (error) {
       span.recordException(error as Error);
@@ -197,12 +197,12 @@ export class PuppeteerInstrumentation {
         code: SpanStatusCode.ERROR,
         message: error instanceof Error ? error.message : 'Unknown error',
       });
-      
+
       this.errorCounter.add(1, {
         'error.type': 'navigation',
         'error.url': url,
       });
-      
+
       throw error;
     } finally {
       span.end();
@@ -213,7 +213,7 @@ export class PuppeteerInstrumentation {
   async traceWorkflow<T>(
     workflowName: string,
     operation: () => Promise<T>,
-    metadata: Record<string, any> = {}
+    metadata: Record<string, any> = {},
   ): Promise<T> {
     const span = this.tracer.startSpan(`puppeteer.workflow.${workflowName}`, {
       attributes: {
@@ -227,17 +227,17 @@ export class PuppeteerInstrumentation {
     try {
       const result = await operation();
       const duration = Date.now() - startTime;
-      
+
       span.setAttribute('workflow.duration', duration);
       span.setAttribute('workflow.success', true);
       span.setStatus({ code: SpanStatusCode.OK });
-      
+
       // Log custom event
       span.addEvent('workflow.completed', {
         duration,
         result: JSON.stringify(result),
       });
-      
+
       return result;
     } catch (error) {
       span.recordException(error as Error);
@@ -245,12 +245,12 @@ export class PuppeteerInstrumentation {
         code: SpanStatusCode.ERROR,
         message: error instanceof Error ? error.message : 'Unknown error',
       });
-      
+
       this.errorCounter.add(1, {
         'error.type': 'workflow',
         'error.workflow': workflowName,
       });
-      
+
       throw error;
     } finally {
       span.end();
@@ -262,7 +262,7 @@ export class PuppeteerInstrumentation {
     const customMetric = this.meter.createHistogram(`puppeteer.custom.${name}`, {
       description: `Custom metric: ${name}`,
     });
-    
+
     customMetric.record(value, labels);
   }
 
@@ -287,7 +287,7 @@ export class MonitoredAutomation {
       'example_workflow',
       async () => {
         let sessionId: string | null = null;
-        
+
         try {
           // Create session with monitoring
           const session = await this.instrumentation.traceSessionCreation(
@@ -297,33 +297,27 @@ export class MonitoredAutomation {
               });
               return response.data.data;
             },
-            { browserName: 'chrome' }
+            { browserName: 'chrome' },
           );
-          
+
           sessionId = session.id;
-          
+
           // Navigate with monitoring
-          await this.instrumentation.traceNavigation(
-            params.url,
-            async () => {
-              await this.apiClient.post(`/sessions/${sessionId}/execute`, {
-                script: 'goto',
-                args: [params.url],
-              });
-            }
-          );
-          
+          await this.instrumentation.traceNavigation(params.url, async () => {
+            await this.apiClient.post(`/sessions/${sessionId}/execute`, {
+              script: 'goto',
+              args: [params.url],
+            });
+          });
+
           // Custom operation with metrics
           const extractionStart = Date.now();
           const data = await this.extractData(sessionId);
-          this.instrumentation.recordMetric(
-            'data_extraction_time',
-            Date.now() - extractionStart,
-            { url: params.url }
-          );
-          
+          this.instrumentation.recordMetric('data_extraction_time', Date.now() - extractionStart, {
+            url: params.url,
+          });
+
           return { success: true, data };
-          
         } finally {
           if (sessionId) {
             await this.cleanup(sessionId);
@@ -331,7 +325,7 @@ export class MonitoredAutomation {
           }
         }
       },
-      { url: params.url }
+      { url: params.url },
     );
   }
 
@@ -340,7 +334,7 @@ export class MonitoredAutomation {
       script: 'evaluate',
       args: [`document.title`],
     });
-    
+
     return response.data.data.result;
   }
 
@@ -412,23 +406,23 @@ if (require.main === module) {
   (async () => {
     // Initialize monitoring
     const { sdk } = initializeMonitoring();
-    
+
     // Run monitored automation
     const automation = new MonitoredAutomation();
-    
+
     try {
       const result = await automation.runMonitoredWorkflow({
         url: 'https://example.com',
       });
-      
+
       console.log('Workflow completed:', result);
     } catch (error) {
       console.error('Workflow failed:', error);
     }
-    
+
     // Keep the process running for metrics collection
     console.log('Monitoring active. Metrics available at http://localhost:9090/metrics');
-    
+
     // Graceful shutdown
     process.on('SIGTERM', async () => {
       await sdk.shutdown();

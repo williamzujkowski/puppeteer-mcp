@@ -28,7 +28,11 @@ import { ResourceManagerFactory } from './resource-management/resource-manager-f
 import type { ResourceManagerComponents } from './resource-management/resource-manager-factory.js';
 import { ResourceEventType } from './resource-management/resource-events.js';
 import { triggerGarbageCollection } from './resource-management/garbage-collection-utils.js';
-import { createResourceConfig, createMemoryConfig, createCpuConfig } from './resource-management/config-utils.js';
+import {
+  createResourceConfig,
+  createMemoryConfig,
+  createCpuConfig,
+} from './resource-management/config-utils.js';
 import { MonitoringOrchestrator } from './resource-management/monitoring-orchestrator.js';
 
 // Re-export types for backward compatibility
@@ -61,7 +65,7 @@ export class BrowserPoolResourceManager extends EventEmitter {
   constructor(
     config: Partial<ResourceMonitoringConfig> = {},
     memoryOptimization: Partial<MemoryOptimizationOptions> = {},
-    cpuOptimization: Partial<CpuOptimizationOptions> = {}
+    cpuOptimization: Partial<CpuOptimizationOptions> = {},
   ) {
     super();
 
@@ -74,7 +78,7 @@ export class BrowserPoolResourceManager extends EventEmitter {
     this.components = ResourceManagerFactory.createComponents(
       this.config,
       this.memoryOptimization,
-      this.cpuOptimization
+      this.cpuOptimization,
     );
 
     // Create monitoring orchestrator
@@ -84,15 +88,15 @@ export class BrowserPoolResourceManager extends EventEmitter {
     this.components.alertManager.on('resource-alert', (alert: ResourceAlert) => {
       this.emit('resource-alert', alert);
     });
-    
+
     this.orchestrator.on(ResourceEventType.MONITORING_STARTED, () => {
       this.emit(ResourceEventType.MONITORING_STARTED);
     });
-    
+
     this.orchestrator.on(ResourceEventType.MONITORING_STOPPED, () => {
       this.emit(ResourceEventType.MONITORING_STOPPED);
     });
-    
+
     this.orchestrator.on(ResourceEventType.RESOURCES_MONITORED, (data) => {
       this.emit(ResourceEventType.RESOURCES_MONITORED, data);
     });
@@ -109,7 +113,7 @@ export class BrowserPoolResourceManager extends EventEmitter {
         memoryOptimization: this.memoryOptimization,
         cpuOptimization: this.cpuOptimization,
       },
-      'Starting resource monitoring'
+      'Starting resource monitoring',
     );
 
     await this.orchestrator.start();
@@ -132,7 +136,9 @@ export class BrowserPoolResourceManager extends EventEmitter {
   /**
    * Get browser resource usage
    */
-  getBrowserResources(browserId?: string): Map<string, BrowserResourceUsage> | BrowserResourceUsage | undefined {
+  getBrowserResources(
+    browserId?: string,
+  ): Map<string, BrowserResourceUsage> | BrowserResourceUsage | undefined {
     if (browserId) {
       return this.components.browserMonitor.getBrowserUsage(browserId);
     }
@@ -171,12 +177,12 @@ export class BrowserPoolResourceManager extends EventEmitter {
           const result = await strategy.optimizeBrowser(browser);
           if (!result.success) {
             logger.warn(
-              { 
-                browserId: instance.id, 
-                strategy: strategy.getName(), 
-                errors: result.errors 
+              {
+                browserId: instance.id,
+                strategy: strategy.getName(),
+                errors: result.errors,
               },
-              'Optimization strategy partially failed'
+              'Optimization strategy partially failed',
             );
           }
         }
@@ -189,10 +195,7 @@ export class BrowserPoolResourceManager extends EventEmitter {
 
       this.emit(ResourceEventType.BROWSER_OPTIMIZED, { browserId: instance.id });
     } catch (error) {
-      logger.error(
-        { browserId: instance.id, error },
-        'Error optimizing browser'
-      );
+      logger.error({ browserId: instance.id, error }, 'Error optimizing browser');
       throw error;
     }
   }
@@ -217,10 +220,10 @@ export class BrowserPoolResourceManager extends EventEmitter {
   updateConfig(
     config: Partial<ResourceMonitoringConfig>,
     memoryOptimization?: Partial<MemoryOptimizationOptions>,
-    cpuOptimization?: Partial<CpuOptimizationOptions>
+    cpuOptimization?: Partial<CpuOptimizationOptions>,
   ): void {
     this.config = { ...this.config, ...config };
-    
+
     if (memoryOptimization) {
       this.memoryOptimization = { ...this.memoryOptimization, ...memoryOptimization };
       // Update strategy config
@@ -230,7 +233,7 @@ export class BrowserPoolResourceManager extends EventEmitter {
         }
       }
     }
-    
+
     if (cpuOptimization) {
       this.cpuOptimization = { ...this.cpuOptimization, ...cpuOptimization };
       // Update strategy config
@@ -246,7 +249,7 @@ export class BrowserPoolResourceManager extends EventEmitter {
       this.components.alertManager.updateThresholds(config.thresholds);
       this.components.recyclingService.updateThresholds(config.thresholds);
     }
-    
+
     // Update orchestrator config
     this.orchestrator.updateConfig(this.config);
 
@@ -260,5 +263,4 @@ export class BrowserPoolResourceManager extends EventEmitter {
   async monitorBrowserResources(browsers: Map<string, InternalBrowserInstance>): Promise<void> {
     await this.orchestrator.monitorBrowserResources(browsers);
   }
-
 }

@@ -102,13 +102,15 @@ export interface GrpcCapabilities {
 /**
  * Validation helper type guards
  */
-export type ValidationResult<T> = {
-  success: true;
-  data: T;
-} | {
-  success: false;
-  error: string;
-};
+export type ValidationResult<T> =
+  | {
+      success: true;
+      data: T;
+    }
+  | {
+      success: false;
+      error: string;
+    };
 
 /**
  * Request execution parameters

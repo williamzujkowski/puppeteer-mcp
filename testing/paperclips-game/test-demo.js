@@ -16,46 +16,46 @@ const checks = [
   {
     name: 'Demo script exists',
     path: path.join(__dirname, 'paperclips-automation-demo.js'),
-    type: 'file'
+    type: 'file',
   },
   {
     name: 'README exists',
     path: path.join(__dirname, 'README-DEMO.md'),
-    type: 'file'
+    type: 'file',
   },
   {
     name: 'Run script exists',
     path: path.join(__dirname, 'run-demo.sh'),
-    type: 'file'
+    type: 'file',
   },
   {
     name: 'Run script is executable',
     path: path.join(__dirname, 'run-demo.sh'),
-    type: 'executable'
+    type: 'executable',
   },
   {
     name: 'Project dist directory exists',
     path: path.join(__dirname, '../../dist'),
-    type: 'directory'
+    type: 'directory',
   },
   {
     name: 'Browser pool module exists',
     path: path.join(__dirname, '../../dist/puppeteer/pool/browser-pool.js'),
-    type: 'file'
-  }
+    type: 'file',
+  },
 ];
 
 let allPassed = true;
 
-checks.forEach(check => {
+checks.forEach((check) => {
   try {
     const stats = fs.statSync(check.path);
-    
+
     if (check.type === 'file' && stats.isFile()) {
       console.log(`✅ ${check.name}`);
     } else if (check.type === 'directory' && stats.isDirectory()) {
       console.log(`✅ ${check.name}`);
-    } else if (check.type === 'executable' && stats.isFile() && (stats.mode & 0o111)) {
+    } else if (check.type === 'executable' && stats.isFile() && stats.mode & 0o111) {
       console.log(`✅ ${check.name}`);
     } else {
       console.log(`❌ ${check.name} - Wrong type`);

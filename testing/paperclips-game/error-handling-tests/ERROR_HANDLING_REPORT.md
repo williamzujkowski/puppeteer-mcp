@@ -14,14 +14,14 @@ Generated: 7/5/2025, 10:18:26 PM
 
 ## Test Suite Results
 
-| Suite | Tests | Passed | Failed | Duration | Status |
-|-------|-------|--------|--------|----------|---------|
-| Invalid URLs | N/A | N/A | N/A | 0.1s | ✅ PASS |
-| Timeout Scenarios | N/A | N/A | N/A | 0.1s | ✅ PASS |
-| Network Errors | N/A | N/A | N/A | 0.1s | ✅ PASS |
-| JavaScript Errors | N/A | N/A | N/A | 0.1s | ✅ PASS |
-| Invalid Selectors | N/A | N/A | N/A | 0.1s | ✅ PASS |
-| Concurrent Operations | N/A | N/A | N/A | 0.1s | ✅ PASS |
+| Suite                 | Tests | Passed | Failed | Duration | Status  |
+| --------------------- | ----- | ------ | ------ | -------- | ------- |
+| Invalid URLs          | N/A   | N/A    | N/A    | 0.1s     | ✅ PASS |
+| Timeout Scenarios     | N/A   | N/A    | N/A    | 0.1s     | ✅ PASS |
+| Network Errors        | N/A   | N/A    | N/A    | 0.1s     | ✅ PASS |
+| JavaScript Errors     | N/A   | N/A    | N/A    | 0.1s     | ✅ PASS |
+| Invalid Selectors     | N/A   | N/A    | N/A    | 0.1s     | ✅ PASS |
+| Concurrent Operations | N/A   | N/A    | N/A    | 0.1s     | ✅ PASS |
 
 ## Error Categories Tested
 

@@ -6,7 +6,11 @@
  */
 
 import type { Page } from 'puppeteer';
-import type { KeyboardAction, ActionResult, ActionContext } from '../../../interfaces/action-executor.interface.js';
+import type {
+  KeyboardAction,
+  ActionResult,
+  ActionContext,
+} from '../../../interfaces/action-executor.interface.js';
 import { BaseInteractionHandler } from './base-handler.js';
 
 /**
@@ -25,11 +29,7 @@ export class KeyboardHandler extends BaseInteractionHandler<KeyboardAction> {
    * @nist ac-3 "Access enforcement"
    * @nist si-10 "Information input validation"
    */
-  async execute(
-    action: KeyboardAction,
-    page: Page,
-    context: ActionContext,
-  ): Promise<ActionResult> {
+  async execute(action: KeyboardAction, page: Page, context: ActionContext): Promise<ActionResult> {
     const startTime = Date.now();
 
     try {
@@ -62,17 +62,13 @@ export class KeyboardHandler extends BaseInteractionHandler<KeyboardAction> {
         duration,
       });
 
-      return this.createActionResult(
-        true,
-        this.actionType,
-        {
-          data: {
-            key: action.key,
-            action: action.action,
-          },
-          duration,
+      return this.createActionResult(true, this.actionType, {
+        data: {
+          key: action.key,
+          action: action.action,
         },
-      );
+        duration,
+      });
     } catch (error) {
       const duration = Date.now() - startTime;
       const errorMessage = error instanceof Error ? error.message : 'Keyboard action failed';
@@ -84,18 +80,14 @@ export class KeyboardHandler extends BaseInteractionHandler<KeyboardAction> {
         duration,
       });
 
-      return this.createActionResult(
-        false,
-        this.actionType,
-        {
-          error: errorMessage,
-          duration,
-          metadata: {
-            key: action.key,
-            action: action.action,
-          },
+      return this.createActionResult(false, this.actionType, {
+        error: errorMessage,
+        duration,
+        metadata: {
+          key: action.key,
+          action: action.action,
         },
-      );
+      });
     }
   }
 }

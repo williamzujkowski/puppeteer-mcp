@@ -40,11 +40,7 @@ export class CookieExecutor implements FileOperationExecutor {
    * @nist ac-3 "Access enforcement"
    * @nist au-3 "Content of audit records"
    */
-  async execute(
-    action: CookieAction,
-    page: Page,
-    context: ActionContext,
-  ): Promise<ActionResult> {
+  async execute(action: CookieAction, page: Page, context: ActionContext): Promise<ActionResult> {
     const startTime = Date.now();
 
     try {
@@ -200,8 +196,8 @@ export class CookieExecutor implements FileOperationExecutor {
   private checkSecurityWarnings(cookie: NonNullable<CookieConfig['cookies']>[0]): void {
     const secure = cookie.secure;
     if (cookie.sameSite === 'None' && secure !== true) {
-      logger.warn('Cookie with sameSite=None should be secure', { 
-        name: cookie.name 
+      logger.warn('Cookie with sameSite=None should be secure', {
+        name: cookie.name,
       });
     }
   }
@@ -212,10 +208,7 @@ export class CookieExecutor implements FileOperationExecutor {
    * @param config - Cookie configuration
    * @returns Operation result
    */
-  private async executeOperation(
-    page: Page,
-    config: CookieConfig,
-  ): Promise<unknown> {
+  private async executeOperation(page: Page, config: CookieConfig): Promise<unknown> {
     switch (config.operation) {
       case 'set':
         if (!config.cookies) {
@@ -250,14 +243,14 @@ export class CookieExecutor implements FileOperationExecutor {
     page: Page,
     cookies: NonNullable<CookieConfig['cookies']>,
   ): Promise<{ set: number }> {
-    const cookiesToSet = cookies.map(cookie => ({
+    const cookiesToSet = cookies.map((cookie) => ({
       ...cookie,
       url: page.url(), // Ensure cookies are set for current page
     })) as any[];
 
     await page.setCookie(...cookiesToSet);
 
-    logger.debug('Cookies set', { 
+    logger.debug('Cookies set', {
       count: cookies.length,
       url: page.url(),
     });
@@ -272,8 +265,8 @@ export class CookieExecutor implements FileOperationExecutor {
    */
   private async getCookies(page: Page): Promise<any[]> {
     const cookies = await page.cookies();
-    
-    logger.debug('Cookies retrieved', { 
+
+    logger.debug('Cookies retrieved', {
       count: cookies.length,
       url: page.url(),
     });
@@ -293,7 +286,7 @@ export class CookieExecutor implements FileOperationExecutor {
   ): Promise<{ deleted: number }> {
     await page.deleteCookie(...cookies);
 
-    logger.debug('Cookies deleted', { 
+    logger.debug('Cookies deleted', {
       count: cookies.length,
       url: page.url(),
     });
@@ -308,12 +301,12 @@ export class CookieExecutor implements FileOperationExecutor {
    */
   private async clearCookies(page: Page): Promise<{ cleared: number }> {
     const allCookies = await page.cookies();
-    
+
     if (allCookies.length > 0) {
       await page.deleteCookie(...allCookies);
     }
 
-    logger.debug('All cookies cleared', { 
+    logger.debug('All cookies cleared', {
       count: allCookies.length,
       url: page.url(),
     });

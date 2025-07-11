@@ -44,7 +44,7 @@ export class ReplicationCoordinator extends EventEmitter {
   async replicateCreate(
     session: Session,
     replicaIds: string[],
-    getReplica: (id: string) => { store: SessionStore; isActive: boolean } | undefined
+    getReplica: (id: string) => { store: SessionStore; isActive: boolean } | undefined,
   ): Promise<void> {
     await this.replicateOperation({
       operationType: 'create',
@@ -56,9 +56,9 @@ export class ReplicationCoordinator extends EventEmitter {
           store,
           session.data,
           this.config.maxRetries,
-          this.config.retryDelay
+          this.config.retryDelay,
         );
-      }
+      },
     });
   }
 
@@ -68,7 +68,7 @@ export class ReplicationCoordinator extends EventEmitter {
   async replicateUpdate(
     session: Session,
     replicaIds: string[],
-    getReplica: (id: string) => { store: SessionStore; isActive: boolean } | undefined
+    getReplica: (id: string) => { store: SessionStore; isActive: boolean } | undefined,
   ): Promise<void> {
     await this.replicateOperation({
       operationType: 'update',
@@ -81,9 +81,9 @@ export class ReplicationCoordinator extends EventEmitter {
           sessionId: session.id,
           sessionData: session.data,
           maxRetries: this.config.maxRetries,
-          retryDelay: this.config.retryDelay
+          retryDelay: this.config.retryDelay,
         });
-      }
+      },
     });
   }
 
@@ -93,7 +93,7 @@ export class ReplicationCoordinator extends EventEmitter {
   async replicateDelete(
     sessionId: string,
     replicaIds: string[],
-    getReplica: (id: string) => { store: SessionStore; isActive: boolean } | undefined
+    getReplica: (id: string) => { store: SessionStore; isActive: boolean } | undefined,
   ): Promise<void> {
     if (!this.config.syncDeletions) {
       return;
@@ -109,9 +109,9 @@ export class ReplicationCoordinator extends EventEmitter {
           store,
           sessionId,
           this.config.maxRetries,
-          this.config.retryDelay
+          this.config.retryDelay,
         );
-      }
+      },
     });
   }
 
@@ -121,7 +121,7 @@ export class ReplicationCoordinator extends EventEmitter {
   async replicateTouch(
     sessionId: string,
     replicaIds: string[],
-    getReplica: (id: string) => { store: SessionStore; isActive: boolean } | undefined
+    getReplica: (id: string) => { store: SessionStore; isActive: boolean } | undefined,
   ): Promise<void> {
     await this.replicateOperation({
       operationType: 'touch',
@@ -133,9 +133,9 @@ export class ReplicationCoordinator extends EventEmitter {
           store,
           sessionId,
           this.config.maxRetries,
-          this.config.retryDelay
+          this.config.retryDelay,
         );
-      }
+      },
     });
   }
 
@@ -151,37 +151,37 @@ export class ReplicationCoordinator extends EventEmitter {
       }
 
       const startTime = Date.now();
-      
+
       try {
         await operation(replica.store);
-        
+
         const duration = Date.now() - startTime;
-        
+
         this.metrics.recordOperation({
           operationType,
           replicaId,
           sessionId,
           success: true,
-          duration
+          duration,
         });
-        
+
         this.logger.debug(
           { replicaId, sessionId, operationType },
-          `Session ${operationType}d in replica`
+          `Session ${operationType}d in replica`,
         );
       } catch (error) {
         const duration = Date.now() - startTime;
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-        
+
         this.metrics.recordOperation({
           operationType,
           replicaId,
           sessionId,
           success: false,
           duration,
-          error: errorMessage
+          error: errorMessage,
         });
-        
+
         this.handleReplicaError(replicaId, error);
       }
     });
@@ -194,17 +194,10 @@ export class ReplicationCoordinator extends EventEmitter {
    */
   private handleReplicaError(replicaId: string, error: unknown): void {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    
-    this.logger.error(
-      { replicaId, error: errorMessage },
-      'Replica operation failed'
-    );
-    
-    this.emit(
-      'replica:error',
-      replicaId,
-      error instanceof Error ? error : new Error(errorMessage)
-    );
+
+    this.logger.error({ replicaId, error: errorMessage }, 'Replica operation failed');
+
+    this.emit('replica:error', replicaId, error instanceof Error ? error : new Error(errorMessage));
   }
 
   /**

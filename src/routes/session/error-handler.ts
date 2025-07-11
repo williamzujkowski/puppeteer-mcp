@@ -28,7 +28,7 @@ function getErrorType(error: unknown): SessionErrorType {
   if (error instanceof ZodError) {
     return SessionErrorType.VALIDATION_ERROR;
   }
-  
+
   if (error instanceof AppError) {
     switch (error.statusCode) {
       case 401:
@@ -41,7 +41,7 @@ function getErrorType(error: unknown): SessionErrorType {
         return SessionErrorType.INTERNAL_ERROR;
     }
   }
-  
+
   return SessionErrorType.INTERNAL_ERROR;
 }
 
@@ -50,10 +50,15 @@ function getErrorType(error: unknown): SessionErrorType {
  * @nist au-2 "Audit events"
  */
 export function createSessionErrorHandler(operation: string) {
-  return async (error: unknown, req: Request, res: Response, _next: NextFunction): Promise<void> => {
+  return async (
+    error: unknown,
+    req: Request,
+    res: Response,
+    _next: NextFunction,
+  ): Promise<void> => {
     const errorType = getErrorType(error);
     const userId = req.user?.userId ?? 'anonymous';
-    
+
     // Log security event for errors
     await logSecurityEvent(SecurityEventType.ACCESS_DENIED, {
       userId,
@@ -105,7 +110,7 @@ export function createSessionErrorHandler(operation: string) {
  * Wrap async handler with error catching
  */
 export function asyncHandler<T extends Request = Request>(
-  handler: (req: T, res: Response, next: NextFunction) => Promise<void>
+  handler: (req: T, res: Response, next: NextFunction) => Promise<void>,
 ) {
   return (req: T, res: Response, next: NextFunction): void => {
     Promise.resolve(handler(req, res, next)).catch(next);

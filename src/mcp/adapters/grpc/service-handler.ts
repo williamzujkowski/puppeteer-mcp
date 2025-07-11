@@ -26,10 +26,7 @@ export class GrpcServiceMethodHandler {
    * @nist ac-3 "Access enforcement"
    * @nist si-10 "Information input validation"
    */
-  executeGrpcCall(
-    operation: GrpcOperation,
-    metadata: grpc.Metadata,
-  ): Promise<GrpcResponse> {
+  executeGrpcCall(operation: GrpcOperation, metadata: grpc.Metadata): Promise<GrpcResponse> {
     // Get the service implementation from the server
     const service = this.connectionManager.getServiceFromServer(operation.service);
 
@@ -124,7 +121,9 @@ export class GrpcServiceMethodHandler {
       return [];
     }
 
-    return Object.keys(service).filter(key => typeof this.getServiceMethod(service, key) === 'function');
+    return Object.keys(service).filter(
+      (key) => typeof this.getServiceMethod(service, key) === 'function',
+    );
   }
 
   /**

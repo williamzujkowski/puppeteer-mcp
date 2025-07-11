@@ -38,22 +38,22 @@ export class SessionOperations {
     const ttl = this.expiryManager.calculateTTL(data.expiresAt);
     const sessionKey = this.getSessionKey(id);
     const userSessionsKey = this.getUserSessionsKey(data.userId);
-    
+
     // Use pipeline for atomic operations
     const pipeline = client.pipeline();
-    
+
     // Store session with TTL
     pipeline.setex(sessionKey, ttl, this.serializer.serialize(session));
-    
+
     // Add session ID to user's session set
     pipeline.sadd(userSessionsKey, id);
-    
+
     // Set TTL for user sessions set (longer than individual sessions)
     const userSetTTL = this.expiryManager.calculateUserSetTTL(ttl);
     pipeline.expire(userSessionsKey, userSetTTL);
-    
+
     await pipeline.exec();
-    
+
     this.logger.info({ sessionId: id, userId: data.userId, ttl }, 'Session created in Redis');
 
     // Audit log
@@ -62,7 +62,7 @@ export class SessionOperations {
       userId: data.userId,
       operation: 'create',
       timestamp: new Date().toISOString(),
-      store: 'redis'
+      store: 'redis',
     });
 
     return id;
@@ -74,13 +74,13 @@ export class SessionOperations {
   async getSession(client: RedisClient, id: string): Promise<Session | null> {
     const sessionKey = this.getSessionKey(id);
     const data = await client.get(sessionKey);
-    
+
     if (!data) {
       return null;
     }
 
     const session = this.serializer.deserialize(data);
-    
+
     // Check if session is expired
     if (this.expiryManager.isSessionExpired(session)) {
       await this.deleteSession(client, id);
@@ -96,7 +96,7 @@ export class SessionOperations {
   async updateSession(
     client: RedisClient,
     id: string,
-    data: Partial<SessionData>
+    data: Partial<SessionData>,
   ): Promise<Session | null> {
     const session = await this.getSession(client, id);
     if (!session) {
@@ -106,10 +106,10 @@ export class SessionOperations {
     const updatedSession = this.serializer.updateSession(session, data);
     const sessionKey = this.getSessionKey(id);
     const ttl = this.expiryManager.calculateTTL(updatedSession.data.expiresAt);
-    
+
     // Update session with new TTL
     await client.setex(sessionKey, ttl, this.serializer.serialize(updatedSession));
-    
+
     this.logger.info({ sessionId: id, ttl }, 'Session updated in Redis');
 
     // Audit log
@@ -118,7 +118,7 @@ export class SessionOperations {
       userId: session.data.userId,
       operation: 'update',
       timestamp: new Date().toISOString(),
-      store: 'redis'
+      store: 'redis',
     });
 
     return updatedSession;
@@ -136,29 +136,32 @@ export class SessionOperations {
 
     const sessionKey = this.getSessionKey(id);
     const userSessionsKey = this.getUserSessionsKey(session.data.userId);
-    
+
     // Use pipeline for atomic operations
     const pipeline = client.pipeline();
-    
+
     // Delete session
     pipeline.del(sessionKey);
-    
+
     // Remove session ID from user's session set
     pipeline.srem(userSessionsKey, id);
-    
+
     const results = await pipeline.exec();
     const deleted = results?.[0] && results[0][1] === 1;
-    
+
     if (deleted) {
-      this.logger.info({ sessionId: id, userId: session.data.userId }, 'Session deleted from Redis');
-      
+      this.logger.info(
+        { sessionId: id, userId: session.data.userId },
+        'Session deleted from Redis',
+      );
+
       // Audit log
       await this.logOperation('delete', {
         sessionId: id,
         userId: session.data.userId,
         operation: 'delete',
         timestamp: new Date().toISOString(),
-        store: 'redis'
+        store: 'redis',
       });
     }
 
@@ -197,10 +200,10 @@ export class SessionOperations {
 
     const sessionKey = this.getSessionKey(id);
     const ttl = this.expiryManager.calculateTTL(session.data.expiresAt);
-    
+
     // Update session with refreshed TTL
     await client.setex(sessionKey, ttl, this.serializer.serialize(updatedSession));
-    
+
     return true;
   }
 
@@ -210,13 +213,13 @@ export class SessionOperations {
   async getSessionsByUserId(client: RedisClient, userId: string): Promise<Session[]> {
     const userSessionsKey = this.getUserSessionsKey(userId);
     const sessionIds = await client.smembers(userSessionsKey);
-    
+
     if (sessionIds.length === 0) {
       return [];
     }
 
     const sessions: Session[] = [];
-    
+
     // Get all sessions for the user
     for (const sessionId of sessionIds) {
       const session = await this.getSession(client, sessionId);
@@ -235,13 +238,13 @@ export class SessionOperations {
     // Delete all session keys
     const sessionKeys = await client.keys(`${this.SESSION_KEY_PREFIX}*`);
     const userSessionKeys = await client.keys(`${this.USER_SESSIONS_KEY_PREFIX}*`);
-    
+
     const allKeys = [...sessionKeys, ...userSessionKeys];
-    
+
     if (allKeys.length > 0) {
       await client.del(...allKeys);
     }
-    
+
     this.logger.info('All sessions cleared from Redis');
   }
 
@@ -268,7 +271,7 @@ export class SessionOperations {
         action,
         userId: context.userId,
         store: context.store,
-        timestamp: context.timestamp
+        timestamp: context.timestamp,
       });
     } catch (error) {
       this.logger.error({ error, context }, 'Failed to log session operation');

@@ -18,7 +18,10 @@ import type { ActionMetrics } from '../../interfaces/action-executor/core.interf
 import type { PageManager } from '../../interfaces/page-manager.interface.js';
 import type { BatchExecutionOptions } from '../batch-executor.js';
 import type { ExecutionConfig } from './coordinator/configuration-manager.js';
-import type { ActionMetrics as CollectorActionMetrics, AggregatedMetrics } from './coordinator/metrics-collector.js';
+import type {
+  ActionMetrics as CollectorActionMetrics,
+  AggregatedMetrics,
+} from './coordinator/metrics-collector.js';
 import type { PerformanceHints } from './coordinator/performance-optimizer.js';
 import type { RetryConfig } from './types.js';
 import { BatchActionExecutor } from '../batch-executor.js';
@@ -49,7 +52,7 @@ export class ModularBrowserActionExecutor implements ActionExecutor {
 
     // Create batch executor with reference to this facade
     this.batchExecutor = new BatchActionExecutor(this);
-    
+
     // Wire up the batch executor in components
     this.components.batchExecutor = this.batchExecutor;
 
@@ -73,7 +76,7 @@ export class ModularBrowserActionExecutor implements ActionExecutor {
   ): Promise<ActionResult<T>> {
     // Get performance hints
     const hints = this.components.performanceOptimizer.getPerformanceHints(action, context);
-    
+
     // Log performance hints if significant
     if (hints.estimatedDuration > 5000 || hints.blockResources.length > 0) {
       logger.debug('Performance hints generated', {
@@ -122,11 +125,13 @@ export class ModularBrowserActionExecutor implements ActionExecutor {
       if (!this.components.dispatcher.isActionSupported(action.type)) {
         return {
           valid: false,
-          errors: [{
-            field: 'type',
-            message: `Unsupported action type: ${action.type}`,
-            code: 'UNSUPPORTED_ACTION',
-          }],
+          errors: [
+            {
+              field: 'type',
+              message: `Unsupported action type: ${action.type}`,
+              code: 'UNSUPPORTED_ACTION',
+            },
+          ],
         };
       }
 
@@ -134,11 +139,13 @@ export class ModularBrowserActionExecutor implements ActionExecutor {
       if (!this.components.dispatcher.validateActionForDispatch(action)) {
         return {
           valid: false,
-          errors: [{
-            field: 'action',
-            message: 'Action is not valid for dispatch',
-            code: 'INVALID_ACTION_FOR_DISPATCH',
-          }],
+          errors: [
+            {
+              field: 'action',
+              message: 'Action is not valid for dispatch',
+              code: 'INVALID_ACTION_FOR_DISPATCH',
+            },
+          ],
         };
       }
 
@@ -154,11 +161,13 @@ export class ModularBrowserActionExecutor implements ActionExecutor {
 
       return {
         valid: false,
-        errors: [{
-          field: 'unknown',
-          message: error instanceof Error ? error.message : 'Unknown validation error',
-          code: 'VALIDATION_ERROR',
-        }],
+        errors: [
+          {
+            field: 'unknown',
+            message: error instanceof Error ? error.message : 'Unknown validation error',
+            code: 'VALIDATION_ERROR',
+          },
+        ],
       };
     }
   }
@@ -355,7 +364,7 @@ export class ModularBrowserActionExecutor implements ActionExecutor {
     };
   } {
     const config = this.components.configManager.getConfig();
-    
+
     return {
       components: Object.keys(this.components),
       dispatcher: this.components.dispatcher.getDispatcherStats(),
@@ -383,7 +392,9 @@ export class ModularBrowserActionExecutor implements ActionExecutor {
    * @param actionType - Action type
    * @returns Execution recommendation
    */
-  getExecutionRecommendation(actionType: string): ReturnType<typeof this.components.dispatcher.getExecutorRecommendation> {
+  getExecutionRecommendation(
+    actionType: string,
+  ): ReturnType<typeof this.components.dispatcher.getExecutorRecommendation> {
     return this.components.dispatcher.getExecutorRecommendation(actionType);
   }
 
@@ -391,7 +402,9 @@ export class ModularBrowserActionExecutor implements ActionExecutor {
    * Update retry configuration
    * @param config - Partial retry configuration
    */
-  updateRetryConfig(config: Parameters<typeof this.components.errorHandler.updateRetryConfig>[0]): void {
+  updateRetryConfig(
+    config: Parameters<typeof this.components.errorHandler.updateRetryConfig>[0],
+  ): void {
     this.components.errorHandler.updateRetryConfig(config);
   }
 
@@ -410,7 +423,7 @@ export class ModularBrowserActionExecutor implements ActionExecutor {
     if ('stop' in this.components.securityCoordinator) {
       this.components.securityCoordinator.stop();
     }
-    
+
     logger.info('Modular action executor stopped');
   }
 

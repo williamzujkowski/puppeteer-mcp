@@ -33,7 +33,7 @@ export class ResourceAnalyzer {
   analyzeResources(
     instance: InternalBrowserInstance,
     limits: { maxMemoryMB: number; maxCpuPercent: number; maxConnections: number },
-    resourceUsage?: BrowserResourceUsage
+    resourceUsage?: BrowserResourceUsage,
   ): ResourceAnalysis {
     const analysis: ResourceAnalysis = {
       memoryPressure: false,
@@ -52,7 +52,7 @@ export class ResourceAnalyzer {
     if (memoryUsageMB > limits.maxMemoryMB) {
       analysis.memoryPressure = true;
       analysis.recommendations.push(
-        `Memory usage (${memoryUsageMB.toFixed(1)}MB) exceeds limit (${limits.maxMemoryMB}MB)`
+        `Memory usage (${memoryUsageMB.toFixed(1)}MB) exceeds limit (${limits.maxMemoryMB}MB)`,
       );
     }
 
@@ -60,7 +60,7 @@ export class ResourceAnalyzer {
     if (resourceUsage.cpuUsage.percent > limits.maxCpuPercent) {
       analysis.cpuPressure = true;
       analysis.recommendations.push(
-        `CPU usage (${resourceUsage.cpuUsage.percent.toFixed(1)}%) exceeds limit (${limits.maxCpuPercent}%)`
+        `CPU usage (${resourceUsage.cpuUsage.percent.toFixed(1)}%) exceeds limit (${limits.maxCpuPercent}%)`,
       );
     }
 
@@ -69,7 +69,7 @@ export class ResourceAnalyzer {
     if (connectionCount > limits.maxConnections) {
       analysis.connectionOverload = true;
       analysis.recommendations.push(
-        `Connection count (${connectionCount}) exceeds limit (${limits.maxConnections})`
+        `Connection count (${connectionCount}) exceeds limit (${limits.maxConnections})`,
       );
     }
 
@@ -91,7 +91,7 @@ export class ResourceAnalyzer {
         connectionCount,
         resourceScore: analysis.resourceScore,
       },
-      'Resource analysis completed'
+      'Resource analysis completed',
     );
 
     return analysis;
@@ -104,21 +104,17 @@ export class ResourceAnalyzer {
     instance: InternalBrowserInstance,
     resourceUsage?: BrowserResourceUsage,
     healthScore: number = 100,
-    errorRate: number = 0
+    errorRate: number = 0,
   ): CandidateMetrics {
     const now = new Date();
     const ageMs = now.getTime() - instance.createdAt.getTime();
-    
+
     return {
       ageMs,
       useCount: instance.useCount,
       pageCount: instance.pageCount,
-      memoryUsageMB: resourceUsage 
-        ? resourceUsage.memoryUsage.rss / 1024 / 1024 
-        : 0,
-      cpuUsagePercent: resourceUsage 
-        ? resourceUsage.cpuUsage.percent 
-        : 0,
+      memoryUsageMB: resourceUsage ? resourceUsage.memoryUsage.rss / 1024 / 1024 : 0,
+      cpuUsagePercent: resourceUsage ? resourceUsage.cpuUsage.percent : 0,
       healthScore,
       errorRate,
     };
@@ -139,10 +135,10 @@ export class ResourceAnalyzer {
     resourceUsage: BrowserResourceUsage,
     maxMemoryMB: number,
     maxCpuPercent: number,
-    maxHandles: number
+    maxHandles: number,
   ): boolean {
     const memoryUsageMB = resourceUsage.memoryUsage.rss / 1024 / 1024;
-    
+
     return (
       memoryUsageMB > maxMemoryMB ||
       resourceUsage.cpuUsage.percent > maxCpuPercent ||
@@ -169,7 +165,8 @@ export class ResourceAnalyzer {
     const cpuScore = Math.min(100, (params.cpuPercent / params.maxCpuPercent) * 100) * 0.4;
 
     // Connection component (20% weight)
-    const connectionScore = Math.min(100, (params.connectionCount / params.maxConnections) * 100) * 0.2;
+    const connectionScore =
+      Math.min(100, (params.connectionCount / params.maxConnections) * 100) * 0.2;
 
     return memoryScore + cpuScore + connectionScore;
   }

@@ -1,6 +1,7 @@
 # Performance Test Suite for puppeteer-mcp
 
-This comprehensive performance test suite validates the scalability, reliability, and performance characteristics of the puppeteer-mcp system under various load conditions.
+This comprehensive performance test suite validates the scalability, reliability, and performance
+characteristics of the puppeteer-mcp system under various load conditions.
 
 ## Overview
 
@@ -15,7 +16,9 @@ The performance test suite includes:
 ## Test URLs
 
 The tests validate performance against these target URLs:
-- `https://williamzujkowski.github.io/paperclips/index2.html` - Interactive game for browser automation
+
+- `https://williamzujkowski.github.io/paperclips/index2.html` - Interactive game for browser
+  automation
 - `https://williamzujkowski.github.io/` - Static homepage for baseline performance
 
 ## Quick Start
@@ -58,12 +61,14 @@ npm install
 **Purpose**: Validates concurrent browser session handling
 
 **Test Actions**:
+
 - Creates multiple browser sessions simultaneously
 - Navigates to test URLs
 - Performs browser automation (clicks, waits, screenshots)
 - Measures response times and error rates
 
 **Key Metrics**:
+
 - Session creation time
 - Average response time
 - Error rate
@@ -72,6 +77,7 @@ npm install
 - Browser pool efficiency
 
 **Usage**:
+
 ```bash
 tsx concurrent-session-test.ts [session_count]
 ```
@@ -81,18 +87,21 @@ tsx concurrent-session-test.ts [session_count]
 **Purpose**: Determines maximum sustainable concurrent sessions
 
 **Test Process**:
+
 - Tests session counts: 1, 2, 3, 5, 8, 10, 12, 15
 - Identifies performance degradation points
 - Calculates maximum sustainable load
 - Provides production recommendations
 
 **Key Metrics**:
+
 - Maximum sustainable sessions
 - Performance degradation point
 - Resource utilization by session count
 - Response time scaling
 
 **Usage**:
+
 ```bash
 tsx scalability-test.ts
 ```
@@ -102,18 +111,21 @@ tsx scalability-test.ts
 **Purpose**: Identifies system breaking points and failure modes
 
 **Test Approach**:
+
 - Progressively increases load beyond normal limits
 - Monitors for system failures
 - Tests recovery capabilities
 - Identifies critical failure points
 
 **Key Metrics**:
+
 - Breaking point (sessions)
 - System recovery time
 - Critical error patterns
 - Resource exhaustion thresholds
 
 **Usage**:
+
 ```bash
 tsx stress-test.ts
 ```
@@ -123,6 +135,7 @@ tsx stress-test.ts
 **Purpose**: Deep analysis of system resource utilization
 
 **Monitoring Scope**:
+
 - CPU usage patterns
 - Memory allocation and potential leaks
 - Browser pool efficiency
@@ -130,12 +143,14 @@ tsx stress-test.ts
 - System stability over time
 
 **Key Metrics**:
+
 - Peak resource usage
 - Resource efficiency scores
 - Memory leak detection
 - CPU utilization patterns
 
 **Usage**:
+
 ```bash
 tsx resource-monitoring-test.ts [sessions] [duration_ms]
 ```
@@ -145,12 +160,14 @@ tsx resource-monitoring-test.ts [sessions] [duration_ms]
 **Purpose**: Complete performance assessment with production readiness evaluation
 
 **Test Components**:
+
 - All individual tests
 - Cross-test analysis
 - Production readiness scoring
 - Actionable recommendations
 
 **Key Outputs**:
+
 - System capabilities summary
 - Performance metrics
 - Resource utilization analysis
@@ -158,6 +175,7 @@ tsx resource-monitoring-test.ts [sessions] [duration_ms]
 - Optimization recommendations
 
 **Usage**:
+
 ```bash
 tsx comprehensive-performance-test.ts
 ```
@@ -167,6 +185,7 @@ tsx comprehensive-performance-test.ts
 ### Results Directory
 
 All test results are saved to `./results/` with timestamps:
+
 - `concurrent-session-test-YYYY-MM-DD-HH-MM-SS.json`
 - `scalability-test-YYYY-MM-DD-HH-MM-SS.json`
 - `resource-monitoring-YYYY-MM-DD-HH-MM-SS.json`
@@ -175,6 +194,7 @@ All test results are saved to `./results/` with timestamps:
 ### Report Contents
 
 Each report includes:
+
 - Test configuration
 - Detailed metrics
 - Performance analysis
@@ -185,18 +205,21 @@ Each report includes:
 ## Performance Thresholds
 
 ### Acceptable Performance
+
 - **Response Time**: < 3 seconds average
 - **Error Rate**: < 5%
 - **Memory Usage**: < 1GB peak
 - **CPU Usage**: < 70% sustained
 
 ### Warning Thresholds
+
 - **Response Time**: 3-5 seconds average
 - **Error Rate**: 5-10%
 - **Memory Usage**: 1-2GB peak
 - **CPU Usage**: 70-85% sustained
 
 ### Critical Thresholds
+
 - **Response Time**: > 5 seconds average
 - **Error Rate**: > 10%
 - **Memory Usage**: > 2GB peak
@@ -225,6 +248,7 @@ The test suite provides specific recommendations based on measured performance:
 ### Common Issues
 
 1. **Server Not Running**
+
    ```bash
    # Start puppeteer-mcp server
    cd /home/william/git/puppeteer-mcp
@@ -249,6 +273,7 @@ The test suite provides specific recommendations based on measured performance:
 ### Debug Mode
 
 Add debug logging by setting environment variable:
+
 ```bash
 DEBUG=performance-test tsx [test-file]
 ```
@@ -258,6 +283,7 @@ DEBUG=performance-test tsx [test-file]
 ### Test Configuration
 
 Edit `config.ts` to modify:
+
 - Target URLs
 - Session counts
 - Test durations
@@ -267,6 +293,7 @@ Edit `config.ts` to modify:
 ### Server Configuration
 
 For optimal performance testing:
+
 - Increase browser pool size
 - Adjust timeout settings
 - Configure resource limits
@@ -290,6 +317,7 @@ The test suite can be integrated into CI/CD pipelines:
 ### Performance Regression Detection
 
 Compare results over time to detect performance regressions:
+
 - Monitor response time trends
 - Track resource usage patterns
 - Alert on performance degradation
@@ -297,6 +325,7 @@ Compare results over time to detect performance regressions:
 ## Support
 
 For issues or questions:
+
 1. Check the troubleshooting section
 2. Review server logs
 3. Verify system requirements

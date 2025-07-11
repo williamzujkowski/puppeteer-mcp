@@ -67,10 +67,10 @@ export class ProxyAuthValidator extends BaseValidator<ProxyConfig> {
 export class BypassPatternValidator extends BaseValidator<ProxyConfig> {
   protected doValidate(context: ValidationContext<ProxyConfig>): void {
     const invalidPatterns = context.config.bypass.filter(
-      pattern => !this.isValidBypassPattern(pattern)
+      (pattern) => !this.isValidBypassPattern(pattern),
     );
 
-    invalidPatterns.forEach(pattern => {
+    invalidPatterns.forEach((pattern) => {
       context.errors.push(`Invalid bypass pattern: ${pattern}`);
     });
   }
@@ -83,10 +83,10 @@ export class BypassPatternValidator extends BaseValidator<ProxyConfig> {
     const ipPattern = /^(?:\d{1,3}\.){3}\d{1,3}(?:\/\d{1,2})?$/;
     // eslint-disable-next-line security/detect-unsafe-regex
     const ipRangePattern = /^(?:\d{1,3}\.){0,3}\*$/;
-    
+
     const validators = [domainPattern, ipPattern, ipRangePattern];
 
-    return validators.some(regex => regex.test(pattern));
+    return validators.some((regex) => regex.test(pattern));
   }
 }
 
@@ -115,7 +115,9 @@ export class ConnectivityValidator extends BaseValidator<ProxyConfig> {
     try {
       await this.checkProxyConnectivity(context.config);
     } catch (error) {
-      context.errors.push(`Connectivity check failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      context.errors.push(
+        `Connectivity check failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
     }
   }
 

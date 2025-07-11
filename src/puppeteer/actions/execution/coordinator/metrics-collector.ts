@@ -92,11 +92,7 @@ export class MetricsCollector {
    * @param context - Execution context
    * @param result - Action result
    */
-  recordExecutionEnd(
-    action: BrowserAction,
-    context: ActionContext,
-    result: ActionResult,
-  ): void {
+  recordExecutionEnd(action: BrowserAction, context: ActionContext, result: ActionResult): void {
     const metricId = this.generateMetricId(action, context);
     const metric = this.activeMetrics.get(metricId);
 
@@ -130,11 +126,7 @@ export class MetricsCollector {
    * @param context - Execution context
    * @param retryCount - Current retry count
    */
-  recordRetryAttempt(
-    action: BrowserAction,
-    context: ActionContext,
-    retryCount: number,
-  ): void {
+  recordRetryAttempt(action: BrowserAction, context: ActionContext, retryCount: number): void {
     const metricId = this.generateMetricId(action, context);
     const metric = this.activeMetrics.get(metricId);
 
@@ -157,11 +149,7 @@ export class MetricsCollector {
       actionTypes?: string[];
     },
   ): AggregatedMetrics {
-    const filteredMetrics = this.aggregator.filterMetrics(
-      this.completedMetrics,
-      context,
-      options,
-    );
+    const filteredMetrics = this.aggregator.filterMetrics(this.completedMetrics, context, options);
 
     return this.aggregator.aggregate(filteredMetrics);
   }
@@ -172,7 +160,7 @@ export class MetricsCollector {
    * @returns Session metrics
    */
   getSessionMetrics(sessionId: string): ActionMetrics[] {
-    return this.completedMetrics.filter(m => m.sessionId === sessionId);
+    return this.completedMetrics.filter((m) => m.sessionId === sessionId);
   }
 
   /**
@@ -182,9 +170,7 @@ export class MetricsCollector {
    * @returns Action type metrics
    */
   getActionTypeMetrics(actionType: string, limit = 100): ActionMetrics[] {
-    return this.completedMetrics
-      .filter(m => m.actionType === actionType)
-      .slice(-limit);
+    return this.completedMetrics.filter((m) => m.actionType === actionType).slice(-limit);
   }
 
   /**
@@ -193,9 +179,7 @@ export class MetricsCollector {
    * @returns Recent error metrics
    */
   getRecentErrors(limit = 50): ActionMetrics[] {
-    return this.completedMetrics
-      .filter(m => !m.success)
-      .slice(-limit);
+    return this.completedMetrics.filter((m) => !m.success).slice(-limit);
   }
 
   /**
@@ -210,9 +194,7 @@ export class MetricsCollector {
     }
 
     const cutoffTime = before.getTime();
-    const metricsToKeep = this.completedMetrics.filter(
-      m => m.startTime >= cutoffTime
-    );
+    const metricsToKeep = this.completedMetrics.filter((m) => m.startTime >= cutoffTime);
 
     this.completedMetrics.length = 0;
     this.completedMetrics.push(...metricsToKeep);
@@ -229,9 +211,7 @@ export class MetricsCollector {
     oldestMetricAge: number | null;
   } {
     const oldestMetric = this.completedMetrics[0];
-    const oldestMetricAge = oldestMetric
-      ? Date.now() - oldestMetric.startTime
-      : null;
+    const oldestMetricAge = oldestMetric ? Date.now() - oldestMetric.startTime : null;
 
     return {
       activeMetrics: this.activeMetrics.size,
@@ -248,9 +228,8 @@ export class MetricsCollector {
    */
   exportMetrics(context?: ActionContext): string {
     const metrics = context
-      ? this.completedMetrics.filter(m => 
-          m.sessionId === context.sessionId &&
-          m.contextId === context.contextId
+      ? this.completedMetrics.filter(
+          (m) => m.sessionId === context.sessionId && m.contextId === context.contextId,
         )
       : this.completedMetrics;
 

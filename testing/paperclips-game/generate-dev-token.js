@@ -2,7 +2,7 @@
 
 /**
  * Development Token Generator
- * 
+ *
  * Generates a JWT token for development testing purposes.
  * This bypasses the normal authentication flow for API testing.
  */
@@ -28,12 +28,12 @@ function generateDevToken() {
     username,
     roles,
     sessionId,
-    type: 'access'
+    type: 'access',
   };
 
   const token = jwt.sign(payload, JWT_SECRET, {
     algorithm: 'HS512',
-    expiresIn: JWT_EXPIRY
+    expiresIn: JWT_EXPIRY,
   });
 
   return {
@@ -42,7 +42,7 @@ function generateDevToken() {
     sessionId,
     username,
     roles,
-    expiresIn: 3600
+    expiresIn: 3600,
   };
 }
 

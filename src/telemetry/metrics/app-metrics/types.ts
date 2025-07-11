@@ -4,13 +4,7 @@
  * @nist au-6 "Audit review, analysis, and reporting"
  */
 
-import { 
-  Counter, 
-  Histogram, 
-  UpDownCounter, 
-  Meter,
-  Attributes,
-} from '@opentelemetry/api';
+import { Counter, Histogram, UpDownCounter, Meter, Attributes } from '@opentelemetry/api';
 
 /**
  * Base metrics interface

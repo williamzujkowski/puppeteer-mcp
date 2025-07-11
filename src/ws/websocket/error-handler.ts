@@ -80,7 +80,7 @@ export class ErrorHandler extends ErrorHandlerCore {
   ): Promise<void> {
     const { ws, connectionId, message, connectionManager } = connectionData;
     const state = connectionManager?.getConnectionState(connectionId);
-    
+
     const errorInfo: ErrorInfo = {
       type: ErrorType.MESSAGE_ERROR,
       severity: this.determineSeverity(error),
@@ -255,7 +255,7 @@ export class ErrorHandler extends ErrorHandlerCore {
     });
   }
 
-  // The getErrorStats, clearErrorHistory, and recordError methods 
+  // The getErrorStats, clearErrorHistory, and recordError methods
   // are now inherited from ErrorHandlerCore
 
   /**
@@ -289,6 +289,6 @@ export class ErrorHandler extends ErrorHandlerCore {
     }
   }
 
-  // The determineSeverity and initializeStats methods 
+  // The determineSeverity and initializeStats methods
   // are now inherited from ErrorHandlerCore
 }

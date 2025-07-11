@@ -2,7 +2,7 @@
 
 /**
  * Automation Code Generator
- * 
+ *
  * Generates boilerplate code for new automations
  * Usage: npm run generate:automation -- --name MyAutomation --type scraper
  */
@@ -471,39 +471,40 @@ export class {{name}} extends BaseAutomation {
       totalDuration: results.reduce((sum, r) => sum + r.duration, 0)
     };
   }
-}`
+}`,
 };
 
 async function generateAutomation(options: GeneratorOptions) {
   const { name, type, output = './src/automations', typescript = true } = options;
-  
+
   // Validate name
   if (!/^[A-Z][a-zA-Z0-9]*$/.test(name)) {
     throw new Error('Name must be in PascalCase (e.g., MyAutomation)');
   }
-  
+
   // Get template
   const template = templates[type];
   if (!template) {
     throw new Error(`Unknown automation type: ${type}`);
   }
-  
+
   // Replace placeholders
   const code = template
     .replace(/{{name}}/g, name)
     .replace(/{{date}}/g, new Date().toISOString().split('T')[0]);
-  
+
   // Create output directory
   await fs.mkdir(output, { recursive: true });
-  
+
   // Generate filename
-  const filename = name
-    .replace(/([A-Z])/g, '-$1')
-    .toLowerCase()
-    .slice(1) + (typescript ? '.ts' : '.js');
-  
+  const filename =
+    name
+      .replace(/([A-Z])/g, '-$1')
+      .toLowerCase()
+      .slice(1) + (typescript ? '.ts' : '.js');
+
   const filepath = path.join(output, filename);
-  
+
   // Check if file exists
   try {
     await fs.access(filepath);
@@ -511,10 +512,10 @@ async function generateAutomation(options: GeneratorOptions) {
   } catch (error: any) {
     if (error.code !== 'ENOENT') throw error;
   }
-  
+
   // Write file
   await fs.writeFile(filepath, code);
-  
+
   console.log(`✅ Generated ${type} automation: ${filepath}`);
   console.log(`\nNext steps:`);
   console.log(`1. Edit ${filepath} to customize your automation`);
@@ -536,7 +537,7 @@ program
         name: options.name,
         type: options.type,
         output: options.output,
-        typescript: !options.js
+        typescript: !options.js,
       });
     } catch (error) {
       console.error('❌ Error:', error instanceof Error ? error.message : error);

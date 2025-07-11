@@ -48,14 +48,14 @@ describe('Path Traversal Security Tests', () => {
         '/etc/passwd',
         'c:\\windows\\system32\\config\\sam',
         '//etc/passwd',
-        '\\\\windows\\system32\\config\\sam'
+        '\\\\windows\\system32\\config\\sam',
       ];
 
       for (const payload of traversalPayloads) {
         try {
           // Test file URL navigation
           await page.goto(`file://${payload}`, { waitUntil: 'domcontentloaded', timeout: 3000 });
-          
+
           // Should not be able to access system files
           const content = await page.content();
           expect(content).not.toContain('root:');
@@ -81,7 +81,7 @@ describe('Path Traversal Security Tests', () => {
         '..%252f..%252f..%252ftmp%252fmalicious.png',
         '\0/etc/passwd.png',
         'file:///etc/passwd.png',
-        '....//....//....//tmp/malicious.png'
+        '....//....//....//tmp/malicious.png',
       ];
 
       for (const malPath of maliciousPaths) {
@@ -126,14 +126,14 @@ describe('Path Traversal Security Tests', () => {
         '..;/..;/..;/etc/passwd',
         '..//..//..//etc/passwd',
         '..\\..\\..\\etc\\passwd',
-        '..\\\\..\\\\..\\\\etc\\\\passwd'
+        '..\\\\..\\\\..\\\\etc\\\\passwd',
       ];
 
       for (const traversal of traversalUrls) {
         try {
           const response = await page.goto(`${baseUrl}${traversal}`, {
             waitUntil: 'networkidle0',
-            timeout: 5000
+            timeout: 5000,
           });
 
           if (response) {
@@ -176,13 +176,13 @@ describe('Path Traversal Security Tests', () => {
         'telnet://evil.com:23/',
         'ssh://evil.com:22/',
         'res://c:\\windows\\system32\\notepad.exe/2',
-        'view-source:file:///etc/passwd'
+        'view-source:file:///etc/passwd',
       ];
 
       for (const payload of protocolPayloads) {
         try {
           await page.goto(payload, { waitUntil: 'domcontentloaded', timeout: 3000 });
-          
+
           // Should not execute or access dangerous protocols
           const url = await page.url();
           expect(url).not.toContain('file://');
@@ -200,7 +200,7 @@ describe('Path Traversal Security Tests', () => {
 
       // Set download path
       const client = await page.target().createCDPSession();
-      
+
       const maliciousDownloadPaths = [
         '/etc/passwd',
         '../../../etc/shadow',
@@ -214,21 +214,21 @@ describe('Path Traversal Security Tests', () => {
         'AUX',
         'NUL',
         'COM1',
-        'LPT1'
+        'LPT1',
       ];
 
       for (const malPath of maliciousDownloadPaths) {
         try {
           await client.send('Page.setDownloadBehavior', {
             behavior: 'allow',
-            downloadPath: malPath
+            downloadPath: malPath,
           });
 
           // Download paths should be sanitized or rejected
           const safePath = path.resolve('/tmp/downloads');
           await client.send('Page.setDownloadBehavior', {
             behavior: 'allow',
-            downloadPath: safePath
+            downloadPath: safePath,
           });
 
           expect(safePath).toContain('/tmp/downloads');

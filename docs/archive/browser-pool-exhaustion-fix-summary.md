@@ -1,11 +1,14 @@
 # Browser Pool Exhaustion Fix Summary
 
 ## Problem
-The browser pool was experiencing resource exhaustion because session deletion didn't properly clean up browser resources (contexts and pages).
+
+The browser pool was experiencing resource exhaustion because session deletion didn't properly clean
+up browser resources (contexts and pages).
 
 ## Solution Implemented
 
 ### 1. Enhanced Session Deletion (`src/mcp/tools/session-tools.ts`)
+
 - Added imports for `contextStore`, `getPageManager`, and `browserPool`
 - Modified `deleteSession` method to:
   - Get all contexts for the session being deleted
@@ -15,17 +18,20 @@ The browser pool was experiencing resource exhaustion because session deletion d
   - Continue with session deletion even if cleanup fails (graceful degradation)
 
 ### 2. Enhanced Browser Context Tool (`src/mcp/tools/browser-context.ts`)
+
 - Added new methods:
   - `closeBrowserContext`: Closes a specific context and all its pages
   - `listBrowserContexts`: Lists all contexts for a session
 - These provide explicit control over context lifecycle
 
 ### 3. Updated Tool Definitions (`src/mcp/tools/tool-definitions.ts`)
+
 - Added two new MCP tools:
   - `close-browser-context`: For closing individual contexts
   - `list-browser-contexts`: For listing contexts by session
 
 ### 4. Updated Tool Handlers (`src/mcp/server-tool-handlers.ts`)
+
 - Added handlers for the new context management tools
 
 ## Key Benefits
@@ -37,6 +43,7 @@ The browser pool was experiencing resource exhaustion because session deletion d
 5. **Cascade Cleanup**: Proper hierarchy: Session → Contexts → Pages
 
 ## Testing
+
 - TypeScript compilation passes without errors
 - Manual test script confirms proper cleanup behavior
 - Contexts are properly deleted when sessions are deleted

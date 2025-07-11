@@ -9,18 +9,18 @@
   --sl-color-accent-low: hsl(231, 100%, 95%);
   --sl-color-accent: hsl(231, 92%, 60%);
   --sl-color-accent-high: hsl(231, 100%, 20%);
-  
+
   /* Customize other theme colors */
   --sl-color-bg: #ffffff;
   --sl-color-bg-nav: #f8fafc;
   --sl-color-bg-sidebar: #f8fafc;
-  
+
   /* Font customization to match MkDocs Material */
   --sl-font: 'Roboto', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --sl-font-mono: 'Roboto Mono', 'Courier New', monospace;
 }
 
-:root[data-theme="dark"] {
+:root[data-theme='dark'] {
   --sl-color-bg: #0f172a;
   --sl-color-bg-nav: #1e293b;
   --sl-color-bg-sidebar: #1e293b;
@@ -36,7 +36,7 @@
 }
 
 /* Sidebar improvements */
-nav[aria-label="Main"] {
+nav[aria-label='Main'] {
   @apply px-2;
 }
 
@@ -98,6 +98,6 @@ nav[aria-label="Main"] {
   @apply text-gray-600 dark:text-gray-400 hover:text-accent-600 dark:hover:text-accent-400 transition-colors;
 }
 
-.sl-toc a[aria-current="true"] {
+.sl-toc a[aria-current='true'] {
   @apply text-accent-600 dark:text-accent-400 font-medium;
 }

@@ -17,7 +17,7 @@ export function instrumentDelete(ctx: InstrumentationContext): void {
   const { tracer, store } = ctx;
   const originalDelete = store.delete.bind(store);
 
-  store.delete = async function(sessionId: string): Promise<boolean> {
+  store.delete = async function (sessionId: string): Promise<boolean> {
     const span = tracer.startSpan('session.delete', {
       kind: SpanKind.CLIENT,
       attributes: {
@@ -30,9 +30,8 @@ export function instrumentDelete(ctx: InstrumentationContext): void {
       // Get session details before deletion for metrics
       const session = await store.get(sessionId);
 
-      const result = await context.with(
-        trace.setSpan(context.active(), span),
-        async () => originalDelete(sessionId)
+      const result = await context.with(trace.setSpan(context.active(), span), async () =>
+        originalDelete(sessionId),
       );
 
       span.setAttributes({
@@ -55,13 +54,13 @@ export function instrumentDelete(ctx: InstrumentationContext): void {
       return result;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      
+
       span.recordException(error as Error);
       span.setStatus({
         code: SpanStatusCode.ERROR,
         message: errorMessage,
       });
-      
+
       span.setAttributes({
         'session.success': false,
         'session.error': errorMessage,

@@ -6,7 +6,12 @@
  */
 
 import { EnhancedAppError } from '../enhanced-app-error.js';
-import { ErrorContextBuilder, ErrorCategory, ErrorSeverity, RecoveryAction } from '../error-context.js';
+import {
+  ErrorContextBuilder,
+  ErrorCategory,
+  ErrorSeverity,
+  RecoveryAction,
+} from '../error-context.js';
 import type { ResourceErrorOptions, DomainErrorOptions } from '../domain-error-interfaces.js';
 
 /**
@@ -15,7 +20,7 @@ import type { ResourceErrorOptions, DomainErrorOptions } from '../domain-error-i
 export class ResourceDomainError extends EnhancedAppError {
   constructor(options: ResourceErrorOptions) {
     const { message, errorCode, resourceInfo, requestId } = options;
-    
+
     const context = new ErrorContextBuilder()
       .setErrorCode(errorCode)
       .setCategory(ErrorCategory.RESOURCE)
@@ -45,7 +50,7 @@ export class ResourceDomainError extends EnhancedAppError {
 export class DomainError extends EnhancedAppError {
   constructor(options: DomainErrorOptions) {
     const { message, errorCode, domainInfo, requestId } = options;
-    
+
     const context = new ErrorContextBuilder()
       .setErrorCode(errorCode)
       .setCategory(ErrorCategory.BUSINESS_LOGIC)

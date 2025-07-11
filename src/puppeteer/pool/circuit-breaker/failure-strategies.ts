@@ -27,22 +27,29 @@ export class PercentageFailureDetectionStrategy extends BaseFailureDetectionStra
     }
 
     const failureRate = this.calculateFailureRate(recentFailures.length, recentRequests.length);
-    
+
     if (failureRate >= this.failureRateThreshold) {
-      logger.debug({
-        strategy: this.name,
-        failureRate,
-        threshold: this.failureRateThreshold,
-        recentFailures: recentFailures.length,
-        recentRequests: recentRequests.length,
-      }, 'Circuit should open based on failure rate');
+      logger.debug(
+        {
+          strategy: this.name,
+          failureRate,
+          threshold: this.failureRateThreshold,
+          recentFailures: recentFailures.length,
+          recentRequests: recentRequests.length,
+        },
+        'Circuit should open based on failure rate',
+      );
       return true;
     }
 
     return false;
   }
 
-  shouldTransitionToHalfOpen(state: CircuitBreakerState, lastStateChange: Date, config: CircuitBreakerConfig): boolean {
+  shouldTransitionToHalfOpen(
+    state: CircuitBreakerState,
+    lastStateChange: Date,
+    config: CircuitBreakerConfig,
+  ): boolean {
     if (state !== CircuitBreakerState.OPEN) {
       return false;
     }
@@ -73,7 +80,11 @@ export class ConsecutiveFailuresDetectionStrategy extends BaseFailureDetectionSt
     return this.consecutiveFailures >= this.maxConsecutiveFailures;
   }
 
-  shouldTransitionToHalfOpen(state: CircuitBreakerState, lastStateChange: Date, config: CircuitBreakerConfig): boolean {
+  shouldTransitionToHalfOpen(
+    state: CircuitBreakerState,
+    lastStateChange: Date,
+    config: CircuitBreakerConfig,
+  ): boolean {
     if (state !== CircuitBreakerState.OPEN) {
       return false;
     }
@@ -122,27 +133,37 @@ export class AdaptiveFailureDetectionStrategy extends BaseFailureDetectionStrate
       return false;
     }
 
-    const currentFailureRate = this.calculateFailureRate(recentFailures.length, recentRequests.length);
+    const currentFailureRate = this.calculateFailureRate(
+      recentFailures.length,
+      recentRequests.length,
+    );
     this.recordFailureRate(currentFailureRate);
 
     // Calculate adaptive threshold based on historical data
     const adaptiveThreshold = this.calculateAdaptiveThreshold();
-    
+
     if (currentFailureRate >= adaptiveThreshold) {
-      logger.debug({
-        strategy: this.name,
-        currentFailureRate,
-        adaptiveThreshold,
-        recentFailures: recentFailures.length,
-        recentRequests: recentRequests.length,
-      }, 'Circuit should open based on adaptive threshold');
+      logger.debug(
+        {
+          strategy: this.name,
+          currentFailureRate,
+          adaptiveThreshold,
+          recentFailures: recentFailures.length,
+          recentRequests: recentRequests.length,
+        },
+        'Circuit should open based on adaptive threshold',
+      );
       return true;
     }
 
     return false;
   }
 
-  shouldTransitionToHalfOpen(state: CircuitBreakerState, lastStateChange: Date, config: CircuitBreakerConfig): boolean {
+  shouldTransitionToHalfOpen(
+    state: CircuitBreakerState,
+    lastStateChange: Date,
+    config: CircuitBreakerConfig,
+  ): boolean {
     if (state !== CircuitBreakerState.OPEN) {
       return false;
     }
@@ -158,7 +179,7 @@ export class AdaptiveFailureDetectionStrategy extends BaseFailureDetectionStrate
     // Adaptive success threshold
     const adaptiveSuccessThreshold = Math.max(
       config.successThreshold,
-      Math.floor(this.historicalFailureRates.length * 0.1)
+      Math.floor(this.historicalFailureRates.length * 0.1),
     );
     return recentSuccesses.length >= adaptiveSuccessThreshold;
   }
@@ -182,12 +203,16 @@ export class AdaptiveFailureDetectionStrategy extends BaseFailureDetectionStrate
     }
 
     // Calculate mean and standard deviation
-    const mean = this.historicalFailureRates.reduce((sum, rate) => sum + rate, 0) / this.historicalFailureRates.length;
-    const variance = this.historicalFailureRates.reduce((sum, rate) => sum + Math.pow(rate - mean, 2), 0) / this.historicalFailureRates.length;
+    const mean =
+      this.historicalFailureRates.reduce((sum, rate) => sum + rate, 0) /
+      this.historicalFailureRates.length;
+    const variance =
+      this.historicalFailureRates.reduce((sum, rate) => sum + Math.pow(rate - mean, 2), 0) /
+      this.historicalFailureRates.length;
     const stdDev = Math.sqrt(variance);
 
     // Set threshold to mean + 2 standard deviations
-    return Math.min(mean + (2 * stdDev), 90); // Cap at 90%
+    return Math.min(mean + 2 * stdDev, 90); // Cap at 90%
   }
 
   /**

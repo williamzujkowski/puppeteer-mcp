@@ -13,7 +13,9 @@ import { Logger } from 'pino';
 export function createMcpServerInstance(logger: Logger): void {
   // MCP server is started via separate process when MCP_TRANSPORT is set
   // This is a placeholder for potential in-process MCP server integration
-  logger.debug('MCP server functionality available via CLI with MCP_TRANSPORT environment variable');
+  logger.debug(
+    'MCP server functionality available via CLI with MCP_TRANSPORT environment variable',
+  );
 }
 
 /**

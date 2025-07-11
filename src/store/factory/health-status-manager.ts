@@ -22,16 +22,16 @@ export class HealthStatusManager {
         return {
           instanceId,
           type: instance.type,
-          ...status
+          ...status,
         };
-      })
+      }),
     );
 
     const overall = this.determineOverallHealth(instanceHealthStatuses);
 
     return {
       overall,
-      instances: instanceHealthStatuses
+      instances: instanceHealthStatuses,
     };
   }
 
@@ -61,8 +61,8 @@ export class HealthStatusManager {
       enabledFeatures: [
         instance.monitor ? 'monitoring' : null,
         instance.replication ? 'replication' : null,
-        instance.migration ? 'migration' : null
-      ].filter(Boolean) as string[]
+        instance.migration ? 'migration' : null,
+      ].filter(Boolean) as string[],
     }));
 
     return {
@@ -72,9 +72,9 @@ export class HealthStatusManager {
         defaultStoreType: config.SESSION_STORE_TYPE,
         monitoringEnabled: config.SESSION_STORE_MONITORING_ENABLED,
         replicationEnabled: config.SESSION_STORE_REPLICATION_ENABLED,
-        migrationEnabled: config.SESSION_STORE_MIGRATION_ENABLED
+        migrationEnabled: config.SESSION_STORE_MIGRATION_ENABLED,
       },
-      instances: instanceStatuses
+      instances: instanceStatuses,
     };
   }
 
@@ -97,7 +97,7 @@ export class HealthStatusManager {
     // Get replication health
     if (instance.replication) {
       replicationHealth = await instance.replication.getHealth();
-      
+
       // Adjust status based on replication health
       if (!replicationHealth.primary.available) {
         status = 'unhealthy';
@@ -111,13 +111,15 @@ export class HealthStatusManager {
     return {
       status,
       monitor: monitorHealth,
-      replication: replicationHealth
+      replication: replicationHealth,
     };
   }
 
-  private determineOverallHealth(instances: Array<{ status: 'healthy' | 'degraded' | 'unhealthy' }>): 'healthy' | 'degraded' | 'unhealthy' {
-    const unhealthyCount = instances.filter(i => i.status === 'unhealthy').length;
-    const degradedCount = instances.filter(i => i.status === 'degraded').length;
+  private determineOverallHealth(
+    instances: Array<{ status: 'healthy' | 'degraded' | 'unhealthy' }>,
+  ): 'healthy' | 'degraded' | 'unhealthy' {
+    const unhealthyCount = instances.filter((i) => i.status === 'unhealthy').length;
+    const degradedCount = instances.filter((i) => i.status === 'degraded').length;
 
     if (unhealthyCount > 0) {
       return 'unhealthy';

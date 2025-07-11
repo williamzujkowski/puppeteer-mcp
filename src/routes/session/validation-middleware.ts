@@ -44,7 +44,7 @@ export function requireAdmin(req: Request, _res: Response, next: NextFunction): 
  */
 export function validateSessionIdParam(req: Request, _res: Response, next: NextFunction): void {
   const { sessionId } = req.params;
-  
+
   if (!sessionId?.trim()) {
     next(new AppError('Session ID is required', 400));
     return;
@@ -60,7 +60,7 @@ export function validateSessionIdParam(req: Request, _res: Response, next: NextF
 export function requireDevelopmentMode(_req: Request, _res: Response, next: NextFunction): void {
   // Using process.env directly to avoid config dependency
   const nodeEnv = process.env.NODE_ENV ?? 'production';
-  
+
   if (nodeEnv === 'production') {
     next(new AppError('Development endpoint disabled in production', 403));
     return;

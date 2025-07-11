@@ -2,7 +2,8 @@
 
 ## Overview
 
-The puppeteer-mcp project uses a comprehensive automated release pipeline built with GitHub Actions. This pipeline ensures code quality, security, and reliable releases.
+The puppeteer-mcp project uses a comprehensive automated release pipeline built with GitHub Actions.
+This pipeline ensures code quality, security, and reliable releases.
 
 ## Pipeline Components
 
@@ -90,6 +91,7 @@ npm run release:checklist
 ```
 
 This validates:
+
 - All tests passing
 - No security vulnerabilities
 - Documentation updated
@@ -149,6 +151,7 @@ npm run release:rollback
 ```
 
 This will:
+
 1. List recent releases
 2. Let you select a version to rollback to
 3. Deprecate the problematic version on NPM
@@ -174,6 +177,7 @@ footer
 ```
 
 Types:
+
 - `feat`: New feature
 - `fix`: Bug fix
 - `docs`: Documentation changes
@@ -223,6 +227,7 @@ Types:
 ### Required Checks
 
 All PRs must pass:
+
 1. All test suites
 2. TypeScript compilation
 3. ESLint (no errors)
@@ -240,6 +245,7 @@ All PRs must pass:
 ### Release Monitoring
 
 After each release:
+
 1. NPM package availability check
 2. Docker image pull verification
 3. Installation testing
@@ -273,6 +279,7 @@ After each release:
 ### Debug Mode
 
 Enable debug logging in workflows:
+
 ```yaml
 env:
   ACTIONS_STEP_DEBUG: true
@@ -291,15 +298,15 @@ env:
 
 ## Scripts Reference
 
-| Script | Description |
-|--------|-------------|
-| `npm run release:checklist` | Run pre-release validations |
-| `npm run release` | Create a new release |
-| `npm run release:dry-run` | Preview release changes |
-| `npm run release:rollback` | Rollback to previous version |
-| `npm run changelog` | Generate changelog |
-| `npm run version:check` | Check version consistency |
-| `npm run security:check` | Run security validations |
+| Script                      | Description                  |
+| --------------------------- | ---------------------------- |
+| `npm run release:checklist` | Run pre-release validations  |
+| `npm run release`           | Create a new release         |
+| `npm run release:dry-run`   | Preview release changes      |
+| `npm run release:rollback`  | Rollback to previous version |
+| `npm run changelog`         | Generate changelog           |
+| `npm run version:check`     | Check version consistency    |
+| `npm run security:check`    | Run security validations     |
 
 ## GitHub Secrets Required
 

@@ -11,12 +11,12 @@ export const DEFAULT_CONFIG: PerformanceTestConfig = {
   rampUpTimeMs: 30 * 1000, // 30 seconds
   testUrls: [
     'https://williamzujkowski.github.io/paperclips/index2.html',
-    'https://williamzujkowski.github.io/'
+    'https://williamzujkowski.github.io/',
   ],
   serverPort: 8443,
   serverHost: 'localhost',
   outputDir: './results',
-  monitoringIntervalMs: 1000 // 1 second
+  monitoringIntervalMs: 1000, // 1 second
 };
 
 export const LOAD_TEST_SCENARIOS: LoadTestScenario[] = [
@@ -25,10 +25,8 @@ export const LOAD_TEST_SCENARIOS: LoadTestScenario[] = [
     sessionCount: 2,
     rampUpTime: 10000,
     testDuration: 60000,
-    targetUrls: [
-      'https://williamzujkowski.github.io/paperclips/index2.html'
-    ],
-    actions: ['navigate', 'click', 'wait', 'screenshot']
+    targetUrls: ['https://williamzujkowski.github.io/paperclips/index2.html'],
+    actions: ['navigate', 'click', 'wait', 'screenshot'],
   },
   {
     name: 'Medium Load',
@@ -37,9 +35,9 @@ export const LOAD_TEST_SCENARIOS: LoadTestScenario[] = [
     testDuration: 120000,
     targetUrls: [
       'https://williamzujkowski.github.io/paperclips/index2.html',
-      'https://williamzujkowski.github.io/'
+      'https://williamzujkowski.github.io/',
     ],
-    actions: ['navigate', 'click', 'wait', 'screenshot', 'scroll']
+    actions: ['navigate', 'click', 'wait', 'screenshot', 'scroll'],
   },
   {
     name: 'Heavy Load',
@@ -48,9 +46,9 @@ export const LOAD_TEST_SCENARIOS: LoadTestScenario[] = [
     testDuration: 180000,
     targetUrls: [
       'https://williamzujkowski.github.io/paperclips/index2.html',
-      'https://williamzujkowski.github.io/'
+      'https://williamzujkowski.github.io/',
     ],
-    actions: ['navigate', 'click', 'wait', 'screenshot', 'scroll', 'type']
+    actions: ['navigate', 'click', 'wait', 'screenshot', 'scroll', 'type'],
   },
   {
     name: 'Stress Test',
@@ -59,10 +57,10 @@ export const LOAD_TEST_SCENARIOS: LoadTestScenario[] = [
     testDuration: 300000,
     targetUrls: [
       'https://williamzujkowski.github.io/paperclips/index2.html',
-      'https://williamzujkowski.github.io/'
+      'https://williamzujkowski.github.io/',
     ],
-    actions: ['navigate', 'click', 'wait', 'screenshot', 'scroll', 'type', 'evaluate']
-  }
+    actions: ['navigate', 'click', 'wait', 'screenshot', 'scroll', 'type', 'evaluate'],
+  },
 ];
 
 export const STRESS_TEST_LEVELS = [
@@ -73,7 +71,7 @@ export const STRESS_TEST_LEVELS = [
   { sessions: 10, duration: 150000 },
   { sessions: 12, duration: 180000 },
   { sessions: 15, duration: 210000 },
-  { sessions: 20, duration: 240000 } // Push beyond normal limits
+  { sessions: 20, duration: 240000 }, // Push beyond normal limits
 ];
 
 export const PERFORMANCE_THRESHOLDS = {
@@ -82,7 +80,7 @@ export const PERFORMANCE_THRESHOLDS = {
   maxMemoryUsage: 2 * 1024 * 1024 * 1024, // 2GB
   maxCpuUsage: 80, // 80%
   maxBrowserPoolUtilization: 90, // 90%
-  minThroughput: 1 // 1 request per second
+  minThroughput: 1, // 1 request per second
 };
 
 export const MONITORING_CONFIG = {
@@ -92,5 +90,5 @@ export const MONITORING_CONFIG = {
   logLevel: 'info',
   enableRealTimeMonitoring: true,
   enableResourceProfiling: true,
-  enableNetworkProfiling: true
+  enableNetworkProfiling: true,
 };

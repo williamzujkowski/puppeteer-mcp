@@ -15,46 +15,46 @@ services:
       - LOG_FORMAT=pretty
       - NODE_ENV=development
       - DEBUG=puppeteer-mcp:*
-      
+
       # Disable security features for easier development
       - TLS_ENABLED=false
       - CORS_ORIGIN=*
       - RATE_LIMIT_MAX_REQUESTS=1000
-      
+
       # Local development secrets (DO NOT USE IN PRODUCTION)
       - JWT_SECRET=local-dev-jwt-secret-32-characters-minimum
       - SESSION_SECRET=local-dev-session-secret-32-chars-min
-      
+
       # Development telemetry
       - TELEMETRY_TRACE_SAMPLING_RATE=1.0
       - TELEMETRY_DEBUG=true
       - TELEMETRY_LOG_LEVEL=debug
-      
+
       # Browser pool settings for development
       - BROWSER_POOL_MAX_SIZE=2
-      - PUPPETEER_HEADLESS=false  # Show browser for debugging
-      
+      - PUPPETEER_HEADLESS=false # Show browser for debugging
+
     volumes:
       # Mount source code for hot reloading
       - ./src:/app/src:delegated
       - ./tests:/app/tests:delegated
       - ./scripts:/app/scripts:delegated
-      
+
       # Mount config files
       - ./tsconfig.json:/app/tsconfig.json:ro
       - ./jest.config.mjs:/app/jest.config.mjs:ro
       - ./nodemon.json:/app/nodemon.json:ro
       - ./.env:/app/.env:ro
-      
+
       # Persist npm cache between rebuilds
       - npm-cache:/home/nodejs/.npm
-      
+
     stdin_open: true
     tty: true
-    
+
   redis:
     ports:
-      - "6379:6379"
+      - '6379:6379'
     command: >
       redis-server
       --appendonly yes
@@ -65,10 +65,10 @@ services:
       --save 60 1
       --save 300 10
       --save 900 100
-    
+
   postgres:
     ports:
-      - "5432:5432"
+      - '5432:5432'
     environment:
       - POSTGRES_PASSWORD=mcp-password
       - POSTGRES_LOG_STATEMENT=all
@@ -80,13 +80,13 @@ services:
       -c pg_stat_statements.track=all
       -c log_statement=all
       -c log_duration=on
-      
+
   # Always include development tools in override
   adminer:
-    profiles: []  # Remove profile restriction
-    
+    profiles: [] # Remove profile restriction
+
   redis-commander:
-    profiles: []  # Remove profile restriction
+    profiles: [] # Remove profile restriction
 
 volumes:
   npm-cache:

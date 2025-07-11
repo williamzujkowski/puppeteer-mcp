@@ -6,7 +6,11 @@
  */
 
 import type { Page } from 'puppeteer';
-import type { SelectAction, ActionResult, ActionContext } from '../../../interfaces/action-executor.interface.js';
+import type {
+  SelectAction,
+  ActionResult,
+  ActionContext,
+} from '../../../interfaces/action-executor.interface.js';
 import { BaseInteractionHandler } from './base-handler.js';
 
 /**
@@ -25,11 +29,7 @@ export class SelectHandler extends BaseInteractionHandler<SelectAction> {
    * @nist ac-3 "Access enforcement"
    * @nist si-10 "Information input validation"
    */
-  async execute(
-    action: SelectAction,
-    page: Page,
-    context: ActionContext,
-  ): Promise<ActionResult> {
+  async execute(action: SelectAction, page: Page, context: ActionContext): Promise<ActionResult> {
     const startTime = Date.now();
 
     try {
@@ -50,21 +50,17 @@ export class SelectHandler extends BaseInteractionHandler<SelectAction> {
         duration,
       });
 
-      return this.createActionResult(
-        true,
-        this.actionType,
-        {
-          data: {
-            selector: sanitizedSelector,
-            selectedValues,
-            requestedValues: action.values,
-          },
-          duration,
-          metadata: {
-            originalSelector: action.selector,
-          },
+      return this.createActionResult(true, this.actionType, {
+        data: {
+          selector: sanitizedSelector,
+          selectedValues,
+          requestedValues: action.values,
         },
-      );
+        duration,
+        metadata: {
+          originalSelector: action.selector,
+        },
+      });
     } catch (error) {
       const duration = Date.now() - startTime;
       const errorMessage = error instanceof Error ? error.message : 'Select action failed';
@@ -75,18 +71,14 @@ export class SelectHandler extends BaseInteractionHandler<SelectAction> {
         duration,
       });
 
-      return this.createActionResult(
-        false,
-        this.actionType,
-        {
-          error: errorMessage,
-          duration,
-          metadata: {
-            selector: action.selector,
-            values: action.values,
-          },
+      return this.createActionResult(false, this.actionType, {
+        error: errorMessage,
+        duration,
+        metadata: {
+          selector: action.selector,
+          values: action.values,
         },
-      );
+      });
     }
   }
 }

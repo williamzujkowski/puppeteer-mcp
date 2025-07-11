@@ -15,5 +15,5 @@ export type {
   RestoreStats,
   SessionValidationResult,
   RestoreCommand,
-  RestoreStrategy
+  RestoreStrategy,
 } from './migration/index.js';

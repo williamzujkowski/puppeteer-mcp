@@ -2,11 +2,14 @@
 
 **Version**: 1.0.0  
 **Author**: AI Assistant  
-**Created**: 2025-07-10  
+**Created**: 2025-07-10
 
 ## Overview
 
-This module provides modularized execution strategies for JavaScript evaluation and content injection operations in the Puppeteer MCP platform. It replaces the monolithic `evaluation-executor.ts` with focused, specialized modules following SOLID principles and security best practices.
+This module provides modularized execution strategies for JavaScript evaluation and content
+injection operations in the Puppeteer MCP platform. It replaces the monolithic
+`evaluation-executor.ts` with focused, specialized modules following SOLID principles and security
+best practices.
 
 ## Architecture
 
@@ -47,6 +50,7 @@ All modules include appropriate NIST control annotations:
 The `SecurityValidator` provides comprehensive validation for:
 
 #### JavaScript Code
+
 - Dangerous pattern detection (eval, Function, setTimeout, etc.)
 - Size limits (50KB maximum)
 - Bracket balance validation
@@ -54,6 +58,7 @@ The `SecurityValidator` provides comprehensive validation for:
 - Nesting depth limits
 
 #### CSS Code
+
 - JavaScript injection prevention (javascript:, expression())
 - Malicious URL detection in @import statements
 - Size limits (100KB maximum)
@@ -104,19 +109,27 @@ import { createStrategyForAction } from './evaluation/index.js';
 
 // Script injection
 const scriptStrategy = createStrategyForAction('injectScript');
-const scriptResult = await scriptStrategy.execute({
-  content: 'console.log("Hello World");',
-  type: 'script',
-  timeout: 10000,
-}, page, context);
+const scriptResult = await scriptStrategy.execute(
+  {
+    content: 'console.log("Hello World");',
+    type: 'script',
+    timeout: 10000,
+  },
+  page,
+  context,
+);
 
 // CSS injection
 const cssStrategy = createStrategyForAction('injectCSS');
-const cssResult = await cssStrategy.execute({
-  content: 'body { background-color: #f0f0f0; }',
-  type: 'css',
-  timeout: 5000,
-}, page, context);
+const cssResult = await cssStrategy.execute(
+  {
+    content: 'body { background-color: #f0f0f0; }',
+    type: 'css',
+    timeout: 5000,
+  },
+  page,
+  context,
+);
 ```
 
 ## API Reference
@@ -124,17 +137,23 @@ const cssResult = await cssStrategy.execute({
 ### Core Interfaces
 
 #### BaseEvaluationStrategy
+
 Abstract base class for all evaluation strategies.
 
 ```typescript
 abstract class BaseEvaluationStrategy {
-  abstract execute(config: BaseEvaluationConfig, page: Page, context: ActionContext): Promise<ActionResult>;
+  abstract execute(
+    config: BaseEvaluationConfig,
+    page: Page,
+    context: ActionContext,
+  ): Promise<ActionResult>;
   abstract validateConfig(config: BaseEvaluationConfig): SecurityValidationResult;
   abstract getSupportedTypes(): string[];
 }
 ```
 
 #### SecurityValidator
+
 Interface for code security validation.
 
 ```typescript
@@ -148,9 +167,11 @@ interface SecurityValidator {
 ### Strategy Factory
 
 #### createStrategyForAction(actionType: string)
+
 Creates appropriate strategy for the given action type.
 
 **Supported Action Types:**
+
 - `evaluate` - JavaScript code evaluation
 - `evaluateHandle` - JavaScript handle evaluation
 - `injectScript` - Script injection
@@ -159,6 +180,7 @@ Creates appropriate strategy for the given action type.
 ### Configuration Types
 
 #### CodeEvaluationConfig
+
 ```typescript
 interface CodeEvaluationConfig extends BaseEvaluationConfig {
   functionToEvaluate: string;
@@ -167,6 +189,7 @@ interface CodeEvaluationConfig extends BaseEvaluationConfig {
 ```
 
 #### InjectionConfig
+
 ```typescript
 interface InjectionConfig extends BaseEvaluationConfig {
   content: string;
@@ -177,11 +200,13 @@ interface InjectionConfig extends BaseEvaluationConfig {
 ## Performance Considerations
 
 ### Memory Management
+
 - Handle cleanup is automatic and tracked per session
 - Large results are automatically truncated (>100KB)
 - Argument size limits prevent memory exhaustion
 
 ### Timeout Management
+
 - Different timeouts for different operation types:
   - Code evaluation: 3 seconds
   - Handle operations: 5 seconds
@@ -189,18 +214,21 @@ interface InjectionConfig extends BaseEvaluationConfig {
   - CSS injection: 5 seconds
 
 ### Caching
+
 - Stateless strategies are cached for reuse
 - Handle strategies are created fresh to maintain state isolation
 
 ## Error Handling
 
 ### Error Types
+
 - **ValidationError**: Security validation failures
 - **TimeoutError**: Operation timeouts
 - **ExecutionError**: JavaScript execution failures
 - **InjectionError**: Content injection failures
 
 ### Error Response Format
+
 ```typescript
 {
   success: false,
@@ -219,13 +247,16 @@ interface InjectionConfig extends BaseEvaluationConfig {
 ## Testing
 
 ### Unit Testing
+
 Each module includes comprehensive unit tests covering:
+
 - Security validation edge cases
 - Error handling scenarios
 - Performance benchmarks
 - Memory leak detection
 
 ### Integration Testing
+
 - End-to-end evaluation workflows
 - Cross-strategy compatibility
 - Handle lifecycle management
@@ -247,28 +278,35 @@ const result = await strategy.execute(config, page, context);
 ```
 
 ### Breaking Changes
+
 None. All existing APIs remain functional.
 
 ### Deprecation Notices
+
 - Direct instantiation of `EvaluationExecutor` is deprecated
 - Use strategy factory instead for new code
 
 ## Security Considerations
 
 ### Input Validation
+
 All code inputs undergo rigorous security validation:
+
 - Pattern-based dangerous code detection
 - Size and complexity limits
 - Syntax validation
 - Type checking
 
 ### Sandboxing
+
 - JavaScript execution is sandboxed within Puppeteer's context
 - No access to Node.js APIs from evaluated code
 - CSP-compliant CSS injection
 
 ### Logging
+
 All security events are logged with appropriate detail levels:
+
 - Validation failures
 - Execution attempts
 - Error conditions
@@ -277,17 +315,20 @@ All security events are logged with appropriate detail levels:
 ## Dependencies
 
 ### Internal Dependencies
+
 - `../../../utils/logger.js` - Logging utilities
 - `../../interfaces/action-executor.interface.js` - Core interfaces
 - `../types.js` - Shared execution types
 
 ### External Dependencies
+
 - `puppeteer` - Browser automation
 - No additional external dependencies
 
 ## Contributing
 
 ### Code Standards
+
 - TypeScript strict mode enabled
 - ESLint compliance required
 - Maximum function complexity: 10
@@ -295,6 +336,7 @@ All security events are logged with appropriate detail levels:
 - NIST security annotations required
 
 ### Security Requirements
+
 - All user inputs must be validated
 - Security patterns must be documented
 - Threat modeling for new features
@@ -303,6 +345,7 @@ All security events are logged with appropriate detail levels:
 ## Changelog
 
 ### 1.0.0 (2025-07-10)
+
 - Initial modularization from `evaluation-executor.ts`
 - Implemented strategy pattern with factory
 - Added comprehensive security validation

@@ -39,9 +39,7 @@ export default {
       },
     ],
   },
-  transformIgnorePatterns: [
-    'node_modules/(?!(.*\\.mjs$))'
-  ],
+  transformIgnorePatterns: ['node_modules/(?!(.*\\.mjs$))'],
   roots: ['<rootDir>/src', '<rootDir>/tests'],
   testMatch: [
     '**/tests/acceptance/**/*.+(ts|tsx|js)',
@@ -57,9 +55,7 @@ export default {
   coverageReporters: ['text', 'lcov', 'html'],
   testTimeout: 60000, // Longer timeout for acceptance tests
   setupFilesAfterEnv: ['<rootDir>/tests/setup.ts'],
-  testPathIgnorePatterns: [
-    '/node_modules/',
-  ],
+  testPathIgnorePatterns: ['/node_modules/'],
   // Acceptance test specific settings
   maxWorkers: 2, // Limit parallelism for external dependencies
   bail: false, // Don't stop on first failure - run all tests

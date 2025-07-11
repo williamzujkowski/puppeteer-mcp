@@ -3,9 +3,7 @@
  * @module puppeteer/pool/performance/config/default-config
  */
 
-import type {
-  PerformanceMonitoringConfig,
-} from '../types/performance-monitor.types.js';
+import type { PerformanceMonitoringConfig } from '../types/performance-monitor.types.js';
 
 /**
  * Default performance monitoring configuration

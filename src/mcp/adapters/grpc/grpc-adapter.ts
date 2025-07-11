@@ -12,11 +12,7 @@ import * as grpc from '@grpc/grpc-js';
 import { logSecurityEvent, SecurityEventType } from '../../../utils/logger.js';
 import type { ProtocolAdapter, MCPResponse, AuthParams } from '../adapter.interface.js';
 import type { GrpcServer } from '../../../grpc/server.js';
-import type { 
-  ExecuteRequestParams,
-  GrpcCapabilities,
-  GrpcResponse,
-} from './types.js';
+import type { ExecuteRequestParams, GrpcCapabilities, GrpcResponse } from './types.js';
 import { GrpcOperationSchema } from './types.js';
 import { GrpcConnectionManager } from './connection-manager.js';
 import { GrpcServiceMethodHandler } from './service-handler.js';
@@ -41,10 +37,7 @@ export class GrpcAdapter implements ProtocolAdapter {
   private readonly middlewarePipeline: GrpcMiddlewarePipeline;
   private readonly authHandler: GrpcAuthHandler;
 
-  constructor(
-    server: GrpcServer,
-    protoPath?: string,
-  ) {
+  constructor(server: GrpcServer, protoPath?: string) {
     this.connectionManager = new GrpcConnectionManager(server, protoPath);
     this.serviceHandler = new GrpcServiceMethodHandler(this.connectionManager);
     this.metadataManager = new GrpcMetadataManager();
@@ -102,11 +95,8 @@ export class GrpcAdapter implements ProtocolAdapter {
       });
 
       // Execute through middleware pipeline
-      const response = await this.middlewarePipeline.execute(
-        operation,
-        metadata,
-        params,
-        () => this.executeAuthenticatedCall(operation, metadata, params, auth),
+      const response = await this.middlewarePipeline.execute(operation, metadata, params, () =>
+        this.executeAuthenticatedCall(operation, metadata, params, auth),
       );
 
       // Log successful execution
@@ -123,7 +113,11 @@ export class GrpcAdapter implements ProtocolAdapter {
       });
 
       // Transform to MCP response
-      return this.protocolHandler.transformToMCPResponse(response as GrpcResponse, operation, requestId);
+      return this.protocolHandler.transformToMCPResponse(
+        response as GrpcResponse,
+        operation,
+        requestId,
+      );
     } catch (error) {
       // Log failed execution
       await logSecurityEvent(SecurityEventType.ACCESS_DENIED, {
@@ -209,11 +203,14 @@ export class GrpcAdapter implements ProtocolAdapter {
     }
 
     // Execute the gRPC call
-    return this.serviceHandler.executeGrpcCall({ 
-      ...operation, 
-      streaming: false,
-      service: operation.service as 'SessionService' | 'ContextService' | 'HealthService'
-    }, metadata);
+    return this.serviceHandler.executeGrpcCall(
+      {
+        ...operation,
+        streaming: false,
+        service: operation.service as 'SessionService' | 'ContextService' | 'HealthService',
+      },
+      metadata,
+    );
   }
 
   /**

@@ -12,8 +12,4 @@ export type {
   BrowserHealthMetrics,
   CandidateMetrics,
 } from './types.js';
-export {
-  RecyclingStrategy,
-  RecyclingReason,
-  DEFAULT_RECYCLING_CONFIG,
-} from './types.js';
+export { RecyclingStrategy, RecyclingReason, DEFAULT_RECYCLING_CONFIG } from './types.js';

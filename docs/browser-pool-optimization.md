@@ -2,35 +2,43 @@
 
 ## Overview
 
-The Browser Pool Optimization system provides advanced resource management, scaling algorithms, and performance monitoring for the puppeteer-mcp browser pool. These features enable production-ready browser automation with intelligent resource allocation, predictive scaling, and comprehensive failure handling.
+The Browser Pool Optimization system provides advanced resource management, scaling algorithms, and
+performance monitoring for the puppeteer-mcp browser pool. These features enable production-ready
+browser automation with intelligent resource allocation, predictive scaling, and comprehensive
+failure handling.
 
 ## Key Features
 
 ### 1. Adaptive Scaling
+
 - **Predictive scaling** based on historical usage patterns
 - **Multiple scaling strategies** (time-based, usage-based, health-based, resource-based, hybrid)
 - **Circuit breaker integration** for failure resilience
 - **Configurable thresholds** for scale-up/scale-down decisions
 
 ### 2. Advanced Resource Management
+
 - **Real-time memory and CPU monitoring**
 - **Intelligent browser recycling** based on resource usage
 - **System-wide resource tracking** with alerting
 - **Automatic garbage collection** and optimization
 
 ### 3. Performance Monitoring
+
 - **Comprehensive metrics collection** (latency, throughput, error rates)
 - **Anomaly detection** with configurable sensitivity
 - **Performance trend analysis** and forecasting
 - **Automated optimization recommendations**
 
 ### 4. Circuit Breaker Patterns
+
 - **Failure isolation** to prevent cascading failures
 - **Automatic recovery** with exponential backoff
 - **Fallback mechanisms** for degraded performance
 - **Configurable failure thresholds**
 
 ### 5. Health-Based Eviction
+
 - **Intelligent browser lifecycle management**
 - **Health score calculation** based on multiple factors
 - **Batch recycling** with priority-based execution
@@ -55,7 +63,7 @@ const pool = new OptimizedBrowserPool(
     enabled: true,
     autoOptimization: true,
     optimizationInterval: 30000,
-  }
+  },
 );
 
 // Initialize the pool
@@ -74,7 +82,10 @@ console.log('Overall health:', status.overallHealth);
 ### Advanced Configuration
 
 ```typescript
-import { OptimizedBrowserPool, DEFAULT_OPTIMIZATION_CONFIG } from './src/puppeteer/pool/browser-pool-optimized.js';
+import {
+  OptimizedBrowserPool,
+  DEFAULT_OPTIMIZATION_CONFIG,
+} from './src/puppeteer/pool/browser-pool-optimized.js';
 
 const pool = new OptimizedBrowserPool(
   {
@@ -87,7 +98,7 @@ const pool = new OptimizedBrowserPool(
     enabled: true,
     autoOptimization: true,
     optimizationInterval: 15000,
-    
+
     // Scaling configuration
     scaling: {
       enabled: true,
@@ -101,7 +112,7 @@ const pool = new OptimizedBrowserPool(
       enablePredictiveScaling: true,
       aggressiveScaling: true,
     },
-    
+
     // Resource monitoring
     resourceMonitoring: {
       enabled: true,
@@ -116,7 +127,7 @@ const pool = new OptimizedBrowserPool(
         cpuCritical: 90,
       },
     },
-    
+
     // Recycling configuration
     recycling: {
       enabled: true,
@@ -127,7 +138,7 @@ const pool = new OptimizedBrowserPool(
       batchRecyclingEnabled: true,
       maxBatchSize: 5,
     },
-    
+
     // Circuit breaker configuration
     circuitBreaker: {
       enabled: true,
@@ -136,7 +147,7 @@ const pool = new OptimizedBrowserPool(
       exponentialBackoff: true,
       maxTimeout: 300000,
     },
-    
+
     // Performance monitoring
     performanceMonitoring: {
       enabled: true,
@@ -146,7 +157,7 @@ const pool = new OptimizedBrowserPool(
       enableAnomalyDetection: true,
       enablePerformanceOptimization: true,
     },
-  }
+  },
 );
 ```
 
@@ -234,7 +245,10 @@ for (const [browserId, usage] of browserResources) {
 Track and analyze performance metrics:
 
 ```typescript
-import { BrowserPoolPerformanceMonitor, PerformanceMetricType } from './src/puppeteer/pool/browser-pool-performance-monitor.js';
+import {
+  BrowserPoolPerformanceMonitor,
+  PerformanceMetricType,
+} from './src/puppeteer/pool/browser-pool-performance-monitor.js';
 
 const performanceMonitor = new BrowserPoolPerformanceMonitor({
   enabled: true,
@@ -246,11 +260,10 @@ const performanceMonitor = new BrowserPoolPerformanceMonitor({
 });
 
 // Record custom metrics
-performanceMonitor.recordMetric(
-  PerformanceMetricType.LATENCY,
-  1500,
-  { operation: 'page_load', url: 'https://example.com' }
-);
+performanceMonitor.recordMetric(PerformanceMetricType.LATENCY, 1500, {
+  operation: 'page_load',
+  url: 'https://example.com',
+});
 
 // Listen for performance alerts
 performanceMonitor.on('alert-created', (alert) => {
@@ -270,7 +283,10 @@ console.log('Active alerts:', summary.alertsSummary.active);
 Implement resilient failure handling:
 
 ```typescript
-import { CircuitBreaker, CircuitBreakerRegistry } from './src/puppeteer/pool/browser-pool-circuit-breaker.js';
+import {
+  CircuitBreaker,
+  CircuitBreakerRegistry,
+} from './src/puppeteer/pool/browser-pool-circuit-breaker.js';
 
 const circuitBreakers = new CircuitBreakerRegistry({
   failureThreshold: 5,
@@ -291,7 +307,7 @@ const result = await browserAcquisitionCircuit.execute(
     // Fallback operation
     console.log('Using fallback browser acquisition');
     return await pool.getIdleBrowser();
-  }
+  },
 );
 
 if (result.success) {
@@ -307,7 +323,10 @@ if (result.success) {
 Implement intelligent browser lifecycle management:
 
 ```typescript
-import { BrowserPoolRecycler, RecyclingStrategy } from './src/puppeteer/pool/browser-pool-recycler.js';
+import {
+  BrowserPoolRecycler,
+  RecyclingStrategy,
+} from './src/puppeteer/pool/browser-pool-recycler.js';
 
 const recycler = new BrowserPoolRecycler({
   enabled: true,
@@ -322,7 +341,7 @@ const recycler = new BrowserPoolRecycler({
 // Listen for recycling events
 recycler.on('browsers-recycled', (events) => {
   console.log(`Recycled ${events.length} browsers`);
-  events.forEach(event => {
+  events.forEach((event) => {
     console.log(`- ${event.browserId}: ${event.reason}`);
   });
 });
@@ -379,7 +398,7 @@ console.log('- Performance monitoring active:', status.performanceMonitoringActi
 console.log('- Optimization actions:', status.optimizationActions);
 
 console.log('Recommendations:');
-status.recommendations.forEach(rec => {
+status.recommendations.forEach((rec) => {
   console.log(`- [${rec.priority}] ${rec.description}`);
 });
 ```
@@ -397,7 +416,7 @@ pool.on('optimization-scaling-action', (event) => {
 // Resource alerts
 pool.on('optimization-resource-alert', (alert) => {
   console.log(`Resource alert: ${alert.type} - ${alert.level}`);
-  
+
   // Custom alert handling
   if (alert.level === 'critical') {
     // Trigger emergency procedures
@@ -408,7 +427,7 @@ pool.on('optimization-resource-alert', (alert) => {
 // Performance alerts
 pool.on('optimization-performance-alert', (alert) => {
   console.log(`Performance alert: ${alert.type} - ${alert.level}`);
-  
+
   // Custom performance handling
   if (alert.type === 'error_rate' && alert.level === 'critical') {
     // Trigger circuit breaker
@@ -419,7 +438,7 @@ pool.on('optimization-performance-alert', (alert) => {
 // Browser recycling
 pool.on('optimization-browsers-recycled', (events) => {
   console.log(`Recycled ${events.length} browsers`);
-  events.forEach(event => {
+  events.forEach((event) => {
     logBrowserRecycling(event.browserId, event.reason);
   });
 });
@@ -429,7 +448,7 @@ pool.on('optimization-recommendation', (recommendation) => {
   console.log(`New recommendation: ${recommendation.title}`);
   console.log(`Priority: ${recommendation.priority}`);
   console.log(`Impact: ${recommendation.impact}`);
-  
+
   // Auto-apply high-priority recommendations
   if (recommendation.priority === 'high') {
     applyOptimizationRecommendation(recommendation);
@@ -443,17 +462,17 @@ pool.on('optimization-recommendation', (recommendation) => {
 
 ```typescript
 interface ScalingStrategy {
-  enabled: boolean;                    // Enable adaptive scaling
-  minSize: number;                     // Minimum pool size
-  maxSize: number;                     // Maximum pool size
-  targetUtilization: number;           // Target utilization percentage (0-100)
-  scaleUpThreshold: number;            // Scale up threshold percentage (0-100)
-  scaleDownThreshold: number;          // Scale down threshold percentage (0-100)
-  cooldownPeriod: number;              // Cool-down period between scaling actions (ms)
-  enablePredictiveScaling: boolean;    // Enable predictive scaling
-  predictionWindow: number;            // Historical data window for predictions (ms)
-  aggressiveScaling: boolean;          // Aggressive scaling under high load
-  maxScaleStep: number;                // Maximum scaling step size
+  enabled: boolean; // Enable adaptive scaling
+  minSize: number; // Minimum pool size
+  maxSize: number; // Maximum pool size
+  targetUtilization: number; // Target utilization percentage (0-100)
+  scaleUpThreshold: number; // Scale up threshold percentage (0-100)
+  scaleDownThreshold: number; // Scale down threshold percentage (0-100)
+  cooldownPeriod: number; // Cool-down period between scaling actions (ms)
+  enablePredictiveScaling: boolean; // Enable predictive scaling
+  predictionWindow: number; // Historical data window for predictions (ms)
+  aggressiveScaling: boolean; // Aggressive scaling under high load
+  maxScaleStep: number; // Maximum scaling step size
 }
 ```
 
@@ -461,23 +480,23 @@ interface ScalingStrategy {
 
 ```typescript
 interface ResourceMonitoringConfig {
-  enabled: boolean;                    // Enable resource monitoring
-  intervalMs: number;                  // Monitoring interval (ms)
-  enableSystemMonitoring: boolean;     // Enable system-wide monitoring
-  enableBrowserMonitoring: boolean;    // Enable per-browser monitoring
-  enableGarbageCollection: boolean;    // Enable automatic garbage collection
-  gcTriggerThreshold: number;          // GC trigger threshold (0-100)
-  enableMemoryOptimization: boolean;   // Enable memory optimization
-  enableCpuOptimization: boolean;      // Enable CPU optimization
+  enabled: boolean; // Enable resource monitoring
+  intervalMs: number; // Monitoring interval (ms)
+  enableSystemMonitoring: boolean; // Enable system-wide monitoring
+  enableBrowserMonitoring: boolean; // Enable per-browser monitoring
+  enableGarbageCollection: boolean; // Enable automatic garbage collection
+  gcTriggerThreshold: number; // GC trigger threshold (0-100)
+  enableMemoryOptimization: boolean; // Enable memory optimization
+  enableCpuOptimization: boolean; // Enable CPU optimization
   thresholds: {
-    memoryWarning: number;             // Memory warning threshold (bytes)
-    memoryCritical: number;            // Memory critical threshold (bytes)
-    cpuWarning: number;                // CPU warning threshold (%)
-    cpuCritical: number;               // CPU critical threshold (%)
-    connectionWarning: number;         // Connection warning threshold
-    connectionCritical: number;        // Connection critical threshold
-    handleWarning: number;             // Handle warning threshold
-    handleCritical: number;            // Handle critical threshold
+    memoryWarning: number; // Memory warning threshold (bytes)
+    memoryCritical: number; // Memory critical threshold (bytes)
+    cpuWarning: number; // CPU warning threshold (%)
+    cpuCritical: number; // CPU critical threshold (%)
+    connectionWarning: number; // Connection warning threshold
+    connectionCritical: number; // Connection critical threshold
+    handleWarning: number; // Handle warning threshold
+    handleCritical: number; // Handle critical threshold
   };
 }
 ```
@@ -486,20 +505,20 @@ interface ResourceMonitoringConfig {
 
 ```typescript
 interface RecyclingConfig {
-  enabled: boolean;                    // Enable browser recycling
-  strategy: RecyclingStrategy;         // Recycling strategy
-  maxLifetimeMs: number;               // Maximum browser lifetime (ms)
-  maxIdleTimeMs: number;               // Maximum idle time (ms)
-  maxUseCount: number;                 // Maximum use count
-  maxPageCount: number;                // Maximum page count
-  recyclingThreshold: number;          // Recycling threshold (0-100)
-  batchRecyclingEnabled: boolean;      // Enable batch recycling
-  maxBatchSize: number;                // Maximum batch size
-  recyclingCooldownMs: number;         // Recycling cooldown (ms)
+  enabled: boolean; // Enable browser recycling
+  strategy: RecyclingStrategy; // Recycling strategy
+  maxLifetimeMs: number; // Maximum browser lifetime (ms)
+  maxIdleTimeMs: number; // Maximum idle time (ms)
+  maxUseCount: number; // Maximum use count
+  maxPageCount: number; // Maximum page count
+  recyclingThreshold: number; // Recycling threshold (0-100)
+  batchRecyclingEnabled: boolean; // Enable batch recycling
+  maxBatchSize: number; // Maximum batch size
+  recyclingCooldownMs: number; // Recycling cooldown (ms)
   scheduledMaintenanceEnabled: boolean; // Enable scheduled maintenance
-  maintenanceInterval: number;         // Maintenance interval (ms)
-  maintenanceWindowStart: number;      // Maintenance window start (hour)
-  maintenanceWindowEnd: number;        // Maintenance window end (hour)
+  maintenanceInterval: number; // Maintenance interval (ms)
+  maintenanceWindowStart: number; // Maintenance window start (hour)
+  maintenanceWindowEnd: number; // Maintenance window end (hour)
 }
 ```
 
@@ -507,15 +526,15 @@ interface RecyclingConfig {
 
 ```typescript
 interface CircuitBreakerConfig {
-  enabled: boolean;                    // Enable circuit breaker
-  failureThreshold: number;            // Failure threshold to open circuit
-  successThreshold: number;            // Success threshold to close circuit
-  timeWindow: number;                  // Time window for failure counting (ms)
-  timeout: number;                     // Timeout before trying half-open (ms)
-  exponentialBackoff: boolean;         // Enable exponential backoff
-  maxTimeout: number;                  // Maximum timeout (ms)
-  backoffMultiplier: number;           // Backoff multiplier
-  minimumThroughput: number;           // Minimum requests before circuit can open
+  enabled: boolean; // Enable circuit breaker
+  failureThreshold: number; // Failure threshold to open circuit
+  successThreshold: number; // Success threshold to close circuit
+  timeWindow: number; // Time window for failure counting (ms)
+  timeout: number; // Timeout before trying half-open (ms)
+  exponentialBackoff: boolean; // Enable exponential backoff
+  maxTimeout: number; // Maximum timeout (ms)
+  backoffMultiplier: number; // Backoff multiplier
+  minimumThroughput: number; // Minimum requests before circuit can open
 }
 ```
 
@@ -523,16 +542,16 @@ interface CircuitBreakerConfig {
 
 ```typescript
 interface PerformanceMonitoringConfig {
-  enabled: boolean;                    // Enable performance monitoring
-  collectionInterval: number;          // Collection interval (ms)
-  retentionPeriod: number;             // Data retention period (ms)
-  alertingEnabled: boolean;            // Enable alerting
-  enableRealTimeAlerts: boolean;       // Enable real-time alerts
-  enableTrendAnalysis: boolean;        // Enable trend analysis
-  enableAnomalyDetection: boolean;     // Enable anomaly detection
+  enabled: boolean; // Enable performance monitoring
+  collectionInterval: number; // Collection interval (ms)
+  retentionPeriod: number; // Data retention period (ms)
+  alertingEnabled: boolean; // Enable alerting
+  enableRealTimeAlerts: boolean; // Enable real-time alerts
+  enableTrendAnalysis: boolean; // Enable trend analysis
+  enableAnomalyDetection: boolean; // Enable anomaly detection
   anomalyDetectionSensitivity: number; // Anomaly detection sensitivity (0-1)
   enablePerformanceOptimization: boolean; // Enable performance optimization
-  autoOptimizationEnabled: boolean;    // Enable auto-optimization
+  autoOptimizationEnabled: boolean; // Enable auto-optimization
 }
 ```
 
@@ -630,19 +649,21 @@ console.log('Circuit breakers:', circuitBreakers);
 To migrate from the standard browser pool to the optimized version:
 
 1. **Update imports:**
+
    ```typescript
    // Before
    import { BrowserPool } from './src/puppeteer/pool/browser-pool.js';
-   
+
    // After
    import { OptimizedBrowserPool } from './src/puppeteer/pool/browser-pool-optimized.js';
    ```
 
 2. **Update initialization:**
+
    ```typescript
    // Before
    const pool = new BrowserPool(options);
-   
+
    // After
    const pool = new OptimizedBrowserPool(options, {
      enabled: true,
@@ -651,6 +672,7 @@ To migrate from the standard browser pool to the optimized version:
    ```
 
 3. **Add monitoring:**
+
    ```typescript
    // Add event listeners for optimization events
    pool.on('optimization-scaling-action', handleScalingAction);
@@ -684,6 +706,10 @@ To migrate from the standard browser pool to the optimized version:
 
 ## Conclusion
 
-The Browser Pool Optimization system provides enterprise-grade resource management, scaling, and monitoring capabilities. By following this guide and implementing the recommended configurations, you can achieve optimal performance, reliability, and observability for your browser automation workloads.
+The Browser Pool Optimization system provides enterprise-grade resource management, scaling, and
+monitoring capabilities. By following this guide and implementing the recommended configurations,
+you can achieve optimal performance, reliability, and observability for your browser automation
+workloads.
 
-For additional support and advanced configuration options, refer to the API documentation and source code comments.
+For additional support and advanced configuration options, refer to the API documentation and source
+code comments.

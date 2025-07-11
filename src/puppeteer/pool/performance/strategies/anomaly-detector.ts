@@ -20,7 +20,7 @@ import type { IAnomalyDetector } from '../types/strategy.interfaces.js';
 export class AnomalyDetector implements IAnomalyDetector {
   readonly monitor: EventEmitter;
   readonly config: PerformanceMonitoringConfig;
-  
+
   private anomalies: Map<string, PerformanceAnomaly> = new Map();
   private baselineMetrics: Map<PerformanceMetricType, number> = new Map();
   private readonly maxAnomalies = 1000;
@@ -61,7 +61,7 @@ export class AnomalyDetector implements IAnomalyDetector {
   getAnomalies(timeRange?: TimeRange): PerformanceAnomaly[] {
     const anomalies = Array.from(this.anomalies.values());
     return timeRange
-      ? anomalies.filter(a => a.timestamp >= timeRange.start && a.timestamp <= timeRange.end)
+      ? anomalies.filter((a) => a.timestamp >= timeRange.start && a.timestamp <= timeRange.end)
       : anomalies;
   }
 
@@ -96,7 +96,7 @@ export class AnomalyDetector implements IAnomalyDetector {
    * Get anomalies for a specific metric type
    */
   getAnomaliesForMetric(type: PerformanceMetricType): PerformanceAnomaly[] {
-    return Array.from(this.anomalies.values()).filter(anomaly => anomaly.type === type);
+    return Array.from(this.anomalies.values()).filter((anomaly) => anomaly.type === type);
   }
 
   /**
@@ -111,7 +111,7 @@ export class AnomalyDetector implements IAnomalyDetector {
    * Get high-severity anomalies
    */
   getHighSeverityAnomalies(): PerformanceAnomaly[] {
-    return Array.from(this.anomalies.values()).filter(anomaly => anomaly.severity === 'high');
+    return Array.from(this.anomalies.values()).filter((anomaly) => anomaly.severity === 'high');
   }
 
   /**
@@ -125,15 +125,15 @@ export class AnomalyDetector implements IAnomalyDetector {
   } {
     const anomalies = Array.from(this.anomalies.values());
     const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
-    
+
     const bySeverity = {
       low: 0,
       medium: 0,
       high: 0,
     };
-    
+
     const byType: Record<string, number> = {};
-    
+
     for (const anomaly of anomalies) {
       bySeverity[anomaly.severity]++;
       byType[anomaly.type] = (byType[anomaly.type] || 0) + 1;
@@ -143,7 +143,7 @@ export class AnomalyDetector implements IAnomalyDetector {
       total: anomalies.length,
       bySeverity,
       byType,
-      recent: anomalies.filter(a => a.timestamp >= oneHourAgo).length,
+      recent: anomalies.filter((a) => a.timestamp >= oneHourAgo).length,
     };
   }
 
@@ -152,8 +152,8 @@ export class AnomalyDetector implements IAnomalyDetector {
    */
   hasAnomalyPattern(): boolean {
     const recentAnomalies = this.getRecentAnomalies();
-    const highSeverityCount = recentAnomalies.filter(a => a.severity === 'high').length;
-    
+    const highSeverityCount = recentAnomalies.filter((a) => a.severity === 'high').length;
+
     // Concerning if multiple high-severity anomalies in recent period
     return highSeverityCount >= 3 || recentAnomalies.length >= 10;
   }
@@ -181,11 +181,11 @@ export class AnomalyDetector implements IAnomalyDetector {
     type: PerformanceMetricType,
     value: number,
     expected: number,
-    deviation: number
+    deviation: number,
   ): void {
     const anomalyId = `${type}-${Date.now()}`;
     const severity = this.calculateSeverity(deviation);
-    
+
     const anomaly: PerformanceAnomaly = {
       id: anomalyId,
       type,
@@ -250,17 +250,20 @@ export class AnomalyDetector implements IAnomalyDetector {
       [PerformanceMetricType.ERROR_RATE]: 'Investigate error causes and implement error handling',
       [PerformanceMetricType.RESOURCE_UTILIZATION]: 'Monitor resource usage and consider scaling',
       [PerformanceMetricType.AVAILABILITY]: 'Check system health and implement redundancy',
-      [PerformanceMetricType.RESPONSE_TIME]: 'Optimize processing logic and check resource constraints',
-      [PerformanceMetricType.QUEUE_TIME]: 'Increase processing capacity or optimize queue management',
+      [PerformanceMetricType.RESPONSE_TIME]:
+        'Optimize processing logic and check resource constraints',
+      [PerformanceMetricType.QUEUE_TIME]:
+        'Increase processing capacity or optimize queue management',
       [PerformanceMetricType.PROCESSING_TIME]: 'Profile and optimize processing algorithms',
     };
 
-    const baseRecommendation = recommendations[type] || 'Monitor closely and investigate root cause';
-    
+    const baseRecommendation =
+      recommendations[type] || 'Monitor closely and investigate root cause';
+
     if (severity === 'high') {
       return `URGENT: ${baseRecommendation}`;
     }
-    
+
     return baseRecommendation;
   }
 

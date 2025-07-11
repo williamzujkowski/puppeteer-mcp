@@ -87,7 +87,7 @@ export class BrowserPoolLifecycleHandler {
     instance: InternalBrowserInstance;
   }> {
     const startTime = Date.now();
-    
+
     try {
       const result = await launchBrowser({
         options: this.options,
@@ -136,12 +136,12 @@ export class BrowserPoolLifecycleHandler {
         handleUnhealthyBrowser: (id) => this.handleUnhealthyBrowser(id),
       });
       success = true;
-      
+
       // Log successful browser recovery
       await this.eventLogger.logBrowserRecovery(true, browserId);
     } catch (error) {
       success = false;
-      
+
       // Log browser recovery failure
       await this.eventLogger.logBrowserRecovery(
         false,

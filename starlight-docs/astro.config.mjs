@@ -29,10 +29,7 @@ export default defineConfig({
           href: 'https://github.com/williamzujkowski/puppeteer-mcp',
         },
       ],
-      customCss: [
-        './src/styles/custom.css',
-        './src/styles/starlight-overrides.css',
-      ],
+      customCss: ['./src/styles/custom.css', './src/styles/starlight-overrides.css'],
       editLink: {
         baseUrl: 'https://github.com/williamzujkowski/puppeteer-mcp/edit/main/starlight-docs/',
       },

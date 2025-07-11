@@ -2,11 +2,14 @@
 
 **Status**: Production Ready  
 **Version**: 1.0.0  
-**Security**: NIST-compliant with SSRF protection  
+**Security**: NIST-compliant with SSRF protection
 
 ## Overview
 
-The Navigation module provides a modular, secure, and performant system for handling browser navigation operations in the Puppeteer MCP integration. It replaces the monolithic `navigation-executor.ts` with a well-architected system following SOLID principles and security best practices.
+The Navigation module provides a modular, secure, and performant system for handling browser
+navigation operations in the Puppeteer MCP integration. It replaces the monolithic
+`navigation-executor.ts` with a well-architected system following SOLID principles and security best
+practices.
 
 ## Architecture
 
@@ -58,6 +61,7 @@ if (!validation.isValid) {
 ```
 
 **Protected Against**:
+
 - Private network access (127.0.0.1, 192.168.x.x, etc.)
 - Localhost bypasses
 - AWS metadata endpoints
@@ -131,6 +135,7 @@ const executor = createNavigationExecutor({
 Main orchestration class that coordinates all navigation operations.
 
 **Methods**:
+
 - `execute(action, page, context)` - Execute any navigation action
 - `executeNavigate(action, page, context)` - Navigate to URL
 - `executeGoBack(page, context, timeout?)` - Go back in history
@@ -143,6 +148,7 @@ Main orchestration class that coordinates all navigation operations.
 Strategy pattern implementation for action routing.
 
 **Methods**:
+
 - `execute(action, page, context)` - Route action to appropriate strategy
 - `registerStrategy(strategy)` - Register custom navigation strategy
 - `getSupportedActions()` - Get list of supported action types
@@ -151,25 +157,32 @@ Strategy pattern implementation for action routing.
 ### Individual Navigators
 
 #### PageNavigator
+
 Handles `page.goto()` operations with URL validation and performance monitoring.
 
 #### HistoryNavigator
+
 Manages browser history operations (back, forward, refresh) with state validation.
 
 #### ViewportManager
+
 Handles viewport configuration with predefined presets and validation.
 
 ### Monitoring and Security
 
 #### UrlValidator
+
 Provides SSRF protection and URL validation:
+
 - Protocol validation
 - Private network blocking
 - Suspicious pattern detection
 - URL normalization
 
 #### PerformanceMonitor
+
 Tracks navigation performance metrics:
+
 - Navigation timing
 - Success/failure rates
 - Memory usage
@@ -208,11 +221,11 @@ const executor = createNavigationExecutor();
 
 ```typescript
 interface NavigationExecutorConfig {
-  enablePerformanceMonitoring?: boolean;    // Default: true
-  enableUrlValidation?: boolean;            // Default: true
-  enableRequestLogging?: boolean;           // Default: true
-  enableExecutionMetrics?: boolean;         // Default: true
-  maxConcurrentNavigations?: number;        // Default: 5
+  enablePerformanceMonitoring?: boolean; // Default: true
+  enableUrlValidation?: boolean; // Default: true
+  enableRequestLogging?: boolean; // Default: true
+  enableExecutionMetrics?: boolean; // Default: true
+  maxConcurrentNavigations?: number; // Default: 5
 }
 ```
 
@@ -220,11 +233,11 @@ interface NavigationExecutorConfig {
 
 ```typescript
 interface UrlValidationConfig {
-  allowedProtocols?: string[];              // Default: ['http:', 'https:']
-  blockedHosts?: string[];                  // Default: localhost, private IPs
-  allowPrivateNetworks?: boolean;           // Default: false
-  maxLength?: number;                       // Default: 2048
-  allowFileProtocol?: boolean;              // Default: false
+  allowedProtocols?: string[]; // Default: ['http:', 'https:']
+  blockedHosts?: string[]; // Default: localhost, private IPs
+  allowPrivateNetworks?: boolean; // Default: false
+  maxLength?: number; // Default: 2048
+  allowFileProtocol?: boolean; // Default: false
 }
 ```
 
@@ -232,10 +245,10 @@ interface UrlValidationConfig {
 
 ```typescript
 interface PerformanceConfig {
-  enableDetailedMetrics?: boolean;          // Default: true
-  enableMemoryTracking?: boolean;           // Default: true
-  maxMetricsHistory?: number;               // Default: 1000
-  retentionPeriod?: number;                 // Default: 24 hours
+  enableDetailedMetrics?: boolean; // Default: true
+  enableMemoryTracking?: boolean; // Default: true
+  maxMetricsHistory?: number; // Default: 1000
+  retentionPeriod?: number; // Default: 24 hours
 }
 ```
 
@@ -290,6 +303,7 @@ The system provides detailed performance monitoring:
 ## Security Audit
 
 Regular security reviews ensure:
+
 - SSRF protection effectiveness
 - URL validation completeness
 - Audit log comprehensiveness
@@ -298,6 +312,7 @@ Regular security reviews ensure:
 ## Future Enhancements
 
 Planned improvements:
+
 - **Custom validation rules**: User-defined URL patterns
 - **Rate limiting**: Per-session navigation limits
 - **Caching**: Intelligent navigation caching
@@ -306,6 +321,7 @@ Planned improvements:
 ## Support
 
 For issues or questions:
+
 1. Check existing tests for usage examples
 2. Review error logs for security violations
 3. Monitor performance statistics for bottlenecks
@@ -313,4 +329,5 @@ For issues or questions:
 
 ---
 
-**Security Notice**: This module implements NIST security controls and should not be modified without security review.
+**Security Notice**: This module implements NIST security controls and should not be modified
+without security review.

@@ -1,6 +1,7 @@
 # Redis Migration Module
 
-This module provides a comprehensive migration system for Redis session stores, refactored from the original monolithic `redis-migration.ts` file into focused, maintainable components.
+This module provides a comprehensive migration system for Redis session stores, refactored from the
+original monolithic `redis-migration.ts` file into focused, maintainable components.
 
 ## Architecture
 
@@ -57,25 +58,19 @@ migration/
 
 ```typescript
 const manager = new MigrationManager(logger);
-const result = await manager.backupSessions(
-  redisClient,
-  '/path/to/backup.json',
-  { preserveTTL: true }
-);
+const result = await manager.backupSessions(redisClient, '/path/to/backup.json', {
+  preserveTTL: true,
+});
 ```
 
 ### Full Migration Workflow
 
 ```typescript
-const result = await manager.fullMigration(
-  sourceClient,
-  targetClient,
-  {
-    batchSize: 100,
-    preserveTTL: true,
-    backupPath: '/path/to/backup.json'
-  }
-);
+const result = await manager.fullMigration(sourceClient, targetClient, {
+  batchSize: 100,
+  preserveTTL: true,
+  backupPath: '/path/to/backup.json',
+});
 ```
 
 ### Custom Strategy Usage
@@ -87,7 +82,7 @@ const backupStrategy = factory.createBackupStrategy();
 const result = await backupStrategy.execute({
   client: redisClient,
   backupPath: '/path/to/backup.json',
-  options: { preserveTTL: true, compress: false }
+  options: { preserveTTL: true, compress: false },
 });
 ```
 

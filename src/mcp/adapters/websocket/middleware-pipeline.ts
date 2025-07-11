@@ -91,7 +91,7 @@ export class WebSocketMiddlewarePipeline {
     if (!middleware) {
       return;
     }
-    
+
     const next = async (): Promise<void> => {
       await this.runMiddlewares(message, connection, index + 1);
     };
@@ -105,7 +105,12 @@ export class WebSocketMiddlewarePipeline {
   static createValidationMiddleware(logger: Logger): MiddlewareFunction {
     return async (message, _connection, next): Promise<void> => {
       // Validate message structure
-      if (typeof message.type !== 'string' || !Object.values(WSMessageType).includes(message.type as WSMessageType) || (message.id !== undefined && (typeof message.id !== 'string' || message.id === '')) || typeof message.timestamp !== 'string') {
+      if (
+        typeof message.type !== 'string' ||
+        !Object.values(WSMessageType).includes(message.type as WSMessageType) ||
+        (message.id !== undefined && (typeof message.id !== 'string' || message.id === '')) ||
+        typeof message.timestamp !== 'string'
+      ) {
         logger.error('Invalid message structure', { message });
         throw new Error('Invalid message structure');
       }

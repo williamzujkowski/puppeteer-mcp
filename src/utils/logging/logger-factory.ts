@@ -47,11 +47,11 @@ export const createLogger = (name: string): PinoLogger => {
   // In MCP stdio mode, write logs to stderr to avoid corrupting protocol
   const isMcpStdio = process.env.MCP_TRANSPORT === 'stdio';
   const isNotTty = !process.stdout.isTTY;
-  
+
   if (isMcpStdio || isNotTty) {
     return pino(createLoggerOptions(name), pino.destination(2)); // 2 = stderr
   }
-  
+
   return pino(createLoggerOptions(name));
 };
 

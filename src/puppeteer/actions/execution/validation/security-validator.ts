@@ -72,7 +72,8 @@ export class SecurityValidator extends BaseValidator {
    */
   private readonly sqlPatterns: SecurityPattern[] = [
     {
-      pattern: /(\b(union|select|insert|update|delete|drop|create)\b.*\b(from|into|where|table)\b)/i,
+      pattern:
+        /(\b(union|select|insert|update|delete|drop|create)\b.*\b(from|into|where|table)\b)/i,
       severity: 'warning',
       message: 'Potential SQL injection pattern detected',
       code: 'SQL_INJECTION_PATTERN',
@@ -166,7 +167,7 @@ export class SecurityValidator extends BaseValidator {
   private validateActionPermissions(
     action: BrowserAction,
     context: ActionContext,
-    errors: ValidationError[]
+    errors: ValidationError[],
   ): void {
     // Check if action requires elevated permissions
     const elevatedActions = ['evaluate', 'upload', 'cookie'];
@@ -176,7 +177,7 @@ export class SecurityValidator extends BaseValidator {
           errors,
           'permissions',
           `Action '${action.type}' requires elevated permissions`,
-          'INSUFFICIENT_PERMISSIONS'
+          'INSUFFICIENT_PERMISSIONS',
         );
       }
     }
@@ -185,17 +186,12 @@ export class SecurityValidator extends BaseValidator {
     if (context.allowedDomains && 'url' in action && action.url) {
       try {
         const url = new URL(action.url);
-        const allowed = context.allowedDomains.some(domain => 
-          url.hostname === domain || url.hostname.endsWith(`.${domain}`)
+        const allowed = context.allowedDomains.some(
+          (domain) => url.hostname === domain || url.hostname.endsWith(`.${domain}`),
         );
-        
+
         if (!allowed) {
-          this.addError(
-            errors,
-            'url',
-            'URL domain not in allowed list',
-            'DOMAIN_NOT_ALLOWED'
-          );
+          this.addError(errors, 'url', 'URL domain not in allowed list', 'DOMAIN_NOT_ALLOWED');
         }
       } catch {
         // URL validation handled elsewhere
@@ -214,7 +210,7 @@ export class SecurityValidator extends BaseValidator {
     action: BrowserAction,
     patterns: SecurityPattern[],
     errors: ValidationError[],
-    warnings: ValidationError[]
+    warnings: ValidationError[],
   ): void {
     const fieldsToCheck = this.getFieldsToCheck(action);
 
@@ -276,7 +272,11 @@ export class SecurityValidator extends BaseValidator {
    * @param errors - Error collection
    * @param warnings - Warning collection
    */
-  private validateUrlSafety(url: string, _errors: ValidationError[], warnings: ValidationError[]): void {
+  private validateUrlSafety(
+    url: string,
+    _errors: ValidationError[],
+    warnings: ValidationError[],
+  ): void {
     try {
       const parsed = new URL(url);
 
@@ -287,34 +287,25 @@ export class SecurityValidator extends BaseValidator {
           warnings,
           'url',
           `Suspicious port detected: ${parsed.port}`,
-          'SUSPICIOUS_PORT'
+          'SUSPICIOUS_PORT',
         );
       }
 
       // Check for IP addresses (except localhost)
       const ipPattern = /^(\d{1,3}\.){3}\d{1,3}$/;
-      if (ipPattern.test(parsed.hostname) && 
-          parsed.hostname !== '127.0.0.1' && 
-          !parsed.hostname.startsWith('192.168.')) {
-        this.addWarning(
-          warnings,
-          'url',
-          'Direct IP address access detected',
-          'DIRECT_IP_ACCESS'
-        );
+      if (
+        ipPattern.test(parsed.hostname) &&
+        parsed.hostname !== '127.0.0.1' &&
+        !parsed.hostname.startsWith('192.168.')
+      ) {
+        this.addWarning(warnings, 'url', 'Direct IP address access detected', 'DIRECT_IP_ACCESS');
       }
 
       // Check for suspicious TLDs
       const suspiciousTlds = ['.tk', '.ml', '.ga', '.cf'];
-      if (suspiciousTlds.some(tld => parsed.hostname.endsWith(tld))) {
-        this.addWarning(
-          warnings,
-          'url',
-          'Suspicious top-level domain detected',
-          'SUSPICIOUS_TLD'
-        );
+      if (suspiciousTlds.some((tld) => parsed.hostname.endsWith(tld))) {
+        this.addWarning(warnings, 'url', 'Suspicious top-level domain detected', 'SUSPICIOUS_TLD');
       }
-
     } catch {
       // URL parsing errors handled elsewhere
     }
@@ -345,7 +336,7 @@ export class SecurityValidator extends BaseValidator {
             warnings,
             field,
             `Potential ${name} detected in action data`,
-            'SENSITIVE_DATA_DETECTED'
+            'SENSITIVE_DATA_DETECTED',
           );
           break;
         }
@@ -362,7 +353,7 @@ export class SecurityValidator extends BaseValidator {
   private validateRateLimiting(
     action: BrowserAction,
     _context: ActionContext,
-    warnings: ValidationError[]
+    warnings: ValidationError[],
   ): void {
     // Check for rapid automation indicators
     if (action.type === 'click' || action.type === 'type') {
@@ -372,7 +363,7 @@ export class SecurityValidator extends BaseValidator {
           warnings,
           'delay',
           'No delay specified - may trigger rate limiting or bot detection',
-          'NO_DELAY_WARNING'
+          'NO_DELAY_WARNING',
         );
       }
     }
@@ -383,7 +374,7 @@ export class SecurityValidator extends BaseValidator {
         warnings,
         'values',
         'Large number of values may trigger rate limiting',
-        'BULK_OPERATION_WARNING'
+        'BULK_OPERATION_WARNING',
       );
     }
   }

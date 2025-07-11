@@ -25,7 +25,7 @@ export class FixedTimeoutStrategy implements ITimeoutStrategy {
 export class ExponentialBackoffStrategy implements ITimeoutStrategy {
   constructor(
     private multiplier: number = 2,
-    private maxTimeout: number = 300000 // 5 minutes
+    private maxTimeout: number = 300000, // 5 minutes
   ) {}
 
   calculateTimeout(attempt: number, baseTimeout: number): number {
@@ -44,11 +44,11 @@ export class ExponentialBackoffStrategy implements ITimeoutStrategy {
 export class LinearBackoffStrategy implements ITimeoutStrategy {
   constructor(
     private increment: number = 10000, // 10 seconds
-    private maxTimeout: number = 300000 // 5 minutes
+    private maxTimeout: number = 300000, // 5 minutes
   ) {}
 
   calculateTimeout(attempt: number, baseTimeout: number): number {
-    const timeout = baseTimeout + (this.increment * (attempt - 1));
+    const timeout = baseTimeout + this.increment * (attempt - 1);
     return Math.min(timeout, this.maxTimeout);
   }
 
@@ -64,7 +64,7 @@ export class JitteredBackoffStrategy implements ITimeoutStrategy {
   constructor(
     private multiplier: number = 2,
     private maxTimeout: number = 300000, // 5 minutes
-    private jitterFactor: number = 0.1 // 10% jitter
+    private jitterFactor: number = 0.1, // 10% jitter
   ) {}
 
   calculateTimeout(attempt: number, baseTimeout: number): number {
@@ -83,16 +83,19 @@ export class JitteredBackoffStrategy implements ITimeoutStrategy {
  * Fibonacci backoff strategy
  */
 export class FibonacciBackoffStrategy implements ITimeoutStrategy {
-  private fibCache: Map<number, number> = new Map([[0, 0], [1, 1]]);
+  private fibCache: Map<number, number> = new Map([
+    [0, 0],
+    [1, 1],
+  ]);
 
   constructor(
     private multiplier: number = 1000, // 1 second base
-    private maxTimeout: number = 300000 // 5 minutes
+    private maxTimeout: number = 300000, // 5 minutes
   ) {}
 
   calculateTimeout(attempt: number, baseTimeout: number): number {
     const fibValue = this.fibonacci(attempt);
-    const timeout = baseTimeout + (fibValue * this.multiplier);
+    const timeout = baseTimeout + fibValue * this.multiplier;
     return Math.min(timeout, this.maxTimeout);
   }
 
@@ -100,7 +103,7 @@ export class FibonacciBackoffStrategy implements ITimeoutStrategy {
     if (this.fibCache.has(n)) {
       return this.fibCache.get(n)!;
     }
-    
+
     const value = this.fibonacci(n - 1) + this.fibonacci(n - 2);
     this.fibCache.set(n, value);
     return value;
@@ -108,7 +111,10 @@ export class FibonacciBackoffStrategy implements ITimeoutStrategy {
 
   reset(): void {
     // Keep first two values, clear the rest
-    this.fibCache = new Map([[0, 0], [1, 1]]);
+    this.fibCache = new Map([
+      [0, 0],
+      [1, 1],
+    ]);
   }
 }
 
@@ -121,7 +127,7 @@ export class DecorrelatedJitterStrategy implements ITimeoutStrategy {
 
   constructor(
     private maxTimeout: number = 300000, // 5 minutes
-    _baseTimeout: number = 1000 // 1 second
+    _baseTimeout: number = 1000, // 1 second
   ) {}
 
   calculateTimeout(attempt: number, baseTimeout: number): number {

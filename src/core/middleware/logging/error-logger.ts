@@ -22,7 +22,7 @@ export const logRequestError = (
 ): void => {
   const errorLogData = formatErrorLogData(req, requestId, error);
   const message = generateErrorLogMessage(req);
-  
+
   logger.error(errorLogData, message);
 };
 
@@ -50,18 +50,21 @@ export const logUncaughtException = (
   logger: Logger,
 ): void => {
   const sanitizedError = sanitizeError(error);
-  
-  logger.error({
-    type: 'HTTP_UNCAUGHT_EXCEPTION',
-    requestId,
-    timestamp: new Date().toISOString(),
-    method: req.method,
-    url: req.url,
-    path: req.path,
-    userId: req.user?.userId,
-    sessionId: req.user?.sessionId,
-    ...sanitizedError,
-  }, `Uncaught exception in HTTP ${req.method} ${req.path}`);
+
+  logger.error(
+    {
+      type: 'HTTP_UNCAUGHT_EXCEPTION',
+      requestId,
+      timestamp: new Date().toISOString(),
+      method: req.method,
+      url: req.url,
+      path: req.path,
+      userId: req.user?.userId,
+      sessionId: req.user?.sessionId,
+      ...sanitizedError,
+    },
+    `Uncaught exception in HTTP ${req.method} ${req.path}`,
+  );
 };
 
 /**
@@ -73,17 +76,20 @@ export const logRequestTimeout = (
   timeout: number,
   logger: Logger,
 ): void => {
-  logger.warn({
-    type: 'HTTP_TIMEOUT',
-    requestId,
-    timestamp: new Date().toISOString(),
-    method: req.method,
-    url: req.url,
-    path: req.path,
-    timeout,
-    userId: req.user?.userId,
-    sessionId: req.user?.sessionId,
-  }, `HTTP ${req.method} ${req.path} timed out after ${timeout}ms`);
+  logger.warn(
+    {
+      type: 'HTTP_TIMEOUT',
+      requestId,
+      timestamp: new Date().toISOString(),
+      method: req.method,
+      url: req.url,
+      path: req.path,
+      timeout,
+      userId: req.user?.userId,
+      sessionId: req.user?.sessionId,
+    },
+    `HTTP ${req.method} ${req.path} timed out after ${timeout}ms`,
+  );
 };
 
 /**
@@ -94,16 +100,19 @@ export const logRequestCancellation = (
   requestId: string,
   logger: Logger,
 ): void => {
-  logger.warn({
-    type: 'HTTP_CANCELLED',
-    requestId,
-    timestamp: new Date().toISOString(),
-    method: req.method,
-    url: req.url,
-    path: req.path,
-    userId: req.user?.userId,
-    sessionId: req.user?.sessionId,
-  }, `HTTP ${req.method} ${req.path} cancelled`);
+  logger.warn(
+    {
+      type: 'HTTP_CANCELLED',
+      requestId,
+      timestamp: new Date().toISOString(),
+      method: req.method,
+      url: req.url,
+      path: req.path,
+      userId: req.user?.userId,
+      sessionId: req.user?.sessionId,
+    },
+    `HTTP ${req.method} ${req.path} cancelled`,
+  );
 };
 
 /**
@@ -119,17 +128,20 @@ export const logMiddlewareError = (
   logger: Logger,
 ): void => {
   const sanitizedError = sanitizeError(errorData.error);
-  
-  logger.error({
-    type: 'MIDDLEWARE_ERROR',
-    requestId: errorData.requestId,
-    timestamp: new Date().toISOString(),
-    method: req.method,
-    url: req.url,
-    path: req.path,
-    middleware: errorData.middlewareName,
-    userId: req.user?.userId,
-    sessionId: req.user?.sessionId,
-    ...sanitizedError,
-  }, `Middleware error in ${errorData.middlewareName} for HTTP ${req.method} ${req.path}`);
+
+  logger.error(
+    {
+      type: 'MIDDLEWARE_ERROR',
+      requestId: errorData.requestId,
+      timestamp: new Date().toISOString(),
+      method: req.method,
+      url: req.url,
+      path: req.path,
+      middleware: errorData.middlewareName,
+      userId: req.user?.userId,
+      sessionId: req.user?.sessionId,
+      ...sanitizedError,
+    },
+    `Middleware error in ${errorData.middlewareName} for HTTP ${req.method} ${req.path}`,
+  );
 };

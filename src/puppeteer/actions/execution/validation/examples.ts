@@ -3,7 +3,10 @@
  * @module puppeteer/actions/execution/validation/examples
  */
 
-import type { BrowserAction, ActionContext } from '../../../interfaces/action-executor.interface.js';
+import type {
+  BrowserAction,
+  ActionContext,
+} from '../../../interfaces/action-executor.interface.js';
 import type { ValidationError } from '../types.js';
 import { ValidationOrchestrator } from './index.js';
 import { ValidatorFactory, ValidatorType } from './validator-factory.js';
@@ -14,19 +17,19 @@ import { BaseValidator } from './base-validator.js';
  */
 async function basicValidation() {
   const orchestrator = new ValidationOrchestrator();
-  
+
   const action: BrowserAction = {
     type: 'navigate',
     pageId: 'page-1',
     url: 'https://example.com',
   };
-  
+
   const context: ActionContext = {
     sessionId: 'session-1',
     contextId: 'context-1',
     timestamp: Date.now(),
   };
-  
+
   const result = await orchestrator.validate(action, context);
   console.warn('Validation result:', result);
 }
@@ -36,24 +39,24 @@ async function basicValidation() {
  */
 async function parallelValidation() {
   const orchestrator = new ValidationOrchestrator();
-  
+
   const action: BrowserAction = {
     type: 'click',
     pageId: 'page-1',
     selector: 'button#submit',
   };
-  
+
   const context: ActionContext = {
     sessionId: 'session-1',
     contextId: 'context-1',
     timestamp: Date.now(),
   };
-  
+
   const result = await orchestrator.validate(action, context, {
     parallel: true,
     timeout: 2000, // 2 second timeout
   });
-  
+
   console.warn('Parallel validation completed:', result);
 }
 
@@ -63,20 +66,20 @@ async function parallelValidation() {
 async function specificValidators() {
   // Get navigation validator
   const navValidator = ValidatorFactory.getValidator(ValidatorType.NAVIGATION);
-  
+
   const action: BrowserAction = {
     type: 'navigate',
     pageId: 'page-1',
     url: 'https://example.com',
     waitUntil: 'networkidle0',
   };
-  
+
   const context: ActionContext = {
     sessionId: 'session-1',
     contextId: 'context-1',
     timestamp: Date.now(),
   };
-  
+
   const result = await navValidator.validate(action, context);
   console.warn('Navigation validation:', result);
 }
@@ -88,17 +91,17 @@ class CustomActionValidator extends BaseValidator {
   async validate(action: BrowserAction, _context: ActionContext) {
     const errors: ValidationError[] = [];
     const warnings: ValidationError[] = [];
-    
+
     // Custom validation logic
     // Note: 'custom' is not a valid BrowserAction type
     // This is just an example of extending the validation system
     if ('customField' in action && !action.customField) {
       this.addError(errors, 'customField', 'Custom field is required', 'MISSING_CUSTOM_FIELD');
     }
-    
+
     return this.createResult(errors, warnings);
   }
-  
+
   canValidate(_action: BrowserAction): boolean {
     // This custom validator example always returns false
     // since 'custom' is not a valid BrowserAction type
@@ -114,7 +117,7 @@ ValidatorFactory.registerValidator('custom', new CustomActionValidator());
  */
 async function batchValidation() {
   const orchestrator = new ValidationOrchestrator();
-  
+
   const actions: BrowserAction[] = [
     {
       type: 'navigate',
@@ -133,15 +136,15 @@ async function batchValidation() {
       text: 'user@example.com',
     },
   ];
-  
+
   const context: ActionContext = {
     sessionId: 'session-1',
     contextId: 'context-1',
     timestamp: Date.now(),
   };
-  
+
   const results = await orchestrator.validateBatch(actions, context);
-  
+
   results.forEach((result, index) => {
     console.warn(`Action ${index + 1} validation:`, result);
   });
@@ -152,13 +155,13 @@ async function batchValidation() {
  */
 async function securityValidation() {
   const orchestrator = new ValidationOrchestrator();
-  
+
   const action: BrowserAction = {
     type: 'evaluate',
     pageId: 'page-1',
     function: 'document.querySelector("button").click()',
   };
-  
+
   const context: ActionContext = {
     sessionId: 'session-1',
     contextId: 'context-1',
@@ -166,7 +169,7 @@ async function securityValidation() {
     restrictedMode: true,
     allowEvaluation: false, // This will cause validation to fail
   };
-  
+
   const result = await orchestrator.validate(action, context);
   console.warn('Security validation result:', result);
 }
@@ -176,24 +179,24 @@ async function securityValidation() {
  */
 async function selectiveValidation() {
   const orchestrator = new ValidationOrchestrator();
-  
+
   const action: BrowserAction = {
     type: 'navigate',
     pageId: 'page-1',
     url: 'http://example.com', // HTTP URL would normally trigger security warning
   };
-  
+
   const context: ActionContext = {
     sessionId: 'session-1',
     contextId: 'context-1',
     timestamp: Date.now(),
   };
-  
+
   // Skip security validator
   const result = await orchestrator.validate(action, context, {
     skipValidators: ['SecurityValidator'],
   });
-  
+
   console.warn('Validation without security checks:', result);
 }
 

@@ -7,12 +7,12 @@
  */
 
 import type { SessionStore } from '../session-store.interface.js';
-import { 
+import {
   DEFAULT_REPLICATION_CONFIG,
   type ReplicationConfig,
   type SyncStats,
   type ReplicaHealthStatus,
-  type HealthCheckResult
+  type HealthCheckResult,
 } from './types.js';
 import { pino } from 'pino';
 import type { Logger } from 'pino';
@@ -31,7 +31,10 @@ import type { SessionReplicationManagerEvents } from './session-replication.inte
 /**
  * Session replication manager
  */
-export class SessionReplicationManager extends EventEmitter implements SessionReplicationManagerEvents {
+export class SessionReplicationManager
+  extends EventEmitter
+  implements SessionReplicationManagerEvents
+{
   private readonly logger: Logger;
   private readonly primaryStore: SessionStore;
   private readonly config: ReplicationConfig;
@@ -47,15 +50,15 @@ export class SessionReplicationManager extends EventEmitter implements SessionRe
   constructor(
     primaryStore: SessionStore,
     config: Partial<ReplicationConfig> = {},
-    logger?: Logger
+    logger?: Logger,
   ) {
     super();
     this.logger = logger ?? pino({ level: 'info' });
     this.primaryStore = primaryStore;
-    
+
     this.config = {
       ...DEFAULT_REPLICATION_CONFIG,
-      ...config
+      ...config,
     };
 
     // Initialize components
@@ -75,7 +78,7 @@ export class SessionReplicationManager extends EventEmitter implements SessionRe
       syncEngine: this.syncEngine,
       coordinator: this.coordinator,
       metrics: this.metrics,
-      config: this.config
+      config: this.config,
     });
   }
 
@@ -85,10 +88,10 @@ export class SessionReplicationManager extends EventEmitter implements SessionRe
   async addReplica(
     id: string,
     store: SessionStore,
-    config: Partial<ReplicationConfig> = {}
+    config: Partial<ReplicationConfig> = {},
   ): Promise<void> {
     this.replicaManager.addReplica(id, store, config);
-    
+
     // Initial sync
     await this.syncReplica(id);
   }
@@ -107,7 +110,7 @@ export class SessionReplicationManager extends EventEmitter implements SessionRe
     this.scheduler.start(this.config.syncInterval, async () => {
       await this.syncAll();
     });
-    
+
     this.logger.info('Session replication started');
   }
 
@@ -125,7 +128,7 @@ export class SessionReplicationManager extends EventEmitter implements SessionRe
   async syncAll(): Promise<void> {
     const replicas = this.replicaManager.getActiveReplicas();
     const primarySessions = await this.transport.getAllSessions(this.primaryStore);
-    
+
     await this.syncEngine.syncAllReplicas(replicas, primarySessions, this.config);
   }
 
@@ -140,9 +143,9 @@ export class SessionReplicationManager extends EventEmitter implements SessionRe
 
     const primarySessions = await this.transport.getAllSessions(this.primaryStore);
     const stats = await this.syncEngine.syncReplica(replica, primarySessions, this.config);
-    
+
     this.replicaManager.recordSyncCompletion(replicaId);
-    
+
     return stats;
   }
 
@@ -167,10 +170,7 @@ export class SessionReplicationManager extends EventEmitter implements SessionRe
    * Force sync all replicas
    */
   async forceSyncAll(): Promise<SyncStats[]> {
-    return this.statusManager.forceSyncAll(
-      this.replicaManager,
-      (id) => this.syncReplica(id)
-    );
+    return this.statusManager.forceSyncAll(this.replicaManager, (id) => this.syncReplica(id));
   }
 
   /**

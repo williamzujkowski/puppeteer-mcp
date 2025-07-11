@@ -60,12 +60,14 @@ interface NavigationAttempt {
 export class PageNavigator {
   private readonly urlValidator: UrlValidator;
   private readonly performanceMonitor?: PerformanceMonitor;
-  private readonly config: Required<Omit<PageNavigationConfig, 'urlValidator' | 'performanceMonitor'>>;
+  private readonly config: Required<
+    Omit<PageNavigationConfig, 'urlValidator' | 'performanceMonitor'>
+  >;
 
   constructor(config?: PageNavigationConfig) {
     this.urlValidator = config?.urlValidator ?? new UrlValidator();
     this.performanceMonitor = config?.performanceMonitor;
-    
+
     this.config = {
       defaultTimeout: config?.defaultTimeout ?? DEFAULT_CONFIG.TIMEOUT.navigation,
       defaultWaitUntil: config?.defaultWaitUntil ?? 'load',
@@ -91,7 +93,7 @@ export class PageNavigator {
   async navigate(
     action: NavigateAction,
     page: Page,
-    context: ActionContext
+    context: ActionContext,
   ): Promise<ActionResult> {
     const startTime = Date.now();
     let performanceMetrics: any;
@@ -118,7 +120,7 @@ export class PageNavigator {
           startTime,
           urlValidation.error ?? 'URL validation failed',
           page,
-          performanceMetrics
+          performanceMetrics,
         );
       }
 
@@ -130,15 +132,19 @@ export class PageNavigator {
         page,
         urlValidation.normalizedUrl ?? action.url,
         options,
-        context
+        context,
       );
 
       // End performance monitoring
-      if (this.config.enablePerformanceMonitoring && this.performanceMonitor && performanceMetrics) {
+      if (
+        this.config.enablePerformanceMonitoring &&
+        this.performanceMonitor &&
+        performanceMetrics
+      ) {
         await this.performanceMonitor.endNavigation(
           performanceMetrics.id,
           navigationResult.success,
-          navigationResult.finalUrl
+          navigationResult.finalUrl,
         );
       }
 
@@ -148,7 +154,7 @@ export class PageNavigator {
           startTime,
           navigationResult.error?.message ?? 'Navigation failed',
           page,
-          performanceMetrics
+          performanceMetrics,
         );
       }
 
@@ -159,12 +165,11 @@ export class PageNavigator {
         navigationResult,
         page,
         urlValidation,
-        performanceMetrics
+        performanceMetrics,
       );
-
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Navigation failed';
-      
+
       logger.error('Page navigation error', {
         sessionId: context.sessionId,
         contextId: context.contextId,
@@ -187,7 +192,7 @@ export class PageNavigator {
       return await this.urlValidator.validateUrl(url);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'URL validation error';
-      
+
       logger.error('URL validation failed', {
         url,
         error: errorMessage,
@@ -224,7 +229,7 @@ export class PageNavigator {
     page: Page,
     url: string,
     options: NavigationWaitOptions,
-    context: ActionContext
+    context: ActionContext,
   ): Promise<NavigationAttempt> {
     const attemptStartTime = Date.now();
 
@@ -258,10 +263,10 @@ export class PageNavigator {
         title,
         duration,
       };
-
     } catch (error) {
       const duration = Date.now() - attemptStartTime;
-      const navigationError = error instanceof Error ? error : new Error('Unknown navigation error');
+      const navigationError =
+        error instanceof Error ? error : new Error('Unknown navigation error');
 
       logger.warn('Navigation attempt failed', {
         sessionId: context.sessionId,
@@ -311,7 +316,7 @@ export class PageNavigator {
     navigationResult: NavigationAttempt,
     page: Page,
     urlValidation: UrlValidationResult,
-    performanceMetrics?: any
+    performanceMetrics?: any,
   ): Promise<ActionResult> {
     const duration = Date.now() - startTime;
 
@@ -356,7 +361,7 @@ export class PageNavigator {
     startTime: number,
     errorMessage: string,
     page: Page,
-    performanceMetrics?: any
+    performanceMetrics?: any,
   ): ActionResult {
     const duration = Date.now() - startTime;
 
@@ -403,7 +408,7 @@ export class PageNavigator {
     allowsPrivateNetworks: boolean;
   } {
     const config = this.urlValidator.getConfig();
-    
+
     return {
       supportedProtocols: config.allowedProtocols,
       maxUrlLength: config.maxLength,

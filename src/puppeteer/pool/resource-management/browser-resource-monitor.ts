@@ -71,7 +71,7 @@ export class BrowserResourceMonitor implements IBrowserResourceMonitor {
     try {
       const usage = await this.getBrowserResourceUsage(browser, browserId);
       this.browserResources.set(browserId, usage);
-      
+
       logger.debug(
         {
           browserId,
@@ -79,7 +79,7 @@ export class BrowserResourceMonitor implements IBrowserResourceMonitor {
           cpu: usage.cpuUsage.percent,
           connections: usage.connectionCount,
         },
-        'Browser resources monitored'
+        'Browser resources monitored',
       );
 
       return usage;
@@ -108,7 +108,10 @@ export class BrowserResourceMonitor implements IBrowserResourceMonitor {
    * Get browser resource usage
    * @private
    */
-  private async getBrowserResourceUsage(browser: Browser, browserId: string): Promise<BrowserResourceUsage> {
+  private async getBrowserResourceUsage(
+    browser: Browser,
+    browserId: string,
+  ): Promise<BrowserResourceUsage> {
     const process = browser.process();
     const pid = process?.pid || 0;
 
@@ -165,7 +168,6 @@ export class BrowserResourceMonitor implements IBrowserResourceMonitor {
       } catch (error) {
         logger.debug({ error }, 'Could not get heap metrics');
       }
-
     } catch (error) {
       logger.debug({ browserId, error }, 'Error getting detailed browser resource usage');
     }

@@ -73,10 +73,7 @@ export class ScreenshotExtractor {
    * @returns Screenshot buffer
    * @nist ac-3 "Access enforcement"
    */
-  private async capturePage(
-    page: Page,
-    config: ScreenshotConfig,
-  ): Promise<Buffer> {
+  private async capturePage(page: Page, config: ScreenshotConfig): Promise<Buffer> {
     const screenshotData = await page.screenshot({
       fullPage: config.fullPage,
       type: config.format,

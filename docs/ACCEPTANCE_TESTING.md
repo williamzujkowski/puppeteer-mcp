@@ -1,10 +1,13 @@
 # Acceptance Testing Framework
 
-This document describes the comprehensive acceptance testing framework for puppeteer-mcp, designed to validate real-world functionality against live websites and APIs.
+This document describes the comprehensive acceptance testing framework for puppeteer-mcp, designed
+to validate real-world functionality against live websites and APIs.
 
 ## Overview
 
-The acceptance testing framework provides end-to-end validation of puppeteer-mcp's capabilities by testing against publicly available, stable websites and APIs. These tests ensure that the system works correctly in real-world scenarios.
+The acceptance testing framework provides end-to-end validation of puppeteer-mcp's capabilities by
+testing against publicly available, stable websites and APIs. These tests ensure that the system
+works correctly in real-world scenarios.
 
 ## Test Structure
 
@@ -69,6 +72,7 @@ ACCEPTANCE_TEST_SLOW_MO=100 npm run test:acceptance:basic
 ### CI/CD Integration
 
 Acceptance tests run:
+
 - **Manual**: Via GitHub Actions workflow dispatch
 - **Scheduled**: Weekly on Sundays at 6 AM UTC
 - **Optional**: Can be triggered for specific test suites
@@ -85,6 +89,7 @@ Acceptance tests run:
 ### MCP Client Utilities (`utils/mcp-client.ts`)
 
 Provides high-level MCP interaction methods:
+
 - `createMCPClient()`: Start MCP server and connect client
 - `createMCPSession()`: Create browser session and context
 - `mcpNavigate()`, `mcpClick()`, `mcpType()`: Browser actions
@@ -94,6 +99,7 @@ Provides high-level MCP interaction methods:
 ### Test Helpers (`utils/test-helpers.ts`)
 
 Common utilities for robust testing:
+
 - `retryOperation()`: Retry with exponential backoff
 - `waitForCondition()`: Polling for conditions
 - `makeRequest()`: HTTP requests with retry logic
@@ -103,6 +109,7 @@ Common utilities for robust testing:
 ### Configuration (`utils/test-config.ts`)
 
 Centralized configuration for:
+
 - Test timeouts and retry settings
 - Target URLs and endpoints
 - Test credentials for demo sites
@@ -214,7 +221,8 @@ Acceptance tests complement the existing test suite:
 - **Acceptance Tests**: Real-world end-to-end validation
 - **Security Tests**: Automated security scanning
 
-This multi-layered approach ensures comprehensive coverage from individual functions to complete user workflows.
+This multi-layered approach ensures comprehensive coverage from individual functions to complete
+user workflows.
 
 ## Future Enhancements
 
@@ -226,4 +234,5 @@ Planned improvements to the acceptance testing framework:
 4. **Accessibility Testing**: Automated accessibility compliance checking
 5. **Load Testing**: Concurrent session and performance testing
 
-The acceptance testing framework provides confidence that puppeteer-mcp works correctly in real-world scenarios while maintaining reliability and performance standards.
+The acceptance testing framework provides confidence that puppeteer-mcp works correctly in
+real-world scenarios while maintaining reliability and performance standards.

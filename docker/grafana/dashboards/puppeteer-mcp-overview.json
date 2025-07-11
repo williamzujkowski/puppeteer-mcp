@@ -134,9 +134,7 @@
         "orientation": "auto",
         "reduceOptions": {
           "values": false,
-          "calcs": [
-            "lastNotNull"
-          ],
+          "calcs": ["lastNotNull"],
           "fields": ""
         },
         "showThresholdLabels": false,
@@ -183,14 +181,10 @@
         "tooltip": {
           "mode": "single"
         },
-        "displayLabels": [
-          "percent"
-        ],
+        "displayLabels": ["percent"],
         "reduceOptions": {
           "values": false,
-          "calcs": [
-            "lastNotNull"
-          ],
+          "calcs": ["lastNotNull"],
           "fields": ""
         }
       },

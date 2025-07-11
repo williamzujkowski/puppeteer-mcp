@@ -48,16 +48,16 @@ router.get('/public', optionalAuth(sessionStore), handler);
 import { refreshAccessToken } from './auth/refresh.js';
 
 // Refresh an access token
-const newTokens = await refreshAccessToken(
-  { refreshToken, accessToken },
-  sessionStore,
-  { ip, userAgent }
-);
+const newTokens = await refreshAccessToken({ refreshToken, accessToken }, sessionStore, {
+  ip,
+  userAgent,
+});
 ```
 
 ## Security Considerations
 
-1. **Token Storage**: Never store tokens in localStorage. Use httpOnly cookies or secure session storage.
+1. **Token Storage**: Never store tokens in localStorage. Use httpOnly cookies or secure session
+   storage.
 2. **Token Rotation**: Implement refresh token rotation for enhanced security.
 3. **Rate Limiting**: Apply rate limiting to authentication endpoints.
 4. **Audit Logging**: All authentication events are logged for compliance.
@@ -84,7 +84,7 @@ const validateApiKey = async (key: string) => {
     key,
     name: 'api-key-name',
     permissions: ['read', 'write'],
-    expiresAt: '2024-12-31T23:59:59Z'
+    expiresAt: '2024-12-31T23:59:59Z',
   };
 };
 

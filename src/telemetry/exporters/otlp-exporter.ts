@@ -26,15 +26,18 @@ const DEFAULT_HEADERS = {
 export class OTLPTraceExporterFactory implements ExporterFactory<SpanExporter> {
   create(config: TelemetryConfig): SpanExporter | null {
     const endpoint = config.tracing.endpoints.otlp;
-    
+
     if (!endpoint || endpoint.trim() === '') {
       logger.warn('OTLP trace endpoint not configured');
       return null;
     }
 
-    logger.info({
-      endpoint,
-    }, 'Creating OTLP trace exporter');
+    logger.info(
+      {
+        endpoint,
+      },
+      'Creating OTLP trace exporter',
+    );
 
     return new OTLPTraceExporter({
       url: endpoint,
@@ -54,15 +57,18 @@ export class OTLPTraceExporterFactory implements ExporterFactory<SpanExporter> {
 export class OTLPMetricExporterFactory implements ExporterFactory<PushMetricExporter> {
   create(config: TelemetryConfig): PushMetricExporter | null {
     const endpoint = config.metrics.endpoints.otlp;
-    
+
     if (!endpoint || endpoint.trim() === '') {
       logger.warn('OTLP metrics endpoint not configured');
       return null;
     }
 
-    logger.info({
-      endpoint,
-    }, 'Creating OTLP metric exporter');
+    logger.info(
+      {
+        endpoint,
+      },
+      'Creating OTLP metric exporter',
+    );
 
     return new OTLPMetricExporter({
       url: endpoint,
@@ -81,7 +87,7 @@ export class OTLPMetricExporterFactory implements ExporterFactory<PushMetricExpo
  */
 export function createOTLPTraceExporter(
   endpoint: string,
-  options: ExporterOptions = {}
+  options: ExporterOptions = {},
 ): SpanExporter {
   const exporterOptions = {
     url: endpoint,
@@ -90,7 +96,7 @@ export function createOTLPTraceExporter(
   };
 
   logger.info({ endpoint, options }, 'Creating OTLP trace exporter with custom options');
-  
+
   return new OTLPTraceExporter(exporterOptions);
 }
 
@@ -99,7 +105,7 @@ export function createOTLPTraceExporter(
  */
 export function createOTLPMetricExporter(
   endpoint: string,
-  options: ExporterOptions = {}
+  options: ExporterOptions = {},
 ): PushMetricExporter {
   const exporterOptions = {
     url: endpoint,
@@ -108,7 +114,7 @@ export function createOTLPMetricExporter(
   };
 
   logger.info({ endpoint, options }, 'Creating OTLP metric exporter with custom options');
-  
+
   return new OTLPMetricExporter(exporterOptions);
 }
 

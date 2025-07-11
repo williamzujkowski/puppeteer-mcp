@@ -69,7 +69,7 @@ export class BrowserLifecycleManager {
         candidate.browserId,
         currentState,
         newState,
-        this.getTransitionReason(candidate.reasons)
+        this.getTransitionReason(candidate.reasons),
       );
     }
   }
@@ -83,7 +83,7 @@ export class BrowserLifecycleManager {
       browserId,
       currentState,
       BrowserLifecycleState.RECYCLING,
-      'Browser marked for recycling'
+      'Browser marked for recycling',
     );
   }
 
@@ -96,9 +96,9 @@ export class BrowserLifecycleManager {
       browserId,
       currentState,
       BrowserLifecycleState.DISPOSED,
-      'Browser disposed'
+      'Browser disposed',
     );
-    
+
     // Clean up state after disposal
     this.browserStates.delete(browserId);
   }
@@ -148,7 +148,7 @@ export class BrowserLifecycleManager {
    */
   determineUrgency(
     score: number,
-    reasons: RecyclingReason[]
+    reasons: RecyclingReason[],
   ): 'low' | 'medium' | 'high' | 'critical' {
     const criticalReasons = [
       RecyclingReason.MEMORY_PRESSURE,
@@ -156,7 +156,7 @@ export class BrowserLifecycleManager {
       RecyclingReason.CONNECTION_OVERLOAD,
     ];
 
-    if (reasons.some(r => criticalReasons.includes(r)) || score >= 95) {
+    if (reasons.some((r) => criticalReasons.includes(r)) || score >= 95) {
       return 'critical';
     }
 
@@ -176,14 +176,11 @@ export class BrowserLifecycleManager {
    */
   estimateImpact(
     score: number,
-    reasons: RecyclingReason[]
+    reasons: RecyclingReason[],
   ): 'minimal' | 'moderate' | 'significant' | 'severe' {
-    const severeReasons = [
-      RecyclingReason.MEMORY_PRESSURE,
-      RecyclingReason.CPU_PRESSURE,
-    ];
+    const severeReasons = [RecyclingReason.MEMORY_PRESSURE, RecyclingReason.CPU_PRESSURE];
 
-    if (reasons.some(r => severeReasons.includes(r))) {
+    if (reasons.some((r) => severeReasons.includes(r))) {
       return 'severe';
     }
 
@@ -201,10 +198,7 @@ export class BrowserLifecycleManager {
   /**
    * Get recommended action based on score and urgency
    */
-  getRecommendedAction(
-    score: number,
-    urgency: string
-  ): 'recycle' | 'monitor' | 'optimize' {
+  getRecommendedAction(score: number, urgency: string): 'recycle' | 'monitor' | 'optimize' {
     if (urgency === 'critical' || score >= 90) {
       return 'recycle';
     }
@@ -224,7 +218,7 @@ export class BrowserLifecycleManager {
     browserId: string,
     fromState: BrowserLifecycleState,
     toState: BrowserLifecycleState,
-    reason: string
+    reason: string,
   ): void {
     this.browserStates.set(browserId, toState);
 
@@ -250,7 +244,7 @@ export class BrowserLifecycleManager {
         toState,
         reason,
       },
-      'Browser lifecycle state transitioned'
+      'Browser lifecycle state transitioned',
     );
   }
 
@@ -263,8 +257,6 @@ export class BrowserLifecycleManager {
       return 'No specific reason';
     }
 
-    return reasons
-      .map(r => r.replace(/_/g, ' ').toLowerCase())
-      .join(', ');
+    return reasons.map((r) => r.replace(/_/g, ' ').toLowerCase()).join(', ');
   }
 }

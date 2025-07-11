@@ -34,7 +34,7 @@ class DirectServerTest {
       screenshots: [],
       htmlContent: null,
       gameElements: [],
-      error: null
+      error: null,
     };
     this.browserPool = null;
     this.sessionStore = null;
@@ -43,9 +43,10 @@ class DirectServerTest {
 
   log(message, type = 'info') {
     const timestamp = new Date().toISOString();
-    const prefix = type === 'error' ? '❌' : type === 'success' ? '✅' : type === 'warning' ? '⚠️' : 'ℹ️';
+    const prefix =
+      type === 'error' ? '❌' : type === 'success' ? '✅' : type === 'warning' ? '⚠️' : 'ℹ️';
     console.log(`${prefix} [${timestamp}] ${message}`);
-    
+
     if (type === 'error') {
       this.results.issues.push({ timestamp, message, type });
     } else if (type === 'success') {
@@ -69,7 +70,7 @@ class DirectServerTest {
         filename,
         filepath,
         size: screenshotBuffer.length,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
       this.log(`Screenshot saved: ${filename} (${screenshotBuffer.length} bytes)`, 'success');
       return filepath;
@@ -88,7 +89,7 @@ class DirectServerTest {
         filename,
         filepath,
         size: htmlContent.length,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
       this.log(`HTML content saved: ${filename} (${htmlContent.length} characters)`, 'success');
     } catch (error) {
@@ -98,7 +99,7 @@ class DirectServerTest {
 
   async initializeBrowserPool() {
     this.log('Initializing browser pool...', 'info');
-    
+
     try {
       this.browserPool = new BrowserPool({
         maxBrowsers: 1,
@@ -124,14 +125,14 @@ class DirectServerTest {
 
   async createTestSession() {
     this.log('Creating test session...', 'info');
-    
+
     try {
       this.sessionStore = new InMemorySessionStore();
-      
+
       const userId = crypto.randomUUID();
       const username = 'direct-test-user';
       const roles = ['user', 'admin'];
-      
+
       const sessionData = {
         userId,
         username,
@@ -139,19 +140,19 @@ class DirectServerTest {
         createdAt: new Date().toISOString(),
         expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
       };
-      
+
       const sessionId = await this.sessionStore.create(sessionData);
       const tokens = generateTokenPair(userId, username, roles, sessionId);
-      
+
       this.results.sessionCreation = true;
       this.log('Test session created successfully', 'success');
-      
+
       return {
         sessionId,
         userId,
         username,
         roles,
-        accessToken: tokens.accessToken
+        accessToken: tokens.accessToken,
       };
     } catch (error) {
       this.results.sessionCreation = false;
@@ -162,21 +163,22 @@ class DirectServerTest {
 
   async createBrowserContext() {
     this.log('Creating browser context...', 'info');
-    
+
     try {
       this.contextManager = new ContextManager(this.browserPool);
-      
+
       const contextId = await this.contextManager.createContext({
         createPage: true,
         options: {
           viewport: {
             width: 1920,
-            height: 1080
+            height: 1080,
           },
-          userAgent: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-        }
+          userAgent:
+            'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+        },
       });
-      
+
       this.results.contextCreation = true;
       this.log(`Browser context created: ${contextId}`, 'success');
       return contextId;
@@ -189,19 +191,19 @@ class DirectServerTest {
 
   async navigateToPage(contextId) {
     this.log(`Navigating to ${PAPERCLIPS_URL}...`, 'info');
-    
+
     try {
       const context = this.contextManager.getContext(contextId);
       if (!context || !context.pages || context.pages.length === 0) {
         throw new Error('No page available in context');
       }
-      
+
       const page = context.pages[0];
       await page.goto(PAPERCLIPS_URL, {
         waitUntil: 'networkidle2',
-        timeout: 30000
+        timeout: 30000,
       });
-      
+
       this.results.pageNavigation = true;
       this.log('Page navigation successful', 'success');
       return { url: page.url() };
@@ -214,19 +216,19 @@ class DirectServerTest {
 
   async verifyPageLoading(contextId) {
     this.log('Verifying page loading...', 'info');
-    
+
     try {
       const context = this.contextManager.getContext(contextId);
       const page = context.pages[0];
-      
+
       // Get page title
       const title = await page.title();
       this.log(`Page title: ${title}`, 'info');
-      
+
       // Get page URL
       const currentUrl = page.url();
       this.log(`Current URL: ${currentUrl}`, 'info');
-      
+
       if (title && title.toLowerCase().includes('paperclips')) {
         this.results.pageLoading = true;
         this.log('Page loaded correctly (title contains "paperclips")', 'success');
@@ -234,7 +236,10 @@ class DirectServerTest {
         this.results.pageLoading = true;
         this.log('Page loaded correctly (URL matches)', 'success');
       } else {
-        this.log(`Page may not have loaded correctly - title: ${title}, URL: ${currentUrl}`, 'warning');
+        this.log(
+          `Page may not have loaded correctly - title: ${title}, URL: ${currentUrl}`,
+          'warning',
+        );
       }
     } catch (error) {
       this.log(`Page verification failed: ${error.message}`, 'error');
@@ -243,16 +248,16 @@ class DirectServerTest {
 
   async captureScreenshot(contextId) {
     this.log('Capturing screenshot...', 'info');
-    
+
     try {
       const context = this.contextManager.getContext(contextId);
       const page = context.pages[0];
-      
+
       const screenshot = await page.screenshot({
         fullPage: true,
-        type: 'png'
+        type: 'png',
       });
-      
+
       this.results.screenshotCapture = true;
       const filename = `direct-paperclips-screenshot-${Date.now()}.png`;
       await this.saveScreenshot(screenshot, filename);
@@ -266,20 +271,20 @@ class DirectServerTest {
 
   async extractPageContent(contextId) {
     this.log('Extracting page content...', 'info');
-    
+
     try {
       const context = this.contextManager.getContext(contextId);
       const page = context.pages[0];
-      
+
       const content = await page.content();
       this.results.contentExtraction = true;
       this.log(`Page content extracted: ${content.length} characters`, 'success');
-      
+
       await this.saveHtmlContent(content);
-      
+
       // Analyze game elements
       await this.analyzeGameElements(contextId);
-      
+
       return content;
     } catch (error) {
       this.results.contentExtraction = false;
@@ -289,32 +294,35 @@ class DirectServerTest {
 
   async analyzeGameElements(contextId) {
     this.log('Analyzing game elements...', 'info');
-    
+
     try {
       const context = this.contextManager.getContext(contextId);
       const page = context.pages[0];
-      
+
       const gameElementChecks = [
         {
           name: 'Paperclip Button',
-          script: () => document.querySelector('button[id*="paperclip"], input[type="button"][value*="paperclip"], #btnMakePaperclip')
+          script: () =>
+            document.querySelector(
+              'button[id*="paperclip"], input[type="button"][value*="paperclip"], #btnMakePaperclip',
+            ),
         },
         {
           name: 'Paperclip Counter',
-          script: () => document.querySelector('[id*="clip"], [id*="count"]')
+          script: () => document.querySelector('[id*="clip"], [id*="count"]'),
         },
         {
           name: 'Game Title',
-          script: () => document.querySelector('h1, h2')?.textContent || document.title
+          script: () => document.querySelector('h1, h2')?.textContent || document.title,
         },
         {
           name: 'Wire Input',
-          script: () => document.querySelector('input[type="number"], input[id*="wire"]')
+          script: () => document.querySelector('input[type="number"], input[id*="wire"]'),
         },
         {
           name: 'Page Body Content',
-          script: () => document.body?.innerHTML?.substring(0, 200) || "No body content"
-        }
+          script: () => document.body?.innerHTML?.substring(0, 200) || 'No body content',
+        },
       ];
 
       for (const check of gameElementChecks) {
@@ -324,13 +332,13 @@ class DirectServerTest {
             this.results.gameElements.push({
               name: check.name,
               found: true,
-              element: result
+              element: result,
             });
             this.log(`Game element found: ${check.name}`, 'success');
           } else {
             this.results.gameElements.push({
               name: check.name,
-              found: false
+              found: false,
             });
             this.log(`Game element not found: ${check.name}`, 'warning');
           }
@@ -338,7 +346,7 @@ class DirectServerTest {
           this.results.gameElements.push({
             name: check.name,
             found: false,
-            error: error.message
+            error: error.message,
           });
           this.log(`Error checking ${check.name}: ${error.message}`, 'warning');
         }
@@ -350,11 +358,11 @@ class DirectServerTest {
 
   async testPageInteraction(contextId) {
     this.log('Testing page interactions...', 'info');
-    
+
     try {
       const context = this.contextManager.getContext(contextId);
       const page = context.pages[0];
-      
+
       // Try to find and click the paperclip button
       const result = await page.evaluate(() => {
         // Try multiple possible selectors for the paperclip button
@@ -364,9 +372,9 @@ class DirectServerTest {
           '#btnMakePaperclip',
           'button[onclick*="makePaperclip"]',
           'input[value*="Make Paperclip"]',
-          'button[title*="paperclip"]'
+          'button[title*="paperclip"]',
         ];
-        
+
         let button = null;
         for (const selector of selectors) {
           const elements = document.querySelectorAll(selector);
@@ -375,10 +383,12 @@ class DirectServerTest {
             break;
           }
         }
-        
+
         // Also try to find any clickable element with paperclip text
         if (!button) {
-          const allButtons = document.querySelectorAll('button, input[type="button"], input[type="submit"]');
+          const allButtons = document.querySelectorAll(
+            'button, input[type="button"], input[type="submit"]',
+          );
           for (const btn of allButtons) {
             const text = (btn.textContent || btn.value || '').toLowerCase();
             if (text.includes('paperclip') || text.includes('clip')) {
@@ -387,7 +397,7 @@ class DirectServerTest {
             }
           }
         }
-        
+
         if (button) {
           const initialText = button.textContent || button.value || button.title || 'Unknown';
           try {
@@ -397,24 +407,26 @@ class DirectServerTest {
               buttonText: initialText,
               buttonId: button.id || 'no-id',
               buttonType: button.tagName,
-              buttonSelector: button.outerHTML.substring(0, 100)
+              buttonSelector: button.outerHTML.substring(0, 100),
             };
           } catch (clickError) {
             return {
               success: false,
               message: 'Found button but click failed: ' + clickError.message,
-              buttonText: initialText
+              buttonText: initialText,
             };
           }
         } else {
           return {
             success: false,
             message: 'No paperclip button found',
-            availableButtons: Array.from(document.querySelectorAll('button, input[type="button"], input[type="submit"]')).map(b => ({
+            availableButtons: Array.from(
+              document.querySelectorAll('button, input[type="button"], input[type="submit"]'),
+            ).map((b) => ({
               text: b.textContent || b.value || 'No text',
               id: b.id || 'no-id',
-              type: b.tagName
-            }))
+              type: b.tagName,
+            })),
           };
         }
       });
@@ -423,9 +435,9 @@ class DirectServerTest {
         this.results.pageInteraction = true;
         this.log(`Successfully clicked paperclip button: ${result.buttonText}`, 'success');
         this.log(`Button details: ${result.buttonType}#${result.buttonId}`, 'info');
-        
+
         // Wait a moment and take another screenshot to see changes
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        await new Promise((resolve) => setTimeout(resolve, 2000));
         await this.captureScreenshot(contextId);
       } else {
         this.results.pageInteraction = false;
@@ -442,7 +454,7 @@ class DirectServerTest {
 
   async cleanup() {
     this.log('Cleaning up resources...', 'info');
-    
+
     try {
       if (this.contextManager) {
         await this.contextManager.cleanup();
@@ -458,13 +470,13 @@ class DirectServerTest {
 
   async saveTestResults() {
     this.log('Saving test results...', 'info');
-    
+
     this.results.endTime = new Date().toISOString();
     this.results.duration = new Date(this.results.endTime) - new Date(this.results.startTime);
-    
+
     const filename = `direct-test-results-${Date.now()}.json`;
     const filepath = path.join(RESULTS_DIR, filename);
-    
+
     try {
       await fs.writeFile(filepath, JSON.stringify(this.results, null, 2));
       this.log(`Test results saved: ${filename}`, 'success');
@@ -475,38 +487,37 @@ class DirectServerTest {
 
   async runDirectServerTest() {
     this.log('Starting direct server integration test...', 'info');
-    
+
     await this.ensureResultsDirectory();
-    
+
     let contextId = null;
-    
+
     try {
       // Step 1: Initialize browser pool
       await this.initializeBrowserPool();
-      
+
       // Step 2: Create test session
       await this.createTestSession();
-      
+
       // Step 3: Create browser context
       contextId = await this.createBrowserContext();
-      
+
       // Step 4: Navigate to paperclips game
       await this.navigateToPage(contextId);
-      
+
       // Step 5: Verify page loading
       await this.verifyPageLoading(contextId);
-      
+
       // Step 6: Capture initial screenshot
       await this.captureScreenshot(contextId);
-      
+
       // Step 7: Extract page content
       await this.extractPageContent(contextId);
-      
+
       // Step 8: Test page interactions
       await this.testPageInteraction(contextId);
-      
+
       this.log('Direct server test completed successfully!', 'success');
-      
     } catch (error) {
       this.results.error = error.message;
       this.log(`Direct server test failed: ${error.message}`, 'error');
@@ -515,7 +526,7 @@ class DirectServerTest {
       await this.cleanup();
       await this.saveTestResults();
     }
-    
+
     // Print summary
     this.printSummary();
   }
@@ -524,7 +535,9 @@ class DirectServerTest {
     console.log('\n=== DIRECT SERVER INTEGRATION TEST SUMMARY ===');
     console.log(`Test Duration: ${this.results.duration}ms`);
     console.log(`Screenshots Captured: ${this.results.screenshots.length}`);
-    console.log(`Game Elements Found: ${this.results.gameElements.filter(e => e.found).length}/${this.results.gameElements.length}`);
+    console.log(
+      `Game Elements Found: ${this.results.gameElements.filter((e) => e.found).length}/${this.results.gameElements.length}`,
+    );
     console.log('\nTest Results:');
     console.log(`✅ Browser Pool: ${this.results.browserPool ? 'PASS' : 'FAIL'}`);
     console.log(`✅ Session Creation: ${this.results.sessionCreation ? 'PASS' : 'FAIL'}`);
@@ -534,27 +547,28 @@ class DirectServerTest {
     console.log(`✅ Screenshot Capture: ${this.results.screenshotCapture ? 'PASS' : 'FAIL'}`);
     console.log(`✅ Content Extraction: ${this.results.contentExtraction ? 'PASS' : 'FAIL'}`);
     console.log(`✅ Page Interaction: ${this.results.pageInteraction ? 'PASS' : 'FAIL'}`);
-    
+
     if (this.results.gameElements.length > 0) {
       console.log('\nGame Elements Analysis:');
-      this.results.gameElements.forEach(element => {
+      this.results.gameElements.forEach((element) => {
         console.log(`  ${element.found ? '✅' : '❌'} ${element.name}`);
         if (element.found && element.element) {
-          const preview = typeof element.element === 'string' ? 
-            element.element.substring(0, 100) : 
-            JSON.stringify(element.element).substring(0, 100);
+          const preview =
+            typeof element.element === 'string'
+              ? element.element.substring(0, 100)
+              : JSON.stringify(element.element).substring(0, 100);
           console.log(`      Preview: ${preview}...`);
         }
       });
     }
-    
+
     if (this.results.issues.length > 0) {
       console.log('\nIssues Encountered:');
       this.results.issues.forEach((issue, index) => {
         console.log(`  ${index + 1}. ${issue.message}`);
       });
     }
-    
+
     console.log(`\nResults saved to: ${RESULTS_DIR}`);
   }
 }

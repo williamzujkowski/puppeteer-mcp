@@ -1,6 +1,8 @@
 # Browser Action Executor
 
-The Browser Action Executor provides a secure, type-safe, and comprehensive system for executing browser automation actions through the Puppeteer integration. It supports all common browser operations with enterprise-grade security, validation, and audit logging.
+The Browser Action Executor provides a secure, type-safe, and comprehensive system for executing
+browser automation actions through the Puppeteer integration. It supports all common browser
+operations with enterprise-grade security, validation, and audit logging.
 
 ## Overview
 
@@ -16,12 +18,14 @@ The action executor implements the `ActionExecutor` interface and provides:
 ## Supported Actions
 
 ### Navigation Actions
+
 - `navigate` - Navigate to URL with security validation
 - `goBack` - Navigate to previous page
-- `goForward` - Navigate to next page  
+- `goForward` - Navigate to next page
 - `reload` - Reload current page
 
 ### Interaction Actions
+
 - `click` - Click on elements with safety checks
 - `type` - Type text with input sanitization
 - `select` - Select options from dropdowns
@@ -30,6 +34,7 @@ The action executor implements the `ActionExecutor` interface and provides:
 - `blur` - Remove focus from elements
 
 ### Content Actions
+
 - `screenshot` - Capture page or element screenshots
 - `pdf` - Generate PDF documents
 - `getContent` - Get page HTML content
@@ -38,35 +43,43 @@ The action executor implements the `ActionExecutor` interface and provides:
 - `getElementText` - Extract text from elements
 
 ### Input Actions
+
 - `keyboard` - Keyboard input and shortcuts
 - `mouse` - Mouse movements and clicks
 - `upload` - File upload with validation
 - `scroll` - Page and element scrolling
 
 ### Evaluation Actions
+
 - `evaluate` - Execute JavaScript with security restrictions
 - `wait` - Wait for elements, navigation, or conditions
 
 ### State Management
+
 - `cookie` - Cookie management operations
 
 ## Security Features
 
 ### Input Validation
+
 All actions undergo strict validation:
+
 - URL validation prevents malicious redirects
 - Selector sanitization prevents XSS attacks
 - JavaScript code analysis blocks dangerous operations
 - File upload validation restricts file types and sizes
 
 ### NIST Compliance
+
 The action executor implements multiple NIST controls:
+
 - **SI-10**: Information input validation
 - **AC-3**: Access enforcement
 - **AC-4**: Information flow enforcement
 - **AU-3**: Content of audit records
 
 ### Security Restrictions
+
 - No `eval()` or dynamic code execution
 - Restricted file system access
 - URL protocol validation (HTTP/HTTPS only)
@@ -86,13 +99,13 @@ const action = {
   type: 'navigate',
   pageId: 'page-123',
   url: 'https://example.com',
-  timeout: 30000
+  timeout: 30000,
 };
 
 const context = {
   sessionId: 'session-456',
   contextId: 'context-789',
-  userId: 'user-abc'
+  userId: 'user-abc',
 };
 
 const result = await executor.execute(action, context);
@@ -104,12 +117,12 @@ const result = await executor.execute(action, context);
 const actions = [
   { type: 'navigate', pageId: 'page-123', url: 'https://example.com' },
   { type: 'click', pageId: 'page-123', selector: '#submit-button' },
-  { type: 'screenshot', pageId: 'page-123', fullPage: true }
+  { type: 'screenshot', pageId: 'page-123', fullPage: true },
 ];
 
 const results = await executor.executeBatch(actions, context, {
   parallel: false,
-  stopOnError: true
+  stopOnError: true,
 });
 ```
 
@@ -124,7 +137,7 @@ executor.registerHandler('custom-action', async (action, page, context) => {
     actionType: 'custom-action',
     data: { result: 'success' },
     duration: 100,
-    timestamp: new Date()
+    timestamp: new Date(),
   };
 });
 ```
@@ -132,6 +145,7 @@ executor.registerHandler('custom-action', async (action, page, context) => {
 ## Validation
 
 ### Action Validation
+
 All actions are validated before execution:
 
 ```typescript
@@ -142,6 +156,7 @@ if (!validationResult.valid) {
 ```
 
 ### Security Validation
+
 JavaScript code and URLs undergo security analysis:
 
 ```typescript
@@ -161,12 +176,15 @@ const safeUrl = sanitizeUrl('https://example.com');
 ## Error Handling
 
 ### Retry Logic
+
 Actions automatically retry on failure with exponential backoff:
+
 - Maximum 3 retry attempts
 - Exponential backoff (1s, 2s, 4s)
 - Configurable timeout per action
 
 ### Error Types
+
 - **ValidationError**: Input validation failures
 - **SecurityError**: Security policy violations
 - **TimeoutError**: Action timeout exceeded
@@ -176,17 +194,19 @@ Actions automatically retry on failure with exponential backoff:
 ## Monitoring and Metrics
 
 ### Action History
+
 Track execution history per context:
 
 ```typescript
 const history = await executor.getHistory(context, {
   limit: 100,
   actionTypes: ['navigate', 'click'],
-  startDate: new Date('2024-01-01')
+  startDate: new Date('2024-01-01'),
 });
 ```
 
 ### Performance Metrics
+
 Get execution metrics:
 
 ```typescript
@@ -198,12 +218,14 @@ console.log('Success rate:', metrics.successfulActions / metrics.totalActions);
 ## Configuration
 
 ### Validation Settings
+
 - Maximum JavaScript code length: 50,000 characters
 - Maximum file upload size: 10MB
 - Maximum batch size: 100 actions
 - Maximum timeout: 5 minutes
 
 ### Security Settings
+
 - Allowed file extensions for upload
 - Blocked JavaScript keywords
 - URL protocol restrictions
@@ -212,6 +234,7 @@ console.log('Success rate:', metrics.successfulActions / metrics.totalActions);
 ## Integration
 
 ### REST API Integration
+
 The action executor is integrated with the REST API through context handlers:
 
 ```http
@@ -224,14 +247,17 @@ POST /v1/contexts/{contextId}/execute
 ```
 
 ### WebSocket Integration
+
 Real-time action execution through WebSocket connections with the same validation and security.
 
 ### gRPC Integration
+
 High-performance action execution through gRPC services with streaming support.
 
 ## Testing
 
 Comprehensive test suite covers:
+
 - Action validation
 - Security restrictions
 - Error handling
@@ -240,6 +266,7 @@ Comprehensive test suite covers:
 - Performance metrics
 
 Run tests:
+
 ```bash
 npm test -- src/puppeteer/actions/
 ```
@@ -281,4 +308,5 @@ src/puppeteer/actions/
 └── index.ts                   # Public API exports
 ```
 
-The action executor serves as the central orchestrator, delegating to specialized handlers while maintaining consistent security, validation, and audit logging across all operations.
+The action executor serves as the central orchestrator, delegating to specialized handlers while
+maintaining consistent security, validation, and audit logging across all operations.

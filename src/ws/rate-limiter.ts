@@ -189,7 +189,6 @@ export class WebSocketRateLimiter {
   private connectionConfig: ConnectionRateLimitConfig;
   private messageConfig: MessageRateLimitConfig;
 
-   
   constructor(
     connectionConfig?: Partial<ConnectionRateLimitConfig>,
     messageConfig?: Partial<MessageRateLimitConfig>,
@@ -231,7 +230,7 @@ export class WebSocketRateLimiter {
   /**
    * Extract rate limit key from WebSocket
    */
-   
+
   extractKey(ws: WebSocket, request?: unknown): string {
     // Check for API key in headers
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

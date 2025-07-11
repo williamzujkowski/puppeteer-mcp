@@ -28,11 +28,7 @@ const logger = createLogger('puppeteer:extraction-factory');
  * @nist ac-3 "Access enforcement"
  */
 export interface ExtractionHandler {
-  execute(
-    action: BrowserAction,
-    page: Page,
-    context: ActionContext,
-  ): Promise<ActionResult>;
+  execute(action: BrowserAction, page: Page, context: ActionContext): Promise<ActionResult>;
 }
 
 /**
@@ -77,31 +73,19 @@ export class ExtractionFactory {
       case ExtractionActionType.SCREENSHOT:
         return {
           execute: async (action, page, context) =>
-            this.screenshotExtractor.execute(
-              action as ScreenshotAction,
-              page,
-              context,
-            ),
+            this.screenshotExtractor.execute(action as ScreenshotAction, page, context),
         };
 
       case ExtractionActionType.PDF:
         return {
           execute: async (action, page, context) =>
-            this.pdfExtractor.execute(
-              action as PDFAction,
-              page,
-              context,
-            ),
+            this.pdfExtractor.execute(action as PDFAction, page, context),
         };
 
       case ExtractionActionType.CONTENT:
         return {
           execute: async (action, page, context) =>
-            this.contentExtractor.execute(
-              action as ContentAction,
-              page,
-              context,
-            ),
+            this.contentExtractor.execute(action as ContentAction, page, context),
         };
 
       case ExtractionActionType.GET_TEXT:
@@ -173,11 +157,7 @@ export class ExtractionFactory {
    * @nist ac-3 "Access enforcement"
    * @nist au-3 "Content of audit records"
    */
-  async execute(
-    action: BrowserAction,
-    page: Page,
-    context: ActionContext,
-  ): Promise<ActionResult> {
+  async execute(action: BrowserAction, page: Page, context: ActionContext): Promise<ActionResult> {
     const handler = this.getHandler(action.type);
 
     if (!handler) {

@@ -35,15 +35,15 @@ export class RedisSelectionStrategy implements StoreSelectionStrategy {
       logger.info('Using Redis session store');
       return {
         store: new RedisSessionStore(logger),
-        type: 'redis'
+        type: 'redis',
       };
     }
-    
+
     logger.warn('Falling back to in-memory store: Redis not available');
     return {
       store: new InMemorySessionStore(logger),
       type: 'memory',
-      fallbackReason: 'Requested redis store but Redis not available'
+      fallbackReason: 'Requested redis store but Redis not available',
     };
   }
 }
@@ -56,7 +56,7 @@ export class MemorySelectionStrategy implements StoreSelectionStrategy {
     logger.info('Using in-memory session store');
     return {
       store: new InMemorySessionStore(logger),
-      type: 'memory'
+      type: 'memory',
     };
   }
 }
@@ -70,15 +70,15 @@ export class AutoSelectionStrategy implements StoreSelectionStrategy {
       logger.info('Auto-selected Redis session store');
       return {
         store: new RedisSessionStore(logger),
-        type: 'redis'
+        type: 'redis',
       };
     }
-    
+
     logger.info('Auto-selected in-memory session store (Redis not available)');
     return {
       store: new InMemorySessionStore(logger),
       type: 'memory',
-      fallbackReason: 'Redis not available'
+      fallbackReason: 'Redis not available',
     };
   }
 }

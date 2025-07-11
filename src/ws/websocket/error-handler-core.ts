@@ -39,7 +39,10 @@ export class ErrorHandlerCore {
 
     // Update statistics
     this.errorStats.set(errorInfo.type, (this.errorStats.get(errorInfo.type) ?? 0) + 1);
-    this.severityStats.set(errorInfo.severity, (this.severityStats.get(errorInfo.severity) ?? 0) + 1);
+    this.severityStats.set(
+      errorInfo.severity,
+      (this.severityStats.get(errorInfo.severity) ?? 0) + 1,
+    );
 
     // Log security event
     await logSecurityEvent(SecurityEventType.ERROR, {
@@ -63,19 +66,23 @@ export class ErrorHandlerCore {
   getErrorStats(): ErrorStats {
     const now = Date.now();
     const oneMinuteAgo = now - 60000;
-    const recentErrors = this.errors.filter(
-      (error) => error.timestamp.getTime() > oneMinuteAgo,
+    const recentErrors = this.errors.filter((error) => error.timestamp.getTime() > oneMinuteAgo);
+
+    const errorsByType = Object.values(ErrorType).reduce<Record<ErrorType, number>>(
+      (acc, type) => {
+        acc[type] = this.errorStats.get(type) ?? 0;
+        return acc;
+      },
+      {} as Record<ErrorType, number>,
     );
 
-    const errorsByType = Object.values(ErrorType).reduce<Record<ErrorType, number>>((acc, type) => {
-      acc[type] = this.errorStats.get(type) ?? 0;
-      return acc;
-    }, {} as Record<ErrorType, number>);
-
-    const errorsBySeverity = Object.values(ErrorSeverity).reduce<Record<ErrorSeverity, number>>((acc, severity) => {
-      acc[severity] = this.severityStats.get(severity) ?? 0;
-      return acc;
-    }, {} as Record<ErrorSeverity, number>);
+    const errorsBySeverity = Object.values(ErrorSeverity).reduce<Record<ErrorSeverity, number>>(
+      (acc, severity) => {
+        acc[severity] = this.severityStats.get(severity) ?? 0;
+        return acc;
+      },
+      {} as Record<ErrorSeverity, number>,
+    );
 
     return {
       totalErrors: this.errors.length,
@@ -94,7 +101,7 @@ export class ErrorHandlerCore {
     this.errorStats.clear();
     this.severityStats.clear();
     this.initializeStats();
-    
+
     this.logger.info('Error history cleared');
   }
 
@@ -103,19 +110,19 @@ export class ErrorHandlerCore {
    */
   protected determineSeverity(error: Error): ErrorSeverity {
     const message = error.message.toLowerCase();
-    
+
     if (message.includes('critical') || message.includes('fatal')) {
       return ErrorSeverity.CRITICAL;
     }
-    
+
     if (message.includes('security') || message.includes('authorization')) {
       return ErrorSeverity.HIGH;
     }
-    
+
     if (message.includes('validation') || message.includes('format')) {
       return ErrorSeverity.LOW;
     }
-    
+
     return ErrorSeverity.MEDIUM;
   }
 

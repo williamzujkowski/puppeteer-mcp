@@ -106,18 +106,19 @@ export class ControlFlowValidator extends BaseValidator {
       return;
     }
 
-    this.validateEnum(
-      action.waitType,
-      'waitType',
-      VALID_WAIT_TYPES,
-      errors,
-      'INVALID_WAIT_TYPE'
-    );
+    this.validateEnum(action.waitType, 'waitType', VALID_WAIT_TYPES, errors, 'INVALID_WAIT_TYPE');
 
     // Type-specific validation
     switch (action.waitType) {
       case 'selector':
-        if (!this.validateRequiredString(action.selector, 'selector', errors, 'MISSING_SELECTOR_FOR_WAIT')) {
+        if (
+          !this.validateRequiredString(
+            action.selector,
+            'selector',
+            errors,
+            'MISSING_SELECTOR_FOR_WAIT',
+          )
+        ) {
           break;
         }
         // Validate visible/hidden options
@@ -126,14 +127,19 @@ export class ControlFlowValidator extends BaseValidator {
             errors,
             'visible/hidden',
             'Cannot wait for element to be both visible and hidden',
-            'CONFLICTING_VISIBILITY'
+            'CONFLICTING_VISIBILITY',
           );
         }
         break;
 
       case 'timeout':
         if (action.duration === undefined || action.duration === null) {
-          this.addError(errors, 'duration', 'Duration required for timeout wait', 'MISSING_DURATION_FOR_WAIT');
+          this.addError(
+            errors,
+            'duration',
+            'Duration required for timeout wait',
+            'MISSING_DURATION_FOR_WAIT',
+          );
         } else {
           this.validateNumericRange(
             action.duration,
@@ -141,13 +147,20 @@ export class ControlFlowValidator extends BaseValidator {
             0,
             300000, // 5 minutes max
             errors,
-            'INVALID_DURATION'
+            'INVALID_DURATION',
           );
         }
         break;
 
       case 'function':
-        if (!this.validateRequiredString(action.function, 'function', errors, 'MISSING_FUNCTION_FOR_WAIT')) {
+        if (
+          !this.validateRequiredString(
+            action.function,
+            'function',
+            errors,
+            'MISSING_FUNCTION_FOR_WAIT',
+          )
+        ) {
           break;
         }
         // Additional function validation
@@ -156,12 +169,15 @@ export class ControlFlowValidator extends BaseValidator {
 
       case 'navigation':
         // Navigation wait has no additional required fields
-        if (action.waitUntil && !['load', 'domcontentloaded', 'networkidle0', 'networkidle2'].includes(action.waitUntil)) {
+        if (
+          action.waitUntil &&
+          !['load', 'domcontentloaded', 'networkidle0', 'networkidle2'].includes(action.waitUntil)
+        ) {
           this.addError(
             errors,
             'waitUntil',
             'Invalid waitUntil value for navigation wait',
-            'INVALID_WAIT_UNTIL'
+            'INVALID_WAIT_UNTIL',
           );
         }
         break;
@@ -177,7 +193,7 @@ export class ControlFlowValidator extends BaseValidator {
   private validateScrollAction(
     action: ScrollAction,
     errors: ValidationError[],
-    warnings: ValidationError[]
+    warnings: ValidationError[],
   ): void {
     // At least one scroll parameter required
     if (!action.direction && !action.selector && action.x === undefined && action.y === undefined) {
@@ -185,7 +201,7 @@ export class ControlFlowValidator extends BaseValidator {
         errors,
         'scroll',
         'At least one scroll parameter required (direction, selector, or coordinates)',
-        'MISSING_SCROLL_PARAMS'
+        'MISSING_SCROLL_PARAMS',
       );
       return;
     }
@@ -197,7 +213,7 @@ export class ControlFlowValidator extends BaseValidator {
         'direction',
         VALID_SCROLL_DIRECTIONS,
         errors,
-        'INVALID_SCROLL_DIRECTION'
+        'INVALID_SCROLL_DIRECTION',
       );
     }
 
@@ -209,7 +225,7 @@ export class ControlFlowValidator extends BaseValidator {
         0,
         Number.MAX_SAFE_INTEGER,
         errors,
-        'INVALID_DISTANCE'
+        'INVALID_DISTANCE',
       );
     }
 
@@ -229,7 +245,7 @@ export class ControlFlowValidator extends BaseValidator {
         warnings,
         'scroll',
         'Both selector and coordinates provided; coordinates will be ignored',
-        'CONFLICTING_SCROLL_PARAMS'
+        'CONFLICTING_SCROLL_PARAMS',
       );
     }
 
@@ -241,7 +257,7 @@ export class ControlFlowValidator extends BaseValidator {
         0,
         10000, // 10 seconds max
         errors,
-        'INVALID_SCROLL_DURATION'
+        'INVALID_SCROLL_DURATION',
       );
     }
   }
@@ -257,7 +273,7 @@ export class ControlFlowValidator extends BaseValidator {
     action: EvaluateAction,
     context: ActionContext,
     errors: ValidationError[],
-    warnings: ValidationError[]
+    warnings: ValidationError[],
   ): Promise<void> {
     // Validate function
     if (!this.validateRequiredString(action.function, 'function', errors, 'MISSING_FUNCTION')) {
@@ -282,7 +298,7 @@ export class ControlFlowValidator extends BaseValidator {
               errors,
               `args[${index}]`,
               'Argument contains non-serializable values',
-              'NON_SERIALIZABLE_ARG'
+              'NON_SERIALIZABLE_ARG',
             );
           }
         });
@@ -302,12 +318,7 @@ export class ControlFlowValidator extends BaseValidator {
       // eslint-disable-next-line @typescript-eslint/no-implied-eval
       new Function(func);
     } catch {
-      this.addError(
-        errors,
-        'function',
-        'Invalid JavaScript syntax',
-        'INVALID_JAVASCRIPT'
-      );
+      this.addError(errors, 'function', 'Invalid JavaScript syntax', 'INVALID_JAVASCRIPT');
     }
 
     // Check length
@@ -316,7 +327,7 @@ export class ControlFlowValidator extends BaseValidator {
         errors,
         'function',
         'Function is too long (max 50000 characters)',
-        'FUNCTION_TOO_LONG'
+        'FUNCTION_TOO_LONG',
       );
     }
   }
@@ -332,7 +343,7 @@ export class ControlFlowValidator extends BaseValidator {
     action: EvaluateAction,
     context: ActionContext,
     errors: ValidationError[],
-    warnings: ValidationError[]
+    warnings: ValidationError[],
   ): Promise<void> {
     const func = action.function;
 
@@ -343,7 +354,7 @@ export class ControlFlowValidator extends BaseValidator {
           warnings,
           'function',
           `Function contains potentially dangerous pattern: ${name}`,
-          'DANGEROUS_FUNCTION'
+          'DANGEROUS_FUNCTION',
         );
       }
     }
@@ -361,7 +372,7 @@ export class ControlFlowValidator extends BaseValidator {
           errors,
           'function',
           'Function contains potential XSS patterns',
-          'POTENTIAL_XSS'
+          'POTENTIAL_XSS',
         );
         break;
       }
@@ -373,7 +384,7 @@ export class ControlFlowValidator extends BaseValidator {
         warnings,
         'function',
         'Function performs DOM manipulation which may have security implications',
-        'DOM_MANIPULATION'
+        'DOM_MANIPULATION',
       );
     }
 
@@ -383,7 +394,7 @@ export class ControlFlowValidator extends BaseValidator {
         errors,
         'function',
         'JavaScript evaluation is not allowed in restricted mode',
-        'EVALUATION_RESTRICTED'
+        'EVALUATION_RESTRICTED',
       );
     }
   }

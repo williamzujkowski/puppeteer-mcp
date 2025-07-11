@@ -59,10 +59,7 @@ export class ExecutorFactory {
     this.executors.set(uploadExecutor.getSupportedType(), uploadExecutor);
 
     // Download executor
-    const downloadExecutor = new DownloadExecutor(
-      this.validator,
-      config?.downloadTimeout,
-    );
+    const downloadExecutor = new DownloadExecutor(this.validator, config?.downloadTimeout);
     this.executors.set(downloadExecutor.getSupportedType(), downloadExecutor);
 
     // Cookie executor
@@ -81,7 +78,7 @@ export class ExecutorFactory {
    */
   getExecutor(actionType: string): FileOperationExecutor | undefined {
     const executor = this.executors.get(actionType);
-    
+
     if (!executor) {
       logger.warn('No executor found for action type', { actionType });
     }
@@ -97,7 +94,7 @@ export class ExecutorFactory {
    */
   createExecutor(actionType: string): FileOperationExecutor {
     const executor = this.getExecutor(actionType);
-    
+
     if (!executor) {
       throw new Error(`No executor registered for action type: ${actionType}`);
     }
@@ -116,8 +113,8 @@ export class ExecutorFactory {
     }
 
     this.executors.set(actionType, executor);
-    
-    logger.info('Executor registered', { 
+
+    logger.info('Executor registered', {
       actionType,
       executorType: executor.constructor.name,
     });
@@ -130,7 +127,7 @@ export class ExecutorFactory {
    */
   unregisterExecutor(actionType: string): boolean {
     const removed = this.executors.delete(actionType);
-    
+
     if (removed) {
       logger.info('Executor unregistered', { actionType });
     }
@@ -178,12 +175,9 @@ export class ExecutorFactory {
    * @param config - Factory configuration
    * @returns New factory instance
    */
-  static createWithTypes(
-    types: string[],
-    config?: ExecutorFactoryConfig,
-  ): ExecutorFactory {
+  static createWithTypes(types: string[], config?: ExecutorFactoryConfig): ExecutorFactory {
     const factory = new ExecutorFactory(config);
-    
+
     // Remove executors not in the types list
     const supportedTypes = factory.getSupportedTypes();
     for (const type of supportedTypes) {

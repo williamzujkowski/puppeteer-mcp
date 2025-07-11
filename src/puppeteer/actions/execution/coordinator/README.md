@@ -1,10 +1,12 @@
 # Action Executor Coordinator
 
-This directory contains the modularized components of the action executor system, following SOLID principles and design patterns.
+This directory contains the modularized components of the action executor system, following SOLID
+principles and design patterns.
 
 ## Architecture Overview
 
-The action executor has been refactored into focused modules, each responsible for a specific aspect of action execution:
+The action executor has been refactored into focused modules, each responsible for a specific aspect
+of action execution:
 
 ### Core Components
 
@@ -36,17 +38,21 @@ The action executor has been refactored into focused modules, each responsible f
 ### Supporting Modules
 
 #### Security (`/security`)
+
 - **SecurityEventLogger** (167 lines) - Handles event logging and batching
 - **SecurityErrorAnalyzer** (200 lines) - Analyzes errors for security patterns
 
 #### Metrics (`/metrics`)
+
 - **MetricsAggregator** (227 lines) - Aggregates and analyzes metrics data
 
 #### Performance (`/performance`)
+
 - **OptimizationStrategies** (198 lines) - Implements specific optimization strategies
 - **PerformanceAnalyzer** (205 lines) - Analyzes performance characteristics
 
 #### Configuration (`/config`)
+
 - **ConfigValidator** (142 lines) - Validates configuration values
 - **ConfigDefaults** (108 lines) - Defines default configuration and constants
 
@@ -85,6 +91,7 @@ action-executor.ts (Facade)
 ### NIST Security Annotations
 
 All modules include appropriate NIST security control annotations:
+
 - **ac-3**: Access enforcement
 - **ac-4**: Information flow enforcement
 - **au-2**: Audit events

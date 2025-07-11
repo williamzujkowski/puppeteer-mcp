@@ -5,13 +5,13 @@
  */
 
 export { BrowserPoolMetrics } from './browser-pool-metrics.js';
-export type { 
-  PoolMetrics, 
-  BrowserPoolProvider, 
+export type {
+  PoolMetrics,
+  BrowserPoolProvider,
   MetricLabels,
   BrowserCloseReason,
   ScreenshotFormat,
-  NetworkDirection 
+  NetworkDirection,
 } from './types.js';
 
 import { BrowserPoolMetrics } from './browser-pool-metrics.js';

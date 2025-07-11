@@ -157,7 +157,7 @@ export class GrpcProtocolHandler {
     }
 
     const op = operation as Record<string, unknown>;
-    
+
     // Check required fields
     if (typeof op.service !== 'string' || typeof op.method !== 'string') {
       return false;

@@ -6,8 +6,16 @@
  */
 
 import { EnhancedAppError } from '../enhanced-app-error.js';
-import { ErrorContextBuilder, ErrorCategory, ErrorSeverity, RecoveryAction } from '../error-context.js';
-import type { AuthenticationErrorOptions, AuthorizationErrorOptions } from '../domain-error-interfaces.js';
+import {
+  ErrorContextBuilder,
+  ErrorCategory,
+  ErrorSeverity,
+  RecoveryAction,
+} from '../error-context.js';
+import type {
+  AuthenticationErrorOptions,
+  AuthorizationErrorOptions,
+} from '../domain-error-interfaces.js';
 
 /**
  * Authentication domain errors
@@ -15,7 +23,7 @@ import type { AuthenticationErrorOptions, AuthorizationErrorOptions } from '../d
 export class AuthenticationDomainError extends EnhancedAppError {
   constructor(options: AuthenticationErrorOptions) {
     const { message, errorCode, technicalDetails, requestId, userId } = options;
-    
+
     const context = new ErrorContextBuilder()
       .setErrorCode(errorCode)
       .setCategory(ErrorCategory.AUTHENTICATION)
@@ -44,7 +52,7 @@ export class AuthenticationDomainError extends EnhancedAppError {
 export class AuthorizationDomainError extends EnhancedAppError {
   constructor(options: AuthorizationErrorOptions) {
     const { message, errorCode, requiredPermissions, userPermissions, requestId, userId } = options;
-    
+
     const context = new ErrorContextBuilder()
       .setErrorCode(errorCode)
       .setCategory(ErrorCategory.AUTHORIZATION)
@@ -53,7 +61,7 @@ export class AuthorizationDomainError extends EnhancedAppError {
       .setTechnicalDetails({
         requiredPermissions,
         userPermissions,
-        missingPermissions: requiredPermissions.filter(p => !userPermissions.includes(p)),
+        missingPermissions: requiredPermissions.filter((p) => !userPermissions.includes(p)),
       })
       .addRecoverySuggestion(RecoveryAction.CHECK_PERMISSIONS)
       .addRecoverySuggestion(RecoveryAction.CONTACT_SUPPORT)

@@ -15,7 +15,7 @@ export type {
   ExportedMetrics,
   UptimeStats,
   MetricsHistoryEntry,
-  AlertHistoryEntry
+  AlertHistoryEntry,
 } from './types.js';
 export type { TrendAnalysis } from './analytics-engine.js';
 export type { PerformanceMetrics } from './performance-monitor.js';

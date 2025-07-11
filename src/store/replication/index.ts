@@ -25,7 +25,7 @@ export {
   type ReplicaHealthStatus,
   type SyncStats,
   type SyncBatchResult,
-  type HealthCheckResult
+  type HealthCheckResult,
 } from './types.js';
 
 export type { SessionReplicationManagerEvents } from './session-replication.interface.js';

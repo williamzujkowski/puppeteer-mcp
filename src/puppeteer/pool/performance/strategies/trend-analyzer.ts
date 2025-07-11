@@ -20,7 +20,7 @@ import type { ITrendAnalyzer } from '../types/strategy.interfaces.js';
 export class TrendAnalyzer implements ITrendAnalyzer {
   readonly monitor: EventEmitter;
   readonly config: PerformanceMonitoringConfig;
-  
+
   private trends: Map<PerformanceMetricType, PerformanceTrend> = new Map();
 
   constructor(monitor: EventEmitter, config: PerformanceMonitoringConfig) {
@@ -41,8 +41,8 @@ export class TrendAnalyzer implements ITrendAnalyzer {
     const cutoff = new Date(Date.now() - window);
 
     dataPoints.forEach((allPoints, type) => {
-      const recentPoints = allPoints.filter(dp => dp.timestamp >= cutoff);
-      
+      const recentPoints = allPoints.filter((dp) => dp.timestamp >= cutoff);
+
       // Need minimum data points for reliable trend analysis
       if (recentPoints.length < 10) {
         return;
@@ -50,7 +50,7 @@ export class TrendAnalyzer implements ITrendAnalyzer {
 
       const trend = this.calculateTrend(recentPoints);
       this.trends.set(type, trend);
-      
+
       this.monitor.emit('trend-analyzed', { type, trend });
     });
   }
@@ -74,12 +74,14 @@ export class TrendAnalyzer implements ITrendAnalyzer {
 
     if (trend.direction === 'increasing') {
       // For throughput and availability, increasing is good
-      return type === PerformanceMetricType.THROUGHPUT || type === PerformanceMetricType.AVAILABILITY
+      return type === PerformanceMetricType.THROUGHPUT ||
+        type === PerformanceMetricType.AVAILABILITY
         ? 'improving'
         : 'degrading';
     } else if (trend.direction === 'decreasing') {
       // For throughput and availability, decreasing is bad
-      return type === PerformanceMetricType.THROUGHPUT || type === PerformanceMetricType.AVAILABILITY
+      return type === PerformanceMetricType.THROUGHPUT ||
+        type === PerformanceMetricType.AVAILABILITY
         ? 'degrading'
         : 'improving';
     }
@@ -92,18 +94,18 @@ export class TrendAnalyzer implements ITrendAnalyzer {
    * @nist au-6 "Audit review, analysis, and reporting"
    */
   calculateTrend(dataPoints: PerformanceDataPoint[]): PerformanceTrend {
-    const values = dataPoints.map(dp => dp.value);
+    const values = dataPoints.map((dp) => dp.value);
     const n = values.length;
-    
+
     const firstPoint = dataPoints[0];
     if (!firstPoint) {
       throw new Error('Cannot calculate trend: no data points provided');
     }
-    
+
     if (n < 2) {
       return this.createDefaultTrend(firstPoint);
     }
-    
+
     // Linear regression for trend calculation
     const sumX = (n * (n - 1)) / 2; // Sum of indices 0, 1, 2, ..., n-1
     const sumY = values.reduce((sum, val) => sum + val, 0);
@@ -112,14 +114,14 @@ export class TrendAnalyzer implements ITrendAnalyzer {
 
     const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
     const direction = slope > 0.1 ? 'increasing' : slope < -0.1 ? 'decreasing' : 'stable';
-    
+
     // Calculate R-squared for confidence measure
     const avgY = sumY / n;
     const ssRes = values.reduce((sum, val, i) => {
       const pred = avgY + slope * (i - (n - 1) / 2);
       return sum + Math.pow(val - pred, 2);
     }, 0);
-    
+
     const ssTot = values.reduce((sum, val) => sum + Math.pow(val - avgY, 2), 0);
     const confidence = ssTot > 0 ? Math.max(0, 1 - ssRes / ssTot) : 0;
 
@@ -127,7 +129,7 @@ export class TrendAnalyzer implements ITrendAnalyzer {
     if (!lastPoint) {
       throw new Error('Cannot calculate timespan: no last data point');
     }
-    
+
     const timespan = lastPoint.timestamp.getTime() - firstPoint.timestamp.getTime();
 
     const trend: PerformanceTrend = {
@@ -167,13 +169,13 @@ export class TrendAnalyzer implements ITrendAnalyzer {
    */
   getDeterioratingMetrics(): PerformanceMetricType[] {
     const deteriorating: PerformanceMetricType[] = [];
-    
+
     this.trends.forEach((trend, type) => {
       if (this.determineTrend(type) === 'degrading' && trend.confidence > 0.6) {
         deteriorating.push(type);
       }
     });
-    
+
     return deteriorating;
   }
 
@@ -195,7 +197,7 @@ export class TrendAnalyzer implements ITrendAnalyzer {
 
     this.trends.forEach((trend, type) => {
       const trendDirection = this.determineTrend(type);
-      
+
       switch (trendDirection) {
         case 'improving':
           improving++;
@@ -226,23 +228,27 @@ export class TrendAnalyzer implements ITrendAnalyzer {
    * Generate forecast based on trend
    * @private
    */
-  private generateForecast(values: number[], slope: number, _avgY: number): {
+  private generateForecast(
+    values: number[],
+    slope: number,
+    _avgY: number,
+  ): {
     shortTerm: number;
     mediumTerm: number;
     longTerm: number;
   } {
     const n = values.length;
     const currentPoint = values[n - 1];
-    
+
     if (currentPoint === undefined) {
       throw new Error('Cannot generate forecast: no current data point');
     }
-    
+
     // Project forward based on slope and current trend
     const shortTermSteps = 5; // ~5 data points ahead
-    const mediumTermSteps = 20; // ~20 data points ahead  
+    const mediumTermSteps = 20; // ~20 data points ahead
     const longTermSteps = 50; // ~50 data points ahead
-    
+
     return {
       shortTerm: Math.max(0, currentPoint + slope * shortTermSteps),
       mediumTerm: Math.max(0, currentPoint + slope * mediumTermSteps),
@@ -284,6 +290,6 @@ export class TrendAnalyzer implements ITrendAnalyzer {
     ];
 
     // System stress if multiple critical metrics are deteriorating
-    return deterioratingMetrics.filter(metric => criticalMetrics.includes(metric)).length >= 2;
+    return deterioratingMetrics.filter((metric) => criticalMetrics.includes(metric)).length >= 2;
   }
 }

@@ -5,7 +5,7 @@
     "lib": ["ES2020", "DOM"],
     "module": "ES2022",
     "moduleResolution": "node",
-    
+
     // Emit
     "outDir": "./dist",
     "rootDir": "./src",
@@ -15,7 +15,7 @@
     "declarationMap": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
-    
+
     // Type Checking
     "strict": true,
     "noImplicitAny": true,
@@ -31,13 +31,13 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
-    
+
     // Module Resolution
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true,
     "forceConsistentCasingInFileNames": true,
-    
+
     // Paths
     "baseUrl": "./",
     "paths": {
@@ -51,7 +51,7 @@
       "@types/*": ["src/types/*"],
       "@mcp/*": ["src/mcp/*"]
     },
-    
+
     // Advanced
     "skipLibCheck": true,
     "allowJs": false,
@@ -59,11 +59,7 @@
     "preserveConstEnums": true,
     "isolatedModules": true
   },
-  "include": [
-    "src/**/*.ts",
-    "src/**/*.d.ts",
-    "types/**/*.d.ts"
-  ],
+  "include": ["src/**/*.ts", "src/**/*.d.ts", "types/**/*.d.ts"],
   "exclude": [
     "node_modules",
     "dist",

@@ -2,11 +2,14 @@
 
 ## Overview
 
-This demo showcases the puppeteer-mcp platform's browser automation capabilities by automating gameplay of Universal Paperclips. It demonstrates real-world browser automation using direct server integration.
+This demo showcases the puppeteer-mcp platform's browser automation capabilities by automating
+gameplay of Universal Paperclips. It demonstrates real-world browser automation using direct server
+integration.
 
 ## What This Demo Demonstrates
 
 ### Core Platform Features
+
 - **Browser Pool Management**: Efficient browser instance handling
 - **Session Authentication**: Secure session creation and management
 - **Context Management**: Isolated browser contexts for automation
@@ -18,6 +21,7 @@ This demo showcases the puppeteer-mcp platform's browser automation capabilities
 - **Comprehensive Reporting**: Detailed JSON and Markdown reports
 
 ### Automation Capabilities
+
 - Automated clicking of game elements
 - Real-time game state analysis
 - Progress tracking with metrics
@@ -28,6 +32,7 @@ This demo showcases the puppeteer-mcp platform's browser automation capabilities
 ## Prerequisites
 
 1. Ensure puppeteer-mcp is built:
+
    ```bash
    cd /home/william/git/puppeteer-mcp
    npm run build
@@ -38,6 +43,7 @@ This demo showcases the puppeteer-mcp platform's browser automation capabilities
 ## Running the Demo
 
 ### Quick Start
+
 ```bash
 cd /home/william/git/puppeteer-mcp/testing/paperclips-game
 node paperclips-automation-demo.js
@@ -133,7 +139,8 @@ You can modify the demo behavior by editing the script:
 
 ## Technical Details
 
-The demo uses direct server integration, bypassing the MCP/REST/gRPC layers to showcase pure browser automation capabilities. This approach:
+The demo uses direct server integration, bypassing the MCP/REST/gRPC layers to showcase pure browser
+automation capabilities. This approach:
 
 - Directly instantiates server components
 - Provides maximum control and performance
@@ -143,15 +150,19 @@ The demo uses direct server integration, bypassing the MCP/REST/gRPC layers to s
 ## Troubleshooting
 
 ### Browser Not Found
+
 If you see "Failed to launch the browser process":
+
 - Install Chromium: `sudo apt-get install chromium-browser`
 - Or specify path: Set `PUPPETEER_EXECUTABLE_PATH` environment variable
 
 ### Permission Errors
+
 - Ensure write permissions for the demo-results directory
 - Run with appropriate user permissions
 
 ### Game Not Loading
+
 - Check internet connectivity
 - Verify the game URL is accessible
 - Try increasing navigation timeout
@@ -172,4 +183,5 @@ Explore the full API documentation to build more sophisticated automation soluti
 
 ---
 
-**Note**: This demo is part of the puppeteer-mcp beta release. We welcome feedback and contributions!
+**Note**: This demo is part of the puppeteer-mcp beta release. We welcome feedback and
+contributions!

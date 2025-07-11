@@ -6,10 +6,7 @@
  */
 
 import type { Page, Viewport } from 'puppeteer';
-import type {
-  ActionResult,
-  ActionContext,
-} from '../../../interfaces/action-executor.interface.js';
+import type { ActionResult, ActionContext } from '../../../interfaces/action-executor.interface.js';
 import { createLogger } from '../../../../utils/logger.js';
 
 const logger = createLogger('puppeteer:navigation:viewport-manager');
@@ -190,7 +187,7 @@ export class ViewportManager {
   async setViewport(
     page: Page,
     context: ActionContext,
-    config: ViewportConfig
+    config: ViewportConfig,
   ): Promise<ActionResult> {
     const startTime = Date.now();
 
@@ -207,7 +204,7 @@ export class ViewportManager {
         return this.createFailureResult(
           startTime,
           validation.error ?? 'Viewport validation failed',
-          config
+          config,
         );
       }
 
@@ -236,12 +233,11 @@ export class ViewportManager {
         startTime,
         normalizedConfig,
         actualViewport,
-        validation.warnings
+        validation.warnings,
       );
-
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to set viewport';
-      
+
       logger.error('Failed to set viewport', {
         sessionId: context.sessionId,
         contextId: context.contextId,
@@ -263,15 +259,14 @@ export class ViewportManager {
   async setViewportPreset(
     page: Page,
     context: ActionContext,
-    presetName: keyof typeof VIEWPORT_PRESETS
+    presetName: keyof typeof VIEWPORT_PRESETS,
   ): Promise<ActionResult> {
     const preset = VIEWPORT_PRESETS[presetName];
     if (!preset) {
-      return this.createFailureResult(
-        Date.now(),
-        `Unknown viewport preset: ${presetName}`,
-        { width: 0, height: 0 }
-      );
+      return this.createFailureResult(Date.now(), `Unknown viewport preset: ${presetName}`, {
+        width: 0,
+        height: 0,
+      });
     }
 
     logger.debug('Setting viewport preset', {
@@ -311,16 +306,20 @@ export class ViewportManager {
     }
 
     // Range validation
-    if (config.width < this.validationConfig.minWidth || 
-        config.width > this.validationConfig.maxWidth) {
+    if (
+      config.width < this.validationConfig.minWidth ||
+      config.width > this.validationConfig.maxWidth
+    ) {
       return {
         isValid: false,
         error: `Width must be between ${this.validationConfig.minWidth} and ${this.validationConfig.maxWidth}`,
       };
     }
 
-    if (config.height < this.validationConfig.minHeight || 
-        config.height > this.validationConfig.maxHeight) {
+    if (
+      config.height < this.validationConfig.minHeight ||
+      config.height > this.validationConfig.maxHeight
+    ) {
       return {
         isValid: false,
         error: `Height must be between ${this.validationConfig.minHeight} and ${this.validationConfig.maxHeight}`,
@@ -329,8 +328,10 @@ export class ViewportManager {
 
     // Device scale factor validation
     const deviceScaleFactor = config.deviceScaleFactor ?? 1;
-    if (deviceScaleFactor < this.validationConfig.minDeviceScaleFactor || 
-        deviceScaleFactor > this.validationConfig.maxDeviceScaleFactor) {
+    if (
+      deviceScaleFactor < this.validationConfig.minDeviceScaleFactor ||
+      deviceScaleFactor > this.validationConfig.maxDeviceScaleFactor
+    ) {
       return {
         isValid: false,
         error: `Device scale factor must be between ${this.validationConfig.minDeviceScaleFactor} and ${this.validationConfig.maxDeviceScaleFactor}`,
@@ -365,7 +366,7 @@ export class ViewportManager {
       height: Math.round(config.height),
       deviceScaleFactor,
       hasTouch: config.hasTouch ?? false,
-      isLandscape: config.isLandscape ?? (config.width > config.height),
+      isLandscape: config.isLandscape ?? config.width > config.height,
       isMobile: config.isMobile ?? false,
     };
 
@@ -387,7 +388,7 @@ export class ViewportManager {
       height: config.height,
       deviceScaleFactor: config.deviceScaleFactor ?? 1,
       hasTouch: config.hasTouch ?? false,
-      isLandscape: config.isLandscape ?? (config.width > config.height),
+      isLandscape: config.isLandscape ?? config.width > config.height,
       isMobile: config.isMobile ?? false,
     };
   }
@@ -404,7 +405,7 @@ export class ViewportManager {
     startTime: number,
     requestedConfig: ViewportConfig,
     actualViewport: Viewport | null,
-    warnings?: string[]
+    warnings?: string[],
   ): ActionResult {
     const duration = Date.now() - startTime;
 
@@ -436,7 +437,7 @@ export class ViewportManager {
   private createFailureResult(
     startTime: number,
     errorMessage: string,
-    config: ViewportConfig
+    config: ViewportConfig,
   ): ActionResult {
     const duration = Date.now() - startTime;
 
@@ -477,7 +478,7 @@ export class ViewportManager {
    */
   updateValidationConfig(config: Partial<ViewportValidationConfig>): void {
     Object.assign(this.validationConfig, config);
-    
+
     logger.info('Viewport validation configuration updated', {
       newConfig: config,
       currentConfig: this.validationConfig,
@@ -513,10 +514,9 @@ export class ViewportManager {
    */
   isTabletViewport(config: ViewportConfig): boolean {
     const hasTouch = config.hasTouch === true;
-    const isTabletSize = (
+    const isTabletSize =
       (config.width >= 768 && config.width <= 1024) ||
-      (config.height >= 768 && config.height <= 1024)
-    );
+      (config.height >= 768 && config.height <= 1024);
     const hasHighDensity = (config.deviceScaleFactor ?? 1) >= 1.5;
 
     return hasTouch && isTabletSize && hasHighDensity && !this.isMobileViewport(config);
@@ -538,7 +538,7 @@ export class ViewportManager {
  * @returns Viewport manager instance
  */
 export function createViewportManager(
-  validationConfig?: Partial<ViewportValidationConfig>
+  validationConfig?: Partial<ViewportValidationConfig>,
 ): ViewportManager {
   return new ViewportManager(validationConfig);
 }

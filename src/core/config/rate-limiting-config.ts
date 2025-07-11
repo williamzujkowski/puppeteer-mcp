@@ -20,7 +20,13 @@ export function parseRateLimitingConfig(): {
     RATE_LIMIT_ENABLED: parseBoolean(process.env.RATE_LIMIT_ENABLED, true),
     RATE_LIMIT_WINDOW: parseInt(process.env.RATE_LIMIT_WINDOW, 900000),
     RATE_LIMIT_MAX_REQUESTS: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS, 100),
-    RATE_LIMIT_SKIP_SUCCESSFUL_REQUESTS: parseBoolean(process.env.RATE_LIMIT_SKIP_SUCCESSFUL_REQUESTS, false),
-    RATE_LIMIT_SKIP_FAILED_REQUESTS: parseBoolean(process.env.RATE_LIMIT_SKIP_FAILED_REQUESTS, false),
+    RATE_LIMIT_SKIP_SUCCESSFUL_REQUESTS: parseBoolean(
+      process.env.RATE_LIMIT_SKIP_SUCCESSFUL_REQUESTS,
+      false,
+    ),
+    RATE_LIMIT_SKIP_FAILED_REQUESTS: parseBoolean(
+      process.env.RATE_LIMIT_SKIP_FAILED_REQUESTS,
+      false,
+    ),
   };
 }

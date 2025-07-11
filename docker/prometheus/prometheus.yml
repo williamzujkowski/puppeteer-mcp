@@ -15,7 +15,7 @@ alerting:
 
 # Load rules files
 rule_files:
-  - "alerts.yml"
+  - 'alerts.yml'
 
 # Scrape configurations
 scrape_configs:
@@ -85,7 +85,6 @@ scrape_configs:
           service: 'docker'
           component: 'container-runtime'
     honor_labels: true
-
 # Service discovery for dynamic targets
 # Can be extended with Consul, Kubernetes, etc.
 # consul_sd_configs:

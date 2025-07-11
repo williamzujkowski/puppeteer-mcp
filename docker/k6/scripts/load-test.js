@@ -10,15 +10,15 @@ const apiCallDuration = new Trend('api_call_duration');
 // Test configuration
 export const options = {
   stages: [
-    { duration: '30s', target: 10 },  // Ramp up to 10 users
-    { duration: '2m', target: 10 },   // Stay at 10 users
-    { duration: '30s', target: 20 },  // Ramp up to 20 users
-    { duration: '2m', target: 20 },   // Stay at 20 users
-    { duration: '30s', target: 0 },   // Ramp down to 0 users
+    { duration: '30s', target: 10 }, // Ramp up to 10 users
+    { duration: '2m', target: 10 }, // Stay at 10 users
+    { duration: '30s', target: 20 }, // Ramp up to 20 users
+    { duration: '2m', target: 20 }, // Stay at 20 users
+    { duration: '30s', target: 0 }, // Ramp down to 0 users
   ],
   thresholds: {
     http_req_duration: ['p(95)<500'], // 95% of requests must complete below 500ms
-    errors: ['rate<0.1'],             // Error rate must be below 10%
+    errors: ['rate<0.1'], // Error rate must be below 10%
   },
 };
 
@@ -32,7 +32,7 @@ function handleResponse(response, checkName) {
   const success = check(response, {
     [checkName]: (r) => r.status >= 200 && r.status < 300,
   });
-  
+
   errorRate.add(!success);
   return success;
 }
@@ -53,13 +53,13 @@ export default function () {
         iteration: __ITER,
       },
     }),
-    { headers: HEADERS }
+    { headers: HEADERS },
   );
-  
+
   if (!handleResponse(response, 'session created')) {
     return; // Skip rest of iteration if session creation failed
   }
-  
+
   sessionCreationDuration.add(Date.now() - sessionStart);
   const sessionData = response.json();
   const sessionId = sessionData.sessionId;
@@ -67,7 +67,7 @@ export default function () {
 
   // Add auth header for subsequent requests
   const authHeaders = Object.assign({}, HEADERS, {
-    'Authorization': `Bearer ${token}`,
+    Authorization: `Bearer ${token}`,
   });
 
   // Test 3: Create browser context
@@ -80,28 +80,26 @@ export default function () {
         userAgent: 'k6-load-test/1.0',
       },
     }),
-    { headers: authHeaders }
+    { headers: authHeaders },
   );
-  
+
   if (!handleResponse(response, 'context created')) {
     return;
   }
-  
+
   apiCallDuration.add(Date.now() - apiStart);
   const contextData = response.json();
   const contextId = contextData.contextId;
 
   // Test 4: Create page
-  response = http.post(
-    `${BASE_URL}/api/contexts/${contextId}/pages`,
-    JSON.stringify({}),
-    { headers: authHeaders }
-  );
-  
+  response = http.post(`${BASE_URL}/api/contexts/${contextId}/pages`, JSON.stringify({}), {
+    headers: authHeaders,
+  });
+
   if (!handleResponse(response, 'page created')) {
     return;
   }
-  
+
   const pageData = response.json();
   const pageId = pageData.pageId;
 
@@ -112,9 +110,9 @@ export default function () {
       url: 'https://example.com',
       waitUntil: 'networkidle0',
     }),
-    { headers: authHeaders }
+    { headers: authHeaders },
   );
-  
+
   handleResponse(response, 'navigation successful');
 
   // Test 6: Take screenshot
@@ -124,9 +122,9 @@ export default function () {
       fullPage: true,
       type: 'png',
     }),
-    { headers: authHeaders }
+    { headers: authHeaders },
   );
-  
+
   handleResponse(response, 'screenshot taken');
 
   // Simulate user think time
@@ -138,36 +136,24 @@ export default function () {
     JSON.stringify({
       script: 'document.title',
     }),
-    { headers: authHeaders }
+    { headers: authHeaders },
   );
-  
+
   handleResponse(response, 'script executed');
 
   // Test 8: Close page
-  response = http.delete(
-    `${BASE_URL}/api/pages/${pageId}`,
-    null,
-    { headers: authHeaders }
-  );
-  
+  response = http.delete(`${BASE_URL}/api/pages/${pageId}`, null, { headers: authHeaders });
+
   handleResponse(response, 'page closed');
 
   // Test 9: Close context
-  response = http.delete(
-    `${BASE_URL}/api/contexts/${contextId}`,
-    null,
-    { headers: authHeaders }
-  );
-  
+  response = http.delete(`${BASE_URL}/api/contexts/${contextId}`, null, { headers: authHeaders });
+
   handleResponse(response, 'context closed');
 
   // Test 10: Close session
-  response = http.delete(
-    `${BASE_URL}/api/sessions/${sessionId}`,
-    null,
-    { headers: authHeaders }
-  );
-  
+  response = http.delete(`${BASE_URL}/api/sessions/${sessionId}`, null, { headers: authHeaders });
+
   handleResponse(response, 'session closed');
 
   // Random wait between iterations

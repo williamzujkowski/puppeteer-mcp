@@ -10,10 +10,7 @@ import { WebSocket } from 'ws';
 import { v4 as uuidv4 } from 'uuid';
 import type { Logger } from 'pino';
 import { AppError } from '../../../core/errors/app-error.js';
-import type {
-  MCPWebSocketConnection,
-  ConnectionManagerInterface,
-} from './types.js';
+import type { MCPWebSocketConnection, ConnectionManagerInterface } from './types.js';
 import type { AuthParams } from '../adapter.interface.js';
 import { WebSocketProtocolHandler } from './protocol-handler.js';
 import { WebSocketMessageHandler } from './message-handler.js';
@@ -105,11 +102,7 @@ export class WebSocketConnectionManager implements ConnectionManagerInterface {
         this.cleanupConnection(connectionId);
       }
 
-      await this.errorHandler.handleConnectionError(
-        connectionId,
-        error as Error,
-        sessionId,
-      );
+      await this.errorHandler.handleConnectionError(connectionId, error as Error, sessionId);
 
       throw error;
     }
@@ -149,7 +142,11 @@ export class WebSocketConnectionManager implements ConnectionManagerInterface {
       } catch (error) {
         this.errorHandler.handleParseError(
           connectionId,
-          data instanceof Buffer ? data.toString() : typeof data === 'string' ? data : JSON.stringify(data),
+          data instanceof Buffer
+            ? data.toString()
+            : typeof data === 'string'
+              ? data
+              : JSON.stringify(data),
           error as Error,
         );
       }
@@ -170,11 +167,7 @@ export class WebSocketConnectionManager implements ConnectionManagerInterface {
 
     // Close handler
     ws.on('close', (code, reason) => {
-      this.errorHandler.handleConnectionClose(
-        connection,
-        code,
-        reason.toString(),
-      );
+      this.errorHandler.handleConnectionClose(connection, code, reason.toString());
 
       this.eventEmitter.emitConnectionEvent(WebSocketEventType.CONNECTION_CLOSE, {
         connectionId,
@@ -239,10 +232,7 @@ export class WebSocketConnectionManager implements ConnectionManagerInterface {
   /**
    * Clean up subscription
    */
-  private cleanupSubscription(
-    connection: MCPWebSocketConnection,
-    subscriptionId: string,
-  ): void {
+  private cleanupSubscription(connection: MCPWebSocketConnection, subscriptionId: string): void {
     const subscription = connection.subscriptions.get(subscriptionId);
     if (!subscription) {
       return;

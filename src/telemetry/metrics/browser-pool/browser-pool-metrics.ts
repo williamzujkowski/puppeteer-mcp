@@ -8,12 +8,12 @@
 import { Meter } from '@opentelemetry/api';
 import { getMeter } from '../../index.js';
 import type { BrowserPool } from '../../../puppeteer/pool/browser-pool.js';
-import type { 
-  BrowserPoolProvider, 
-  PoolMetrics, 
+import type {
+  BrowserPoolProvider,
+  PoolMetrics,
   BrowserCloseReason,
   ScreenshotFormat,
-  NetworkDirection 
+  NetworkDirection,
 } from './types.js';
 import { BrowserLifecycleMetrics } from './browser-lifecycle-metrics.js';
 import { PageLifecycleMetrics } from './page-lifecycle-metrics.js';
@@ -27,7 +27,7 @@ import { PerformanceMetrics } from './performance-metrics.js';
  */
 export class BrowserPoolMetrics implements BrowserPoolProvider {
   private meter: Meter;
-  
+
   // Metric modules
   private browserLifecycle: BrowserLifecycleMetrics;
   private pageLifecycle: PageLifecycleMetrics;
@@ -41,7 +41,7 @@ export class BrowserPoolMetrics implements BrowserPoolProvider {
     meterName: string = 'puppeteer-mcp-browser-pool',
   ) {
     this.meter = getMeter(meterName);
-    
+
     // Initialize metric modules
     this.browserLifecycle = new BrowserLifecycleMetrics(this.meter);
     this.pageLifecycle = new PageLifecycleMetrics(this.meter);
@@ -63,7 +63,7 @@ export class BrowserPoolMetrics implements BrowserPoolProvider {
         cpuUsage: 0,
       };
     }
-    
+
     // Type assertion needed as getExtendedMetrics is not in the base interface
     const poolWithMetrics = this.browserPool as unknown as { getExtendedMetrics(): PoolMetrics };
     return poolWithMetrics.getExtendedMetrics();
@@ -89,7 +89,7 @@ export class BrowserPoolMetrics implements BrowserPoolProvider {
 
   recordPageNavigation(url: string, _duration: number, success: boolean): void {
     this.pageLifecycle.recordPageNavigation(url, success);
-    
+
     if (!success) {
       this.errorMetrics.recordNavigationError(url);
     }
@@ -98,7 +98,7 @@ export class BrowserPoolMetrics implements BrowserPoolProvider {
   // Pool management methods
   recordPoolAcquisition(duration: number, success: boolean): void {
     this.poolManagement.recordPoolAcquisition(duration, success);
-    
+
     if (!success) {
       this.errorMetrics.recordPoolExhaustedError();
     }
@@ -111,7 +111,7 @@ export class BrowserPoolMetrics implements BrowserPoolProvider {
   // Performance methods
   recordJavaScriptExecution(duration: number, success: boolean): void {
     this.performanceMetrics.recordJavaScriptExecution(duration, success);
-    
+
     if (!success) {
       this.errorMetrics.recordEvaluationError();
     }

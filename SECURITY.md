@@ -225,8 +225,10 @@ This produces a report showing:
 
 ### Contact Information
 
-- **Security Issues**: Please report via [GitHub Security Advisories](https://github.com/williamzujkowski/puppeteer-mcp/security/advisories/new)
-- **General Contact**: Create an issue in the [GitHub repository](https://github.com/williamzujkowski/puppeteer-mcp/issues)
+- **Security Issues**: Please report via
+  [GitHub Security Advisories](https://github.com/williamzujkowski/puppeteer-mcp/security/advisories/new)
+- **General Contact**: Create an issue in the
+  [GitHub repository](https://github.com/williamzujkowski/puppeteer-mcp/issues)
 
 ## 📝 Security Updates
 

@@ -3,7 +3,7 @@
  * @module puppeteer/actions/execution/evaluation-executor
  * @nist ac-3 "Access enforcement"
  * @nist si-11 "Error handling"
- * 
+ *
  * This module serves as the main entry point for evaluation operations,
  * providing backward compatibility while delegating to specialized modules.
  */
@@ -62,7 +62,7 @@ export class EvaluationExecutor {
       return await strategy.execute(config, page, context);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Evaluate action failed';
-      
+
       logger.error('Evaluate action delegation failed', {
         sessionId: context.sessionId,
         contextId: context.contextId,
@@ -119,7 +119,7 @@ export class EvaluationExecutor {
       return await strategy.execute(config, page, context);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'EvaluateHandle action failed';
-      
+
       logger.error('EvaluateHandle action delegation failed', {
         sessionId: context.sessionId,
         contextId: context.contextId,
@@ -172,7 +172,7 @@ export class EvaluationExecutor {
       return await strategy.execute(config, page, context);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'InjectScript action failed';
-      
+
       logger.error('InjectScript action delegation failed', {
         sessionId: context.sessionId,
         contextId: context.contextId,
@@ -224,7 +224,7 @@ export class EvaluationExecutor {
       return await strategy.execute(config, page, context);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'InjectCSS action failed';
-      
+
       logger.error('InjectCSS action delegation failed', {
         sessionId: context.sessionId,
         contextId: context.contextId,
@@ -251,11 +251,7 @@ export class EvaluationExecutor {
    * @param context - Execution context
    * @returns Action result
    */
-  async execute(
-    action: BrowserAction,
-    page: Page,
-    context: ActionContext,
-  ): Promise<ActionResult> {
+  async execute(action: BrowserAction, page: Page, context: ActionContext): Promise<ActionResult> {
     switch (action.type) {
       case 'evaluate':
         return this.executeEvaluate(action, page, context);

@@ -21,10 +21,13 @@ export class MigrationLogger {
    * Log session processing info
    */
   logSessionProcessingInfo(totalSessions: number, toMigrate: number): void {
-    this.logger.info({ 
-      total: totalSessions, 
-      toMigrate 
-    }, 'Sessions ready for migration');
+    this.logger.info(
+      {
+        total: totalSessions,
+        toMigrate,
+      },
+      'Sessions ready for migration',
+    );
   }
 
   /**

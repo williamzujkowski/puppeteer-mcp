@@ -1,6 +1,7 @@
 # Interaction Action Handlers
 
-This directory contains modularized interaction handlers for browser automation actions. The modularization follows SOLID principles and uses design patterns for better maintainability.
+This directory contains modularized interaction handlers for browser automation actions. The
+modularization follows SOLID principles and uses design patterns for better maintainability.
 
 ## Architecture
 
@@ -48,7 +49,7 @@ import { BaseInteractionHandler } from './base-handler.js';
 
 class CustomHandler extends BaseInteractionHandler<CustomAction> {
   protected actionType = 'custom';
-  
+
   async execute(action: CustomAction, page: Page, context: ActionContext): Promise<ActionResult> {
     // Implementation
   }
@@ -61,6 +62,7 @@ factory.registerHandler(new CustomHandler());
 ## Handler Responsibilities
 
 Each handler is responsible for:
+
 1. Validating action parameters
 2. Preparing elements for interaction (visibility, enabled state)
 3. Executing the specific interaction
@@ -71,6 +73,7 @@ Each handler is responsible for:
 ## Security Considerations
 
 All handlers implement NIST security controls:
+
 - **AC-3**: Access enforcement through proper validation
 - **SI-10**: Information input validation for all parameters
 - **AU-3**: Comprehensive audit logging
@@ -78,6 +81,7 @@ All handlers implement NIST security controls:
 ## File Size Guidelines
 
 Each handler file is kept under 200-300 lines following the modularization requirements:
+
 - Base handler: ~150 lines
 - Individual handlers: 100-150 lines each
 - Factory: ~180 lines
@@ -85,6 +89,7 @@ Each handler file is kept under 200-300 lines following the modularization requi
 ## Backward Compatibility
 
 The original `interaction-executor.ts` maintains backward compatibility by:
+
 1. Re-exporting all handlers and types
 2. Maintaining deprecated methods that delegate to handlers
 3. Supporting the same public API

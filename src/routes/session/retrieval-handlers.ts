@@ -8,7 +8,11 @@
 import type { Request, Response } from 'express';
 import { SessionStore } from '../../store/session-store.interface.js';
 import { AppError } from '../../core/errors/app-error.js';
-import { formatSessionResponse, formatSessionListItem, formatSuccessResponse } from './response-formatter.js';
+import {
+  formatSessionResponse,
+  formatSessionListItem,
+  formatSuccessResponse,
+} from './response-formatter.js';
 
 /**
  * Handler factory for session retrieval
@@ -49,8 +53,8 @@ export class SessionRetrievalHandlerFactory {
 
       const sessions = await this.sessionStore.getByUserId(req.user.userId);
 
-      const formattedSessions = sessions.map(session => 
-        formatSessionListItem(session, req.user?.sessionId)
+      const formattedSessions = sessions.map((session) =>
+        formatSessionListItem(session, req.user?.sessionId),
       );
 
       res.json(formatSuccessResponse(formattedSessions));

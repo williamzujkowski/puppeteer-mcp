@@ -3,7 +3,7 @@
  * @module core/config
  * @nist cm-7 "Least functionality"
  * @nist sc-8 "Transmission confidentiality and integrity"
- * 
+ *
  * This file re-exports configuration from modular files
  * for backward compatibility.
  */

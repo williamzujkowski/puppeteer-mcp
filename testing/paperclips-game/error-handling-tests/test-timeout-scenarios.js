@@ -22,20 +22,20 @@ const TIMEOUT_TESTS = {
       name: 'slow_loading_page',
       url: 'https://httpstat.us/200?sleep=60000',
       timeout: 5000,
-      expectedError: 'NAVIGATION_TIMEOUT'
+      expectedError: 'NAVIGATION_TIMEOUT',
     },
     {
       name: 'extremely_slow_server',
       url: 'https://httpstat.us/200?sleep=120000',
       timeout: 3000,
-      expectedError: 'NAVIGATION_TIMEOUT'
+      expectedError: 'NAVIGATION_TIMEOUT',
     },
     {
       name: 'never_responding_server',
       url: 'https://httpstat.us/200?sleep=300000',
       timeout: 10000,
-      expectedError: 'NAVIGATION_TIMEOUT'
-    }
+      expectedError: 'NAVIGATION_TIMEOUT',
+    },
   ],
   elementWait: [
     {
@@ -43,7 +43,7 @@ const TIMEOUT_TESTS = {
       url: 'https://williamzujkowski.github.io/paperclips/index2.html',
       selector: '#element-that-will-never-exist-12345',
       timeout: 5000,
-      expectedError: 'WAIT_TIMEOUT'
+      expectedError: 'WAIT_TIMEOUT',
     },
     {
       name: 'wait_for_hidden_element',
@@ -51,15 +51,15 @@ const TIMEOUT_TESTS = {
       selector: 'div[style*="display: none"]',
       timeout: 3000,
       visible: true,
-      expectedError: 'WAIT_TIMEOUT'
+      expectedError: 'WAIT_TIMEOUT',
     },
     {
       name: 'wait_for_element_with_short_timeout',
       url: 'https://williamzujkowski.github.io/paperclips/index2.html',
       selector: 'body',
       timeout: 1, // 1ms timeout - should always fail
-      expectedError: 'WAIT_TIMEOUT'
-    }
+      expectedError: 'WAIT_TIMEOUT',
+    },
   ],
   scriptExecution: [
     {
@@ -67,7 +67,7 @@ const TIMEOUT_TESTS = {
       url: 'https://williamzujkowski.github.io/',
       script: 'while(true) { }',
       timeout: 5000,
-      expectedError: 'SCRIPT_TIMEOUT'
+      expectedError: 'SCRIPT_TIMEOUT',
     },
     {
       name: 'long_running_computation',
@@ -80,7 +80,7 @@ const TIMEOUT_TESTS = {
         return result;
       `,
       timeout: 3000,
-      expectedError: 'SCRIPT_TIMEOUT'
+      expectedError: 'SCRIPT_TIMEOUT',
     },
     {
       name: 'recursive_timeout',
@@ -93,8 +93,8 @@ const TIMEOUT_TESTS = {
         return recurse(50);
       `,
       timeout: 2000,
-      expectedError: 'SCRIPT_TIMEOUT'
-    }
+      expectedError: 'SCRIPT_TIMEOUT',
+    },
   ],
   concurrent: [
     {
@@ -102,12 +102,12 @@ const TIMEOUT_TESTS = {
       urls: [
         'https://httpstat.us/200?sleep=10000',
         'https://httpstat.us/200?sleep=15000',
-        'https://httpstat.us/200?sleep=20000'
+        'https://httpstat.us/200?sleep=20000',
       ],
       timeout: 5000,
-      expectedError: 'NAVIGATION_TIMEOUT'
-    }
-  ]
+      expectedError: 'NAVIGATION_TIMEOUT',
+    },
+  ],
 };
 
 // Helper functions
@@ -116,7 +116,7 @@ async function setupSession() {
     const response = await axios.post(
       `${API_BASE}/v1/sessions/dev-create`,
       {},
-      { headers: { Authorization: `Bearer ${TOKEN}` } }
+      { headers: { Authorization: `Bearer ${TOKEN}` } },
     );
     // Store the token for later use
     if (response.data.data?.tokens?.accessToken) {
@@ -140,7 +140,7 @@ async function testNavigationTimeout(sessionId, test) {
     actualError: null,
     errorMessage: null,
     responseTime: 0,
-    timedOut: false
+    timedOut: false,
   };
 
   try {
@@ -149,16 +149,16 @@ async function testNavigationTimeout(sessionId, test) {
       {
         sessionId,
         action: 'navigate',
-        params: { 
+        params: {
           url: test.url,
-          timeout: test.timeout
-        }
+          timeout: test.timeout,
+        },
       },
-      { 
+      {
         headers: { Authorization: `Bearer ${TOKEN}` },
         timeout: test.timeout + 5000, // Give extra time for proper error handling
-        validateStatus: () => true
-      }
+        validateStatus: () => true,
+      },
     );
 
     result.responseTime = Date.now() - startTime;
@@ -173,16 +173,17 @@ async function testNavigationTimeout(sessionId, test) {
       const errorCode = response.data.error || response.data.code;
       result.actualError = errorCode;
       result.errorMessage = response.data.message;
-      result.success = errorCode === test.expectedError || 
-                      errorCode?.includes('TIMEOUT') ||
-                      result.errorMessage?.toLowerCase().includes('timeout');
+      result.success =
+        errorCode === test.expectedError ||
+        errorCode?.includes('TIMEOUT') ||
+        result.errorMessage?.toLowerCase().includes('timeout');
       result.timedOut = result.success;
     }
   } catch (error) {
     result.responseTime = Date.now() - startTime;
     result.actualError = error.code || 'NETWORK_ERROR';
     result.errorMessage = error.message;
-    
+
     // Axios timeout or navigation timeout
     if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
       result.timedOut = true;
@@ -195,11 +196,11 @@ async function testNavigationTimeout(sessionId, test) {
     const expectedTimeout = test.timeout;
     const actualTimeout = result.responseTime;
     const tolerance = 2000; // 2 second tolerance
-    
+
     result.timeoutAccuracy = {
       expected: expectedTimeout,
       actual: actualTimeout,
-      withinTolerance: Math.abs(actualTimeout - expectedTimeout) <= tolerance
+      withinTolerance: Math.abs(actualTimeout - expectedTimeout) <= tolerance,
     };
   }
 
@@ -217,7 +218,7 @@ async function testElementWaitTimeout(sessionId, test) {
     actualError: null,
     errorMessage: null,
     responseTime: 0,
-    timedOut: false
+    timedOut: false,
   };
 
   try {
@@ -227,9 +228,9 @@ async function testElementWaitTimeout(sessionId, test) {
       {
         sessionId,
         action: 'navigate',
-        params: { url: test.url }
+        params: { url: test.url },
       },
-      { headers: { Authorization: `Bearer ${TOKEN}` } }
+      { headers: { Authorization: `Bearer ${TOKEN}` } },
     );
 
     // Then wait for element
@@ -239,17 +240,17 @@ async function testElementWaitTimeout(sessionId, test) {
       {
         sessionId,
         action: 'wait',
-        params: { 
+        params: {
           selector: test.selector,
           timeout: test.timeout,
-          visible: test.visible
-        }
+          visible: test.visible,
+        },
       },
-      { 
+      {
         headers: { Authorization: `Bearer ${TOKEN}` },
         timeout: test.timeout + 5000,
-        validateStatus: () => true
-      }
+        validateStatus: () => true,
+      },
     );
 
     result.responseTime = Date.now() - waitStartTime;
@@ -262,9 +263,10 @@ async function testElementWaitTimeout(sessionId, test) {
       const errorCode = response.data.error || response.data.code;
       result.actualError = errorCode;
       result.errorMessage = response.data.message;
-      result.success = errorCode === test.expectedError || 
-                      errorCode?.includes('TIMEOUT') ||
-                      result.errorMessage?.toLowerCase().includes('timeout');
+      result.success =
+        errorCode === test.expectedError ||
+        errorCode?.includes('TIMEOUT') ||
+        result.errorMessage?.toLowerCase().includes('timeout');
       result.timedOut = result.success;
     }
   } catch (error) {
@@ -289,7 +291,7 @@ async function testScriptTimeout(sessionId, test) {
     actualError: null,
     errorMessage: null,
     responseTime: 0,
-    timedOut: false
+    timedOut: false,
   };
 
   try {
@@ -299,9 +301,9 @@ async function testScriptTimeout(sessionId, test) {
       {
         sessionId,
         action: 'navigate',
-        params: { url: test.url }
+        params: { url: test.url },
       },
-      { headers: { Authorization: `Bearer ${TOKEN}` } }
+      { headers: { Authorization: `Bearer ${TOKEN}` } },
     );
 
     // Then execute script with timeout
@@ -311,16 +313,16 @@ async function testScriptTimeout(sessionId, test) {
       {
         sessionId,
         action: 'evaluate',
-        params: { 
+        params: {
           script: test.script,
-          timeout: test.timeout
-        }
+          timeout: test.timeout,
+        },
       },
-      { 
+      {
         headers: { Authorization: `Bearer ${TOKEN}` },
         timeout: test.timeout + 10000, // Extra time for proper error handling
-        validateStatus: () => true
-      }
+        validateStatus: () => true,
+      },
     );
 
     result.responseTime = Date.now() - scriptStartTime;
@@ -334,9 +336,10 @@ async function testScriptTimeout(sessionId, test) {
       const errorCode = response.data.error || response.data.code;
       result.actualError = errorCode;
       result.errorMessage = response.data.message;
-      result.success = errorCode === test.expectedError || 
-                      errorCode?.includes('TIMEOUT') ||
-                      result.errorMessage?.toLowerCase().includes('timeout');
+      result.success =
+        errorCode === test.expectedError ||
+        errorCode?.includes('TIMEOUT') ||
+        result.errorMessage?.toLowerCase().includes('timeout');
       result.timedOut = result.success;
     }
   } catch (error) {
@@ -358,50 +361,53 @@ async function testConcurrentTimeouts(sessionId, test) {
     timestamp: new Date().toISOString(),
     success: false,
     operations: [],
-    allTimedOut: false
+    allTimedOut: false,
   };
 
   try {
     // Launch multiple navigation requests concurrently
     const promises = test.urls.map((url, index) => {
-      return axios.post(
-        `${API_BASE}/contexts/${sessionId}/action`,
-        {
-          sessionId,
-          action: 'navigate',
-          params: { 
-            url,
-            timeout: test.timeout
-          }
-        },
-        { 
-          headers: { Authorization: `Bearer ${TOKEN}` },
-          timeout: test.timeout + 5000,
-          validateStatus: () => true
-        }
-      ).then(response => ({
-        index,
-        url,
-        status: response.status,
-        error: response.data.error,
-        message: response.data.message,
-        timedOut: response.status >= 400 && 
-                  (response.data.error?.includes('TIMEOUT') || 
-                   response.data.message?.toLowerCase().includes('timeout'))
-      })).catch(error => ({
-        index,
-        url,
-        error: error.code,
-        message: error.message,
-        timedOut: error.code === 'ECONNABORTED' || error.message.includes('timeout')
-      }));
+      return axios
+        .post(
+          `${API_BASE}/contexts/${sessionId}/action`,
+          {
+            sessionId,
+            action: 'navigate',
+            params: {
+              url,
+              timeout: test.timeout,
+            },
+          },
+          {
+            headers: { Authorization: `Bearer ${TOKEN}` },
+            timeout: test.timeout + 5000,
+            validateStatus: () => true,
+          },
+        )
+        .then((response) => ({
+          index,
+          url,
+          status: response.status,
+          error: response.data.error,
+          message: response.data.message,
+          timedOut:
+            response.status >= 400 &&
+            (response.data.error?.includes('TIMEOUT') ||
+              response.data.message?.toLowerCase().includes('timeout')),
+        }))
+        .catch((error) => ({
+          index,
+          url,
+          error: error.code,
+          message: error.message,
+          timedOut: error.code === 'ECONNABORTED' || error.message.includes('timeout'),
+        }));
     });
 
     result.operations = await Promise.all(promises);
     result.duration = Date.now() - startTime;
-    result.allTimedOut = result.operations.every(op => op.timedOut);
+    result.allTimedOut = result.operations.every((op) => op.timedOut);
     result.success = result.allTimedOut;
-
   } catch (error) {
     result.error = error.message;
     result.duration = Date.now() - startTime;
@@ -416,7 +422,7 @@ async function testTimeoutRecovery(sessionId) {
     test: 'timeout_recovery',
     timestamp: new Date().toISOString(),
     success: false,
-    steps: []
+    steps: [],
   };
 
   try {
@@ -426,22 +432,22 @@ async function testTimeoutRecovery(sessionId) {
       {
         sessionId,
         action: 'navigate',
-        params: { 
+        params: {
           url: 'https://httpstat.us/200?sleep=10000',
-          timeout: 2000
-        }
+          timeout: 2000,
+        },
       },
-      { 
+      {
         headers: { Authorization: `Bearer ${TOKEN}` },
         timeout: 5000,
-        validateStatus: () => true
-      }
+        validateStatus: () => true,
+      },
     );
 
     result.steps.push({
       step: 'cause_timeout',
       success: timeoutResult.status >= 400,
-      details: timeoutResult.data
+      details: timeoutResult.data,
     });
 
     // Step 2: Try a normal navigation
@@ -450,18 +456,18 @@ async function testTimeoutRecovery(sessionId) {
       {
         sessionId,
         action: 'navigate',
-        params: { url: 'https://williamzujkowski.github.io/' }
+        params: { url: 'https://williamzujkowski.github.io/' },
       },
-      { 
+      {
         headers: { Authorization: `Bearer ${TOKEN}` },
-        timeout: 10000
-      }
+        timeout: 10000,
+      },
     );
 
     result.steps.push({
       step: 'recovery_navigation',
       success: recoveryResult.status === 200,
-      details: recoveryResult.data
+      details: recoveryResult.data,
     });
 
     // Step 3: Verify page functionality
@@ -470,19 +476,18 @@ async function testTimeoutRecovery(sessionId) {
       {
         sessionId,
         action: 'evaluate',
-        params: { script: 'return document.title' }
+        params: { script: 'return document.title' },
       },
-      { headers: { Authorization: `Bearer ${TOKEN}` } }
+      { headers: { Authorization: `Bearer ${TOKEN}` } },
     );
 
     result.steps.push({
       step: 'verify_functionality',
       success: functionalityResult.status === 200,
-      title: functionalityResult.data.data?.result
+      title: functionalityResult.data.data?.result,
     });
 
-    result.success = result.steps.every(step => step.success);
-
+    result.success = result.steps.every((step) => step.success);
   } catch (error) {
     result.error = error.message;
   }
@@ -492,7 +497,7 @@ async function testTimeoutRecovery(sessionId) {
 
 async function runTests() {
   console.log('Starting Timeout Scenario Tests...\n');
-  
+
   const results = {
     testSuite: 'timeout-scenarios',
     timestamp: new Date().toISOString(),
@@ -500,10 +505,10 @@ async function runTests() {
       total: 0,
       passed: 0,
       failed: 0,
-      categories: {}
+      categories: {},
     },
     tests: [],
-    recovery: null
+    recovery: null,
   };
 
   let sessionId;
@@ -518,21 +523,23 @@ async function runTests() {
     console.log('\nTesting Navigation Timeouts:');
     console.log('='.repeat(50));
     results.summary.categories.navigation = { total: 0, passed: 0 };
-    
+
     for (const test of TIMEOUT_TESTS.navigation) {
       process.stdout.write(`Testing ${test.name}...`);
       const result = await testNavigationTimeout(sessionId, test);
-      
+
       results.tests.push(result);
       results.summary.total++;
       results.summary.categories.navigation.total++;
-      
+
       if (result.success) {
         results.summary.passed++;
         results.summary.categories.navigation.passed++;
         console.log(' ✓ TIMED OUT AS EXPECTED');
         if (result.timeoutAccuracy) {
-          console.log(`  └─ Timeout: ${result.timeoutAccuracy.actual}ms (expected ~${result.timeoutAccuracy.expected}ms)`);
+          console.log(
+            `  └─ Timeout: ${result.timeoutAccuracy.actual}ms (expected ~${result.timeoutAccuracy.expected}ms)`,
+          );
         }
       } else {
         results.summary.failed++;
@@ -545,15 +552,15 @@ async function runTests() {
     console.log('\n\nTesting Element Wait Timeouts:');
     console.log('='.repeat(50));
     results.summary.categories.elementWait = { total: 0, passed: 0 };
-    
+
     for (const test of TIMEOUT_TESTS.elementWait) {
       process.stdout.write(`Testing ${test.name}...`);
       const result = await testElementWaitTimeout(sessionId, test);
-      
+
       results.tests.push(result);
       results.summary.total++;
       results.summary.categories.elementWait.total++;
-      
+
       if (result.success) {
         results.summary.passed++;
         results.summary.categories.elementWait.passed++;
@@ -570,15 +577,15 @@ async function runTests() {
     console.log('\n\nTesting Script Execution Timeouts:');
     console.log('='.repeat(50));
     results.summary.categories.scriptExecution = { total: 0, passed: 0 };
-    
+
     for (const test of TIMEOUT_TESTS.scriptExecution) {
       process.stdout.write(`Testing ${test.name}...`);
       const result = await testScriptTimeout(sessionId, test);
-      
+
       results.tests.push(result);
       results.summary.total++;
       results.summary.categories.scriptExecution.total++;
-      
+
       if (result.success) {
         results.summary.passed++;
         results.summary.categories.scriptExecution.passed++;
@@ -595,15 +602,15 @@ async function runTests() {
     console.log('\n\nTesting Concurrent Timeouts:');
     console.log('='.repeat(50));
     results.summary.categories.concurrent = { total: 0, passed: 0 };
-    
+
     for (const test of TIMEOUT_TESTS.concurrent) {
       process.stdout.write(`Testing ${test.name}...`);
       const result = await testConcurrentTimeouts(sessionId, test);
-      
+
       results.tests.push(result);
       results.summary.total++;
       results.summary.categories.concurrent.total++;
-      
+
       if (result.success) {
         results.summary.passed++;
         results.summary.categories.concurrent.passed++;
@@ -620,16 +627,15 @@ async function runTests() {
     console.log('\n\nTesting Timeout Recovery:');
     console.log('='.repeat(50));
     results.recovery = await testTimeoutRecovery(sessionId);
-    
+
     if (results.recovery.success) {
       console.log('✓ Session recovered successfully after timeout');
     } else {
       console.log('✗ Session recovery failed');
-      results.recovery.steps.forEach(step => {
+      results.recovery.steps.forEach((step) => {
         console.log(`  - ${step.step}: ${step.success ? '✓' : '✗'}`);
       });
     }
-
   } catch (error) {
     console.error('\nTest suite error:', error.message);
     results.error = error.message;
@@ -637,10 +643,9 @@ async function runTests() {
     // Cleanup
     if (sessionId) {
       try {
-        await axios.delete(
-          `${API_BASE}/v1/sessions/dev-create/${sessionId}`,
-          { headers: { Authorization: `Bearer ${TOKEN}` } }
-        );
+        await axios.delete(`${API_BASE}/v1/sessions/dev-create/${sessionId}`, {
+          headers: { Authorization: `Bearer ${TOKEN}` },
+        });
         console.log('\nTest session cleaned up');
       } catch (error) {
         console.error('Failed to cleanup session:', error.message);
@@ -657,9 +662,11 @@ async function runTests() {
   console.log('\n\nTest Summary:');
   console.log('='.repeat(50));
   console.log(`Total Tests: ${results.summary.total}`);
-  console.log(`Passed: ${results.summary.passed} (${(results.summary.passed/results.summary.total*100).toFixed(1)}%)`);
+  console.log(
+    `Passed: ${results.summary.passed} (${((results.summary.passed / results.summary.total) * 100).toFixed(1)}%)`,
+  );
   console.log(`Failed: ${results.summary.failed}`);
-  
+
   console.log('\nBy Category:');
   for (const [category, stats] of Object.entries(results.summary.categories)) {
     console.log(`  ${category}: ${stats.passed}/${stats.total} passed`);
@@ -668,21 +675,19 @@ async function runTests() {
   // Timeout handling analysis
   console.log('\n\nTimeout Handling Analysis:');
   console.log('='.repeat(50));
-  
-  const timeoutTests = results.tests.filter(t => t.timedOut);
+
+  const timeoutTests = results.tests.filter((t) => t.timedOut);
   console.log(`✓ ${timeoutTests.length} operations properly timed out`);
-  
-  const accurateTimeouts = results.tests.filter(t => 
-    t.timeoutAccuracy?.withinTolerance
-  );
+
+  const accurateTimeouts = results.tests.filter((t) => t.timeoutAccuracy?.withinTolerance);
   if (accurateTimeouts.length > 0) {
     console.log(`✓ ${accurateTimeouts.length} timeouts occurred within tolerance`);
   }
 
-  const failed = results.tests.filter(t => !t.success);
+  const failed = results.tests.filter((t) => !t.success);
   if (failed.length > 0) {
     console.log(`\n⚠️  ${failed.length} timeout tests failed:`);
-    failed.forEach(f => {
+    failed.forEach((f) => {
       console.log(`  - ${f.test}: Expected ${f.expectedError}, got ${f.actualError}`);
     });
   }

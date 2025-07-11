@@ -18,7 +18,7 @@ export class OptimizationEvents extends EventEmitter {
     _scaler: BrowserPoolScaling,
     private resourceManager: BrowserPoolResourceManager,
     private recycler: BrowserPoolRecycler,
-    private performanceMonitor: BrowserPoolPerformanceMonitor
+    private performanceMonitor: BrowserPoolPerformanceMonitor,
   ) {
     super();
     this.setupOptimizationEventHandlers();
@@ -30,7 +30,7 @@ export class OptimizationEvents extends EventEmitter {
   private setupOptimizationEventHandlers(): void {
     // Note: BrowserPoolScaling does not extend EventEmitter
     // Events will be handled through direct method calls when needed
-    
+
     // Resource manager events (if it supports events)
     if ('on' in this.resourceManager && typeof this.resourceManager.on === 'function') {
       this.resourceManager.on('resource-alert', (alert) => {

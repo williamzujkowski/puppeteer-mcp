@@ -6,7 +6,11 @@
  */
 
 import type { Page } from 'puppeteer';
-import type { MouseAction, ActionResult, ActionContext } from '../../../interfaces/action-executor.interface.js';
+import type {
+  MouseAction,
+  ActionResult,
+  ActionContext,
+} from '../../../interfaces/action-executor.interface.js';
 import { BaseInteractionHandler } from './base-handler.js';
 
 /**
@@ -25,11 +29,7 @@ export class MouseHandler extends BaseInteractionHandler<MouseAction> {
    * @nist ac-3 "Access enforcement"
    * @nist si-10 "Information input validation"
    */
-  async execute(
-    action: MouseAction,
-    page: Page,
-    context: ActionContext,
-  ): Promise<ActionResult> {
+  async execute(action: MouseAction, page: Page, context: ActionContext): Promise<ActionResult> {
     const startTime = Date.now();
 
     try {
@@ -80,21 +80,17 @@ export class MouseHandler extends BaseInteractionHandler<MouseAction> {
         duration,
       });
 
-      return this.createActionResult(
-        true,
-        this.actionType,
-        {
-          data: {
-            action: action.action,
-            x: action.x,
-            y: action.y,
-            button: action.button,
-            deltaX: action.deltaX,
-            deltaY: action.deltaY,
-          },
-          duration,
+      return this.createActionResult(true, this.actionType, {
+        data: {
+          action: action.action,
+          x: action.x,
+          y: action.y,
+          button: action.button,
+          deltaX: action.deltaX,
+          deltaY: action.deltaY,
         },
-      );
+        duration,
+      });
     } catch (error) {
       const duration = Date.now() - startTime;
       const errorMessage = error instanceof Error ? error.message : 'Mouse action failed';
@@ -105,19 +101,15 @@ export class MouseHandler extends BaseInteractionHandler<MouseAction> {
         duration,
       });
 
-      return this.createActionResult(
-        false,
-        this.actionType,
-        {
-          error: errorMessage,
-          duration,
-          metadata: {
-            action: action.action,
-            x: action.x,
-            y: action.y,
-          },
+      return this.createActionResult(false, this.actionType, {
+        error: errorMessage,
+        duration,
+        metadata: {
+          action: action.action,
+          x: action.x,
+          y: action.y,
         },
-      );
+      });
     }
   }
 }

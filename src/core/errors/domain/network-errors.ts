@@ -6,7 +6,12 @@
  */
 
 import { EnhancedAppError } from '../enhanced-app-error.js';
-import { ErrorContextBuilder, ErrorCategory, ErrorSeverity, RecoveryAction } from '../error-context.js';
+import {
+  ErrorContextBuilder,
+  ErrorCategory,
+  ErrorSeverity,
+  RecoveryAction,
+} from '../error-context.js';
 import type { NetworkErrorOptions, RateLimitErrorOptions } from '../domain-error-interfaces.js';
 
 /**
@@ -15,7 +20,7 @@ import type { NetworkErrorOptions, RateLimitErrorOptions } from '../domain-error
 export class NetworkDomainError extends EnhancedAppError {
   constructor(options: NetworkErrorOptions) {
     const { message, errorCode, networkInfo, requestId } = options;
-    
+
     const context = new ErrorContextBuilder()
       .setErrorCode(errorCode)
       .setCategory(ErrorCategory.NETWORK)
@@ -35,7 +40,13 @@ export class NetworkDomainError extends EnhancedAppError {
       .setShouldReport(networkInfo?.statusCode !== undefined && networkInfo.statusCode >= 500)
       .build();
 
-    super({ message, context, statusCode: networkInfo?.statusCode ?? 500, isOperational: true, details: networkInfo });
+    super({
+      message,
+      context,
+      statusCode: networkInfo?.statusCode ?? 500,
+      isOperational: true,
+      details: networkInfo,
+    });
     this.name = 'NetworkDomainError';
   }
 }
@@ -46,7 +57,7 @@ export class NetworkDomainError extends EnhancedAppError {
 export class RateLimitDomainError extends EnhancedAppError {
   constructor(options: RateLimitErrorOptions) {
     const { message, errorCode, rateLimitInfo, requestId, userId } = options;
-    
+
     const context = new ErrorContextBuilder()
       .setErrorCode(errorCode)
       .setCategory(ErrorCategory.RATE_LIMIT)

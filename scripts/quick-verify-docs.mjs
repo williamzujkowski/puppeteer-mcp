@@ -11,7 +11,7 @@ const ALL_PAGES = [
   // Quickstart
   '/quickstart/',
   '/quickstart/installation',
-  '/quickstart/first-steps', 
+  '/quickstart/first-steps',
   '/quickstart/claude-desktop',
   '/quickstart/configuration',
   // Guides
@@ -61,36 +61,41 @@ const ALL_PAGES = [
   '/troubleshooting',
   '/ai/routing-patterns',
   '/lessons/implementation',
-  '/lessons/project-planning'
+  '/lessons/project-planning',
 ];
 
 async function verifyDocs() {
   console.log('🚀 Quick Documentation Check...\n');
-  
+
   const browser = await puppeteer.launch({
     headless: 'new',
-    args: ['--no-sandbox', '--disable-setuid-sandbox']
+    args: ['--no-sandbox', '--disable-setuid-sandbox'],
   });
 
   const results = {
     success: [],
     notFound: [],
-    error: []
+    error: [],
   };
 
   for (const path of ALL_PAGES) {
     const url = `${BASE_URL}${path}`;
     const page = await browser.newPage();
-    
+
     try {
       const response = await page.goto(url, {
         waitUntil: 'domcontentloaded',
-        timeout: 10000
+        timeout: 10000,
       });
 
       const title = await page.title();
-      
-      if (!response || !response.ok() || title.toLowerCase().includes('404') || title.toLowerCase().includes('not found')) {
+
+      if (
+        !response ||
+        !response.ok() ||
+        title.toLowerCase().includes('404') ||
+        title.toLowerCase().includes('not found')
+      ) {
         results.notFound.push(path);
         console.log(`❌ ${path} - 404 Not Found`);
       } else {
@@ -101,7 +106,7 @@ async function verifyDocs() {
       results.error.push({ path, error: error.message });
       console.log(`❌ ${path} - Error: ${error.message}`);
     }
-    
+
     await page.close();
   }
 
@@ -114,15 +119,15 @@ async function verifyDocs() {
   console.log(`✅ Successful: ${results.success.length}/${ALL_PAGES.length}`);
   console.log(`❌ Not Found: ${results.notFound.length}`);
   console.log(`⚠️  Errors: ${results.error.length}`);
-  
+
   if (results.notFound.length > 0) {
     console.log('\n404 Pages:');
-    results.notFound.forEach(p => console.log(`  - ${p}`));
+    results.notFound.forEach((p) => console.log(`  - ${p}`));
   }
-  
+
   if (results.error.length > 0) {
     console.log('\nErrors:');
-    results.error.forEach(e => console.log(`  - ${e.path}: ${e.error}`));
+    results.error.forEach((e) => console.log(`  - ${e.path}: ${e.error}`));
   }
 }
 

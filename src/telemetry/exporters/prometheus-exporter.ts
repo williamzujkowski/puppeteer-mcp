@@ -26,11 +26,14 @@ export class PrometheusExporterFactory implements ExporterFactory<PrometheusExpo
   create(config: TelemetryConfig): PrometheusExporter {
     const port = config.metrics.endpoints.prometheusPort || DEFAULT_CONFIG.port;
 
-    logger.info({
-      port,
-      endpoint: DEFAULT_CONFIG.endpoint,
-      prefix: DEFAULT_CONFIG.prefix,
-    }, 'Creating Prometheus metric exporter');
+    logger.info(
+      {
+        port,
+        endpoint: DEFAULT_CONFIG.endpoint,
+        prefix: DEFAULT_CONFIG.prefix,
+      },
+      'Creating Prometheus metric exporter',
+    );
 
     return new PrometheusExporter({
       port,
@@ -85,6 +88,9 @@ export function validatePrometheusPrefix(prefix: string): boolean {
 /**
  * Get Prometheus metrics endpoint URL
  */
-export function getPrometheusMetricsUrl(port: number, endpoint: string = DEFAULT_CONFIG.endpoint): string {
+export function getPrometheusMetricsUrl(
+  port: number,
+  endpoint: string = DEFAULT_CONFIG.endpoint,
+): string {
   return `http://localhost:${port}${endpoint}`;
 }

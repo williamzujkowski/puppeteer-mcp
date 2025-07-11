@@ -7,11 +7,11 @@
 
 // Re-export from modular implementation
 export { BrowserPoolMetrics, createBrowserPoolMetrics } from './browser-pool/index.js';
-export type { 
-  PoolMetrics, 
-  BrowserPoolProvider, 
+export type {
+  PoolMetrics,
+  BrowserPoolProvider,
   MetricLabels,
   BrowserCloseReason,
   ScreenshotFormat,
-  NetworkDirection 
+  NetworkDirection,
 } from './browser-pool/index.js';

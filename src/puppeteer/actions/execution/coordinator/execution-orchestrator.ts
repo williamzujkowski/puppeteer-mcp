@@ -67,12 +67,7 @@ export class ExecutionOrchestrator {
       // Phase 1: Validation
       const validationResult = await this.executeValidationPhase(action, context);
       if (!validationResult.valid) {
-        return await this.handleValidationFailure<T>(
-          action,
-          context,
-          validationResult,
-          startTime,
-        );
+        return await this.handleValidationFailure<T>(action, context, validationResult, startTime);
       }
 
       // Phase 2: Page acquisition and setup
@@ -92,12 +87,7 @@ export class ExecutionOrchestrator {
 
       return result;
     } catch (error) {
-      return this.handleExecutionError<T>(
-        action,
-        context,
-        error,
-        startTime,
-      );
+      return this.handleExecutionError<T>(action, context, error, startTime);
     }
   }
 
@@ -121,11 +111,13 @@ export class ExecutionOrchestrator {
     if (!this.dispatcher.isActionSupported(action.type)) {
       return {
         valid: false,
-        errors: [{
-          field: 'type',
-          message: `Unsupported action type: ${action.type}`,
-          code: 'UNSUPPORTED_ACTION',
-        }],
+        errors: [
+          {
+            field: 'type',
+            message: `Unsupported action type: ${action.type}`,
+            code: 'UNSUPPORTED_ACTION',
+          },
+        ],
       };
     }
 
@@ -133,11 +125,13 @@ export class ExecutionOrchestrator {
     if (!this.dispatcher.validateActionForDispatch(action)) {
       return {
         valid: false,
-        errors: [{
-          field: 'action',
-          message: 'Action is not valid for dispatch',
-          code: 'INVALID_ACTION_FOR_DISPATCH',
-        }],
+        errors: [
+          {
+            field: 'action',
+            message: 'Action is not valid for dispatch',
+            code: 'INVALID_ACTION_FOR_DISPATCH',
+          },
+        ],
       };
     }
 
@@ -199,8 +193,7 @@ export class ExecutionOrchestrator {
 
     // Execute with retry handling
     const result = await this.errorHandler.executeWithRetry(
-      (_action, _page, _context) => 
-        this.dispatcher.dispatch(_action, _page, _context),
+      (_action, _page, _context) => this.dispatcher.dispatch(_action, _page, _context),
       action,
       page,
       context,
@@ -252,10 +245,10 @@ export class ExecutionOrchestrator {
       validationResult,
       Date.now() - startTime,
     );
-    
+
     this.historyManager.addToHistory(context, result);
     await this.securityCoordinator.logValidationFailure(action, context, validationResult);
-    
+
     return result;
   }
 
@@ -271,14 +264,11 @@ export class ExecutionOrchestrator {
     context: ActionContext,
     startTime: number,
   ): Promise<ActionResult<T>> {
-    const result = this.errorHandler.createPageNotFoundResult<T>(
-      action,
-      Date.now() - startTime,
-    );
-    
+    const result = this.errorHandler.createPageNotFoundResult<T>(action, Date.now() - startTime);
+
     this.historyManager.addToHistory(context, result);
     await this.securityCoordinator.logPageNotFound(action, context);
-    
+
     return result;
   }
 

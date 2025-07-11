@@ -26,7 +26,7 @@ export async function launchBrowser(
   };
 
   let browser = await puppeteer.launch(launchOptions);
-  
+
   // Instrument browser if telemetry is enabled
   if (isTelemetryInitialized()) {
     browser = instrumentBrowser(browser);

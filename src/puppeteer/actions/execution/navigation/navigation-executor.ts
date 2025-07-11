@@ -66,8 +66,7 @@ interface SessionTracker {
  */
 export class NavigationExecutor {
   private readonly factory: NavigationFactory;
-  private readonly config: Required<Omit<NavigationExecutorConfig,
-    keyof NavigationFactoryConfig>>;
+  private readonly config: Required<Omit<NavigationExecutorConfig, keyof NavigationFactoryConfig>>;
   private readonly executionMetrics: ExecutionMetrics;
   private readonly sessionTrackers: Map<string, SessionTracker> = new Map();
 
@@ -110,18 +109,18 @@ export class NavigationExecutor {
    * @nist ac-3 "Access enforcement"
    * @nist au-3 "Content of audit records"
    */
-  async execute(
-    action: BrowserAction,
-    page: Page,
-    context: ActionContext,
-  ): Promise<ActionResult> {
+  async execute(action: BrowserAction, page: Page, context: ActionContext): Promise<ActionResult> {
     const executionStartTime = Date.now();
 
     try {
       // Check concurrent navigation limit
       const concurrencyCheck = await this.checkConcurrencyLimit(context.sessionId);
       if (!concurrencyCheck.allowed) {
-        return this.createConcurrencyLimitResult(action, executionStartTime, concurrencyCheck.reason || 'Concurrency limit exceeded');
+        return this.createConcurrencyLimitResult(
+          action,
+          executionStartTime,
+          concurrencyCheck.reason || 'Concurrency limit exceeded',
+        );
       }
 
       // Track navigation start
@@ -161,7 +160,6 @@ export class NavigationExecutor {
       }
 
       return result;
-
     } catch (error) {
       // Track navigation end
       this.trackNavigationEnd(context.sessionId);
@@ -218,11 +216,7 @@ export class NavigationExecutor {
    * @param timeout - Navigation timeout
    * @returns Action result
    */
-  async executeGoBack(
-    page: Page,
-    context: ActionContext,
-    timeout?: number,
-  ): Promise<ActionResult> {
+  async executeGoBack(page: Page, context: ActionContext, timeout?: number): Promise<ActionResult> {
     const action: BrowserAction = {
       type: 'goBack' as any, // Type assertion for navigation actions
       pageId: context.contextId,
@@ -307,7 +301,7 @@ export class NavigationExecutor {
     reason?: string;
   }> {
     const tracker = this.sessionTrackers.get(sessionId);
-    
+
     if (!tracker) {
       return { allowed: true };
     }
@@ -334,7 +328,7 @@ export class NavigationExecutor {
 
     tracker.activeNavigations++;
     tracker.lastActivity = new Date();
-    
+
     this.sessionTrackers.set(sessionId, tracker);
   }
 
@@ -344,7 +338,7 @@ export class NavigationExecutor {
    */
   private trackNavigationEnd(sessionId: string): void {
     const tracker = this.sessionTrackers.get(sessionId);
-    
+
     if (tracker) {
       tracker.activeNavigations = Math.max(0, tracker.activeNavigations - 1);
       tracker.lastActivity = new Date();
@@ -374,7 +368,7 @@ export class NavigationExecutor {
   private logNavigationResponse(
     action: BrowserAction,
     context: ActionContext,
-    result: ActionResult
+    result: ActionResult,
   ): void {
     logger.info('Navigation response', {
       sessionId: context.sessionId,
@@ -416,7 +410,7 @@ export class NavigationExecutor {
    */
   private updateExecutionMetrics(actionType: string, success: boolean, duration: number): void {
     this.executionMetrics.totalExecutions++;
-    
+
     if (success) {
       this.executionMetrics.successfulExecutions++;
     } else {
@@ -424,11 +418,13 @@ export class NavigationExecutor {
     }
 
     // Update average execution time
-    const totalTime = this.executionMetrics.averageExecutionTime * (this.executionMetrics.totalExecutions - 1) + duration;
+    const totalTime =
+      this.executionMetrics.averageExecutionTime * (this.executionMetrics.totalExecutions - 1) +
+      duration;
     this.executionMetrics.averageExecutionTime = totalTime / this.executionMetrics.totalExecutions;
 
     // Update by type
-    this.executionMetrics.executionsByType[actionType] = 
+    this.executionMetrics.executionsByType[actionType] =
       (this.executionMetrics.executionsByType[actionType] ?? 0) + 1;
 
     this.executionMetrics.lastExecution = new Date();
@@ -444,10 +440,10 @@ export class NavigationExecutor {
   private createConcurrencyLimitResult(
     action: BrowserAction,
     startTime: number,
-    reason: string
+    reason: string,
   ): ActionResult {
     const duration = Date.now() - startTime;
-    
+
     return {
       success: false,
       actionType: action.type,
@@ -471,10 +467,10 @@ export class NavigationExecutor {
   private createValidationFailureResult(
     action: BrowserAction,
     startTime: number,
-    error: string
+    error: string,
   ): ActionResult {
     const duration = Date.now() - startTime;
-    
+
     return {
       success: false,
       actionType: action.type,
@@ -592,7 +588,7 @@ export class NavigationExecutor {
   updateConfig(config: Partial<NavigationExecutorConfig>): void {
     // Update local config
     Object.assign(this.config, config);
-    
+
     // Update factory config
     this.factory.updateConfig(config);
 

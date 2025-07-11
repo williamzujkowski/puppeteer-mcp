@@ -98,13 +98,13 @@ export class ErrorFactory {
     insufficientPermissions: (
       requiredPermissions: string[],
       userPermissions: string[],
-      context?: RequestContext
+      context?: RequestContext,
     ) =>
       authorizationErrors.insufficientPermissions(
         requiredPermissions,
         userPermissions,
         context,
-        this.defaultContext
+        this.defaultContext,
       ),
 
     roleRequired: (requiredRole: string, userRole: string, context?: RequestContext) =>
@@ -131,7 +131,13 @@ export class ErrorFactory {
       browserErrors.navigationFailed(url, error, context, this.defaultContext),
 
     actionTimeout: (action: string, selector: string, timeout: number, context?: RequestContext) =>
-      browserErrors.actionTimeout({ action, selector, timeout, context, defaultContext: this.defaultContext }),
+      browserErrors.actionTimeout({
+        action,
+        selector,
+        timeout,
+        context,
+        defaultContext: this.defaultContext,
+      }),
 
     poolExhausted: (poolSize: number, activeConnections: number, context?: RequestContext) =>
       browserErrors.poolExhausted(poolSize, activeConnections, context, this.defaultContext),
@@ -176,13 +182,13 @@ export class ErrorFactory {
     connectionPoolExhausted: (
       poolSize: number,
       activeConnections: number,
-      context?: RequestContext
+      context?: RequestContext,
     ) =>
       resourceErrors.connectionPoolExhausted(
         poolSize,
         activeConnections,
         context,
-        this.defaultContext
+        this.defaultContext,
       ),
 
     diskSpaceExhausted: (available: number, required: number, context?: RequestContext) =>
@@ -203,29 +209,58 @@ export class ErrorFactory {
       field: string,
       value: unknown,
       expectedFormat: string,
-      context?: RequestContext
+      context?: RequestContext,
     ) =>
-      validationErrors.invalidFormat({ field, value, expectedFormat, context, defaultContext: this.defaultContext }),
+      validationErrors.invalidFormat({
+        field,
+        value,
+        expectedFormat,
+        context,
+        defaultContext: this.defaultContext,
+      }),
 
     outOfRange: (params: RangeValidationInput) => {
-      return validationErrors.outOfRange({ 
-        field: params.field, 
-        value: params.value, 
-        min: params.min, 
-        max: params.max, 
-        context: params.context, 
-        defaultContext: this.defaultContext 
+      return validationErrors.outOfRange({
+        field: params.field,
+        value: params.value,
+        min: params.min,
+        max: params.max,
+        context: params.context,
+        defaultContext: this.defaultContext,
       });
     },
 
-    invalidEnum: (field: string, value: unknown, validValues: unknown[], context?: RequestContext) =>
-      validationErrors.invalidEnum({ field, value, validValues, context, defaultContext: this.defaultContext }),
+    invalidEnum: (
+      field: string,
+      value: unknown,
+      validValues: unknown[],
+      context?: RequestContext,
+    ) =>
+      validationErrors.invalidEnum({
+        field,
+        value,
+        validValues,
+        context,
+        defaultContext: this.defaultContext,
+      }),
 
     tooLong: (field: string, value: string, maxLength: number, context?: RequestContext) =>
-      validationErrors.tooLong({ field, value, limit: maxLength, context, defaultContext: this.defaultContext }),
+      validationErrors.tooLong({
+        field,
+        value,
+        limit: maxLength,
+        context,
+        defaultContext: this.defaultContext,
+      }),
 
     tooShort: (field: string, value: string, minLength: number, context?: RequestContext) =>
-      validationErrors.tooShort({ field, value, limit: minLength, context, defaultContext: this.defaultContext }),
+      validationErrors.tooShort({
+        field,
+        value,
+        limit: minLength,
+        context,
+        defaultContext: this.defaultContext,
+      }),
   };
 
   /**
@@ -246,10 +281,18 @@ export class ErrorFactory {
     unavailable: (serviceName: string, context?: RequestContext): ExternalServiceDomainError =>
       externalServiceErrors.unavailable(serviceName, context, this.defaultContext),
 
-    timeout: (serviceName: string, timeout: number, context?: RequestContext): ExternalServiceDomainError =>
+    timeout: (
+      serviceName: string,
+      timeout: number,
+      context?: RequestContext,
+    ): ExternalServiceDomainError =>
       externalServiceErrors.timeout(serviceName, timeout, context, this.defaultContext),
 
-    badResponse: (serviceName: string, statusCode: number, context?: RequestContext): ExternalServiceDomainError =>
+    badResponse: (
+      serviceName: string,
+      statusCode: number,
+      context?: RequestContext,
+    ): ExternalServiceDomainError =>
       externalServiceErrors.badResponse(serviceName, statusCode, context, this.defaultContext),
   };
 
@@ -261,7 +304,13 @@ export class ErrorFactory {
       configErrors.missing(configKey, context, this.defaultContext),
 
     invalid: (configKey: string, value: unknown, expectedType: string, context?: RequestContext) =>
-      configErrors.invalid({ configKey, value, expectedType, context, defaultContext: this.defaultContext }),
+      configErrors.invalid({
+        configKey,
+        value,
+        expectedType,
+        context,
+        defaultContext: this.defaultContext,
+      }),
   };
 
   /**
@@ -286,11 +335,21 @@ export class ErrorFactory {
       operation: string,
       duration: number,
       threshold: number,
-      context?: RequestContext
+      context?: RequestContext,
     ): PerformanceDomainError =>
-      performanceErrors.slowOperation({ operation, duration, threshold, context, defaultContext: this.defaultContext }),
+      performanceErrors.slowOperation({
+        operation,
+        duration,
+        threshold,
+        context,
+        defaultContext: this.defaultContext,
+      }),
 
-    memoryLeak: (component: string, memoryUsage: number, context?: RequestContext): PerformanceDomainError =>
+    memoryLeak: (
+      component: string,
+      memoryUsage: number,
+      context?: RequestContext,
+    ): PerformanceDomainError =>
       performanceErrors.memoryLeak(component, memoryUsage, context, this.defaultContext),
   };
 
@@ -304,7 +363,11 @@ export class ErrorFactory {
     maintenanceMode: (context?: RequestContext): SystemDomainError =>
       systemErrors.maintenanceMode(context, this.defaultContext),
 
-    healthCheckFailed: (component: string, reason: string, context?: RequestContext): SystemDomainError =>
+    healthCheckFailed: (
+      component: string,
+      reason: string,
+      context?: RequestContext,
+    ): SystemDomainError =>
       systemErrors.healthCheckFailed(component, reason, context, this.defaultContext),
   };
 
@@ -312,10 +375,18 @@ export class ErrorFactory {
    * Business logic errors
    */
   static businessLogic = {
-    ruleViolation: (rule: string, details: Record<string, unknown>, context?: RequestContext): BusinessLogicDomainError =>
+    ruleViolation: (
+      rule: string,
+      details: Record<string, unknown>,
+      context?: RequestContext,
+    ): BusinessLogicDomainError =>
       businessLogicErrors.ruleViolation(rule, details, context, this.defaultContext),
 
-    workflowError: (workflow: string, step: string, context?: RequestContext): BusinessLogicDomainError =>
+    workflowError: (
+      workflow: string,
+      step: string,
+      context?: RequestContext,
+    ): BusinessLogicDomainError =>
       businessLogicErrors.workflowError(workflow, step, context, this.defaultContext),
   };
 

@@ -12,35 +12,32 @@ export { createGrpcServerInstance } from './grpc-server.js';
 export { createWebSocketServerInstance } from './websocket-server.js';
 
 // Configuration and setup
-export { 
-  createServerConfig, 
+export {
+  createServerConfig,
   validateServerConfig,
   shouldEnableTLS,
   createHttpsOptions,
-  ServerError 
+  ServerError,
 } from './server-config.js';
 
 // Service management
-export { 
+export {
   createServerDependencies,
   createLogger,
   createSessionStore,
   createBrowserPool,
-  shutdownAllServices 
+  shutdownAllServices,
 } from './service-registry.js';
 
 // Health monitoring
-export { 
+export {
   performHealthCheck,
   startHealthMonitoring,
-  stopHealthMonitoring 
+  stopHealthMonitoring,
 } from './health-monitor.js';
 
 // Graceful shutdown
-export { 
-  gracefulShutdown,
-  setupAllProcessHandlers 
-} from './graceful-shutdown.js';
+export { gracefulShutdown, setupAllProcessHandlers } from './graceful-shutdown.js';
 
 // Types
 export type {

@@ -24,20 +24,20 @@ export class InMemoryErrorTrackingStorage implements ErrorTrackingStorage {
       bySeverity: Map<ErrorSeverity, number>;
       byErrorCode: Map<string, number>;
       byTimeWindow: Map<string, number>;
-    }
+    },
   ): void {
     const category = entry.error.category;
     const severity = entry.error.severity;
     const errorCode = entry.error.errorCode;
-    
+
     // Safe increment for category
     const categoryCount = metrics.byCategory.get(category) ?? 0;
     metrics.byCategory.set(category, categoryCount + 1);
-    
+
     // Safe increment for severity
     const severityCount = metrics.bySeverity.get(severity) ?? 0;
     metrics.bySeverity.set(severity, severityCount + 1);
-    
+
     // Safe increment for error code
     const currentErrorCount = metrics.byErrorCode.get(errorCode) ?? 0;
     metrics.byErrorCode.set(errorCode, currentErrorCount + 1);
@@ -59,15 +59,17 @@ export class InMemoryErrorTrackingStorage implements ErrorTrackingStorage {
 
   getByFingerprint(fingerprint: string, timeWindow: number): Promise<ErrorTrackingEntry[]> {
     const cutoff = new Date(Date.now() - timeWindow * 60 * 1000);
-    const result = Array.from(this.entries.values())
-      .filter(entry => entry.fingerprint === fingerprint && entry.timestamp >= cutoff);
+    const result = Array.from(this.entries.values()).filter(
+      (entry) => entry.fingerprint === fingerprint && entry.timestamp >= cutoff,
+    );
     return Promise.resolve(result);
   }
 
   getMetrics(timeWindow: number): Promise<ErrorMetrics> {
     const cutoff = new Date(Date.now() - timeWindow * 60 * 1000);
-    const recentEntries = Array.from(this.entries.values())
-      .filter(entry => entry.timestamp >= cutoff);
+    const recentEntries = Array.from(this.entries.values()).filter(
+      (entry) => entry.timestamp >= cutoff,
+    );
 
     const byCategoryMap = new Map<ErrorCategory, number>();
     const bySeverityMap = new Map<ErrorSeverity, number>();
@@ -75,8 +77,8 @@ export class InMemoryErrorTrackingStorage implements ErrorTrackingStorage {
     const byTimeWindowMap = new Map<string, number>();
 
     // Initialize category and severity maps
-    Object.values(ErrorCategory).forEach(cat => byCategoryMap.set(cat, 0));
-    Object.values(ErrorSeverity).forEach(sev => bySeverityMap.set(sev, 0));
+    Object.values(ErrorCategory).forEach((cat) => byCategoryMap.set(cat, 0));
+    Object.values(ErrorSeverity).forEach((sev) => bySeverityMap.set(sev, 0));
 
     let totalResolutionTime = 0;
     let resolvedCount = 0;
@@ -92,7 +94,7 @@ export class InMemoryErrorTrackingStorage implements ErrorTrackingStorage {
 
     for (const entry of recentEntries) {
       this.updateMetricsForEntry(entry, metricsData);
-      
+
       if (entry.resolved === true && typeof entry.resolutionTime === 'number') {
         totalResolutionTime += entry.resolutionTime;
         resolvedCount++;
@@ -114,10 +116,10 @@ export class InMemoryErrorTrackingStorage implements ErrorTrackingStorage {
       .sort(([, a], [, b]) => b - a)
       .slice(0, 10)
       .map(([errorCode, count]) => {
-        const filteredEntries = recentEntries
-          .filter(e => e.error.errorCode === errorCode);
-        const sortedEntries = filteredEntries
-          .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+        const filteredEntries = recentEntries.filter((e) => e.error.errorCode === errorCode);
+        const sortedEntries = filteredEntries.sort(
+          (a, b) => b.timestamp.getTime() - a.timestamp.getTime(),
+        );
         const lastEntry = sortedEntries[0];
         return {
           errorCode,
@@ -141,28 +143,32 @@ export class InMemoryErrorTrackingStorage implements ErrorTrackingStorage {
 
   getByCategory(category: ErrorCategory, timeWindow: number): Promise<ErrorTrackingEntry[]> {
     const cutoff = new Date(Date.now() - timeWindow * 60 * 1000);
-    const result = Array.from(this.entries.values())
-      .filter(entry => entry.error.category === category && entry.timestamp >= cutoff);
+    const result = Array.from(this.entries.values()).filter(
+      (entry) => entry.error.category === category && entry.timestamp >= cutoff,
+    );
     return Promise.resolve(result);
   }
 
   getBySeverity(severity: ErrorSeverity, timeWindow: number): Promise<ErrorTrackingEntry[]> {
     const cutoff = new Date(Date.now() - timeWindow * 60 * 1000);
-    const result = Array.from(this.entries.values())
-      .filter(entry => entry.error.severity === severity && entry.timestamp >= cutoff);
+    const result = Array.from(this.entries.values()).filter(
+      (entry) => entry.error.severity === severity && entry.timestamp >= cutoff,
+    );
     return Promise.resolve(result);
   }
 
   getByErrorCode(errorCode: string, timeWindow: number): Promise<ErrorTrackingEntry[]> {
     const cutoff = new Date(Date.now() - timeWindow * 60 * 1000);
-    const result = Array.from(this.entries.values())
-      .filter(entry => entry.error.errorCode === errorCode && entry.timestamp >= cutoff);
+    const result = Array.from(this.entries.values()).filter(
+      (entry) => entry.error.errorCode === errorCode && entry.timestamp >= cutoff,
+    );
     return Promise.resolve(result);
   }
 
   getByCorrelationGroup(group: string): Promise<ErrorTrackingEntry[]> {
-    const result = Array.from(this.entries.values())
-      .filter(entry => entry.correlationGroup === group);
+    const result = Array.from(this.entries.values()).filter(
+      (entry) => entry.correlationGroup === group,
+    );
     return Promise.resolve(result);
   }
 
@@ -177,17 +183,17 @@ export class InMemoryErrorTrackingStorage implements ErrorTrackingStorage {
   cleanup(maxAge: number): Promise<void> {
     const cutoff = new Date(Date.now() - maxAge * 60 * 1000);
     const entriesToDelete: string[] = [];
-    
+
     this.entries.forEach((entry, id) => {
       if (entry.timestamp < cutoff) {
         entriesToDelete.push(id);
       }
     });
-    
-    entriesToDelete.forEach(id => {
+
+    entriesToDelete.forEach((id) => {
       this.entries.delete(id);
     });
-    
+
     return Promise.resolve();
   }
 }

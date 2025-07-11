@@ -13,7 +13,10 @@ import type {
 import type { ConfigurationManager } from './configuration-manager.js';
 import type { MetricsCollector } from './metrics-collector.js';
 import type { OptimizationStrategy } from './performance/optimization-strategies.js';
-import { OptimizationStrategyFactory, ResourceBlockingStrategy } from './performance/optimization-strategies.js';
+import {
+  OptimizationStrategyFactory,
+  ResourceBlockingStrategy,
+} from './performance/optimization-strategies.js';
 import { PerformanceAnalyzer } from './performance/performance-analyzer.js';
 import type { PerformanceHints } from './performance/performance-analyzer.js';
 import { createLogger } from '../../../../utils/logger.js';
@@ -48,10 +51,7 @@ export class PerformanceOptimizer {
    * @param context - Execution context
    * @returns Performance hints
    */
-  getPerformanceHints(
-    action: BrowserAction,
-    context: ActionContext,
-  ): PerformanceHints {
+  getPerformanceHints(action: BrowserAction, context: ActionContext): PerformanceHints {
     const metrics = this.metricsCollector.getAggregatedMetrics(context, {
       actionTypes: [action.type],
     });
@@ -105,10 +105,7 @@ export class PerformanceOptimizer {
    * @param page - Page instance
    * @param action - Browser action
    */
-  async removeOptimizations(
-    page: Page,
-    action: BrowserAction,
-  ): Promise<void> {
+  async removeOptimizations(page: Page, action: BrowserAction): Promise<void> {
     logger.debug('Removing performance optimizations', {
       actionType: action.type,
     });
@@ -167,10 +164,7 @@ export class PerformanceOptimizer {
    * @param context - Execution context
    * @returns Performance recommendations
    */
-  getPerformanceRecommendations(
-    action: BrowserAction,
-    context: ActionContext,
-  ): string[] {
+  getPerformanceRecommendations(action: BrowserAction, context: ActionContext): string[] {
     const hints = this.getPerformanceHints(action, context);
     return this.analyzer.getRecommendations(hints);
   }
@@ -200,10 +194,10 @@ export class PerformanceOptimizer {
     if (!config.performance.enableMetrics) {
       logger.debug('Performance metrics disabled in configuration');
     }
-    
+
     // Load strategies from factory
     const actionTypes = ['navigate', 'screenshot', 'extractContent', 'extractText'];
-    
+
     for (const actionType of actionTypes) {
       const strategy = OptimizationStrategyFactory.createStrategy(actionType);
       if (strategy) {

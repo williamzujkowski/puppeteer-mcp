@@ -9,18 +9,18 @@ import type { ProxyConfig, ContextProxyConfig } from '../../types/proxy.js';
 import { ValidationContext } from './validator-base.js';
 import { ProxyValidatorFactory } from './proxy-validators.js';
 import { ContextProxyValidatorFactory } from './context-proxy-validators.js';
-import { 
-  ValidationResultBuilder, 
-  type ProxyValidationResult, 
-  type ContextProxyValidationResult 
+import {
+  ValidationResultBuilder,
+  type ProxyValidationResult,
+  type ContextProxyValidationResult,
 } from './result-builder.js';
 
 // Re-export types and utilities
 export type { ProxyValidationResult, ContextProxyValidationResult };
-export { 
-  sanitizeProxyConfigForLogging, 
-  validateProxyCredentials, 
-  generateSecureProxyConfig 
+export {
+  sanitizeProxyConfigForLogging,
+  validateProxyCredentials,
+  generateSecureProxyConfig,
 } from './utils.js';
 
 /**
@@ -40,7 +40,7 @@ export async function validateProxyConfig(
   };
 
   const validator = ProxyValidatorFactory.createProxyValidatorChain();
-  
+
   try {
     await validator.validate(context);
   } catch (error) {
@@ -70,7 +70,7 @@ export async function validateContextProxyConfig(
   };
 
   const validator = ContextProxyValidatorFactory.createContextProxyValidatorChain();
-  
+
   try {
     await validator.validate(context);
   } catch (error) {

@@ -17,11 +17,7 @@ export const DEFAULT_CONFIG: ExecutionConfig = {
     initialDelay: 1000,
     maxDelay: 10000,
     backoffMultiplier: 2,
-    retryableErrors: [
-      'TimeoutError',
-      'NetworkError',
-      'ProtocolError',
-    ],
+    retryableErrors: ['TimeoutError', 'NetworkError', 'ProtocolError'],
   },
   timeout: {
     default: 30000,

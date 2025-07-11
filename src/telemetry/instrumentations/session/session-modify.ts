@@ -15,9 +15,9 @@ export function instrumentUpdate(ctx: InstrumentationContext): void {
   const { tracer, store } = ctx;
   const originalUpdate = store.update.bind(store);
 
-  store.update = async function(
+  store.update = async function (
     sessionId: string,
-    data: Partial<SessionData>
+    data: Partial<SessionData>,
   ): Promise<Session | null> {
     const span = tracer.startSpan('session.update', {
       kind: SpanKind.CLIENT,
@@ -29,9 +29,8 @@ export function instrumentUpdate(ctx: InstrumentationContext): void {
     });
 
     try {
-      const session = await context.with(
-        trace.setSpan(context.active(), span),
-        async () => originalUpdate(sessionId, data)
+      const session = await context.with(trace.setSpan(context.active(), span), async () =>
+        originalUpdate(sessionId, data),
       );
 
       const updated = Boolean(session);
@@ -50,13 +49,13 @@ export function instrumentUpdate(ctx: InstrumentationContext): void {
       return session;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      
+
       span.recordException(error as Error);
       span.setStatus({
         code: SpanStatusCode.ERROR,
         message: errorMessage,
       });
-      
+
       span.setAttributes({
         'session.success': false,
         'session.error': errorMessage,

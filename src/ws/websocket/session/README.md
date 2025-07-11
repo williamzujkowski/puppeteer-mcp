@@ -2,7 +2,9 @@
 
 ## Overview
 
-The WebSocket session management system has been refactored from a single 477-line file into a modular architecture with specialized components, each under 300 lines. The design follows SOLID principles and implements several design patterns for better maintainability and extensibility.
+The WebSocket session management system has been refactored from a single 477-line file into a
+modular architecture with specialized components, each under 300 lines. The design follows SOLID
+principles and implements several design patterns for better maintainability and extensibility.
 
 ## Architecture
 
@@ -103,4 +105,5 @@ const stats = sessionManager.getSessionStats();
 
 ## Testing
 
-The module includes comprehensive tests for backward compatibility, ensuring that existing code continues to work without modification after the refactoring.
+The module includes comprehensive tests for backward compatibility, ensuring that existing code
+continues to work without modification after the refactoring.

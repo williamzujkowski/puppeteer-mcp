@@ -16,7 +16,7 @@ import type {
   ExportedMetrics,
   UptimeStats,
   MetricsHistoryEntry,
-  AlertHistoryEntry
+  AlertHistoryEntry,
 } from './types.js';
 import { SessionHealthChecker } from './session-health-checker.js';
 import { MetricsCollector } from './metrics-collector.js';
@@ -35,7 +35,7 @@ import { pino } from 'pino';
 export class SessionStoreMonitor extends EventEmitter {
   private logger: pino.Logger;
   private config: MonitoringConfig;
-  
+
   // Sub-components
   private healthChecker: SessionHealthChecker;
   private metricsCollector: MetricsCollector;
@@ -48,11 +48,11 @@ export class SessionStoreMonitor extends EventEmitter {
   constructor(
     private _sessionStore: SessionStore,
     config: Partial<MonitoringConfig> = {},
-    logger?: pino.Logger
+    logger?: pino.Logger,
   ) {
     super();
     this.logger = logger ?? pino({ level: 'info' });
-    
+
     this.config = mergeConfig(config);
 
     // Initialize sub-components
@@ -61,7 +61,7 @@ export class SessionStoreMonitor extends EventEmitter {
     this.alertManager = new AlertManager(
       this.config.alertThresholds,
       this.config.enableAlerting,
-      this.logger
+      this.logger,
     );
     this.analyticsEngine = new AnalyticsEngine(this.logger);
     this.performanceMonitor = new PerformanceMonitor(this.logger);
@@ -88,7 +88,7 @@ export class SessionStoreMonitor extends EventEmitter {
   private handleOperationRecorded(record: OperationRecord): void {
     this.emit('operation:recorded', record);
     this.performanceMonitor.recordLatency(record.latency);
-    
+
     if (this.config.enableAlerting) {
       this.alertManager.checkOperationAlerts(record, this.metricsCollector.getMetrics());
     }
@@ -105,7 +105,7 @@ export class SessionStoreMonitor extends EventEmitter {
       enabled: true,
       handler: async () => {
         await this.performHealthCheck();
-      }
+      },
     });
 
     this.scheduler.registerTask({
@@ -113,7 +113,7 @@ export class SessionStoreMonitor extends EventEmitter {
       interval: 3600000, // 1 hour
       immediate: false,
       enabled: true,
-      handler: () => Promise.resolve(this.cleanupOldData())
+      handler: () => Promise.resolve(this.cleanupOldData()),
     });
 
     this.scheduler.registerTask({
@@ -121,7 +121,7 @@ export class SessionStoreMonitor extends EventEmitter {
       interval: 60000, // 1 minute
       immediate: false,
       enabled: this.config.enableDetailedMetrics,
-      handler: () => this.updateResourceMetrics()
+      handler: () => this.updateResourceMetrics(),
     });
   }
 
@@ -148,7 +148,7 @@ export class SessionStoreMonitor extends EventEmitter {
     operation: keyof SessionMetrics['operations'],
     latency: number,
     success: boolean,
-    cacheMiss?: boolean
+    cacheMiss?: boolean,
   ): void {
     if (!this.config.enableDetailedMetrics) {
       return;
@@ -158,7 +158,7 @@ export class SessionStoreMonitor extends EventEmitter {
       operation,
       latency,
       success,
-      cacheMiss
+      cacheMiss,
     };
 
     this.metricsCollector.recordOperation(record);
@@ -168,28 +168,26 @@ export class SessionStoreMonitor extends EventEmitter {
    * Perform comprehensive health check
    */
   async performHealthCheck(): Promise<HealthCheckResult> {
-    const result = await this.healthChecker.performHealthCheck(
-      this.config.alertThresholds
-    );
-    
+    const result = await this.healthChecker.performHealthCheck(this.config.alertThresholds);
+
     // Add current metrics
     result.metrics = this.metricsCollector.getMetrics();
-    
+
     // Update Redis metrics
     const redisMetrics = await this.resourceTracker.updateRedisMetrics();
     if (redisMetrics) {
       this.metricsCollector.updateRedisMetrics(redisMetrics);
     }
-    
+
     // Update store metrics
     const storeMetrics = await this.resourceTracker.updateStoreMetrics();
     this.metricsCollector.updateStoreMetrics(storeMetrics);
-    
+
     // Add metrics snapshot to history
     this.analyticsEngine.addMetricsSnapshot(result.metrics);
-    
+
     this.emit('health:check', result);
-    
+
     return result;
   }
 
@@ -201,7 +199,7 @@ export class SessionStoreMonitor extends EventEmitter {
     if (redisMetrics) {
       this.metricsCollector.updateRedisMetrics(redisMetrics);
     }
-    
+
     const storeMetrics = await this.resourceTracker.updateStoreMetrics();
     this.metricsCollector.updateStoreMetrics(storeMetrics);
   }
@@ -259,11 +257,11 @@ export class SessionStoreMonitor extends EventEmitter {
   getStatus(): MonitoringStatus {
     const uptime = this.analyticsEngine.getUptimeStats();
     return {
-      isRunning: this.scheduler.getAllTaskStatuses().some(t => t.running),
+      isRunning: this.scheduler.getAllTaskStatuses().some((t) => t.running),
       config: this.config,
       uptime: uptime.uptime,
       metricsCount: this.getMetricsHistory().length,
-      alertCount: this.getAlertHistory().length
+      alertCount: this.getAlertHistory().length,
     };
   }
 
@@ -297,5 +295,4 @@ export class SessionStoreMonitor extends EventEmitter {
     this.removeAllListeners();
     this.logger.info('Session store monitor destroyed');
   }
-
 }

@@ -6,13 +6,13 @@
  * @nist au-3 "Audit logging for store selection"
  */
 
-import type { 
-  SessionStoreFactoryConfig, 
-  SessionStoreFactoryResult, 
+import type {
+  SessionStoreFactoryConfig,
+  SessionStoreFactoryResult,
   MigrationStats,
   HealthStatus,
   BackupResult,
-  RestoreStats
+  RestoreStats,
 } from './types.js';
 import { StoreCreationCommand } from './store-creation-command.js';
 import { StoreSwitchManager } from './store-switch-manager.js';
@@ -43,15 +43,15 @@ export class SessionStoreFactory {
    */
   async create(
     instanceId: string = 'default',
-    factoryConfig: SessionStoreFactoryConfig = {}
+    factoryConfig: SessionStoreFactoryConfig = {},
   ): Promise<SessionStoreFactoryResult> {
     const command = new StoreCreationCommand(
       instanceId,
       factoryConfig,
       this.logger,
-      this.instances
+      this.instances,
     );
-    
+
     return command.execute();
   }
 
@@ -68,7 +68,7 @@ export class SessionStoreFactory {
   list(): Array<{ instanceId: string; result: SessionStoreFactoryResult }> {
     return Array.from(this.instances.entries()).map(([instanceId, result]) => ({
       instanceId,
-      result
+      result,
     }));
   }
 
@@ -91,9 +91,9 @@ export class SessionStoreFactory {
    */
   async destroyAll(): Promise<void> {
     const instanceIds = Array.from(this.instances.keys());
-    
-    await Promise.all(instanceIds.map(id => this.destroy(id)));
-    
+
+    await Promise.all(instanceIds.map((id) => this.destroy(id)));
+
     this.logger.info({ count: instanceIds.length }, 'All session stores destroyed');
   }
 
@@ -108,28 +108,37 @@ export class SessionStoreFactory {
       deleteAfterMigration?: boolean;
       batchSize?: number;
       continueOnError?: boolean;
-    } = {}
+    } = {},
   ): Promise<MigrationStats> {
-    const { fromInstance, toInstance } = this.validateMigrationInstances(fromInstanceId, toInstanceId);
-    
-    this.logger.info({
+    const { fromInstance, toInstance } = this.validateMigrationInstances(
       fromInstanceId,
       toInstanceId,
-      fromType: fromInstance.type,
-      toType: toInstance.type
-    }, 'Starting session migration');
+    );
+
+    this.logger.info(
+      {
+        fromInstanceId,
+        toInstanceId,
+        fromType: fromInstance.type,
+        toType: toInstance.type,
+      },
+      'Starting session migration',
+    );
 
     const stats = await fromInstance.migration!.migrate(
       fromInstance.store,
       toInstance.store,
-      options
+      options,
     );
 
-    this.logger.info({
-      fromInstanceId,
-      toInstanceId,
-      ...stats
-    }, 'Session migration completed');
+    this.logger.info(
+      {
+        fromInstanceId,
+        toInstanceId,
+        ...stats,
+      },
+      'Session migration completed',
+    );
 
     return stats;
   }
@@ -173,7 +182,7 @@ export class SessionStoreFactory {
       migrateData?: boolean;
       skipExisting?: boolean;
       deleteAfterMigration?: boolean;
-    } = {}
+    } = {},
   ): Promise<void> {
     const instance = this.instances.get(instanceId);
     if (!instance) {
@@ -207,7 +216,7 @@ export class SessionStoreFactory {
     options: {
       overwrite?: boolean;
       skipExpired?: boolean;
-    } = {}
+    } = {},
   ): Promise<RestoreStats> {
     const instance = this.instances.get(instanceId);
     if (!instance) {
@@ -249,13 +258,16 @@ export class SessionStoreFactory {
     await logDataAccess('DELETE', `session-store/${instanceId}`, {
       action: 'destroy',
       instanceId,
-      storeType: instance.type
+      storeType: instance.type,
     });
 
     this.logger.info({ instanceId, storeType: instance.type }, 'Session store destroyed');
   }
 
-  private validateMigrationInstances(fromInstanceId: string, toInstanceId: string): {
+  private validateMigrationInstances(
+    fromInstanceId: string,
+    toInstanceId: string,
+  ): {
     fromInstance: SessionStoreFactoryResult;
     toInstance: SessionStoreFactoryResult;
   } {

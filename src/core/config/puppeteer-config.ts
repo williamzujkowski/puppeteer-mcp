@@ -24,11 +24,17 @@ export function parsePuppeteerConfig(): {
 } {
   return {
     PUPPETEER_HEADLESS: parseBoolean(process.env.PUPPETEER_HEADLESS, true),
-    PUPPETEER_ARGS: parseArray(process.env.PUPPETEER_ARGS, ['--no-sandbox', '--disable-setuid-sandbox']),
+    PUPPETEER_ARGS: parseArray(process.env.PUPPETEER_ARGS, [
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+    ]),
     PUPPETEER_EXECUTABLE_PATH: process.env.PUPPETEER_EXECUTABLE_PATH,
     PUPPETEER_USER_DATA_DIR: process.env.PUPPETEER_USER_DATA_DIR,
     PUPPETEER_DEFAULT_VIEWPORT_WIDTH: parseInt(process.env.PUPPETEER_DEFAULT_VIEWPORT_WIDTH, 1920),
-    PUPPETEER_DEFAULT_VIEWPORT_HEIGHT: parseInt(process.env.PUPPETEER_DEFAULT_VIEWPORT_HEIGHT, 1080),
+    PUPPETEER_DEFAULT_VIEWPORT_HEIGHT: parseInt(
+      process.env.PUPPETEER_DEFAULT_VIEWPORT_HEIGHT,
+      1080,
+    ),
     PUPPETEER_SLOW_MO: parseInt(process.env.PUPPETEER_SLOW_MO, 0),
     BROWSER_POOL_MAX_SIZE: parseInt(process.env.BROWSER_POOL_MAX_SIZE, 5),
     BROWSER_IDLE_TIMEOUT: parseInt(process.env.BROWSER_IDLE_TIMEOUT, 300000),

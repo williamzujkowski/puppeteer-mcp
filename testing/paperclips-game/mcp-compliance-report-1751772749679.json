@@ -36,11 +36,7 @@
         "properties": {
           "protocol": {
             "type": "string",
-            "enum": [
-              "rest",
-              "grpc",
-              "websocket"
-            ],
+            "enum": ["rest", "grpc", "websocket"],
             "description": "Protocol to use"
           },
           "operation": {
@@ -52,11 +48,7 @@
             "properties": {
               "type": {
                 "type": "string",
-                "enum": [
-                  "jwt",
-                  "apikey",
-                  "session"
-                ]
+                "enum": ["jwt", "apikey", "session"]
               },
               "credentials": {
                 "type": "string"
@@ -64,10 +56,7 @@
             }
           }
         },
-        "required": [
-          "protocol",
-          "operation"
-        ]
+        "required": ["protocol", "operation"]
       },
       "details": "Tools list valid with 6 tools, all with proper metadata",
       "timestamp": "2025-07-06T03:32:29.169Z"

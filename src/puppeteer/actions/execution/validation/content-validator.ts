@@ -25,7 +25,7 @@ export class ContentValidator extends BaseValidator {
    * Supported action types
    */
   private readonly supportedTypes = ['screenshot', 'pdf', 'content'];
-  
+
   private readonly screenshotValidator = new ScreenshotSubValidator();
   private readonly pdfValidator = new PDFSubValidator();
   private readonly contentExtractionValidator = new ContentExtractionValidator();
@@ -50,11 +50,13 @@ export class ContentValidator extends BaseValidator {
       case 'content':
         return this.contentExtractionValidator.validate(action, context);
       default:
-        return this.createResult([{
-          field: 'type',
-          message: `Unknown content action type: ${action.type}`,
-          code: 'UNKNOWN_CONTENT_ACTION',
-        }]);
+        return this.createResult([
+          {
+            field: 'type',
+            message: `Unknown content action type: ${action.type}`,
+            code: 'UNKNOWN_CONTENT_ACTION',
+          },
+        ]);
     }
   }
 
@@ -66,7 +68,6 @@ export class ContentValidator extends BaseValidator {
   canValidate(action: BrowserAction): boolean {
     return this.supportedTypes.includes(action.type);
   }
-
 }
 
 // Re-export sub-validators for direct use if needed

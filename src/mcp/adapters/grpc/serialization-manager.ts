@@ -21,7 +21,9 @@ export class GrpcSerializationManager {
       const jsonString = JSON.stringify(data);
       return Buffer.from(jsonString, 'utf8');
     } catch (error) {
-      throw new Error(`Serialization failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Serialization failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
     }
   }
 
@@ -63,10 +65,7 @@ export class GrpcSerializationManager {
   /**
    * Validate and serialize request data
    */
-  serializeRequest(
-    request: unknown,
-    schema?: z.ZodSchema,
-  ): ValidationResult<Buffer> {
+  serializeRequest(request: unknown, schema?: z.ZodSchema): ValidationResult<Buffer> {
     try {
       let validatedRequest = request;
 
@@ -97,10 +96,7 @@ export class GrpcSerializationManager {
   /**
    * Deserialize and validate response data
    */
-  deserializeResponse(
-    buffer: Buffer,
-    schema?: z.ZodSchema,
-  ): ValidationResult<GrpcResponse> {
+  deserializeResponse(buffer: Buffer, schema?: z.ZodSchema): ValidationResult<GrpcResponse> {
     try {
       const result = this.deserialize(buffer, schema);
       if (!result.success) {
@@ -181,10 +177,7 @@ export class GrpcSerializationManager {
    * Create validation schema for response messages
    */
   static createResponseSchema(): z.ZodSchema {
-    return z.union([
-      z.record(z.unknown()),
-      z.array(z.record(z.unknown())),
-    ]);
+    return z.union([z.record(z.unknown()), z.array(z.record(z.unknown()))]);
   }
 
   /**
@@ -200,7 +193,7 @@ export class GrpcSerializationManager {
     }
 
     if (Array.isArray(data)) {
-      return data.map(item => this.sanitizeData(item));
+      return data.map((item) => this.sanitizeData(item));
     }
 
     if (typeof data === 'object') {

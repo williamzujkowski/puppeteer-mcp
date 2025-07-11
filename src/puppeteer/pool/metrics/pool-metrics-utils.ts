@@ -14,7 +14,7 @@ import type { InternalBrowserInstance } from '../browser-pool-maintenance.js';
  */
 export function getPoolMetrics(
   browsers: Map<string, InternalBrowserInstance>,
-  maxBrowsers: number
+  maxBrowsers: number,
 ): PoolMetrics {
   const instances = Array.from(browsers.values());
 
@@ -34,8 +34,7 @@ export function getPoolMetrics(
     browsersCreated: 0, // Will be overridden by ExtendedPoolMetrics
     browsersDestroyed: 0, // Will be overridden by ExtendedPoolMetrics
     avgBrowserLifetime: 0, // Will be overridden by ExtendedPoolMetrics
-    utilizationPercentage:
-      browsers.size > 0 ? (activeBrowsers / maxBrowsers) * 100 : 0,
+    utilizationPercentage: browsers.size > 0 ? (activeBrowsers / maxBrowsers) * 100 : 0,
     lastHealthCheck: new Date(),
   };
 }

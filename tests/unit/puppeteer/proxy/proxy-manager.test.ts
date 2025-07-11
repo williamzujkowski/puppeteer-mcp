@@ -5,7 +5,11 @@
 
 import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
 import { ProxyManager } from '../../../../src/puppeteer/proxy/proxy-manager.js';
-import type { ProxyConfig, ProxyPoolConfig, ContextProxyConfig } from '../../../../src/puppeteer/types/proxy.js';
+import type {
+  ProxyConfig,
+  ProxyPoolConfig,
+  ContextProxyConfig,
+} from '../../../../src/puppeteer/types/proxy.js';
 
 describe('ProxyManager', () => {
   let proxyManager: ProxyManager;
@@ -60,7 +64,7 @@ describe('ProxyManager', () => {
       };
 
       await proxyManager.initialize(poolConfig);
-      
+
       const metrics = proxyManager.getMetrics();
       expect(metrics.proxies).toHaveLength(2);
     });
@@ -366,11 +370,21 @@ describe('ProxyManager', () => {
       const proxyId = result.proxyId;
 
       // Simulate errors
-      await proxyManager.handleProxyError('context-1', proxyId, new Error('Connection failed'), contextConfig);
-      await proxyManager.handleProxyError('context-1', proxyId, new Error('Connection failed'), contextConfig);
+      await proxyManager.handleProxyError(
+        'context-1',
+        proxyId,
+        new Error('Connection failed'),
+        contextConfig,
+      );
+      await proxyManager.handleProxyError(
+        'context-1',
+        proxyId,
+        new Error('Connection failed'),
+        contextConfig,
+      );
 
       const health = proxyManager.getHealthStatus();
-      const proxyHealth = health.find(h => h.proxyId === proxyId);
+      const proxyHealth = health.find((h) => h.proxyId === proxyId);
       expect(proxyHealth?.consecutiveFailures).toBe(2);
       expect(proxyHealth?.errorCount).toBe(2);
     });
@@ -409,13 +423,18 @@ describe('ProxyManager', () => {
 
       // Trigger failures up to threshold
       for (let i = 0; i < 3; i++) {
-        await proxyManager.handleProxyError('context-1', proxyId, new Error('Connection failed'), contextConfig);
+        await proxyManager.handleProxyError(
+          'context-1',
+          proxyId,
+          new Error('Connection failed'),
+          contextConfig,
+        );
       }
 
       await unhealthyPromise;
 
       const health = proxyManager.getHealthStatus();
-      const proxyHealth = health.find(h => h.proxyId === proxyId);
+      const proxyHealth = health.find((h) => h.proxyId === proxyId);
       expect(proxyHealth?.healthy).toBe(false);
     });
   });

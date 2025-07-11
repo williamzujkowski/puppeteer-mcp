@@ -119,11 +119,11 @@
   .card-grid {
     @apply grid-cols-1;
   }
-  
+
   .feature-grid {
     @apply grid-cols-1;
   }
-  
+
   .doc-card {
     @apply p-4;
   }

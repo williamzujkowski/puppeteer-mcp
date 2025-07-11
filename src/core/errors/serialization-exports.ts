@@ -11,7 +11,8 @@ import { ErrorSerializer } from './error-serialization.js';
 export const serializeError = ErrorSerializer.serialize.bind(ErrorSerializer);
 export const serializeErrorForRest = ErrorSerializer.serializeForRest.bind(ErrorSerializer);
 export const serializeErrorForGrpc = ErrorSerializer.serializeForGrpc.bind(ErrorSerializer);
-export const serializeErrorForWebSocket = ErrorSerializer.serializeForWebSocket.bind(ErrorSerializer);
+export const serializeErrorForWebSocket =
+  ErrorSerializer.serializeForWebSocket.bind(ErrorSerializer);
 export const serializeErrorForMcp = ErrorSerializer.serializeForMcp.bind(ErrorSerializer);
 
 // Re-export everything from the main modules for convenience

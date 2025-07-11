@@ -6,12 +6,12 @@
  */
 
 import type { TelemetryConfig } from '../config.js';
-import type { 
-  HealthCheckResult, 
-  HealthCheckStrategy, 
-  HealthCheckCommand, 
+import type {
+  HealthCheckResult,
+  HealthCheckStrategy,
+  HealthCheckCommand,
   ExporterHealthResult,
-  ConnectivityOptions 
+  ConnectivityOptions,
 } from './types.js';
 import { logger } from '../../utils/logger.js';
 
@@ -135,9 +135,9 @@ export class ConnectivityChecker {
    * Check endpoint connectivity
    */
   static async checkEndpoint(
-    endpoint: string, 
+    endpoint: string,
     errorPrefix: string,
-    options: ConnectivityOptions = DEFAULT_CONNECTIVITY_OPTIONS
+    options: ConnectivityOptions = DEFAULT_CONNECTIVITY_OPTIONS,
   ): Promise<HealthCheckResult> {
     try {
       const url = new URL(endpoint);
@@ -149,23 +149,25 @@ export class ConnectivityChecker {
           signal: controller.signal,
           method: options.method,
         });
-        
-        const allowedCodes = options.allowedStatusCodes ?? DEFAULT_CONNECTIVITY_OPTIONS.allowedStatusCodes ?? [200, 404, 405];
+
+        const allowedCodes = options.allowedStatusCodes ??
+          DEFAULT_CONNECTIVITY_OPTIONS.allowedStatusCodes ?? [200, 404, 405];
         const healthy = allowedCodes.includes(response.status);
-        
+
         if (!healthy) {
           return {
             healthy: false,
-            errors: [`${errorPrefix} endpoint returned status ${response.status}: ${endpoint}`]
+            errors: [`${errorPrefix} endpoint returned status ${response.status}: ${endpoint}`],
           };
         }
-        
+
         return { healthy: true, errors: [] };
       } catch (error) {
-        const errorMessage = error instanceof Error && error.name === 'AbortError'
-          ? `${errorPrefix} endpoint timeout: ${endpoint}`
-          : `${errorPrefix} endpoint unreachable: ${endpoint} (${String(error)})`;
-        
+        const errorMessage =
+          error instanceof Error && error.name === 'AbortError'
+            ? `${errorPrefix} endpoint timeout: ${endpoint}`
+            : `${errorPrefix} endpoint unreachable: ${endpoint} (${String(error)})`;
+
         return { healthy: false, errors: [errorMessage] };
       } finally {
         clearTimeout(timeout);
@@ -173,7 +175,9 @@ export class ConnectivityChecker {
     } catch (error) {
       return {
         healthy: false,
-        errors: [`Invalid ${errorPrefix.toLowerCase()} endpoint URL: ${endpoint} (${String(error)})`]
+        errors: [
+          `Invalid ${errorPrefix.toLowerCase()} endpoint URL: ${endpoint} (${String(error)})`,
+        ],
       };
     }
   }
@@ -183,12 +187,12 @@ export class ConnectivityChecker {
    */
   static async checkEndpoints(
     endpoints: Array<{ endpoint: string; errorPrefix: string }>,
-    options: ConnectivityOptions = DEFAULT_CONNECTIVITY_OPTIONS
+    options: ConnectivityOptions = DEFAULT_CONNECTIVITY_OPTIONS,
   ): Promise<HealthCheckResult[]> {
     const checks = endpoints.map(({ endpoint, errorPrefix }) =>
-      this.checkEndpoint(endpoint, errorPrefix, options)
+      this.checkEndpoint(endpoint, errorPrefix, options),
     );
-    
+
     return Promise.all(checks);
   }
 }
@@ -208,12 +212,15 @@ export class HealthCheckStrategyFactory {
 
   static createStrategy(exporterType: string): HealthCheckStrategy {
     const strategyFactory = this.strategies.get(exporterType);
-    
+
     if (!strategyFactory) {
-      logger.warn({ exporterType }, 'Unknown exporter type for health check, using console strategy');
+      logger.warn(
+        { exporterType },
+        'Unknown exporter type for health check, using console strategy',
+      );
       return new ConsoleHealthCheckStrategy();
     }
-    
+
     return strategyFactory();
   }
 
@@ -239,7 +246,7 @@ export class TraceHealthCheckCommand implements HealthCheckCommand {
     }
 
     const strategy = HealthCheckStrategyFactory.createStrategy(this.config.tracing.exporter);
-    
+
     if (!strategy.requiresConnectivityCheck()) {
       return { healthy: true, errors: [] };
     }
@@ -265,7 +272,7 @@ export class MetricHealthCheckCommand implements HealthCheckCommand {
     }
 
     const strategy = HealthCheckStrategyFactory.createStrategy(this.config.metrics.exporter);
-    
+
     if (!strategy.requiresConnectivityCheck()) {
       return { healthy: true, errors: [] };
     }
@@ -325,11 +332,14 @@ export async function checkExporterHealth(config: TelemetryConfig): Promise<Expo
       .withMetricResult(metricResult)
       .build();
 
-    logger.debug({
-      traces: result.traces,
-      metrics: result.metrics,
-      errorCount: result.errors.length,
-    }, 'Exporter health check completed');
+    logger.debug(
+      {
+        traces: result.traces,
+        metrics: result.metrics,
+        errorCount: result.errors.length,
+      },
+      'Exporter health check completed',
+    );
 
     return result;
   } catch (error) {
@@ -345,9 +355,7 @@ export async function checkExporterHealth(config: TelemetryConfig): Promise<Expo
 /**
  * Perform comprehensive health check with detailed results
  */
-export async function performDetailedHealthCheck(
-  config: TelemetryConfig
-): Promise<{
+export async function performDetailedHealthCheck(config: TelemetryConfig): Promise<{
   overall: boolean;
   details: {
     tracing: HealthCheckResult;

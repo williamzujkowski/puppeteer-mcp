@@ -54,37 +54,25 @@ export class StrategyManager {
   calculateScore(
     metrics: StrategyMetrics,
     strategy: RecyclingStrategy,
-    config: RecyclingConfig
+    config: RecyclingConfig,
   ): RecyclingStrategyResult {
     switch (strategy) {
       case RecyclingStrategy.TIME_BASED:
-        return this.timeBasedStrategy.calculate(
-          metrics.ageMs,
-          metrics.idleTimeMs,
-          config
-        );
-        
+        return this.timeBasedStrategy.calculate(metrics.ageMs, metrics.idleTimeMs, config);
+
       case RecyclingStrategy.USAGE_BASED:
-        return this.usageBasedStrategy.calculate(
-          metrics.useCount,
-          metrics.pageCount,
-          config
-        );
-        
+        return this.usageBasedStrategy.calculate(metrics.useCount, metrics.pageCount, config);
+
       case RecyclingStrategy.HEALTH_BASED:
-        return this.healthBasedStrategy.calculate(
-          metrics.healthScore,
-          metrics.errorRate,
-          config
-        );
-        
+        return this.healthBasedStrategy.calculate(metrics.healthScore, metrics.errorRate, config);
+
       case RecyclingStrategy.RESOURCE_BASED:
         return this.resourceBasedStrategy.calculate(
           metrics.memoryUsageMB,
           metrics.cpuUsagePercent,
-          config
+          config,
         );
-        
+
       case RecyclingStrategy.HYBRID:
       default:
         return this.hybridStrategy.calculate(metrics, config);

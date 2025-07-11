@@ -48,7 +48,7 @@ export class SessionStoreBuilder {
       ...this.metadata,
       createdAt: new Date(),
       config,
-      redisAvailable
+      redisAvailable,
     };
     return this;
   }
@@ -64,7 +64,7 @@ export class SessionStoreBuilder {
       monitor: this.monitor,
       replication: this.replication,
       migration: this.migration,
-      metadata: this.metadata as SessionStoreFactoryResult['metadata']
+      metadata: this.metadata as SessionStoreFactoryResult['metadata'],
     };
   }
 }

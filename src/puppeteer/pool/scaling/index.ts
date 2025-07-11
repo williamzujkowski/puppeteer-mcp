@@ -20,15 +20,8 @@ import { ScalingMetricsCalculator } from './metrics-calculator.js';
 import { ScalingDecisionMaker } from './decision-maker.js';
 import { IdealSizeCalculator } from './ideal-size-calculator.js';
 
-export type {
-  BrowserPoolScalingStrategy,
-  ScalingEvent,
-  ScalingMetrics,
-};
-export {
-  ScalingDecision,
-  DEFAULT_STRATEGIES,
-};
+export type { BrowserPoolScalingStrategy, ScalingEvent, ScalingMetrics };
+export { ScalingDecision, DEFAULT_STRATEGIES };
 
 const logger = createLogger('browser-pool-scaling');
 

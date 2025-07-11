@@ -37,11 +37,11 @@ export const isLogLevelEnabled = (level: LogLevel, currentLevel: LogLevel): bool
 
   const levelValue = levels.get(level);
   const currentLevelValue = levels.get(currentLevel);
-  
+
   if (levelValue === undefined || currentLevelValue === undefined) {
     return false;
   }
-  
+
   return levelValue <= currentLevelValue;
 };
 

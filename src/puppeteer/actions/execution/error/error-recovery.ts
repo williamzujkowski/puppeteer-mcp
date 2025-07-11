@@ -6,7 +6,10 @@
  */
 
 import type { Page } from 'puppeteer';
-import type { BrowserAction, ActionContext } from '../../../interfaces/action-executor.interface.js';
+import type {
+  BrowserAction,
+  ActionContext,
+} from '../../../interfaces/action-executor.interface.js';
 import { ActionExecutionError, type ActionExecutionErrorDetails } from '../types.js';
 import { createLogger } from '../../../../utils/logger.js';
 
@@ -37,12 +40,12 @@ export abstract class BaseRecoveryStrategy implements RecoveryStrategy {
   protected trackAttempt(key: string): boolean {
     const attempts = (this.recoveryAttempts.get(key) ?? 0) + 1;
     this.recoveryAttempts.set(key, attempts);
-    
+
     if (attempts > this.maxRecoveryAttempts) {
       logger.warn('Max recovery attempts exceeded', { key, attempts });
       return false;
     }
-    
+
     return true;
   }
 
@@ -68,7 +71,7 @@ export class ElementNotFoundRecovery extends BaseRecoveryStrategy {
 
   async recover(page: Page, action: BrowserAction, context: ActionContext): Promise<boolean> {
     const key = `${context.sessionId}:${action.type}:element`;
-    
+
     if (!this.trackAttempt(key)) {
       return false;
     }
@@ -88,7 +91,9 @@ export class ElementNotFoundRecovery extends BaseRecoveryStrategy {
       await page.evaluate(() => window.scrollTo(0, 0));
 
       // Wait a bit for dynamic content
-      await new Promise<void>((resolve) => { setTimeout(resolve, 1000); });
+      await new Promise<void>((resolve) => {
+        setTimeout(resolve, 1000);
+      });
 
       return true;
     } catch (error) {
@@ -108,7 +113,7 @@ export class NavigationFailureRecovery extends BaseRecoveryStrategy {
 
   async recover(page: Page, _action: BrowserAction, context: ActionContext): Promise<boolean> {
     const key = `${context.sessionId}:navigation`;
-    
+
     if (!this.trackAttempt(key)) {
       return false;
     }
@@ -121,16 +126,18 @@ export class NavigationFailureRecovery extends BaseRecoveryStrategy {
 
       // Check if page is responsive
       const isResponsive = await page.evaluate(() => true).catch(() => false);
-      
+
       if (!isResponsive) {
         logger.warn('Page is not responsive');
         return false;
       }
 
       // Try to stop any pending navigation
-      await page.evaluate(() => window.stop()).catch(() => {
-        // Ignore errors
-      });
+      await page
+        .evaluate(() => window.stop())
+        .catch(() => {
+          // Ignore errors
+        });
 
       // Wait for stability
       await page.waitForLoadState?.('networkidle', { timeout: 5000 }).catch(() => {
@@ -155,7 +162,7 @@ export class TimeoutRecovery extends BaseRecoveryStrategy {
 
   async recover(page: Page, _action: BrowserAction, context: ActionContext): Promise<boolean> {
     const key = `${context.sessionId}:timeout`;
-    
+
     if (!this.trackAttempt(key)) {
       return false;
     }
@@ -223,7 +230,7 @@ export class ErrorRecoveryChain {
         });
 
         const recovered = await strategy.recover(page, action, context);
-        
+
         if (recovered) {
           logger.info('Recovery successful', {
             strategy: strategy.constructor.name,
@@ -236,7 +243,7 @@ export class ErrorRecoveryChain {
     logger.warn('No recovery strategy available or all strategies failed', {
       errorType: error.type,
     });
-    
+
     return false;
   }
 

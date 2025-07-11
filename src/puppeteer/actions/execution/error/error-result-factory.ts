@@ -5,7 +5,11 @@
  * @nist au-3 "Content of audit records"
  */
 
-import type { ActionResult, BrowserAction, ValidationResult } from '../../../interfaces/action-executor.interface.js';
+import type {
+  ActionResult,
+  BrowserAction,
+  ValidationResult,
+} from '../../../interfaces/action-executor.interface.js';
 import type { ActionExecutionErrorDetails } from '../types.js';
 import { ActionExecutionError } from '../types.js';
 import { createLogger } from '../../../../utils/logger.js';
@@ -29,8 +33,8 @@ export class ErrorResultFactory {
     validationResult: ValidationResult,
     duration: number,
   ): ActionResult<T> {
-    const errorMessage = validationResult.errors.map(e => e.message).join('; ');
-    
+    const errorMessage = validationResult.errors.map((e) => e.message).join('; ');
+
     logger.warn('Creating validation failure result', {
       actionType: action.type,
       errors: validationResult.errors.length,
@@ -90,12 +94,9 @@ export class ErrorResultFactory {
    * @param duration - Execution duration
    * @returns Standardized error result
    */
-  static createPageNotFound<T = unknown>(
-    action: BrowserAction,
-    duration: number,
-  ): ActionResult<T> {
+  static createPageNotFound<T = unknown>(action: BrowserAction, duration: number): ActionResult<T> {
     const errorMessage = `Page not found: ${action.pageId}`;
-    
+
     logger.error('Creating page not found result', {
       actionType: action.type,
       pageId: action.pageId,
@@ -127,7 +128,7 @@ export class ErrorResultFactory {
     duration: number,
   ): ActionResult<T> {
     const errorMessage = `Action timed out: ${timeoutType} timeout exceeded`;
-    
+
     logger.error('Creating timeout result', {
       actionType: action.type,
       timeoutType,
@@ -158,7 +159,7 @@ export class ErrorResultFactory {
     duration: number,
   ): ActionResult<T> {
     const errorMessage = `No handler found for action type: ${action.type}`;
-    
+
     logger.error('Creating handler not found result', {
       actionType: action.type,
     });
@@ -189,7 +190,7 @@ export class ErrorResultFactory {
     duration: number,
   ): ActionResult<T> {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    
+
     logger.error('Creating unknown error result', {
       actionType,
       error: errorMessage,
@@ -222,10 +223,10 @@ export class ErrorResultFactory {
     attempts: number,
     duration: number,
   ): ActionResult<T> {
-    const errorMessage = lastError 
+    const errorMessage = lastError
       ? `Action failed after ${attempts} attempts: ${lastError.message}`
       : `Action failed after ${attempts} attempts`;
-    
+
     logger.error('Creating retry exhausted result', {
       actionType: action.type,
       attempts,

@@ -6,11 +6,7 @@
  * @nist au-7 "Audit reduction and report generation"
  */
 
-import type {
-  ExtendedPoolMetrics,
-  MetricObserver,
-  MetricEvent,
-} from './types.js';
+import type { ExtendedPoolMetrics, MetricObserver, MetricEvent } from './types.js';
 import { createLogger } from '../../../utils/logger.js';
 
 const logger = createLogger('metrics-reporter');
@@ -57,7 +53,7 @@ export class MetricsReporter implements MetricObserver {
    */
   update(event: MetricEvent): void {
     this.events.push(event);
-    
+
     // Limit event history
     while (this.events.length > this.maxEvents) {
       this.events.shift();
@@ -118,9 +114,7 @@ export class MetricsReporter implements MetricObserver {
     const timestamp = new Date().toISOString();
 
     // Header
-    rows.push(
-      'timestamp,metric,value'
-    );
+    rows.push('timestamp,metric,value');
 
     // Pool metrics
     rows.push(`${timestamp},total_browsers,${metrics.totalBrowsers}`);
@@ -246,7 +240,7 @@ export class MetricsReporter implements MetricObserver {
         '',
         `Last Error:`,
         `  Type: ${metrics.errors.lastError.type}`,
-        `  Time: ${metrics.errors.lastError.timestamp.toISOString()}`
+        `  Time: ${metrics.errors.lastError.timestamp.toISOString()}`,
       );
     }
 

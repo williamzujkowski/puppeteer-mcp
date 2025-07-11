@@ -12,7 +12,7 @@ import type {
   RestoreOptions,
   RestoreResult,
   SessionMigrationResult,
-  BackupValidationResult
+  BackupValidationResult,
 } from './types.js';
 import { MigrationFactory } from './migration-factory.js';
 import type { CleanupOptions, CleanupResult } from './cleanup-service.js';
@@ -36,13 +36,13 @@ export class MigrationManager {
   async backupSessions(
     client: RedisClient,
     backupPath: string,
-    options?: BackupOptions
+    options?: BackupOptions,
   ): Promise<BackupResult> {
     const strategy = this.factory.createBackupStrategy();
     return strategy.execute({
       client,
       backupPath,
-      options
+      options,
     });
   }
 
@@ -52,13 +52,13 @@ export class MigrationManager {
   async restoreSessions(
     client: RedisClient,
     backupPath: string,
-    options?: RestoreOptions
+    options?: RestoreOptions,
   ): Promise<RestoreResult> {
     const strategy = this.factory.createRestoreStrategy();
     return strategy.execute({
       client,
       backupPath,
-      options
+      options,
     });
   }
 
@@ -68,13 +68,13 @@ export class MigrationManager {
   async migrateSessions(
     sourceClient: RedisClient,
     targetClient: RedisClient,
-    config: MigrationConfig
+    config: MigrationConfig,
   ): Promise<SessionMigrationResult> {
     const strategy = this.factory.createTransferStrategy();
     return strategy.execute({
       sourceClient,
       targetClient,
-      migrationConfig: config
+      migrationConfig: config,
     });
   }
 
@@ -83,7 +83,7 @@ export class MigrationManager {
    */
   async cleanupExpiredSessions(
     client: RedisClient,
-    options?: CleanupOptions
+    options?: CleanupOptions,
   ): Promise<CleanupResult> {
     const service = this.factory.createCleanupService();
     return service.cleanupExpiredSessions(client, options);
@@ -94,7 +94,7 @@ export class MigrationManager {
    */
   async validateBackup(
     backupPath: string,
-    options?: ValidationOptions
+    options?: ValidationOptions,
   ): Promise<BackupValidationResult> {
     const service = this.factory.createValidationService();
     return service.validateBackupFile(backupPath, options);
@@ -118,7 +118,7 @@ export class MigrationManager {
    */
   async compareBackups(
     backupPath1: string,
-    backupPath2: string
+    backupPath2: string,
   ): Promise<{
     identical: boolean;
     differences: Record<string, unknown>;
@@ -133,7 +133,7 @@ export class MigrationManager {
   async backupAndValidate(
     client: RedisClient,
     backupPath: string,
-    options?: BackupOptions & ValidationOptions
+    options?: BackupOptions & ValidationOptions,
   ): Promise<{
     backup: BackupResult;
     validation: BackupValidationResult;
@@ -156,7 +156,7 @@ export class MigrationManager {
   async fullMigration(
     sourceClient: RedisClient,
     targetClient: RedisClient,
-    config: MigrationConfig & { backupPath?: string }
+    config: MigrationConfig & { backupPath?: string },
   ): Promise<{
     cleanup?: CleanupResult;
     backup?: BackupResult;
@@ -171,19 +171,13 @@ export class MigrationManager {
 
     // Create backup if path provided
     if (config.backupPath) {
-      results.backup = await this.backupSessions(
-        sourceClient,
-        config.backupPath,
-        { preserveTTL: config.preserveTTL }
-      );
+      results.backup = await this.backupSessions(sourceClient, config.backupPath, {
+        preserveTTL: config.preserveTTL,
+      });
     }
 
     // Perform migration
-    results.migration = await this.migrateSessions(
-      sourceClient,
-      targetClient,
-      config
-    );
+    results.migration = await this.migrateSessions(sourceClient, targetClient, config);
 
     return results;
   }

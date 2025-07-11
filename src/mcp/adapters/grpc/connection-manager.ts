@@ -24,14 +24,9 @@ export class GrpcConnectionManager {
     protoPath?: string,
   ) {
     // Use getDirnameFromSrc to work in both production and test environments
-    this.protoPath = protoPath ?? join(
-      getDirnameFromSrc('mcp/adapters'),
-      '..',
-      '..',
-      '..',
-      'proto',
-      'control.proto',
-    );
+    this.protoPath =
+      protoPath ??
+      join(getDirnameFromSrc('mcp/adapters'), '..', '..', '..', 'proto', 'control.proto');
     this.initializeProto();
   }
 

@@ -35,7 +35,7 @@ export class CacheOperations<T = any> {
   constructor(
     protected name: string,
     protected maxSize: number,
-    protected maxAge: number
+    protected maxAge: number,
   ) {}
 
   /**
@@ -43,7 +43,7 @@ export class CacheOperations<T = any> {
    */
   get(key: string): T | null {
     const entry = this.cache.get(key);
-    
+
     if (!entry) {
       this.stats.misses++;
       return null;
@@ -59,12 +59,15 @@ export class CacheOperations<T = any> {
     // Update access order (LRU)
     this.updateAccessOrder(key);
     this.stats.hits++;
-    
-    logger.debug({
-      cache: this.name,
-      key,
-      age: Date.now() - entry.timestamp.getTime(),
-    }, 'Cache hit');
+
+    logger.debug(
+      {
+        cache: this.name,
+        key,
+        age: Date.now() - entry.timestamp.getTime(),
+      },
+      'Cache hit',
+    );
 
     return entry.result;
   }
@@ -85,11 +88,14 @@ export class CacheOperations<T = any> {
 
     this.updateAccessOrder(key);
 
-    logger.debug({
-      cache: this.name,
-      key,
-      cacheSize: this.cache.size,
-    }, 'Value cached');
+    logger.debug(
+      {
+        cache: this.name,
+        key,
+        cacheSize: this.cache.size,
+      },
+      'Value cached',
+    );
   }
 
   /**
@@ -98,7 +104,7 @@ export class CacheOperations<T = any> {
   delete(key: string): boolean {
     const deleted = this.cache.delete(key);
     if (deleted) {
-      this.accessOrder = this.accessOrder.filter(k => k !== key);
+      this.accessOrder = this.accessOrder.filter((k) => k !== key);
     }
     return deleted;
   }
@@ -110,11 +116,14 @@ export class CacheOperations<T = any> {
     const previousSize = this.cache.size;
     this.cache.clear();
     this.accessOrder = [];
-    
-    logger.info({
-      cache: this.name,
-      clearedEntries: previousSize,
-    }, 'Cache cleared');
+
+    logger.info(
+      {
+        cache: this.name,
+        clearedEntries: previousSize,
+      },
+      'Cache cleared',
+    );
   }
 
   /**
@@ -146,13 +155,13 @@ export class CacheOperations<T = any> {
   has(key: string): boolean {
     const entry = this.cache.get(key);
     if (!entry) return false;
-    
+
     // Check expiration
     if (this.isExpired(entry)) {
       this.delete(key);
       return false;
     }
-    
+
     return true;
   }
 
@@ -175,7 +184,7 @@ export class CacheOperations<T = any> {
    */
   protected updateAccessOrder(key: string): void {
     // Remove from current position
-    this.accessOrder = this.accessOrder.filter(k => k !== key);
+    this.accessOrder = this.accessOrder.filter((k) => k !== key);
     // Add to end (most recently used)
     this.accessOrder.push(key);
   }
@@ -190,12 +199,15 @@ export class CacheOperations<T = any> {
     if (lruKey) {
       this.cache.delete(lruKey);
       this.stats.evictions++;
-      
-      logger.debug({
-        cache: this.name,
-        evictedKey: lruKey,
-        cacheSize: this.cache.size,
-      }, 'LRU entry evicted');
+
+      logger.debug(
+        {
+          cache: this.name,
+          evictedKey: lruKey,
+          cacheSize: this.cache.size,
+        },
+        'LRU entry evicted',
+      );
     }
   }
 
@@ -204,7 +216,7 @@ export class CacheOperations<T = any> {
    */
   cleanup(): void {
     const expiredKeys: string[] = [];
-    
+
     for (const [key, entry] of this.cache.entries()) {
       if (this.isExpired(entry)) {
         expiredKeys.push(key);
@@ -216,11 +228,14 @@ export class CacheOperations<T = any> {
     }
 
     if (expiredKeys.length > 0) {
-      logger.debug({
-        cache: this.name,
-        expiredCount: expiredKeys.length,
-        remainingSize: this.cache.size,
-      }, 'Expired entries cleaned up');
+      logger.debug(
+        {
+          cache: this.name,
+          expiredCount: expiredKeys.length,
+          remainingSize: this.cache.size,
+        },
+        'Expired entries cleaned up',
+      );
     }
   }
 }

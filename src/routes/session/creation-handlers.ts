@@ -65,13 +65,15 @@ export class SessionCreationHandlerFactory {
         },
       });
 
-      res.json(formatSuccessResponse({
-        sessionId,
-        userId: finalUserId,
-        username,
-        roles,
-        ...tokens,
-      }));
+      res.json(
+        formatSuccessResponse({
+          sessionId,
+          userId: finalUserId,
+          username,
+          roles,
+          ...tokens,
+        }),
+      );
     };
   }
 }

@@ -9,10 +9,7 @@ import { CircuitBreaker } from './circuit-breaker-core.js';
 import { CircuitBreakerConfig, CircuitBreakerState } from './types.js';
 import { DEFAULT_CIRCUIT_BREAKER_CONFIG } from './config.js';
 import { createLogger } from '../../../utils/logger.js';
-import {
-  evictCircuitBreaker,
-  setupEventForwarding,
-} from './registry-utils.js';
+import { evictCircuitBreaker, setupEventForwarding } from './registry-utils.js';
 
 const logger = createLogger('circuit-breaker-registry');
 
@@ -57,11 +54,14 @@ export class CircuitBreakerRegistry {
     this.maxCircuitBreakers = options.maxCircuitBreakers || 100;
     this.enableMetricsAggregation = options.enableMetricsAggregation ?? true;
 
-    logger.info({
-      globalConfig: this.globalConfig,
-      maxCircuitBreakers: this.maxCircuitBreakers,
-      enableMetricsAggregation: this.enableMetricsAggregation,
-    }, 'Circuit breaker registry initialized');
+    logger.info(
+      {
+        globalConfig: this.globalConfig,
+        maxCircuitBreakers: this.maxCircuitBreakers,
+        enableMetricsAggregation: this.enableMetricsAggregation,
+      },
+      'Circuit breaker registry initialized',
+    );
   }
 
   /**
@@ -70,7 +70,7 @@ export class CircuitBreakerRegistry {
    */
   getCircuitBreaker(name: string, config?: Partial<CircuitBreakerConfig>): CircuitBreaker {
     let circuitBreaker = this.circuitBreakers.get(name);
-    
+
     if (!circuitBreaker) {
       // Check capacity
       if (this.circuitBreakers.size >= this.maxCircuitBreakers) {
@@ -80,17 +80,20 @@ export class CircuitBreakerRegistry {
       const mergedConfig = { ...this.globalConfig, ...config };
       circuitBreaker = new CircuitBreaker(name, mergedConfig);
       this.circuitBreakers.set(name, circuitBreaker);
-      
+
       // Setup event forwarding
       if (this.enableMetricsAggregation) {
         setupEventForwarding(name, circuitBreaker);
       }
-      
-      logger.info({
-        name,
-        config: mergedConfig,
-        totalCircuitBreakers: this.circuitBreakers.size,
-      }, 'Circuit breaker created');
+
+      logger.info(
+        {
+          name,
+          config: mergedConfig,
+          totalCircuitBreakers: this.circuitBreakers.size,
+        },
+        'Circuit breaker created',
+      );
     }
 
     return circuitBreaker;
@@ -104,12 +107,15 @@ export class CircuitBreakerRegistry {
     if (circuitBreaker) {
       circuitBreaker.destroy();
       this.circuitBreakers.delete(name);
-      
-      logger.info({
-        name,
-        remainingCircuitBreakers: this.circuitBreakers.size,
-      }, 'Circuit breaker removed');
-      
+
+      logger.info(
+        {
+          name,
+          remainingCircuitBreakers: this.circuitBreakers.size,
+        },
+        'Circuit breaker removed',
+      );
+
       return true;
     }
     return false;
@@ -152,8 +158,9 @@ export class CircuitBreakerRegistry {
 
     return {
       totalCircuitBreakers: this.circuitBreakers.size,
-      healthyCircuitBreakers: circuitBreakers.filter(cb => cb.healthy).length,
-      openCircuitBreakers: circuitBreakers.filter(cb => cb.state === CircuitBreakerState.OPEN).length,
+      healthyCircuitBreakers: circuitBreakers.filter((cb) => cb.healthy).length,
+      openCircuitBreakers: circuitBreakers.filter((cb) => cb.state === CircuitBreakerState.OPEN)
+        .length,
       circuitBreakers,
     };
   }
@@ -180,11 +187,11 @@ export class CircuitBreakerRegistry {
     for (const [name, cb] of this.circuitBreakers) {
       const metrics = cb.getMetrics();
       circuitBreakerMetrics.set(name, metrics);
-      
+
       totalRequests += metrics.requestCount;
       totalFailures += metrics.failureCount;
       totalSuccesses += metrics.successCount;
-      
+
       if (metrics.averageResponseTime > 0) {
         totalResponseTime += metrics.averageResponseTime;
         responseTimeCount++;
@@ -211,10 +218,13 @@ export class CircuitBreakerRegistry {
     for (const circuitBreaker of this.circuitBreakers.values()) {
       circuitBreaker.reset();
     }
-    
-    logger.info({
-      resetCount: this.circuitBreakers.size,
-    }, 'All circuit breakers reset');
+
+    logger.info(
+      {
+        resetCount: this.circuitBreakers.size,
+      },
+      'All circuit breakers reset',
+    );
   }
 
   /**
@@ -222,10 +232,13 @@ export class CircuitBreakerRegistry {
    */
   updateGlobalConfig(config: Partial<CircuitBreakerConfig>): void {
     this.globalConfig = { ...this.globalConfig, ...config };
-    
-    logger.info({
-      config: this.globalConfig,
-    }, 'Global circuit breaker configuration updated');
+
+    logger.info(
+      {
+        config: this.globalConfig,
+      },
+      'Global circuit breaker configuration updated',
+    );
   }
 
   /**
@@ -235,11 +248,14 @@ export class CircuitBreakerRegistry {
     for (const circuitBreaker of this.circuitBreakers.values()) {
       circuitBreaker.updateConfig(config);
     }
-    
-    logger.info({
-      config,
-      appliedTo: this.circuitBreakers.size,
-    }, 'Configuration applied to all circuit breakers');
+
+    logger.info(
+      {
+        config,
+        appliedTo: this.circuitBreakers.size,
+      },
+      'Configuration applied to all circuit breakers',
+    );
   }
 
   /**
@@ -247,13 +263,13 @@ export class CircuitBreakerRegistry {
    */
   findByState(state: CircuitBreakerState): Array<{ name: string; circuitBreaker: CircuitBreaker }> {
     const results: Array<{ name: string; circuitBreaker: CircuitBreaker }> = [];
-    
+
     for (const [name, cb] of this.circuitBreakers) {
       if (cb.getStatus().state === state) {
         results.push({ name, circuitBreaker: cb });
       }
     }
-    
+
     return results;
   }
 
@@ -262,28 +278,28 @@ export class CircuitBreakerRegistry {
    */
   findUnhealthy(): Array<{ name: string; circuitBreaker: CircuitBreaker; issues: string[] }> {
     const results: Array<{ name: string; circuitBreaker: CircuitBreaker; issues: string[] }> = [];
-    
+
     for (const [name, cb] of this.circuitBreakers) {
       const status = cb.getStatus();
       if (!status.healthy) {
         const issues: string[] = [];
-        
+
         if (status.state === CircuitBreakerState.OPEN) {
           issues.push('Circuit is open');
         }
-        
+
         if (status.metrics.failureRate > 50) {
           issues.push(`High failure rate: ${status.metrics.failureRate.toFixed(2)}%`);
         }
-        
+
         if (status.metrics.averageResponseTime > 5000) {
           issues.push(`High response time: ${status.metrics.averageResponseTime}ms`);
         }
-        
+
         results.push({ name, circuitBreaker: cb, issues });
       }
     }
-    
+
     return results;
   }
 
@@ -322,8 +338,7 @@ export class CircuitBreakerRegistry {
       circuitBreaker.destroy();
     }
     this.circuitBreakers.clear();
-    
+
     logger.info('Circuit breaker registry destroyed');
   }
-
 }

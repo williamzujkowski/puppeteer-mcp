@@ -6,7 +6,14 @@
  */
 
 import { AppError } from './app-error.js';
-import { ErrorContext, ErrorContextBuilder, ErrorCategory, ErrorSeverity, RecoveryAction, RetryConfig } from './error-context.js';
+import {
+  ErrorContext,
+  ErrorContextBuilder,
+  ErrorCategory,
+  ErrorSeverity,
+  RecoveryAction,
+  RetryConfig,
+} from './error-context.js';
 
 /**
  * Options for EnhancedAppError constructor
@@ -27,17 +34,17 @@ export class EnhancedAppError extends AppError {
 
   constructor(options: EnhancedAppErrorOptions) {
     const { message, context, statusCode, isOperational, details } = options;
-    
+
     super(
       message,
       statusCode ?? context.context?.statusCode ?? 500,
       isOperational ?? true,
-      details
+      details,
     );
-    
+
     this.errorContext = context;
     this.name = 'EnhancedAppError';
-    
+
     // Set proper prototype
     Object.setPrototypeOf(this, EnhancedAppError.prototype);
   }
@@ -179,7 +186,9 @@ export class EnhancedAppError extends AppError {
       helpLinks: this.errorContext.helpLinks,
       tags: this.errorContext.tags,
       timestamp: this.errorContext.context?.timestamp,
-      ...(this.errorContext.technicalDetails && { technicalDetails: this.errorContext.technicalDetails }),
+      ...(this.errorContext.technicalDetails && {
+        technicalDetails: this.errorContext.technicalDetails,
+      }),
       ...(this.errorContext.retryConfig && { retryConfig: this.errorContext.retryConfig }),
     };
   }
@@ -193,14 +202,14 @@ export class EnhancedAppError extends AppError {
       context,
       statusCode: context.context?.statusCode,
       isOperational: true,
-      details: { originalError: error.name }
+      details: { originalError: error.name },
     });
-    
+
     // Preserve stack trace
     if (error.stack !== undefined) {
       enhancedError.stack = error.stack;
     }
-    
+
     return enhancedError;
   }
 
@@ -209,7 +218,7 @@ export class EnhancedAppError extends AppError {
    */
   static fromAppError(appError: AppError, contextBuilder?: ErrorContextBuilder): EnhancedAppError {
     const builder = contextBuilder ?? new ErrorContextBuilder();
-    
+
     const context = builder
       .setErrorCode(appError.name ?? 'UNKNOWN_ERROR')
       .setUserMessage(appError.message)
@@ -221,7 +230,7 @@ export class EnhancedAppError extends AppError {
       context,
       statusCode: appError.statusCode,
       isOperational: appError.isOperational,
-      details: appError.details
+      details: appError.details,
     });
 
     // Preserve stack trace

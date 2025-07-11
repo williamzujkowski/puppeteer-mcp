@@ -10,8 +10,8 @@ groups:
           severity: critical
           component: application
         annotations:
-          summary: "puppeteer-mcp application is down"
-          description: "The puppeteer-mcp application has been down for more than 2 minutes."
+          summary: 'puppeteer-mcp application is down'
+          description: 'The puppeteer-mcp application has been down for more than 2 minutes.'
 
       # High Error Rate
       - alert: HighErrorRate
@@ -21,8 +21,8 @@ groups:
           severity: warning
           component: api
         annotations:
-          summary: "High error rate detected"
-          description: "Error rate is above 10% for the last 5 minutes."
+          summary: 'High error rate detected'
+          description: 'Error rate is above 10% for the last 5 minutes.'
 
       # High Response Time
       - alert: HighResponseTime
@@ -32,8 +32,8 @@ groups:
           severity: warning
           component: api
         annotations:
-          summary: "High API response time"
-          description: "95th percentile response time is above 1 second."
+          summary: 'High API response time'
+          description: '95th percentile response time is above 1 second.'
 
       # Browser Pool Exhaustion
       - alert: BrowserPoolExhausted
@@ -43,8 +43,8 @@ groups:
           severity: critical
           component: browser-pool
         annotations:
-          summary: "Browser pool exhausted"
-          description: "No available browsers in the pool for more than 1 minute."
+          summary: 'Browser pool exhausted'
+          description: 'No available browsers in the pool for more than 1 minute.'
 
       # High Browser Pool Usage
       - alert: HighBrowserPoolUsage
@@ -54,8 +54,8 @@ groups:
           severity: warning
           component: browser-pool
         annotations:
-          summary: "High browser pool usage"
-          description: "Browser pool usage is above 80% for 5 minutes."
+          summary: 'High browser pool usage'
+          description: 'Browser pool usage is above 80% for 5 minutes.'
 
       # Memory Usage
       - alert: HighMemoryUsage
@@ -65,8 +65,8 @@ groups:
           severity: warning
           component: application
         annotations:
-          summary: "High memory usage"
-          description: "Application memory usage is above 2GB."
+          summary: 'High memory usage'
+          description: 'Application memory usage is above 2GB.'
 
       # Redis Connection Issues
       - alert: RedisDown
@@ -76,8 +76,8 @@ groups:
           severity: critical
           component: redis
         annotations:
-          summary: "Redis is down"
-          description: "Redis has been down for more than 2 minutes."
+          summary: 'Redis is down'
+          description: 'Redis has been down for more than 2 minutes.'
 
       # Database Connection Issues
       - alert: PostgreSQLDown
@@ -87,8 +87,8 @@ groups:
           severity: critical
           component: database
         annotations:
-          summary: "PostgreSQL is down"
-          description: "PostgreSQL has been down for more than 2 minutes."
+          summary: 'PostgreSQL is down'
+          description: 'PostgreSQL has been down for more than 2 minutes.'
 
       # High Database Connection Pool Usage
       - alert: HighDatabaseConnectionUsage
@@ -98,8 +98,8 @@ groups:
           severity: warning
           component: database
         annotations:
-          summary: "High database connection usage"
-          description: "Database connection usage is above 80%."
+          summary: 'High database connection usage'
+          description: 'Database connection usage is above 80%.'
 
       # Session Leak Detection
       - alert: PossibleSessionLeak
@@ -109,8 +109,8 @@ groups:
           severity: warning
           component: sessions
         annotations:
-          summary: "Possible session leak detected"
-          description: "More than 100 sessions created but not closed in the last hour."
+          summary: 'Possible session leak detected'
+          description: 'More than 100 sessions created but not closed in the last hour.'
 
       # Rate Limiting
       - alert: HighRateLimitHits
@@ -120,8 +120,8 @@ groups:
           severity: info
           component: security
         annotations:
-          summary: "High rate limit hits"
-          description: "Rate limits are being hit frequently (>10/sec)."
+          summary: 'High rate limit hits'
+          description: 'Rate limits are being hit frequently (>10/sec).'
 
       # Disk Space
       - alert: LowDiskSpace
@@ -131,8 +131,8 @@ groups:
           severity: warning
           component: system
         annotations:
-          summary: "Low disk space"
-          description: "Less than 10% disk space remaining."
+          summary: 'Low disk space'
+          description: 'Less than 10% disk space remaining.'
 
       # CPU Usage
       - alert: HighCPUUsage
@@ -142,8 +142,8 @@ groups:
           severity: warning
           component: system
         annotations:
-          summary: "High CPU usage"
-          description: "CPU usage is above 80% for 5 minutes."
+          summary: 'High CPU usage'
+          description: 'CPU usage is above 80% for 5 minutes.'
 
       # WebSocket Connections
       - alert: HighWebSocketConnections
@@ -153,8 +153,8 @@ groups:
           severity: warning
           component: websocket
         annotations:
-          summary: "High number of WebSocket connections"
-          description: "More than 1000 active WebSocket connections."
+          summary: 'High number of WebSocket connections'
+          description: 'More than 1000 active WebSocket connections.'
 
       # gRPC Health
       - alert: HighGRPCErrorRate
@@ -164,5 +164,5 @@ groups:
           severity: warning
           component: grpc
         annotations:
-          summary: "High gRPC error rate"
-          description: "gRPC error rate is above 5%."
+          summary: 'High gRPC error rate'
+          description: 'gRPC error rate is above 5%.'

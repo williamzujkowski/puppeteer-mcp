@@ -224,7 +224,9 @@ describe('Proxy Validation', () => {
 
       const result = await validateContextProxyConfig(config);
       expect(result.valid).toBe(false);
-      expect(result.errors).toContain('Proxy configuration must include either a single proxy or a proxy pool');
+      expect(result.errors).toContain(
+        'Proxy configuration must include either a single proxy or a proxy pool',
+      );
     });
 
     it('should warn about short rotation intervals', async () => {
@@ -253,7 +255,9 @@ describe('Proxy Validation', () => {
 
       const result = await validateContextProxyConfig(config);
       expect(result.valid).toBe(true);
-      expect(result.warnings).toContain('Rotation interval less than 1 minute may cause excessive proxy switching');
+      expect(result.warnings).toContain(
+        'Rotation interval less than 1 minute may cause excessive proxy switching',
+      );
     });
   });
 
@@ -342,7 +346,7 @@ describe('Proxy Validation', () => {
   describe('generateSecureProxyConfig', () => {
     it('should generate secure proxy configuration with defaults', () => {
       const config = generateSecureProxyConfig('proxy.example.com', 8080);
-      
+
       expect(config.host).toBe('proxy.example.com');
       expect(config.port).toBe(8080);
       expect(config.protocol).toBe('http');

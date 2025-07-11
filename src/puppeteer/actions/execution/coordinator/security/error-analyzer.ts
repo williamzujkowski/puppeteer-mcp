@@ -89,7 +89,7 @@ export class SecurityErrorAnalyzer {
     }
 
     const message = error.message;
-    return this.suspiciousPatterns.some(pattern => pattern.test(message));
+    return this.suspiciousPatterns.some((pattern) => pattern.test(message));
   }
 
   /**
@@ -120,7 +120,7 @@ export class SecurityErrorAnalyzer {
 
       for (const [key, value] of Object.entries(obj)) {
         const lowerKey = key.toLowerCase();
-        if (sensitiveFields.some(field => lowerKey.includes(field))) {
+        if (sensitiveFields.some((field) => lowerKey.includes(field))) {
           result[key] = '[REDACTED]';
         } else if (typeof value === 'string' && this.isSensitiveValue(value)) {
           result[key] = '[REDACTED]';
@@ -151,7 +151,7 @@ export class SecurityErrorAnalyzer {
       /^Basic\s+.+$/i, // Basic auth
     ];
 
-    return patterns.some(pattern => pattern.test(value));
+    return patterns.some((pattern) => pattern.test(value));
   }
 
   /**
@@ -165,7 +165,7 @@ export class SecurityErrorAnalyzer {
     }
 
     const classification = this.classifyError(error);
-    
+
     switch (classification) {
       case 'PERMISSION':
       case 'AUTHENTICATION':

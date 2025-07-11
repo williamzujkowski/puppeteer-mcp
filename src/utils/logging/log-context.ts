@@ -53,21 +53,29 @@ export const requestContextMiddleware = (
 export const getLogMixin = (): Record<string, string | undefined> => {
   const context = getRequestContext();
   const correlationIds = getCorrelationIds();
-  
+
   const mixin: Record<string, string | undefined> = {};
-  
+
   if (context) {
     mixin.requestId = context.requestId;
     mixin.userId = context.userId;
   }
-  
-  if (correlationIds.traceId !== undefined && correlationIds.traceId !== null && correlationIds.traceId !== '') {
+
+  if (
+    correlationIds.traceId !== undefined &&
+    correlationIds.traceId !== null &&
+    correlationIds.traceId !== ''
+  ) {
     mixin.traceId = correlationIds.traceId;
   }
-  
-  if (correlationIds.spanId !== undefined && correlationIds.spanId !== null && correlationIds.spanId !== '') {
+
+  if (
+    correlationIds.spanId !== undefined &&
+    correlationIds.spanId !== null &&
+    correlationIds.spanId !== ''
+  ) {
     mixin.spanId = correlationIds.spanId;
   }
-  
+
   return mixin;
 };

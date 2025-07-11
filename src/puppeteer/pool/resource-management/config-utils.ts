@@ -62,7 +62,7 @@ export const DEFAULT_CPU_OPTIMIZATION: CpuOptimizationOptions = {
  * Create resource monitoring configuration
  */
 export function createResourceConfig(
-  config: Partial<ResourceMonitoringConfig> = {}
+  config: Partial<ResourceMonitoringConfig> = {},
 ): ResourceMonitoringConfig {
   return { ...DEFAULT_CONFIG, ...config };
 }
@@ -71,7 +71,7 @@ export function createResourceConfig(
  * Create memory optimization configuration
  */
 export function createMemoryConfig(
-  config: Partial<MemoryOptimizationOptions> = {}
+  config: Partial<MemoryOptimizationOptions> = {},
 ): MemoryOptimizationOptions {
   return { ...DEFAULT_MEMORY_OPTIMIZATION, ...config };
 }
@@ -80,7 +80,7 @@ export function createMemoryConfig(
  * Create CPU optimization configuration
  */
 export function createCpuConfig(
-  config: Partial<CpuOptimizationOptions> = {}
+  config: Partial<CpuOptimizationOptions> = {},
 ): CpuOptimizationOptions {
   return { ...DEFAULT_CPU_OPTIMIZATION, ...config };
 }

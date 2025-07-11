@@ -40,14 +40,9 @@ export class ErrorResponseHandler {
   /**
    * Send error response
    */
-  sendErrorResponse(
-    error: EnhancedAppError,
-    req: Request,
-    res: Response,
-    startTime: number
-  ): void {
+  sendErrorResponse(error: EnhancedAppError, req: Request, res: Response, startTime: number): void {
     const requestDuration = Date.now() - startTime;
-    
+
     const serializedError = ErrorSerializer.serializeForRest(error, {
       requestId: error.getRequestId(),
       userId: error.getUserId(),
@@ -81,8 +76,8 @@ export class ErrorResponseHandler {
       'X-Frame-Options': 'DENY',
       'X-XSS-Protection': '1; mode=block',
       'Cache-Control': 'no-cache, no-store, must-revalidate',
-      'Pragma': 'no-cache',
-      'Expires': '0',
+      Pragma: 'no-cache',
+      Expires: '0',
     });
   }
 }

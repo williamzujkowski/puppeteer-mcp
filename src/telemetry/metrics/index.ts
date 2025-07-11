@@ -23,12 +23,7 @@ export type {
   ApiCallLabels,
 } from './app-metrics/index.js';
 
-import { 
-  Counter, 
-  Histogram, 
-  ObservableGauge,
-  ObservableResult,
-} from '@opentelemetry/api';
+import { Counter, Histogram, ObservableGauge, ObservableResult } from '@opentelemetry/api';
 import { getMeter } from '../index.js';
 
 /**
@@ -41,22 +36,22 @@ export function createGauge(
   unit: string = '1',
 ): ObservableGauge {
   const meter = getMeter();
-  return meter.createObservableGauge(name, {
-    description,
-    unit,
-  }, (result: ObservableResult<number>) => {
-    result.observe(callback());
-  });
+  return meter.createObservableGauge(
+    name,
+    {
+      description,
+      unit,
+    },
+    (result: ObservableResult<number>) => {
+      result.observe(callback());
+    },
+  );
 }
 
 /**
  * Create custom counter
  */
-export function createCounter(
-  name: string,
-  description: string,
-  unit: string = '1',
-): Counter {
+export function createCounter(name: string, description: string, unit: string = '1'): Counter {
   const meter = getMeter();
   return meter.createCounter(name, {
     description,
@@ -67,11 +62,7 @@ export function createCounter(
 /**
  * Create custom histogram
  */
-export function createHistogram(
-  name: string,
-  description: string,
-  unit: string = 'ms',
-): Histogram {
+export function createHistogram(name: string, description: string, unit: string = 'ms'): Histogram {
   const meter = getMeter();
   return meter.createHistogram(name, {
     description,

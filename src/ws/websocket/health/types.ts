@@ -41,7 +41,7 @@ export const HealthStatus = {
   UNKNOWN: 'unknown',
 } as const;
 
-export type HealthStatus = typeof HealthStatus[keyof typeof HealthStatus];
+export type HealthStatus = (typeof HealthStatus)[keyof typeof HealthStatus];
 
 /**
  * Health check result
@@ -85,7 +85,7 @@ export const HealthEventType = {
   RECOVERY_ACTION_COMPLETED: 'recovery_action_completed',
 } as const;
 
-export type HealthEventType = typeof HealthEventType[keyof typeof HealthEventType];
+export type HealthEventType = (typeof HealthEventType)[keyof typeof HealthEventType];
 
 /**
  * Health event

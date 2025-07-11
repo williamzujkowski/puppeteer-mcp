@@ -1,6 +1,7 @@
 # OpenTelemetry Integration
 
-This document describes the OpenTelemetry instrumentation added to puppeteer-mcp for distributed tracing and performance monitoring.
+This document describes the OpenTelemetry instrumentation added to puppeteer-mcp for distributed
+tracing and performance monitoring.
 
 ## Overview
 
@@ -99,24 +100,28 @@ TELEMETRY_LOG_LEVEL=error
 ## Instrumented Components
 
 ### HTTP/Express
+
 - Request/response tracing
 - Route performance metrics
 - Error tracking
 - Request size metrics
 
 ### gRPC
+
 - Call tracing
 - Stream metrics
 - Error rates
 - Message counts
 
 ### WebSocket
+
 - Connection lifecycle
 - Message metrics
 - Error tracking
 - Active connection gauges
 
 ### Browser Automation (Puppeteer)
+
 - Browser launch/close
 - Page creation/navigation
 - JavaScript execution
@@ -124,12 +129,14 @@ TELEMETRY_LOG_LEVEL=error
 - Resource usage metrics
 
 ### Session Management
+
 - Session lifecycle
 - Duration metrics
 - Active session counts
 - User activity tracking
 
 ### Authentication & Security
+
 - Auth attempt tracking
 - Security event correlation
 - Rate limit monitoring
@@ -138,6 +145,7 @@ TELEMETRY_LOG_LEVEL=error
 ## Metrics
 
 ### HTTP Metrics
+
 - `http_requests_total`: Total HTTP requests
 - `http_request_duration_ms`: Request duration histogram
 - `http_request_size_bytes`: Request size histogram
@@ -145,6 +153,7 @@ TELEMETRY_LOG_LEVEL=error
 - `http_active_requests`: Active request gauge
 
 ### Browser Pool Metrics
+
 - `browser_launched_total`: Total browsers launched
 - `browser_closed_total`: Total browsers closed
 - `browser_crashed_total`: Browser crash count
@@ -156,12 +165,14 @@ TELEMETRY_LOG_LEVEL=error
 - `pool_queue_length`: Waiting request count
 
 ### Session Metrics
+
 - `session_created_total`: Sessions created
 - `session_destroyed_total`: Sessions destroyed
 - `session_duration_seconds`: Session lifetime histogram
 - `session_active`: Active session gauge
 
 ### Error Metrics
+
 - `errors_total`: Total errors by type
 - `unhandled_exceptions_total`: Unhandled exceptions
 - `validation_errors_total`: Validation failures
@@ -190,6 +201,7 @@ GET /health/telemetry
 ```
 
 Response:
+
 ```json
 {
   "status": "healthy",
@@ -247,16 +259,16 @@ services:
       - TELEMETRY_TRACE_JAEGER_ENDPOINT=http://jaeger:14268/api/traces
       - TELEMETRY_METRICS_EXPORTER=prometheus
     ports:
-      - "8443:8443"
-      - "9464:9464"  # Prometheus metrics
+      - '8443:8443'
+      - '9464:9464' # Prometheus metrics
     depends_on:
       - jaeger
 
   jaeger:
     image: jaegertracing/all-in-one:latest
     ports:
-      - "16686:16686"  # Jaeger UI
-      - "14268:14268"  # Jaeger collector
+      - '16686:16686' # Jaeger UI
+      - '14268:14268' # Jaeger collector
 ```
 
 ### Kubernetes with OpenTelemetry Collector
@@ -267,13 +279,13 @@ kind: ConfigMap
 metadata:
   name: puppeteer-mcp-config
 data:
-  TELEMETRY_ENABLED: "true"
-  TELEMETRY_TRACE_EXPORTER: "otlp"
-  TELEMETRY_TRACE_OTLP_ENDPOINT: "http://otel-collector:4318/v1/traces"
-  TELEMETRY_METRICS_EXPORTER: "otlp"
-  TELEMETRY_METRICS_OTLP_ENDPOINT: "http://otel-collector:4318/v1/metrics"
-  TELEMETRY_SAMPLING_STRATEGY: "adaptive"
-  TELEMETRY_SAMPLING_ADAPTIVE_TARGET_RATE: "100"
+  TELEMETRY_ENABLED: 'true'
+  TELEMETRY_TRACE_EXPORTER: 'otlp'
+  TELEMETRY_TRACE_OTLP_ENDPOINT: 'http://otel-collector:4318/v1/traces'
+  TELEMETRY_METRICS_EXPORTER: 'otlp'
+  TELEMETRY_METRICS_OTLP_ENDPOINT: 'http://otel-collector:4318/v1/metrics'
+  TELEMETRY_SAMPLING_STRATEGY: 'adaptive'
+  TELEMETRY_SAMPLING_ADAPTIVE_TARGET_RATE: '100'
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -284,11 +296,11 @@ spec:
   template:
     spec:
       containers:
-      - name: puppeteer-mcp
-        image: puppeteer-mcp:latest
-        envFrom:
-        - configMapRef:
-            name: puppeteer-mcp-config
+        - name: puppeteer-mcp
+          image: puppeteer-mcp:latest
+          envFrom:
+            - configMapRef:
+                name: puppeteer-mcp-config
 ```
 
 ## Performance Considerations

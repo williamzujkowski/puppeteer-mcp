@@ -87,11 +87,14 @@ export class HealthEventManager extends EventEmitter {
   /**
    * Get event history
    */
-  getEventHistory(type?: typeof HealthEventType[keyof typeof HealthEventType], limit?: number): HealthEvent[] {
+  getEventHistory(
+    type?: (typeof HealthEventType)[keyof typeof HealthEventType],
+    limit?: number,
+  ): HealthEvent[] {
     let events = this.eventHistory;
-    
+
     if (type) {
-      events = events.filter(e => e.type === type);
+      events = events.filter((e) => e.type === type);
     }
 
     if (limit && limit > 0) {
@@ -121,7 +124,7 @@ export class HealthEventManager extends EventEmitter {
    */
   private addToHistory(event: HealthEvent): void {
     this.eventHistory.push(event);
-    
+
     // Trim history if needed
     if (this.eventHistory.length > this.maxHistorySize) {
       this.eventHistory = this.eventHistory.slice(-this.maxHistorySize);
@@ -132,10 +135,14 @@ export class HealthEventManager extends EventEmitter {
    * Check if event should trigger security logging
    */
   private shouldLogSecurityEvent(event: HealthEvent): boolean {
-    return (event.type === HealthEventType.HEALTH_CHECK_FAILED ||
-           event.type === HealthEventType.RECOVERY_ACTION_TRIGGERED ||
-           (event.type === HealthEventType.STATUS_CHANGED && 
-            event.status !== undefined && ['critical', 'warning'].includes(event.status))) ?? false;
+    return (
+      (event.type === HealthEventType.HEALTH_CHECK_FAILED ||
+        event.type === HealthEventType.RECOVERY_ACTION_TRIGGERED ||
+        (event.type === HealthEventType.STATUS_CHANGED &&
+          event.status !== undefined &&
+          ['critical', 'warning'].includes(event.status))) ??
+      false
+    );
   }
 
   /**

@@ -5,10 +5,7 @@
  * @nist si-11 "Error handling"
  */
 
-import type {
-  BaseEvaluationStrategy,
-  EvaluationStrategyFactory,
-} from './types.js';
+import type { BaseEvaluationStrategy, EvaluationStrategyFactory } from './types.js';
 import { createCodeExecutionStrategy } from './code-executor.js';
 import { createHandleExecutionStrategy } from './handle-executor.js';
 import { createInjectionExecutionStrategy } from './injection-executor.js';
@@ -48,18 +45,18 @@ export class EvaluationStrategyFactoryImpl implements EvaluationStrategyFactory 
     const strategyFactory = this.strategies.get(type);
     if (!strategyFactory) {
       const supportedTypes = this.getSupportedTypes();
-      logger.error('Unsupported evaluation strategy type', { 
-        type, 
-        supportedTypes 
+      logger.error('Unsupported evaluation strategy type', {
+        type,
+        supportedTypes,
       });
       throw new Error(
         `Unsupported evaluation strategy type: ${type}. ` +
-        `Supported types: ${supportedTypes.join(', ')}`
+          `Supported types: ${supportedTypes.join(', ')}`,
       );
     }
 
     const strategy = strategyFactory();
-    
+
     // Cache certain strategies that are stateless
     if (this.isStatelessStrategy(type)) {
       this.instanceCache.set(type, strategy);
@@ -85,7 +82,7 @@ export class EvaluationStrategyFactoryImpl implements EvaluationStrategyFactory 
   registerStrategy(type: string, factory: () => BaseEvaluationStrategy): void {
     logger.debug('Registering custom strategy', { type });
     this.strategies.set(type, factory);
-    
+
     // Clear cache for this type
     this.instanceCache.delete(type);
   }
@@ -97,10 +94,10 @@ export class EvaluationStrategyFactoryImpl implements EvaluationStrategyFactory 
    */
   unregisterStrategy(type: string): boolean {
     logger.debug('Unregistering strategy', { type });
-    
+
     // Clear from cache
     this.instanceCache.delete(type);
-    
+
     return this.strategies.delete(type);
   }
 
@@ -117,8 +114,8 @@ export class EvaluationStrategyFactoryImpl implements EvaluationStrategyFactory 
    * Clear all cached strategy instances
    */
   clearCache(): void {
-    logger.debug('Clearing strategy cache', { 
-      cachedCount: this.instanceCache.size 
+    logger.debug('Clearing strategy cache', {
+      cachedCount: this.instanceCache.size,
     });
     this.instanceCache.clear();
   }
@@ -216,14 +213,14 @@ export function createStrategyFactory(): EvaluationStrategyFactory {
  */
 export function createStrategyForAction(actionType: string): BaseEvaluationStrategy {
   const factory = getStrategyFactory();
-  
+
   // Map action types to strategy types
   const typeMapping: Record<string, string> = {
-    'evaluate': 'evaluate',
-    'evaluateHandle': 'evaluateHandle',
-    'injectScript': 'injectScript',
-    'injectCSS': 'injectCSS',
-    'inject': 'inject',
+    evaluate: 'evaluate',
+    evaluateHandle: 'evaluateHandle',
+    injectScript: 'injectScript',
+    injectCSS: 'injectCSS',
+    inject: 'inject',
   };
 
   const knownMappings = new Map(Object.entries(typeMapping));
@@ -248,16 +245,16 @@ export function getStrategyMetrics(): {
   mappings: Record<string, string>;
 } {
   const factory = getStrategyFactory() as EvaluationStrategyFactoryImpl;
-  
+
   return {
     factory: factory.getStrategyInfo(),
     supportedActionTypes: ['evaluate', 'evaluateHandle', 'injectScript', 'injectCSS', 'inject'],
     mappings: {
-      'evaluate': 'evaluate',
-      'evaluateHandle': 'evaluateHandle', 
-      'injectScript': 'injectScript',
-      'injectCSS': 'injectCSS',
-      'inject': 'inject',
+      evaluate: 'evaluate',
+      evaluateHandle: 'evaluateHandle',
+      injectScript: 'injectScript',
+      injectCSS: 'injectCSS',
+      inject: 'inject',
     },
   };
 }

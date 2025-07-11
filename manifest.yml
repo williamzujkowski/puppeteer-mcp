@@ -14,31 +14,31 @@ root_files:
   CLAUDE.md:
     purpose: AI assistant router document for navigating the codebase
     description: Provides navigation patterns and quick reference for AI assistants working on the project
-    
+
   README.md:
     purpose: Main project documentation
     description: Installation instructions, quick start guide, and feature overview
-    
+
   CONTRIBUTING.md:
     purpose: Contribution guidelines
     description: Guidelines for contributing to the project including code standards and PR process
-    
+
   SECURITY.md:
     purpose: Security policy and reporting
     description: Security vulnerability reporting procedures and security practices
-    
+
   CHANGELOG.md:
     purpose: Release history and changes
     description: Detailed log of changes, features, and fixes for each version
-    
+
   LICENSE:
     purpose: Project license
     description: MIT license for the project
-    
+
   package.json:
     purpose: NPM package configuration
     description: Dependencies, scripts, and project metadata for npm
-    
+
   mcp.json:
     purpose: MCP server configuration
     description: Model Context Protocol server configuration file
@@ -48,31 +48,31 @@ configuration:
   docker-compose.yml:
     purpose: Production Docker configuration
     description: Docker compose setup for production deployment
-    
+
   docker-compose.dev.yml:
     purpose: Development Docker configuration
     description: Docker compose setup for local development
-    
+
   Dockerfile:
     purpose: Container image definition
     description: Defines the Docker image for the application
-    
+
   jest.config.mjs:
     purpose: Main Jest test configuration
     description: Configuration for unit and integration tests
-    
+
   jest.acceptance.config.mjs:
     purpose: Acceptance test configuration
     description: Configuration for end-to-end acceptance tests
-    
+
   eslint.config.js:
     purpose: Code linting configuration
     description: ESLint rules and configuration for code quality
-    
+
   tsconfig.json:
     purpose: TypeScript configuration
     description: TypeScript compiler options and settings
-    
+
   nodemon.json:
     purpose: Development server configuration
     description: Nodemon configuration for auto-reloading during development
@@ -80,11 +80,11 @@ configuration:
 # Source code directory
 src:
   description: Main application source code
-  
+
   server.ts:
     purpose: Main application entry point
     description: Express server setup with all protocol handlers
-    
+
   # Authentication module
   auth/:
     purpose: JWT-based authentication system
@@ -97,7 +97,7 @@ src:
       refresh.ts: Token refresh logic
       combined-middleware.ts: Combined auth middleware
       README.md: Detailed auth module documentation
-      
+
   # Core utilities and middleware
   core/:
     purpose: Core application utilities
@@ -109,7 +109,7 @@ src:
       config.ts: Application configuration management
       errors.ts: Error definitions and utilities
       README.md: Core module documentation
-      
+
   # gRPC server implementation
   grpc/:
     purpose: gRPC protocol implementation
@@ -120,7 +120,7 @@ src:
       types/: TypeScript types for gRPC
     files:
       server.ts: gRPC server setup and initialization
-      
+
   # Model Context Protocol implementation
   mcp/:
     purpose: MCP server implementation
@@ -138,7 +138,7 @@ src:
       server.ts: Main MCP server implementation
       start-mcp.ts: MCP server entry point
       README.md: Comprehensive MCP documentation
-      
+
   # Puppeteer browser automation
   puppeteer/:
     purpose: Browser automation engine
@@ -152,7 +152,7 @@ src:
     files:
       config.ts: Puppeteer configuration
       README.md: Detailed browser automation documentation
-      
+
   # REST API routes
   routes/:
     purpose: Express REST API endpoints
@@ -164,7 +164,7 @@ src:
       contexts.ts: Browser context endpoints
       metrics.ts: Metrics and monitoring endpoints
       api-keys.ts: API key management
-      
+
   # Data storage
   store/:
     purpose: In-memory data stores
@@ -174,7 +174,7 @@ src:
       in-memory-session-store.ts: In-memory session storage
       context-store.ts: Browser context storage
       api-key-store.ts: API key storage
-      
+
   # Type definitions
   types/:
     purpose: TypeScript type definitions
@@ -187,7 +187,7 @@ src:
       websocket.ts: WebSocket types
       express.d.ts: Express augmentations
       grpc.d.ts: gRPC type definitions
-      
+
   # Utilities
   utils/:
     purpose: Shared utility functions
@@ -195,7 +195,7 @@ src:
     files:
       logger.ts: Application-wide logger
       path-utils.ts: Path manipulation utilities
-      
+
   # WebSocket server
   ws/:
     purpose: WebSocket protocol implementation
@@ -256,15 +256,17 @@ tests/:
   purpose: Comprehensive test coverage
   description: Unit, integration, and acceptance tests
   subdirectories:
-    unit/: Unit tests for individual components
-      auth/: Authentication module tests
-      grpc/: gRPC service tests
-      mcp/: MCP server tests
-      puppeteer/: Browser automation tests
-      routes/: REST API tests
-      store/: Storage tests
-      utils/: Utility function tests
-      ws/: WebSocket tests
+    unit/:
+      purpose: Unit tests for individual components
+      subdirectories:
+        auth/: Authentication module tests
+        grpc/: gRPC service tests
+        mcp/: MCP server tests
+        puppeteer/: Browser automation tests
+        routes/: REST API tests
+        store/: Storage tests
+        utils/: Utility function tests
+        ws/: WebSocket tests
     integration/: Integration tests across components
     acceptance/: End-to-end acceptance tests
     e2e/: End-to-end browser tests
@@ -292,7 +294,7 @@ logs/:
   description: Runtime logs for debugging and compliance
   subdirectories:
     audit/: Security audit logs with daily rotation
-    
+
 # Documentation archives
 docs/:
   purpose: Additional documentation
@@ -312,8 +314,11 @@ proto/:
 
 # Build artifacts (typically git-ignored)
 build_artifacts:
-  dist/: TypeScript compilation output
-  node_modules/: NPM dependencies
-  coverage/: Test coverage reports
-  server.log: Application runtime log
-  *.tgz: NPM package archives
+  purpose: Build and runtime artifacts
+  description: Generated files and dependencies
+  files:
+    - dist/: TypeScript compilation output
+    - node_modules/: NPM dependencies
+    - coverage/: Test coverage reports
+    - server.log: Application runtime log
+    - '*.tgz': NPM package archives

@@ -4,7 +4,8 @@ This directory contains the modularized action validation system for Puppeteer M
 
 ## Architecture
 
-The validation system has been refactored from a single 653-line file into a modular architecture using the Strategy and Factory patterns:
+The validation system has been refactored from a single 653-line file into a modular architecture
+using the Strategy and Factory patterns:
 
 ### Core Components
 
@@ -70,16 +71,19 @@ The validation system has been refactored from a single 653-line file into a mod
 ## Design Patterns Used
 
 ### Strategy Pattern
+
 - Each validator implements the same interface
 - Validators can be swapped or combined dynamically
 - The orchestrator selects appropriate validators at runtime
 
 ### Factory Pattern
+
 - `ValidatorFactory` creates and manages validator instances
 - Supports custom validator registration
 - Lazy initialization for performance
 
 ### Composite Pattern
+
 - The orchestrator combines results from multiple validators
 - Supports both parallel and sequential execution
 
@@ -95,6 +99,7 @@ const result = await orchestrator.validate(action, context);
 ## Backward Compatibility
 
 The original `action-validator.ts` file has been updated to maintain backward compatibility by:
+
 - Re-exporting all new modules
 - Delegating to the new orchestrator
 - Maintaining the same API surface
@@ -102,6 +107,7 @@ The original `action-validator.ts` file has been updated to maintain backward co
 ## NIST Security Annotations
 
 All validators include appropriate NIST control annotations:
+
 - **SI-10**: Information input validation
 - **AC-3**: Access enforcement
 - **AC-4**: Information flow enforcement

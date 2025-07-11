@@ -5,26 +5,26 @@
 import { writeFileSync, mkdirSync, existsSync } from 'fs';
 import { join } from 'path';
 import pidusage from 'pidusage';
-import type { 
-  SystemMetrics, 
-  SessionMetrics, 
+import type {
+  SystemMetrics,
+  SessionMetrics,
   PerformanceTestResult,
   ResourceUtilization,
-  BrowserPoolStatus 
+  BrowserPoolStatus,
 } from './types.js';
 
 export class PerformanceUtils {
   static async getSystemMetrics(): Promise<SystemMetrics> {
     const memoryUsage = process.memoryUsage();
     const cpuUsage = process.cpuUsage();
-    
+
     let processMetrics = { pid: process.pid, memory: 0, cpu: 0 };
     try {
       const stats = await pidusage(process.pid);
       processMetrics = {
         pid: process.pid,
         memory: stats.memory,
-        cpu: stats.cpu
+        cpu: stats.cpu,
       };
     } catch (error) {
       console.warn('Failed to get process metrics:', error);
@@ -37,12 +37,12 @@ export class PerformanceUtils {
         heapTotal: memoryUsage.heapTotal,
         heapUsed: memoryUsage.heapUsed,
         external: memoryUsage.external,
-        arrayBuffers: memoryUsage.arrayBuffers
+        arrayBuffers: memoryUsage.arrayBuffers,
       },
       cpuUsage: {
         user: cpuUsage.user,
         system: cpuUsage.system,
-        percent: processMetrics.cpu
+        percent: processMetrics.cpu,
       },
       processMetrics,
       browserPoolMetrics: {
@@ -51,8 +51,8 @@ export class PerformanceUtils {
         idleBrowsers: 0,
         totalPages: 0,
         activePages: 0,
-        utilizationPercentage: 0
-      }
+        utilizationPercentage: 0,
+      },
     };
   }
 
@@ -62,7 +62,7 @@ export class PerformanceUtils {
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
-      
+
       const data = await response.json();
       return {
         totalBrowsers: data.browserPool?.totalBrowsers || 0,
@@ -74,7 +74,7 @@ export class PerformanceUtils {
         avgBrowserLifetime: data.browserPool?.avgBrowserLifetime || 0,
         browsersCreated: data.browserPool?.browsersCreated || 0,
         browsersDestroyed: data.browserPool?.browsersDestroyed || 0,
-        lastHealthCheck: new Date(data.browserPool?.lastHealthCheck || Date.now())
+        lastHealthCheck: new Date(data.browserPool?.lastHealthCheck || Date.now()),
       };
     } catch (error) {
       console.warn('Failed to get browser pool metrics:', error);
@@ -88,14 +88,14 @@ export class PerformanceUtils {
         avgBrowserLifetime: 0,
         browsersCreated: 0,
         browsersDestroyed: 0,
-        lastHealthCheck: new Date()
+        lastHealthCheck: new Date(),
       };
     }
   }
 
   static calculateMetrics(sessions: SessionMetrics[]): any {
-    const validSessions = sessions.filter(s => s.duration && s.duration > 0);
-    
+    const validSessions = sessions.filter((s) => s.duration && s.duration > 0);
+
     if (validSessions.length === 0) {
       return {
         totalSessions: sessions.length,
@@ -107,17 +107,18 @@ export class PerformanceUtils {
         avgResponseTime: 0,
         maxResponseTime: 0,
         minResponseTime: 0,
-        throughput: 0
+        throughput: 0,
       };
     }
 
     const totalRequests = validSessions.reduce((sum, s) => sum + s.requestCount, 0);
     const totalErrors = validSessions.reduce((sum, s) => sum + s.errorCount, 0);
-    const avgResponseTime = validSessions.reduce((sum, s) => sum + s.avgResponseTime, 0) / validSessions.length;
-    const maxResponseTime = Math.max(...validSessions.map(s => s.maxResponseTime));
-    const minResponseTime = Math.min(...validSessions.map(s => s.minResponseTime));
+    const avgResponseTime =
+      validSessions.reduce((sum, s) => sum + s.avgResponseTime, 0) / validSessions.length;
+    const maxResponseTime = Math.max(...validSessions.map((s) => s.maxResponseTime));
+    const minResponseTime = Math.min(...validSessions.map((s) => s.minResponseTime));
     const totalDuration = validSessions.reduce((sum, s) => sum + (s.duration || 0), 0);
-    const throughput = totalDuration > 0 ? (totalRequests / (totalDuration / 1000)) : 0;
+    const throughput = totalDuration > 0 ? totalRequests / (totalDuration / 1000) : 0;
 
     return {
       totalSessions: sessions.length,
@@ -129,7 +130,7 @@ export class PerformanceUtils {
       avgResponseTime,
       maxResponseTime,
       minResponseTime,
-      throughput
+      throughput,
     };
   }
 
@@ -145,7 +146,7 @@ export class PerformanceUtils {
     const seconds = Math.floor(ms / 1000);
     const minutes = Math.floor(seconds / 60);
     const hours = Math.floor(minutes / 60);
-    
+
     if (hours > 0) {
       return `${hours}h ${minutes % 60}m ${seconds % 60}s`;
     } else if (minutes > 0) {
@@ -163,13 +164,13 @@ export class PerformanceUtils {
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const filename = `${result.testName.toLowerCase().replace(/\s+/g, '-')}-${timestamp}.json`;
     const filepath = join(outputDir, filename);
-    
+
     writeFileSync(filepath, JSON.stringify(result, null, 2));
     console.log(`Results saved to: ${filepath}`);
   }
 
   static async delay(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   static generateTestToken(): string {
@@ -182,15 +183,15 @@ export class PerformanceUtils {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({
         config: {
           headless: true,
           width: 1920,
-          height: 1080
-        }
-      })
+          height: 1080,
+        },
+      }),
     });
 
     if (!response.ok) {
@@ -205,12 +206,14 @@ export class PerformanceUtils {
     const response = await fetch(`${baseUrl}/api/sessions/${sessionId}`, {
       method: 'DELETE',
       headers: {
-        'Authorization': `Bearer ${token}`
-      }
+        Authorization: `Bearer ${token}`,
+      },
     });
 
     if (!response.ok) {
-      console.warn(`Failed to close session ${sessionId}: ${response.status} ${response.statusText}`);
+      console.warn(
+        `Failed to close session ${sessionId}: ${response.status} ${response.statusText}`,
+      );
     }
   }
 
@@ -219,18 +222,18 @@ export class PerformanceUtils {
     sessionId: string,
     action: string,
     params: any,
-    token: string
+    token: string,
   ): Promise<{ success: boolean; duration: number; error?: string }> {
     const startTime = Date.now();
-    
+
     try {
       const response = await fetch(`${baseUrl}/api/sessions/${sessionId}/actions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ action, params })
+        body: JSON.stringify({ action, params }),
       });
 
       const duration = Date.now() - startTime;
@@ -239,7 +242,7 @@ export class PerformanceUtils {
         return {
           success: false,
           duration,
-          error: `HTTP ${response.status}: ${response.statusText}`
+          error: `HTTP ${response.status}: ${response.statusText}`,
         };
       }
 
@@ -248,31 +251,33 @@ export class PerformanceUtils {
       return {
         success: false,
         duration: Date.now() - startTime,
-        error: error instanceof Error ? error.message : String(error)
+        error: error instanceof Error ? error.message : String(error),
       };
     }
   }
 
   static identifyBottlenecks(
     systemMetrics: SystemMetrics[],
-    sessionMetrics: SessionMetrics[]
+    sessionMetrics: SessionMetrics[],
   ): string[] {
     const bottlenecks: string[] = [];
 
     // Check memory usage
-    const peakMemory = Math.max(...systemMetrics.map(m => m.memoryUsage.heapUsed));
-    if (peakMemory > 500 * 1024 * 1024) { // 500MB
+    const peakMemory = Math.max(...systemMetrics.map((m) => m.memoryUsage.heapUsed));
+    if (peakMemory > 500 * 1024 * 1024) {
+      // 500MB
       bottlenecks.push('High memory usage detected');
     }
 
     // Check CPU usage
-    const peakCpu = Math.max(...systemMetrics.map(m => m.cpuUsage.percent));
+    const peakCpu = Math.max(...systemMetrics.map((m) => m.cpuUsage.percent));
     if (peakCpu > 80) {
       bottlenecks.push('High CPU usage detected');
     }
 
     // Check response times
-    const avgResponseTime = sessionMetrics.reduce((sum, s) => sum + s.avgResponseTime, 0) / sessionMetrics.length;
+    const avgResponseTime =
+      sessionMetrics.reduce((sum, s) => sum + s.avgResponseTime, 0) / sessionMetrics.length;
     if (avgResponseTime > 3000) {
       bottlenecks.push('High response times detected');
     }
@@ -291,7 +296,7 @@ export class PerformanceUtils {
   static generateRecommendations(
     systemMetrics: SystemMetrics[],
     sessionMetrics: SessionMetrics[],
-    bottlenecks: string[]
+    bottlenecks: string[],
   ): string[] {
     const recommendations: string[] = [];
 

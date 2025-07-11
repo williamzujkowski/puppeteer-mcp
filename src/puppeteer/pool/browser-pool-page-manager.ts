@@ -97,13 +97,7 @@ export class BrowserPoolPageManager {
       this.metricsHandler.recordUtilization();
 
       // Log successful page closure
-      await this.eventLogger.logPageClosure(
-        true,
-        browserId,
-        sessionId,
-        duration,
-        initialPageCount,
-      );
+      await this.eventLogger.logPageClosure(true, browserId, sessionId, duration, initialPageCount);
     } catch (error) {
       duration = Date.now() - startTime;
 

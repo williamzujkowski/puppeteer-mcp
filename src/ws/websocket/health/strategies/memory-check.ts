@@ -13,7 +13,10 @@ import type { HealthMetrics, HealthCheckContext } from '../types.js';
  * @nist au-3 "Content of audit records"
  */
 export class MemoryCheckStrategy extends HealthCheckStrategy {
-  async check(_context: HealthCheckContext, metrics: HealthMetrics): Promise<HealthCheckStrategyResult> {
+  async check(
+    _context: HealthCheckContext,
+    metrics: HealthMetrics,
+  ): Promise<HealthCheckStrategyResult> {
     const issues: HealthCheckStrategyResult['issues'] = [];
     const memoryMB = metrics.memoryUsage.heapUsed / 1024 / 1024;
     const maxMemoryMB = this.getThreshold('maxMemoryMB', 500);
@@ -23,13 +26,15 @@ export class MemoryCheckStrategy extends HealthCheckStrategy {
       issues.push({
         severity: 'critical',
         message: `Critical memory usage: ${memoryMB.toFixed(0)}MB (threshold: ${maxMemoryMB}MB)`,
-        recommendation: 'Immediate investigation required. Consider restarting the server or increasing heap size.',
+        recommendation:
+          'Immediate investigation required. Consider restarting the server or increasing heap size.',
       });
     } else if (memoryMB > warningMemoryMB) {
       issues.push({
         severity: 'medium',
         message: `High memory usage: ${memoryMB.toFixed(0)}MB (warning threshold: ${warningMemoryMB}MB)`,
-        recommendation: 'Monitor memory usage trends. Consider investigating potential memory leaks.',
+        recommendation:
+          'Monitor memory usage trends. Consider investigating potential memory leaks.',
       });
     }
 
@@ -44,7 +49,7 @@ export class MemoryCheckStrategy extends HealthCheckStrategy {
     }
 
     return {
-      passed: issues.filter(i => i.severity === 'critical').length === 0,
+      passed: issues.filter((i) => i.severity === 'critical').length === 0,
       issues,
       metrics: {
         memoryUsage: metrics.memoryUsage,

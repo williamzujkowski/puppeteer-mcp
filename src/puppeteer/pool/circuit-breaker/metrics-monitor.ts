@@ -30,7 +30,7 @@ export class MetricsCollector extends EventEmitter {
 
   constructor(
     private name: string,
-    private timeWindow: number
+    private timeWindow: number,
   ) {
     super();
     this.startCleanupTimer();
@@ -76,13 +76,17 @@ export class MetricsCollector extends EventEmitter {
   /**
    * Get metrics within time window
    */
-  getMetrics(state: CircuitBreakerState, stateMetrics: any, currentTimeout: number): CircuitBreakerMetrics {
+  getMetrics(
+    state: CircuitBreakerState,
+    stateMetrics: any,
+    currentTimeout: number,
+  ): CircuitBreakerMetrics {
     const now = new Date();
     const timeWindowStart = new Date(now.getTime() - this.timeWindow);
-    
-    const recentFailures = this.failures.filter(f => f > timeWindowStart);
-    const recentSuccesses = this.successes.filter(s => s > timeWindowStart);
-    const recentRequests = this.requests.filter(r => r > timeWindowStart);
+
+    const recentFailures = this.failures.filter((f) => f > timeWindowStart);
+    const recentSuccesses = this.successes.filter((s) => s > timeWindowStart);
+    const recentRequests = this.requests.filter((r) => r > timeWindowStart);
 
     const totalRequests = recentRequests.length;
     const failureRate = totalRequests > 0 ? (recentFailures.length / totalRequests) * 100 : 0;
@@ -93,8 +97,10 @@ export class MetricsCollector extends EventEmitter {
       failureCount: recentFailures.length,
       successCount: recentSuccesses.length,
       requestCount: totalRequests,
-      lastFailureTime: this.failures.length > 0 ? this.failures[this.failures.length - 1] ?? null : null,
-      lastSuccessTime: this.successes.length > 0 ? this.successes[this.successes.length - 1] ?? null : null,
+      lastFailureTime:
+        this.failures.length > 0 ? (this.failures[this.failures.length - 1] ?? null) : null,
+      lastSuccessTime:
+        this.successes.length > 0 ? (this.successes[this.successes.length - 1] ?? null) : null,
       stateChangeTime: stateMetrics.stateChangeTime,
       totalStateChanges: stateMetrics.totalStateChanges,
       failureRate,
@@ -111,7 +117,7 @@ export class MetricsCollector extends EventEmitter {
    */
   getRecentFailures(): Date[] {
     const timeWindowStart = new Date(Date.now() - this.timeWindow);
-    return this.failures.filter(f => f > timeWindowStart);
+    return this.failures.filter((f) => f > timeWindowStart);
   }
 
   /**
@@ -119,7 +125,7 @@ export class MetricsCollector extends EventEmitter {
    */
   getRecentSuccesses(): Date[] {
     const timeWindowStart = new Date(Date.now() - this.timeWindow);
-    return this.successes.filter(s => s > timeWindowStart);
+    return this.successes.filter((s) => s > timeWindowStart);
   }
 
   /**
@@ -127,7 +133,7 @@ export class MetricsCollector extends EventEmitter {
    */
   getRecentRequests(): Date[] {
     const timeWindowStart = new Date(Date.now() - this.timeWindow);
-    return this.requests.filter(r => r > timeWindowStart);
+    return this.requests.filter((r) => r > timeWindowStart);
   }
 
   /**
@@ -146,17 +152,20 @@ export class MetricsCollector extends EventEmitter {
    */
   private cleanup(): void {
     const cutoff = new Date(Date.now() - this.timeWindow * 2); // Keep 2x time window
-    
-    this.failures = this.failures.filter(f => f > cutoff);
-    this.successes = this.successes.filter(s => s > cutoff);
-    this.requests = this.requests.filter(r => r > cutoff);
-    
-    logger.debug({
-      circuitBreaker: this.name,
-      remainingFailures: this.failures.length,
-      remainingSuccesses: this.successes.length,
-      remainingRequests: this.requests.length,
-    }, 'Metrics cleanup completed');
+
+    this.failures = this.failures.filter((f) => f > cutoff);
+    this.successes = this.successes.filter((s) => s > cutoff);
+    this.requests = this.requests.filter((r) => r > cutoff);
+
+    logger.debug(
+      {
+        circuitBreaker: this.name,
+        remainingFailures: this.failures.length,
+        remainingSuccesses: this.successes.length,
+        remainingRequests: this.requests.length,
+      },
+      'Metrics cleanup completed',
+    );
   }
 
   /**
@@ -189,4 +198,3 @@ export class MetricsCollector extends EventEmitter {
     this.removeAllListeners();
   }
 }
-

@@ -27,7 +27,7 @@ export class StatusManager {
   getStatus(
     scheduler: ReplicationScheduler,
     config: ReplicationConfig,
-    replicaManager: ReplicaManager
+    replicaManager: ReplicaManager,
   ): {
     isRunning: boolean;
     config: ReplicationConfig;
@@ -39,16 +39,16 @@ export class StatusManager {
     }>;
   } {
     const schedulerStatus = scheduler.getStatus();
-    
+
     return {
       isRunning: schedulerStatus.isRunning,
       config,
-      replicas: replicaManager.getAllReplicas().map(replica => ({
+      replicas: replicaManager.getAllReplicas().map((replica) => ({
         id: replica.id,
         isActive: replica.isActive,
         lastSync: replica.lastSync,
-        syncErrors: replica.syncErrors
-      }))
+        syncErrors: replica.syncErrors,
+      })),
     };
   }
 
@@ -57,16 +57,13 @@ export class StatusManager {
    */
   async forceSyncAll(
     replicaManager: ReplicaManager,
-    syncReplica: (id: string) => Promise<SyncStats>
+    syncReplica: (id: string) => Promise<SyncStats>,
   ): Promise<SyncStats[]> {
-    const replicaIds = replicaManager.getAllReplicas().map(r => r.id);
-    
-    this.logger.info(
-      { replicaCount: replicaIds.length },
-      'Starting forced sync for all replicas'
-    );
+    const replicaIds = replicaManager.getAllReplicas().map((r) => r.id);
 
-    return Promise.all(replicaIds.map(id => syncReplica(id)));
+    this.logger.info({ replicaCount: replicaIds.length }, 'Starting forced sync for all replicas');
+
+    return Promise.all(replicaIds.map((id) => syncReplica(id)));
   }
 
   /**

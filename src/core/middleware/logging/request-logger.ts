@@ -27,10 +27,7 @@ const isBodyTooLarge = (contentLength: number, maxSize: number): boolean => {
 /**
  * Handle JSON and form data content types
  */
-const handleStructuredData = (
-  body: unknown,
-  sensitiveFields: string[],
-): unknown => {
+const handleStructuredData = (body: unknown, sensitiveFields: string[]): unknown => {
   return redactSensitiveData(body as Record<string, unknown>, sensitiveFields);
 };
 
@@ -51,19 +48,21 @@ const parseBodyByContentType = (
   maxSize: number,
   sensitiveFields: string[],
 ): unknown => {
-  if (contentType.includes('application/json') || 
-      contentType.includes('application/x-www-form-urlencoded')) {
+  if (
+    contentType.includes('application/json') ||
+    contentType.includes('application/x-www-form-urlencoded')
+  ) {
     return handleStructuredData(body, sensitiveFields);
   }
-  
+
   if (contentType.includes('multipart/form-data')) {
     return '[MULTIPART DATA]';
   }
-  
+
   if (contentType.includes('text/')) {
     return handleTextData(body, maxSize);
   }
-  
+
   return `[BINARY DATA: ${contentType}]`;
 };
 
@@ -75,7 +74,7 @@ export const parseRequestBody = (
   try {
     const contentType = req.get('content-type') ?? '';
     const contentLength = parseInt(req.get('content-length') ?? '0', 10);
-    
+
     // Skip if body is too large
     if (isBodyTooLarge(contentLength, maxSize)) {
       return `[BODY TOO LARGE: ${contentLength} bytes]`;
@@ -103,7 +102,7 @@ export const logRequest = (
 ): void => {
   // Extract custom metadata
   const customMetadata = config.metadataExtractor?.(req, {} as Response) ?? {};
-  
+
   // Prepare request log data
   const requestLogData = formatRequestLogData(req, requestId, customMetadata);
 

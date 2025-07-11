@@ -16,7 +16,8 @@ export function parseLoggingConfig(): {
   AUDIT_LOG_PATH: string;
 } {
   return {
-    LOG_LEVEL: (process.env.LOG_LEVEL as 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal') ?? 'info',
+    LOG_LEVEL:
+      (process.env.LOG_LEVEL as 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal') ?? 'info',
     LOG_FORMAT: (process.env.LOG_FORMAT as 'json' | 'pretty') ?? 'json',
     AUDIT_LOG_ENABLED: parseBoolean(process.env.AUDIT_LOG_ENABLED, true),
     AUDIT_LOG_PATH: process.env.AUDIT_LOG_PATH ?? './logs/audit',

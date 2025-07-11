@@ -1,6 +1,7 @@
 # Session Persistence with Redis
 
-This document describes the Redis-backed session persistence implementation for the puppeteer-mcp project, including configuration, usage, and operational considerations.
+This document describes the Redis-backed session persistence implementation for the puppeteer-mcp
+project, including configuration, usage, and operational considerations.
 
 ## Overview
 
@@ -73,7 +74,7 @@ const storeResult = await sessionStoreFactory.create('my-app', {
   preferredStore: 'auto',
   enableMonitoring: true,
   enableReplication: false,
-  enableMigration: true
+  enableMigration: true,
 });
 
 // Use the store
@@ -82,7 +83,7 @@ const sessionId = await storeResult.store.create({
   username: 'john_doe',
   roles: ['user'],
   createdAt: new Date().toISOString(),
-  expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+  expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
 });
 
 // Retrieve session
@@ -102,14 +103,14 @@ const storeResult = await sessionStoreFactory.create('advanced-app', {
     healthCheckInterval: 15000,
     alertThresholds: {
       maxLatency: 500,
-      maxErrorRate: 0.01
-    }
+      maxErrorRate: 0.01,
+    },
   },
   replicationConfig: {
     mode: 'master-slave',
     syncInterval: 60000,
-    conflictResolution: 'last-write-wins'
-  }
+    conflictResolution: 'last-write-wins',
+  },
 });
 ```
 
@@ -145,7 +146,7 @@ const migration = new SessionMigration();
 await migration.migrate(inMemoryStore, redisStore, {
   skipExisting: true,
   deleteAfterMigration: false,
-  batchSize: 100
+  batchSize: 100,
 });
 
 // Create backup
@@ -165,7 +166,7 @@ import { SessionReplicationManager } from './src/store/session-replication.js';
 const replication = new SessionReplicationManager(primaryStore, {
   mode: 'master-slave',
   syncInterval: 30000,
-  conflictResolution: 'last-write-wins'
+  conflictResolution: 'last-write-wins',
 });
 
 // Add replica
@@ -186,8 +187,8 @@ const monitor = new SessionStoreMonitor(store, {
   healthCheckInterval: 30000,
   alertThresholds: {
     maxLatency: 1000,
-    maxErrorRate: 0.05
-  }
+    maxErrorRate: 0.05,
+  },
 });
 
 // Start monitoring
@@ -214,7 +215,7 @@ const health = await sessionStoreFactory.getHealthStatus();
 
 // Switch store type
 await sessionStoreFactory.switchStoreType('web-app', 'memory', {
-  migrateData: true
+  migrateData: true,
 });
 ```
 
@@ -450,16 +451,31 @@ interface SessionStore {
 
 ```typescript
 class SessionStoreFactory {
-  create(instanceId?: string, config?: SessionStoreFactoryConfig): Promise<SessionStoreFactoryResult>;
+  create(
+    instanceId?: string,
+    config?: SessionStoreFactoryConfig,
+  ): Promise<SessionStoreFactoryResult>;
   get(instanceId?: string): SessionStoreFactoryResult | undefined;
-  list(): Array<{instanceId: string; result: SessionStoreFactoryResult}>;
+  list(): Array<{ instanceId: string; result: SessionStoreFactoryResult }>;
   destroy(instanceId: string): Promise<void>;
   destroyAll(): Promise<void>;
-  migrate(fromInstanceId: string, toInstanceId: string, options?: MigrationOptions): Promise<MigrationStats>;
+  migrate(
+    fromInstanceId: string,
+    toInstanceId: string,
+    options?: MigrationOptions,
+  ): Promise<MigrationStats>;
   getHealthStatus(): Promise<HealthStatusResult>;
-  switchStoreType(instanceId: string, newType: 'memory' | 'redis', options?: SwitchOptions): Promise<void>;
+  switchStoreType(
+    instanceId: string,
+    newType: 'memory' | 'redis',
+    options?: SwitchOptions,
+  ): Promise<void>;
   createBackup(instanceId: string): Promise<BackupResult>;
-  restoreBackup(instanceId: string, backup: BackupData, options?: RestoreOptions): Promise<RestoreStats>;
+  restoreBackup(
+    instanceId: string,
+    backup: BackupData,
+    options?: RestoreOptions,
+  ): Promise<RestoreStats>;
 }
 ```
 
@@ -474,4 +490,5 @@ For issues, questions, or contributions:
 
 ## License
 
-This session persistence implementation is part of the puppeteer-mcp project and is licensed under the MIT License.
+This session persistence implementation is part of the puppeteer-mcp project and is licensed under
+the MIT License.

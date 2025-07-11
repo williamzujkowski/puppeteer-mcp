@@ -46,7 +46,7 @@ jobs:
       new-version: ${{ steps.version.outputs.new-version }}
       changelog: ${{ steps.changelog.outputs.changelog }}
       release-branch: ${{ steps.branch.outputs.release-branch }}
-      
+
     steps:
       - name: Generate token
         id: generate-token
@@ -54,43 +54,43 @@ jobs:
         with:
           app_id: ${{ secrets.APP_ID }}
           private_key: ${{ secrets.APP_PRIVATE_KEY }}
-          
+
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
           token: ${{ steps.generate-token.outputs.token }}
-          
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20.x'
           cache: 'npm'
-          
+
       - name: Install dependencies
         run: |
           npm ci --prefer-offline --no-audit
           npm install -g conventional-changelog-cli conventional-recommended-bump standard-version
-          
+
       - name: Configure Git
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          
+
       - name: Create release branch
         id: branch
         run: |
           BRANCH_NAME="release/$(date +%Y%m%d-%H%M%S)"
           git checkout -b $BRANCH_NAME
           echo "release-branch=$BRANCH_NAME" >> $GITHUB_OUTPUT
-          
+
       - name: Determine version bump
         id: version
         run: |
           # Get current version
           CURRENT_VERSION=$(node -p "require('./package.json').version")
           echo "Current version: $CURRENT_VERSION"
-          
+
           # Determine new version based on commits
           if [ "${{ github.event.inputs.release-type }}" = "auto" ]; then
             # Use conventional commits to determine bump
@@ -98,42 +98,42 @@ jobs:
           else
             BUMP_TYPE="${{ github.event.inputs.release-type }}"
           fi
-          
+
           # Handle prerelease
           if [[ "$BUMP_TYPE" == pre* ]]; then
             BUMP_TYPE="$BUMP_TYPE --preid=${{ github.event.inputs.prerelease-identifier }}"
           fi
-          
+
           # Calculate new version
           NEW_VERSION=$(npm version $BUMP_TYPE --no-git-tag-version | sed 's/v//')
           echo "New version: $NEW_VERSION"
           echo "new-version=$NEW_VERSION" >> $GITHUB_OUTPUT
-          
+
       - name: Update version across codebase
         run: |
           # Update version in all documentation
           npm run update:version
-          
+
           # Update version in additional files
           find . -name "*.md" -type f -exec sed -i "s/version: $CURRENT_VERSION/version: ${{ steps.version.outputs.new-version }}/g" {} \;
-          
+
       - name: Generate changelog
         id: changelog
         run: |
           # Generate changelog using conventional-changelog
           conventional-changelog -p angular -i CHANGELOG.md -s -r 0
-          
+
           # Extract changelog for this release
           NEW_CHANGELOG=$(sed -n '/^## \['${{ steps.version.outputs.new-version }}'\]/,/^## \[/p' CHANGELOG.md | sed '$d')
-          
+
           # Save to file for later use
           echo "$NEW_CHANGELOG" > RELEASE_NOTES.md
-          
+
           # Set output
           echo "changelog<<EOF" >> $GITHUB_OUTPUT
           echo "$NEW_CHANGELOG" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
-          
+
       - name: Run pre-release tests
         if: github.event.inputs.dry-run != 'true'
         run: |
@@ -141,7 +141,7 @@ jobs:
           npm run build
           npm run lint
           npm run typecheck
-          
+
       - name: Commit release changes
         if: github.event.inputs.dry-run != 'true'
         run: |
@@ -149,37 +149,37 @@ jobs:
           git commit -m "chore(release): ${{ steps.version.outputs.new-version }}
 
           [skip ci]"
-          
+
       - name: Push release branch
         if: github.event.inputs.dry-run != 'true'
         run: |
           git push origin ${{ steps.branch.outputs.release-branch }}
-          
+
       - name: Create pull request
         if: github.event.inputs.dry-run != 'true'
         uses: peter-evans/create-pull-request@v6
         with:
           token: ${{ steps.generate-token.outputs.token }}
           branch: ${{ steps.branch.outputs.release-branch }}
-          title: "chore(release): ${{ steps.version.outputs.new-version }}"
+          title: 'chore(release): ${{ steps.version.outputs.new-version }}'
           body: |
             ## 🚀 Release ${{ steps.version.outputs.new-version }}
-            
+
             This PR was automatically created by the release pipeline.
-            
+
             ### Changes
             ${{ steps.changelog.outputs.changelog }}
-            
+
             ### Checklist
             - [ ] Tests passing
             - [ ] Documentation updated
             - [ ] Version numbers consistent
             - [ ] No security vulnerabilities
-            
+
             ### Release Type
             - Type: `${{ github.event.inputs.release-type }}`
             - Version: `${{ steps.version.outputs.new-version }}`
-            
+
             Merge this PR to trigger the release process.
           labels: |
             release
@@ -192,52 +192,52 @@ jobs:
     runs-on: ubuntu-latest
     needs: prepare-release
     if: github.event.inputs.dry-run != 'true'
-    
+
     strategy:
       matrix:
         node-version: ['20.x', '22.x']
         os: [ubuntu-latest, windows-latest, macos-latest]
-        
+
     steps:
       - name: Checkout release branch
         uses: actions/checkout@v4
         with:
           ref: ${{ needs.prepare-release.outputs.release-branch }}
-          
+
       - name: Setup Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
-          
+
       - name: Install dependencies
         run: npm ci --prefer-offline --no-audit
-        
+
       - name: Run full test suite
         run: |
           npm run test:coverage
           npm run test:integration
           npm run test:acceptance || true
-          
+
       - name: Build project
         run: npm run build
-        
+
       - name: Test package installation
         run: |
           # Create test directory
           mkdir -p test-install
           cd test-install
-          
+
           # Pack the package
           npm pack ../
-          
+
           # Install and test
           npm init -y
           npm install puppeteer-mcp-*.tgz
-          
+
           # Test import
           node -e "const mcp = require('puppeteer-mcp'); console.log('Import successful');"
-          
+
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
@@ -255,7 +255,7 @@ jobs:
     needs: [prepare-release, release-candidate]
     if: github.event.inputs.dry-run != 'true'
     environment: production
-    
+
     steps:
       - name: Generate token
         id: generate-token
@@ -263,37 +263,37 @@ jobs:
         with:
           app_id: ${{ secrets.APP_ID }}
           private_key: ${{ secrets.APP_PRIVATE_KEY }}
-          
+
       - name: Checkout release branch
         uses: actions/checkout@v4
         with:
           ref: ${{ needs.prepare-release.outputs.release-branch }}
           token: ${{ steps.generate-token.outputs.token }}
-          
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20.x'
           registry-url: 'https://registry.npmjs.org'
-          
+
       - name: Install dependencies
         run: npm ci --prefer-offline --no-audit
-        
+
       - name: Build for production
         run: npm run build
-        
+
       - name: Create Git tag
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git tag -a v${{ needs.prepare-release.outputs.new-version }} -m "Release v${{ needs.prepare-release.outputs.new-version }}"
           git push origin v${{ needs.prepare-release.outputs.new-version }}
-          
+
       - name: Publish to NPM
         run: |
           # Set npm config
           npm config set //registry.npmjs.org/:_authToken=$NODE_AUTH_TOKEN
-          
+
           # Publish based on version type
           if [[ "${{ needs.prepare-release.outputs.new-version }}" == *"-"* ]]; then
             npm publish --tag ${{ github.event.inputs.prerelease-identifier }}
@@ -302,7 +302,7 @@ jobs:
           fi
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-          
+
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2
         with:
@@ -312,14 +312,14 @@ jobs:
           draft: false
           prerelease: ${{ contains(needs.prepare-release.outputs.new-version, '-') }}
           generate_release_notes: true
-          
+
       - name: Merge release branch
         run: |
           # Merge release branch back to main
           git checkout main
           git merge --no-ff ${{ needs.prepare-release.outputs.release-branch }} -m "chore: merge release ${{ needs.prepare-release.outputs.new-version }}"
           git push origin main
-          
+
           # Also merge to develop if it exists
           if git show-ref --verify --quiet refs/heads/develop; then
             git checkout develop
@@ -333,32 +333,32 @@ jobs:
     runs-on: ubuntu-latest
     needs: [prepare-release, publish-release]
     if: github.event.inputs.dry-run != 'true'
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           ref: v${{ needs.prepare-release.outputs.new-version }}
-          
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
-        
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-        
+
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-          
+
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-          
+
       - name: Extract metadata
         id: meta
         uses: docker/metadata-action@v5
@@ -371,7 +371,7 @@ jobs:
             type=semver,pattern={{major}}.{{minor}},value=${{ needs.prepare-release.outputs.new-version }}
             type=semver,pattern={{major}},value=${{ needs.prepare-release.outputs.new-version }}
             type=raw,value=latest,enable=${{ !contains(needs.prepare-release.outputs.new-version, '-') }}
-            
+
       - name: Build and push Docker images
         uses: docker/build-push-action@v6
         with:
@@ -393,33 +393,33 @@ jobs:
     runs-on: ubuntu-latest
     needs: [prepare-release, publish-release]
     if: github.event.inputs.dry-run != 'true'
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           ref: main
-          
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20.x'
           cache: 'npm'
-          
+
       - name: Install dependencies
         run: |
           npm ci --prefer-offline --no-audit
           cd starlight-docs && npm install
-          
+
       - name: Update documentation version
         run: |
           # Update version references in docs
           npm run update:version
-          
+
           # Update starlight docs
           cd starlight-docs
           npm run build
-          
+
       - name: Deploy documentation
         uses: peaceiris/actions-gh-pages@v4
         with:
@@ -433,30 +433,30 @@ jobs:
     runs-on: ubuntu-latest
     needs: [prepare-release, publish-release, docker-release]
     if: github.event.inputs.dry-run != 'true'
-    
+
     steps:
       - name: Monitor NPM release
         run: |
           # Wait for NPM to update
           sleep 60
-          
+
           # Check NPM package
           npm view puppeteer-mcp@${{ needs.prepare-release.outputs.new-version }}
-          
+
       - name: Test NPM installation
         run: |
           # Test global installation
           npm install -g puppeteer-mcp@${{ needs.prepare-release.outputs.new-version }}
           puppeteer-mcp --version
-          
+
       - name: Monitor Docker images
         run: |
           # Check Docker Hub
           docker pull ${{ secrets.DOCKER_USERNAME }}/puppeteer-mcp:${{ needs.prepare-release.outputs.new-version }}
-          
+
           # Check GitHub Container Registry
           docker pull ghcr.io/${{ github.repository }}:${{ needs.prepare-release.outputs.new-version }}
-          
+
       - name: Create release report
         uses: actions/github-script@v7
         with:
@@ -496,7 +496,7 @@ jobs:
               `,
               labels: ['release', 'monitoring']
             });
-            
+
             console.log(`Created issue #${issue.data.number}`);
 
   # Notify on completion
@@ -505,18 +505,18 @@ jobs:
     runs-on: ubuntu-latest
     needs: [prepare-release, publish-release, docker-release, update-docs]
     if: always()
-    
+
     steps:
       - name: Send success notification
         if: needs.publish-release.result == 'success'
         run: |
           echo "✅ Release v${{ needs.prepare-release.outputs.new-version }} completed successfully!"
-          
+
       - name: Send failure notification
         if: needs.publish-release.result != 'success'
         run: |
           echo "❌ Release v${{ needs.prepare-release.outputs.new-version }} failed!"
-          
+
       - name: Create summary
         run: |
           echo "# Release Summary" >> $GITHUB_STEP_SUMMARY

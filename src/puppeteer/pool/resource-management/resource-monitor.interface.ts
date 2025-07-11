@@ -54,7 +54,8 @@ export interface ISystemResourceMonitor extends IResourceMonitor<SystemResources
 /**
  * Browser resource monitor interface
  */
-export interface IBrowserResourceMonitor extends IResourceMonitor<Map<string, BrowserResourceUsage>> {
+export interface IBrowserResourceMonitor
+  extends IResourceMonitor<Map<string, BrowserResourceUsage>> {
   /**
    * Monitor specific browser
    */

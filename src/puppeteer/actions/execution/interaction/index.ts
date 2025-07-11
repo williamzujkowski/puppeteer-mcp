@@ -17,7 +17,7 @@ export { KeyboardHandler } from './keyboard-handler.js';
 export { MouseHandler } from './mouse-handler.js';
 export { HoverHandler } from './hover-handler.js';
 // Export types from action executor interface
-export type { 
+export type {
   HoverAction,
   ClickAction,
   TypeAction,
@@ -25,7 +25,7 @@ export type {
   KeyboardAction,
   MouseAction,
   UploadAction,
-  InteractionActionType
+  InteractionActionType,
 } from '../../../interfaces/action-executor.interface.js';
 
 // Export factory

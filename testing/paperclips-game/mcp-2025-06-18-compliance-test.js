@@ -2,7 +2,7 @@
 
 /**
  * MCP 2025-06-18 Compliance Test
- * 
+ *
  * Tests the MCP server implementation against the MCP 2025-06-18 standard.
  * This test validates:
  * - Protocol version compliance
@@ -48,17 +48,17 @@ class MCPComplianceTest {
 
   async startMCPServer() {
     console.log('🚀 Starting MCP Server in stdio mode...');
-    
+
     return new Promise((resolve, reject) => {
       // Start the MCP server process
       this.mcpProcess = spawn('npx', ['tsx', 'src/mcp/start-mcp.ts'], {
         cwd: '/home/william/git/puppeteer-mcp',
         stdio: ['pipe', 'pipe', 'pipe'],
-        env: { 
-          ...process.env, 
+        env: {
+          ...process.env,
           MCP_TRANSPORT: 'stdio',
-          NODE_ENV: 'development'
-        }
+          NODE_ENV: 'development',
+        },
       });
 
       let initTimeout = setTimeout(() => {
@@ -69,7 +69,7 @@ class MCPComplianceTest {
       this.mcpProcess.stdout.on('data', (data) => {
         const output = data.toString();
         console.log('📊 MCP Server Output:', output.trim());
-        
+
         // Look for readiness indicators
         if (output.includes('MCP server started') || output.includes('Server ready')) {
           clearTimeout(initTimeout);
@@ -100,76 +100,80 @@ class MCPComplianceTest {
 
     // Test 1: Initialize Request/Response
     await this.testInitializeFlow();
-    
+
     // Test 2: Initialized Notification
     await this.testInitializedNotification();
-    
+
     // Test 3: Ping Request/Response
     await this.testPingRequest();
-    
+
     // Test 4: Tools List with Metadata
     await this.testToolsList();
-    
+
     // Test 5: Tool Execution with Progress
     await this.testToolExecutionWithProgress();
-    
+
     // Test 6: Resources List and Read
     await this.testResourcesFlow();
-    
+
     // Test 7: Cancellation Support
     await this.testCancellationSupport();
-    
+
     // Test 8: Protocol Version Validation
     await this.testProtocolVersion();
   }
 
   async testInitializeFlow() {
     console.log('\n🔧 Testing Initialize Request/Response Flow...');
-    
+
     try {
       const request = {
-        jsonrpc: "2.0",
+        jsonrpc: '2.0',
         id: 1,
-        method: "initialize",
+        method: 'initialize',
         params: {
-          protocolVersion: "2025-06-18",
+          protocolVersion: '2025-06-18',
           capabilities: {
-            experimental: {}
+            experimental: {},
           },
           clientInfo: {
-            name: "mcp-compliance-test",
-            version: "1.0.0"
-          }
-        }
+            name: 'mcp-compliance-test',
+            version: '1.0.0',
+          },
+        },
       };
 
       const response = await this.sendMessage(request);
-      
+
       // Validate response structure
-      const isValid = (
-        response.jsonrpc === "2.0" &&
+      const isValid =
+        response.jsonrpc === '2.0' &&
         response.id === 1 &&
         response.result &&
-        response.result.protocolVersion === "2025-06-18" &&
+        response.result.protocolVersion === '2025-06-18' &&
         response.result.capabilities &&
         response.result.serverInfo &&
-        response.result.serverInfo.name === "puppeteer-mcp" &&
-        response.result.serverInfo.version === "1.0.10"
-      );
+        response.result.serverInfo.name === 'puppeteer-mcp' &&
+        response.result.serverInfo.version === '1.0.10';
 
-      this.addResult('INITIALIZE_FLOW', isValid, 
-        isValid ? 'Initialize request/response working correctly' : 
-        `Invalid response: ${JSON.stringify(response, null, 2)}`);
+      this.addResult(
+        'INITIALIZE_FLOW',
+        isValid,
+        isValid
+          ? 'Initialize request/response working correctly'
+          : `Invalid response: ${JSON.stringify(response, null, 2)}`,
+      );
 
       if (isValid) {
         console.log('✅ Initialize flow: PASSED');
         console.log(`   Protocol Version: ${response.result.protocolVersion}`);
-        console.log(`   Server: ${response.result.serverInfo.name} v${response.result.serverInfo.version}`);
+        console.log(
+          `   Server: ${response.result.serverInfo.name} v${response.result.serverInfo.version}`,
+        );
         console.log(`   Capabilities: ${Object.keys(response.result.capabilities).join(', ')}`);
       } else {
         console.log('❌ Initialize flow: FAILED');
       }
-
     } catch (error) {
       this.addResult('INITIALIZE_FLOW', false, `Error: ${error.message}`);
       console.log('❌ Initialize flow: ERROR -', error.message);
@@ -178,22 +182,25 @@ class MCPComplianceTest {
 
   async testInitializedNotification() {
     console.log('\n📢 Testing Initialized Notification...');
-    
+
     try {
       const notification = {
-        jsonrpc: "2.0",
-        method: "notifications/initialized"
+        jsonrpc: '2.0',
+        method: 'notifications/initialized',
       };
 
       // Send notification (should not respond)
       this.mcpProcess.stdin.write(JSON.stringify(notification) + '\n');
-      
-      // Wait briefly to ensure no response
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      this.addResult('INITIALIZED_NOTIFICATION', true, 'Initialized notification sent successfully');
-      console.log('✅ Initialized notification: PASSED');
 
+      // Wait briefly to ensure no response
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      this.addResult(
+        'INITIALIZED_NOTIFICATION',
+        true,
+        'Initialized notification sent successfully',
+      );
+      console.log('✅ Initialized notification: PASSED');
     } catch (error) {
       this.addResult('INITIALIZED_NOTIFICATION', false, `Error: ${error.message}`);
       console.log('❌ Initialized notification: ERROR -', error.message);
@@ -202,32 +209,32 @@ class MCPComplianceTest {
 
   async testPingRequest() {
     console.log('\n🏓 Testing Ping Request/Response...');
-    
+
     try {
       const request = {
-        jsonrpc: "2.0",
+        jsonrpc: '2.0',
         id: 2,
-        method: "ping"
+        method: 'ping',
       };
 
       const response = await this.sendMessage(request);
-      
-      const isValid = (
-        response.jsonrpc === "2.0" &&
-        response.id === 2 &&
-        response.result !== undefined
-      );
 
-      this.addResult('PING_REQUEST', isValid, 
-        isValid ? 'Ping request/response working correctly' : 
-        `Invalid ping response: ${JSON.stringify(response, null, 2)}`);
+      const isValid =
+        response.jsonrpc === '2.0' && response.id === 2 && response.result !== undefined;
+
+      this.addResult(
+        'PING_REQUEST',
+        isValid,
+        isValid
+          ? 'Ping request/response working correctly'
+          : `Invalid ping response: ${JSON.stringify(response, null, 2)}`,
+      );
 
       if (isValid) {
         console.log('✅ Ping request: PASSED');
       } else {
         console.log('❌ Ping request: FAILED');
       }
-
     } catch (error) {
       this.addResult('PING_REQUEST', false, `Error: ${error.message}`);
       console.log('❌ Ping request: ERROR -', error.message);
@@ -236,51 +243,51 @@ class MCPComplianceTest {
 
   async testToolsList() {
     console.log('\n🛠️  Testing Tools List with Metadata...');
-    
+
     try {
       const request = {
-        jsonrpc: "2.0",
+        jsonrpc: '2.0',
         id: 3,
-        method: "tools/list"
+        method: 'tools/list',
       };
 
       const response = await this.sendMessage(request);
-      
-      const isValid = (
-        response.jsonrpc === "2.0" &&
+
+      const isValid =
+        response.jsonrpc === '2.0' &&
         response.id === 3 &&
         response.result &&
         response.result.tools &&
         Array.isArray(response.result.tools) &&
-        response.result.tools.length > 0
-      );
+        response.result.tools.length > 0;
 
       let metadataValid = false;
       if (isValid && response.result.tools.length > 0) {
         const firstTool = response.result.tools[0];
-        metadataValid = (
+        metadataValid =
           firstTool.name &&
-          firstTool.title &&  // MCP 2025-06-18 compliance
+          firstTool.title && // MCP 2025-06-18 compliance
           firstTool.description &&
-          firstTool.inputSchema
-        );
+          firstTool.inputSchema;
       }
 
-      this.addResult('TOOLS_LIST', isValid && metadataValid, 
-        isValid && metadataValid ? 
-        `Tools list valid with ${response.result.tools.length} tools, all with proper metadata` : 
-        `Invalid tools list or missing metadata: ${JSON.stringify(response, null, 2)}`);
+      this.addResult(
+        'TOOLS_LIST',
+        isValid && metadataValid,
+        isValid && metadataValid
+          ? `Tools list valid with ${response.result.tools.length} tools, all with proper metadata`
+          : `Invalid tools list or missing metadata: ${JSON.stringify(response, null, 2)}`,
+      );
 
       if (isValid && metadataValid) {
         console.log('✅ Tools list: PASSED');
         console.log(`   Found ${response.result.tools.length} tools`);
-        response.result.tools.forEach(tool => {
+        response.result.tools.forEach((tool) => {
           console.log(`   - ${tool.name} (${tool.title || 'No title'})`);
         });
       } else {
         console.log('❌ Tools list: FAILED');
       }
-
     } catch (error) {
       this.addResult('TOOLS_LIST', false, `Error: ${error.message}`);
       console.log('❌ Tools list: ERROR -', error.message);
@@ -289,35 +296,40 @@ class MCPComplianceTest {
 
   async testToolExecutionWithProgress() {
     console.log('\n⚡ Testing Tool Execution with Progress Notifications...');
-    
+
     try {
       const progressToken = `test-${Date.now()}`;
       const request = {
-        jsonrpc: "2.0",
+        jsonrpc: '2.0',
         id: 4,
-        method: "tools/call",
+        method: 'tools/call',
         params: {
-          name: "list-sessions",
+          name: 'list-sessions',
           arguments: {
-            userId: "test-user"
+            userId: 'test-user',
           },
           _meta: {
-            progressToken: progressToken
-          }
-        }
+            progressToken: progressToken,
+          },
+        },
       };
 
       // Set up progress notification listener
       let progressReceived = false;
       const progressListener = (data) => {
         try {
-          const lines = data.toString().split('\n').filter(line => line.trim());
+          const lines = data
+            .toString()
+            .split('\n')
+            .filter((line) => line.trim());
           for (const line of lines) {
             try {
               const message = JSON.parse(line);
-              if (message.method === "notifications/progress" && 
-                  message.params && 
-                  message.params.progressToken === progressToken) {
+              if (
+                message.method === 'notifications/progress' &&
+                message.params &&
+                message.params.progressToken === progressToken
+              ) {
                 progressReceived = true;
               }
             } catch (parseError) {
@@ -332,21 +344,20 @@ class MCPComplianceTest {
       this.mcpProcess.stdout.on('data', progressListener);
 
       const response = await this.sendMessage(request, 10000);
-      
+
       // Remove progress listener
       this.mcpProcess.stdout.removeListener('data', progressListener);
 
-      const isValid = (
-        response.jsonrpc === "2.0" &&
-        response.id === 4 &&
-        response.result &&
-        !response.error
-      );
+      const isValid =
+        response.jsonrpc === '2.0' && response.id === 4 && response.result && !response.error;
 
-      this.addResult('TOOL_EXECUTION_PROGRESS', isValid, 
-        isValid ? 
-        `Tool execution successful${progressReceived ? ' with progress notifications' : ' (progress notifications not detected)'}` : 
-        `Tool execution failed: ${JSON.stringify(response, null, 2)}`);
+      this.addResult(
+        'TOOL_EXECUTION_PROGRESS',
+        isValid,
+        isValid
+          ? `Tool execution successful${progressReceived ? ' with progress notifications' : ' (progress notifications not detected)'}`
+          : `Tool execution failed: ${JSON.stringify(response, null, 2)}`,
+      );
 
       if (isValid) {
         console.log('✅ Tool execution with progress: PASSED');
@@ -354,7 +365,6 @@ class MCPComplianceTest {
       } else {
         console.log('❌ Tool execution with progress: FAILED');
       }
-
     } catch (error) {
       this.addResult('TOOL_EXECUTION_PROGRESS', false, `Error: ${error.message}`);
       console.log('❌ Tool execution with progress: ERROR -', error.message);
@@ -363,67 +373,67 @@ class MCPComplianceTest {
 
   async testResourcesFlow() {
     console.log('\n📦 Testing Resources List and Read...');
-    
+
     try {
       // Test resources/list
       const listRequest = {
-        jsonrpc: "2.0",
+        jsonrpc: '2.0',
         id: 5,
-        method: "resources/list"
+        method: 'resources/list',
       };
 
       const listResponse = await this.sendMessage(listRequest);
-      
-      const listValid = (
-        listResponse.jsonrpc === "2.0" &&
+
+      const listValid =
+        listResponse.jsonrpc === '2.0' &&
         listResponse.id === 5 &&
         listResponse.result &&
         listResponse.result.resources &&
         Array.isArray(listResponse.result.resources) &&
-        listResponse.result.resources.length > 0
-      );
+        listResponse.result.resources.length > 0;
 
       let readValid = false;
       if (listValid && listResponse.result.resources.length > 0) {
         // Test resources/read with first resource
         const firstResource = listResponse.result.resources[0];
         const readRequest = {
-          jsonrpc: "2.0",
+          jsonrpc: '2.0',
           id: 6,
-          method: "resources/read",
+          method: 'resources/read',
           params: {
-            uri: firstResource.uri
-          }
+            uri: firstResource.uri,
+          },
         };
 
         try {
           const readResponse = await this.sendMessage(readRequest);
-          readValid = (
-            readResponse.jsonrpc === "2.0" &&
+          readValid =
+            readResponse.jsonrpc === '2.0' &&
             readResponse.id === 6 &&
             readResponse.result &&
-            readResponse.result.contents
-          );
+            readResponse.result.contents;
         } catch (readError) {
           console.log(`   Resource read error: ${readError.message}`);
         }
       }
 
-      this.addResult('RESOURCES_FLOW', listValid && readValid, 
-        listValid && readValid ? 
-        `Resources flow working: ${listResponse.result.resources.length} resources listed, first resource read successfully` : 
-        `Resources flow failed - List: ${listValid}, Read: ${readValid}`);
+      this.addResult(
+        'RESOURCES_FLOW',
+        listValid && readValid,
+        listValid && readValid
+          ? `Resources flow working: ${listResponse.result.resources.length} resources listed, first resource read successfully`
+          : `Resources flow failed - List: ${listValid}, Read: ${readValid}`,
+      );
 
       if (listValid && readValid) {
         console.log('✅ Resources flow: PASSED');
         console.log(`   Found ${listResponse.result.resources.length} resources`);
-        listResponse.result.resources.forEach(resource => {
+        listResponse.result.resources.forEach((resource) => {
           console.log(`   - ${resource.name || resource.uri} (${resource.title || 'No title'})`);
         });
       } else {
         console.log('❌ Resources flow: FAILED');
       }
-
     } catch (error) {
       this.addResult('RESOURCES_FLOW', false, `Error: ${error.message}`);
       console.log('❌ Resources flow: ERROR -', error.message);
@@ -432,26 +442,25 @@ class MCPComplianceTest {
 
   async testCancellationSupport() {
     console.log('\n🚫 Testing Cancellation Support...');
-    
+
     try {
       const notification = {
-        jsonrpc: "2.0",
-        method: "notifications/cancelled",
+        jsonrpc: '2.0',
+        method: 'notifications/cancelled',
         params: {
-          requestId: "test-cancellation",
-          reason: "Test cancellation"
-        }
+          requestId: 'test-cancellation',
+          reason: 'Test cancellation',
+        },
       };
 
       // Send cancellation notification (should not respond)
       this.mcpProcess.stdin.write(JSON.stringify(notification) + '\n');
-      
+
       // Wait briefly to ensure no response
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
       this.addResult('CANCELLATION_SUPPORT', true, 'Cancellation notification sent successfully');
       console.log('✅ Cancellation support: PASSED');
-
     } catch (error) {
       this.addResult('CANCELLATION_SUPPORT', false, `Error: ${error.message}`);
       console.log('❌ Cancellation support: ERROR -', error.message);
@@ -460,36 +469,39 @@ class MCPComplianceTest {
 
   async testProtocolVersion() {
     console.log('\n📋 Testing Protocol Version Validation...');
-    
+
     try {
       // Test with different protocol version
       const request = {
-        jsonrpc: "2.0",
+        jsonrpc: '2.0',
         id: 7,
-        method: "initialize",
+        method: 'initialize',
         params: {
-          protocolVersion: "2024-11-05", // Older version
+          protocolVersion: '2024-11-05', // Older version
           capabilities: {},
           clientInfo: {
-            name: "version-test",
-            version: "1.0.0"
-          }
-        }
+            name: 'version-test',
+            version: '1.0.0',
+          },
+        },
       };
 
       const response = await this.sendMessage(request);
-      
+
       // Server should respond with its supported version
-      const isValid = (
-        response.jsonrpc === "2.0" &&
+      const isValid =
+        response.jsonrpc === '2.0' &&
         response.id === 7 &&
         response.result &&
-        response.result.protocolVersion === "2025-06-18"
-      );
+        response.result.protocolVersion === '2025-06-18';
 
-      this.addResult('PROTOCOL_VERSION', isValid, 
-        isValid ? 'Server correctly responds with supported protocol version' : 
-        `Server response invalid: ${JSON.stringify(response, null, 2)}`);
+      this.addResult(
+        'PROTOCOL_VERSION',
+        isValid,
+        isValid
+          ? 'Server correctly responds with supported protocol version'
+          : `Server response invalid: ${JSON.stringify(response, null, 2)}`,
+      );
 
       if (isValid) {
         console.log('✅ Protocol version validation: PASSED');
@@ -497,7 +509,6 @@ class MCPComplianceTest {
       } else {
         console.log('❌ Protocol version validation: FAILED');
       }
-
     } catch (error) {
       this.addResult('PROTOCOL_VERSION', false, `Error: ${error.message}`);
       console.log('❌ Protocol version validation: ERROR -', error.message);
@@ -513,8 +524,11 @@ class MCPComplianceTest {
 
       const responseListener = (data) => {
         try {
-          const lines = data.toString().split('\n').filter(line => line.trim());
-          
+          const lines = data
+            .toString()
+            .split('\n')
+            .filter((line) => line.trim());
+
           for (const line of lines) {
             try {
               const message = JSON.parse(line);
@@ -543,16 +557,16 @@ class MCPComplianceTest {
       test: testName,
       passed,
       details,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   }
 
   async generateReport() {
     const endTime = Date.now();
     const duration = endTime - this.startTime;
-    
+
     const totalTests = this.testResults.length;
-    const passedTests = this.testResults.filter(r => r.passed).length;
+    const passedTests = this.testResults.filter((r) => r.passed).length;
     const failedTests = totalTests - passedTests;
     const passRate = ((passedTests / totalTests) * 100).toFixed(1);
 
@@ -566,7 +580,7 @@ class MCPComplianceTest {
     console.log('');
 
     // Print detailed results
-    this.testResults.forEach(result => {
+    this.testResults.forEach((result) => {
       const status = result.passed ? '✅ PASS' : '❌ FAIL';
       console.log(`${status}: ${result.test}`);
       console.log(`   ${result.details}`);
@@ -581,18 +595,18 @@ class MCPComplianceTest {
         total: totalTests,
         passed: passedTests,
         failed: failedTests,
-        passRate: parseFloat(passRate)
+        passRate: parseFloat(passRate),
       },
       protocolVersion: '2025-06-18',
       compliance: passRate >= 90 ? 'COMPLIANT' : 'NON_COMPLIANT',
-      results: this.testResults
+      results: this.testResults,
     };
 
     const reportPath = path.join(__dirname, `mcp-compliance-report-${Date.now()}.json`);
     fs.writeFileSync(reportPath, JSON.stringify(report, null, 2));
-    
+
     console.log(`\n📄 Detailed report saved: ${reportPath}`);
-    
+
     // Final compliance assessment
     if (passRate >= 90) {
       console.log('\n🎉 MCP 2025-06-18 COMPLIANCE: PASSED');
@@ -607,7 +621,7 @@ class MCPComplianceTest {
     if (this.mcpProcess) {
       console.log('\n🧹 Cleaning up MCP server process...');
       this.mcpProcess.kill('SIGTERM');
-      
+
       // Wait for graceful shutdown
       await new Promise((resolve) => {
         this.mcpProcess.on('exit', resolve);
@@ -623,7 +637,7 @@ class MCPComplianceTest {
 // Run the test
 if (import.meta.url === `file://${process.argv[1]}`) {
   const test = new MCPComplianceTest();
-  test.runTest().catch(error => {
+  test.runTest().catch((error) => {
     console.error('Test suite failed:', error);
     process.exit(1);
   });

@@ -3,7 +3,7 @@
  * @module store/redis/redis-migration
  * @nist cp-9 "Information system backup"
  * @nist cp-10 "Information system recovery and reconstitution"
- * 
+ *
  * This file maintains backward compatibility by re-exporting the modularized migration components.
  * The implementation has been refactored into focused modules under ./migration/
  */
@@ -13,7 +13,7 @@ import { MigrationManager } from './migration/index.js';
 
 /**
  * Redis migration and backup utilities
- * 
+ *
  * @deprecated Use MigrationManager directly from './migration/index.js'
  * This class is maintained for backward compatibility
  */
@@ -34,7 +34,7 @@ export {
   CleanupService,
   ValidationService,
   SessionValidator,
-  BaseMigration
+  BaseMigration,
 } from './migration/index.js';
 
 export type {
@@ -55,5 +55,5 @@ export type {
   TransferConfig,
   CleanupResult,
   CleanupOptions,
-  ValidationOptions
+  ValidationOptions,
 } from './migration/index.js';

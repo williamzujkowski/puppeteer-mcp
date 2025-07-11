@@ -143,11 +143,7 @@ export class PDFExtractor {
    * @returns Action result
    * @nist au-3 "Content of audit records"
    */
-  private buildSuccessResult(
-    buffer: Buffer,
-    config: PDFConfig,
-    duration: number,
-  ): ActionResult {
+  private buildSuccessResult(buffer: Buffer, config: PDFConfig, duration: number): ActionResult {
     const base64 = buffer.toString('base64');
 
     return {
@@ -178,11 +174,7 @@ export class PDFExtractor {
    * @returns Action result
    * @nist au-3 "Content of audit records"
    */
-  private buildErrorResult(
-    error: unknown,
-    action: PDFAction,
-    duration: number,
-  ): ActionResult {
+  private buildErrorResult(error: unknown, action: PDFAction, duration: number): ActionResult {
     const errorMessage = error instanceof Error ? error.message : 'PDF action failed';
 
     return {
@@ -208,11 +200,7 @@ export class PDFExtractor {
    * @nist ac-3 "Access enforcement"
    * @nist au-3 "Content of audit records"
    */
-  async execute(
-    action: PDFAction,
-    page: Page,
-    context: ActionContext,
-  ): Promise<ActionResult> {
+  async execute(action: PDFAction, page: Page, context: ActionContext): Promise<ActionResult> {
     const startTime = Date.now();
 
     try {

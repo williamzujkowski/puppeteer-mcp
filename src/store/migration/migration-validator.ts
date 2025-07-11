@@ -8,15 +8,23 @@
 import type { pino } from 'pino';
 import type { SessionStore } from '../session-store.interface.js';
 import type { Session } from '../../types/session.js';
-import type { 
-  SessionValidationResult, 
-  RestoreStrategy, 
-  RestoreCommand, 
+import type {
+  SessionValidationResult,
+  RestoreStrategy,
+  RestoreCommand,
   RestoreOptions,
   ValidationOptions,
-  ValidationResult
+  ValidationResult,
 } from './types.js';
-import { getAllSessions, isSessionExpired, isValidSessionStructure, createSessionIdSet, findMissingSessions, findExtraSessions, filterExpiredSessions } from './migration-utils.js';
+import {
+  getAllSessions,
+  isSessionExpired,
+  isValidSessionStructure,
+  createSessionIdSet,
+  findMissingSessions,
+  findExtraSessions,
+  filterExpiredSessions,
+} from './migration-utils.js';
 import { MigrationMetrics } from './migration-metrics.js';
 
 /**
@@ -37,20 +45,20 @@ export class MigrationValidator {
   async validateMigration(
     sourceStore: SessionStore,
     targetStore: SessionStore,
-    options: ValidationOptions = {}
+    options: ValidationOptions = {},
   ): Promise<ValidationResult> {
     const { checkExpired = false } = options;
-    
+
     this.metrics.logValidationStart();
 
     const sourceSessions = await getAllSessions(sourceStore, this.logger);
     const targetSessions = await getAllSessions(targetStore, this.logger);
-    
+
     // Filter out expired sessions if requested
-    const activeSourceSessions = checkExpired 
+    const activeSourceSessions = checkExpired
       ? filterExpiredSessions(sourceSessions)
       : sourceSessions;
-    
+
     const activeTargetSessions = checkExpired
       ? filterExpiredSessions(targetSessions)
       : targetSessions;
@@ -68,7 +76,7 @@ export class MigrationValidator {
       sourceSessions: activeSourceSessions.length,
       targetSessions: activeTargetSessions.length,
       missingSessions,
-      extraSessions
+      extraSessions,
     };
 
     this.metrics.logValidationCompletion(result);
@@ -91,9 +99,9 @@ export class StandardRestoreStrategy implements RestoreStrategy {
    * Validate session for restore operation
    */
   async validate(
-    session: Session, 
-    store: SessionStore, 
-    options: RestoreOptions
+    session: Session,
+    store: SessionStore,
+    options: RestoreOptions,
   ): Promise<SessionValidationResult> {
     // Validate session structure
     if (!isValidSessionStructure(session)) {
@@ -102,7 +110,7 @@ export class StandardRestoreStrategy implements RestoreStrategy {
         isExpired: false,
         exists: false,
         shouldSkip: true,
-        reason: 'Invalid session structure'
+        reason: 'Invalid session structure',
       };
     }
 
@@ -114,7 +122,7 @@ export class StandardRestoreStrategy implements RestoreStrategy {
         isExpired: true,
         exists: false,
         shouldSkip: true,
-        reason: 'Session expired'
+        reason: 'Session expired',
       };
     }
 
@@ -126,7 +134,7 @@ export class StandardRestoreStrategy implements RestoreStrategy {
         isExpired,
         exists: true,
         shouldSkip: true,
-        reason: 'Session exists and overwrite disabled'
+        reason: 'Session exists and overwrite disabled',
       };
     }
 
@@ -134,7 +142,7 @@ export class StandardRestoreStrategy implements RestoreStrategy {
       isValid: true,
       isExpired,
       exists,
-      shouldSkip: false
+      shouldSkip: false,
     };
   }
 

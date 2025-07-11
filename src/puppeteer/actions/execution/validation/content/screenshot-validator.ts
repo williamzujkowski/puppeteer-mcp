@@ -77,25 +77,18 @@ export class ScreenshotSubValidator extends BaseValidator {
   private validateQuality(
     action: ScreenshotAction,
     errors: ValidationError[],
-    warnings: ValidationError[]
+    warnings: ValidationError[],
   ): void {
     if (action.quality !== undefined) {
-      this.validateNumericRange(
-        action.quality,
-        'quality',
-        0,
-        100,
-        errors,
-        'INVALID_QUALITY'
-      );
-      
+      this.validateNumericRange(action.quality, 'quality', 0, 100, errors, 'INVALID_QUALITY');
+
       // Warn if quality is set for non-JPEG
       if (action.format && action.format !== 'jpeg' && action.quality !== undefined) {
         this.addWarning(
           warnings,
           'quality',
           'Quality setting only applies to JPEG format',
-          'QUALITY_IGNORED'
+          'QUALITY_IGNORED',
         );
       }
     }
@@ -106,13 +99,7 @@ export class ScreenshotSubValidator extends BaseValidator {
    */
   private validateFormat(action: ScreenshotAction, errors: ValidationError[]): void {
     if (action.format) {
-      this.validateEnum(
-        action.format,
-        'format',
-        VALID_IMAGE_FORMATS,
-        errors,
-        'INVALID_FORMAT'
-      );
+      this.validateEnum(action.format, 'format', VALID_IMAGE_FORMATS, errors, 'INVALID_FORMAT');
     }
   }
 
@@ -121,10 +108,10 @@ export class ScreenshotSubValidator extends BaseValidator {
    */
   private validateClipArea(
     clip: { x?: number; y?: number; width?: number; height?: number },
-    errors: ValidationError[]
+    errors: ValidationError[],
   ): void {
     const requiredFields = ['x', 'y', 'width', 'height'];
-    
+
     for (const field of requiredFields) {
       const value = clip[field as keyof typeof clip];
       if (value === undefined || typeof value !== 'number') {
@@ -132,14 +119,14 @@ export class ScreenshotSubValidator extends BaseValidator {
           errors,
           `clip.${field}`,
           `Clip ${field} must be a number`,
-          'INVALID_CLIP_FIELD'
+          'INVALID_CLIP_FIELD',
         );
       } else if (value < 0) {
         this.addError(
           errors,
           `clip.${field}`,
           `Clip ${field} must be non-negative`,
-          'NEGATIVE_CLIP_VALUE'
+          'NEGATIVE_CLIP_VALUE',
         );
       }
     }
@@ -150,12 +137,7 @@ export class ScreenshotSubValidator extends BaseValidator {
    */
   private validateSelector(action: ScreenshotAction, errors: ValidationError[]): void {
     if (action.selector && typeof action.selector !== 'string') {
-      this.addError(
-        errors,
-        'selector',
-        'Selector must be a string',
-        'INVALID_SELECTOR_TYPE'
-      );
+      this.addError(errors, 'selector', 'Selector must be a string', 'INVALID_SELECTOR_TYPE');
     }
   }
 
@@ -168,7 +150,7 @@ export class ScreenshotSubValidator extends BaseValidator {
         warnings,
         'fullPage',
         'Full page screenshots may be memory intensive',
-        'FULL_PAGE_WARNING'
+        'FULL_PAGE_WARNING',
       );
     }
   }
@@ -177,12 +159,16 @@ export class ScreenshotSubValidator extends BaseValidator {
    * Validate encoding
    */
   private validateEncoding(action: ScreenshotAction, errors: ValidationError[]): void {
-    if ('encoding' in action && action.encoding && !['base64', 'binary'].includes(action.encoding as string)) {
+    if (
+      'encoding' in action &&
+      action.encoding &&
+      !['base64', 'binary'].includes(action.encoding as string)
+    ) {
       this.addError(
         errors,
         'encoding',
         'Invalid encoding. Must be base64 or binary',
-        'INVALID_ENCODING'
+        'INVALID_ENCODING',
       );
     }
   }

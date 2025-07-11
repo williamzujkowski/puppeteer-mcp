@@ -51,7 +51,9 @@ export function validateServerConfig(serverConfig: ServerConfig): void {
   }
 
   if (serverConfig.grpcPort < 1 || serverConfig.grpcPort > 65535) {
-    throw new ServerError(`Invalid gRPC port: ${serverConfig.grpcPort}. Must be between 1 and 65535.`);
+    throw new ServerError(
+      `Invalid gRPC port: ${serverConfig.grpcPort}. Must be between 1 and 65535.`,
+    );
   }
 
   // Validate TLS configuration in production
@@ -114,7 +116,7 @@ export function createHttpsOptions(): https.ServerOptions {
   try {
     // Validate paths for security
     validateTlsPaths(certPath, keyPath);
-    
+
     // Read certificates
     const { cert, key } = readTlsCertificates(certPath, keyPath);
 
@@ -138,7 +140,11 @@ export function createHttpsOptions(): https.ServerOptions {
     };
 
     // Add CA certificate if configured
-    if (config.TLS_CA_PATH !== null && config.TLS_CA_PATH !== undefined && config.TLS_CA_PATH !== '') {
+    if (
+      config.TLS_CA_PATH !== null &&
+      config.TLS_CA_PATH !== undefined &&
+      config.TLS_CA_PATH !== ''
+    ) {
       const caPath = config.TLS_CA_PATH;
       if (caPath.includes('..')) {
         throw new ServerError('Invalid CA file path - path traversal detected');
@@ -188,10 +194,10 @@ export function getTrustProxyConfig(): boolean | string | number {
   if (config.NODE_ENV === 'development') {
     return 'loopback'; // Trust localhost only in development
   }
-  
+
   if (config.TRUST_PROXY !== undefined && config.TRUST_PROXY !== null) {
     return config.TRUST_PROXY; // Use configured value in production
   }
-  
+
   return false; // Default to no proxy trust
 }

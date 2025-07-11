@@ -31,23 +31,23 @@ jobs:
     outputs:
       has-updates: ${{ steps.check.outputs.has-updates }}
       security-updates: ${{ steps.security.outputs.count }}
-      
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20.x'
           cache: 'npm'
-          
+
       - name: Check for outdated packages
         id: check
         run: |
           # Check for outdated packages
           npm outdated --json > outdated.json || true
-          
+
           # Parse results
           node -e "
             const fs = require('fs');
@@ -68,13 +68,13 @@ jobs:
               console.log('::set-output name=has-updates::false');
             }
           "
-          
+
       - name: Check for security updates
         id: security
         run: |
           # Run security audit
           npm audit --json > audit.json || true
-          
+
           # Count vulnerabilities
           node -e "
             const audit = JSON.parse(require('fs').readFileSync('audit.json', 'utf8'));
@@ -83,7 +83,7 @@ jobs:
             console.log(\`Found \${total} vulnerabilities\`);
             console.log('::set-output name=count::' + total);
           "
-          
+
       - name: Upload analysis results
         uses: actions/upload-artifact@v4
         with:
@@ -100,7 +100,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: analyze-dependencies
     if: needs.analyze-dependencies.outputs.has-updates == 'true' || needs.analyze-dependencies.outputs.security-updates > 0
-    
+
     steps:
       - name: Generate token
         id: generate-token
@@ -108,33 +108,33 @@ jobs:
         with:
           app_id: ${{ secrets.APP_ID }}
           private_key: ${{ secrets.APP_PRIVATE_KEY }}
-          
+
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           token: ${{ steps.generate-token.outputs.token }}
-          
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20.x'
           cache: 'npm'
-          
+
       - name: Configure Git
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          
+
       - name: Create update branch
         run: |
           BRANCH_NAME="deps/update-$(date +%Y%m%d)"
           git checkout -b $BRANCH_NAME
           echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
-          
+
       - name: Update dependencies
         run: |
           UPDATE_TYPE="${{ github.event.inputs.update-type || 'all' }}"
-          
+
           case $UPDATE_TYPE in
             security)
               echo "Updating security vulnerabilities only..."
@@ -155,10 +155,10 @@ jobs:
               npm outdated --json | jq -r 'to_entries | .[] | .key' | xargs -I {} npm install {}@latest
               ;;
           esac
-          
+
           # Update lock file
           npm install
-          
+
       - name: Update sub-packages
         run: |
           # Update starlight-docs dependencies
@@ -168,46 +168,46 @@ jobs:
             npm audit fix || true
             cd ..
           fi
-          
+
           # Update example dependencies
           if [ -d "examples" ]; then
             cd examples
             npm update --save
             cd ..
           fi
-          
+
       - name: Run tests
         run: |
           npm run test
           npm run build
           npm run lint || true
-          
+
       - name: Generate update report
         run: |
           # Create detailed update report
           cat > update-report.md << 'EOF'
           # Dependency Update Report
-          
+
           ## Update Type: ${{ github.event.inputs.update-type || 'all' }}
-          
+
           ## Changes Made
-          
+
           ### Package Updates
           EOF
-          
+
           # Add git diff summary
           git diff package.json | grep -E "^[+-]" | grep -v "^[+-]{3}" >> update-report.md || echo "No changes to package.json" >> update-report.md
-          
+
           # Add security fixes
           echo -e "\n### Security Fixes" >> update-report.md
           npm audit --production >> update-report.md 2>&1 || echo "No security vulnerabilities found" >> update-report.md
-          
+
           # Add test results
           echo -e "\n### Test Results" >> update-report.md
           echo "- Unit Tests: ✅ Passed" >> update-report.md
           echo "- Build: ✅ Successful" >> update-report.md
           echo "- Lint: ⚠️  Check required" >> update-report.md
-          
+
       - name: Commit changes
         run: |
           git add -A
@@ -216,43 +216,43 @@ jobs:
           - Update type: ${{ github.event.inputs.update-type || 'all' }}
           - Security fixes: ${{ needs.analyze-dependencies.outputs.security-updates }}
           - Updated packages: see PR description for details
-          
+
           [skip ci]" || echo "No changes to commit"
-          
+
       - name: Push changes
         run: |
           git push origin $BRANCH_NAME || echo "No changes to push"
-          
+
       - name: Create pull request
         uses: peter-evans/create-pull-request@v6
         with:
           token: ${{ steps.generate-token.outputs.token }}
           branch: ${{ env.BRANCH_NAME }}
-          title: "chore(deps): update dependencies"
+          title: 'chore(deps): update dependencies'
           body: |
             ## 🔄 Dependency Update
-            
+
             This PR updates project dependencies based on the configured update policy.
-            
+
             ### Update Type
             `${{ github.event.inputs.update-type || 'all' }}`
-            
+
             ### Security Vulnerabilities
             - Before: ${{ needs.analyze-dependencies.outputs.security-updates }}
             - After: Run security check after merge
-            
+
             ### Changes
             Please review the file changes for a detailed list of updated packages.
-            
+
             ### Testing
             - [x] Unit tests pass
             - [x] Build successful
             - [ ] Manual testing required
             - [ ] Security scan clean
-            
+
             ### Update Report
             See attached `update-report.md` for detailed changes.
-            
+
             ---
             *This PR was automatically created by the dependency update workflow.*
           labels: |
@@ -260,7 +260,7 @@ jobs:
             automated
             security
           assignees: ${{ github.actor }}
-          
+
       - name: Add update report as comment
         if: env.BRANCH_NAME != ''
         uses: actions/github-script@v7
@@ -268,7 +268,7 @@ jobs:
           script: |
             const fs = require('fs');
             const report = fs.readFileSync('update-report.md', 'utf8');
-            
+
             // Find the PR
             const prs = await github.rest.pulls.list({
               owner: context.repo.owner,
@@ -276,7 +276,7 @@ jobs:
               head: `${context.repo.owner}:${process.env.BRANCH_NAME}`,
               state: 'open'
             });
-            
+
             if (prs.data.length > 0) {
               await github.rest.issues.createComment({
                 owner: context.repo.owner,
@@ -292,26 +292,26 @@ jobs:
     runs-on: ubuntu-latest
     needs: update-dependencies
     if: always()
-    
+
     steps:
       - name: Checkout update branch
         uses: actions/checkout@v4
         with:
           ref: ${{ env.BRANCH_NAME }}
-          
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20.x'
           cache: 'npm'
-          
+
       - name: Install dependencies
         run: npm ci
-        
+
       - name: Run security audit
         run: |
           npm audit --production --json > audit-after.json || true
-          
+
       - name: Run Snyk security scan
         if: env.SNYK_TOKEN != ''
         env:
@@ -319,14 +319,14 @@ jobs:
         run: |
           npm install -g snyk
           snyk test --severity-threshold=high --json > snyk-report.json || true
-          
+
       - name: Run OWASP dependency check
         uses: dependency-check/Dependency-Check_Action@main
         with:
           project: 'puppeteer-mcp'
           path: '.'
           format: 'JSON'
-          
+
       - name: Upload security reports
         uses: actions/upload-artifact@v4
         with:
@@ -343,11 +343,11 @@ jobs:
     runs-on: ubuntu-latest
     needs: [analyze-dependencies, update-dependencies, security-scan-updates]
     if: always()
-    
+
     steps:
       - name: Download artifacts
         uses: actions/download-artifact@v4
-        
+
       - name: Create summary report
         run: |
           echo "# 📊 Dependency Update Summary" >> $GITHUB_STEP_SUMMARY
@@ -357,7 +357,7 @@ jobs:
           echo "- Updates: ${{ needs.update-dependencies.result }}" >> $GITHUB_STEP_SUMMARY
           echo "- Security Scan: ${{ needs.security-scan-updates.result }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          
+
           if [ -f "dependency-analysis/outdated-summary.txt" ]; then
             echo "## Outdated Packages" >> $GITHUB_STEP_SUMMARY
             echo '```' >> $GITHUB_STEP_SUMMARY

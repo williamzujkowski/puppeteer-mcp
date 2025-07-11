@@ -94,7 +94,7 @@ export class GrpcStreamManager {
     callbacks: StreamCallbacks;
   }): void {
     const { service, methodName, request, metadata, callbacks } = options;
-    
+
     const call: MockStreamCall = {
       request: request ?? {},
       metadata,
@@ -148,7 +148,7 @@ export class GrpcStreamManager {
         on: (event: string, listener: (...args: unknown[]) => void) => {
           if (event === 'data') {
             // Simulate receiving data from client
-            requests.forEach(req => listener(req));
+            requests.forEach((req) => listener(req));
           } else if (event === 'end') {
             // Simulate end of client stream
             setTimeout(() => listener(), 0);
@@ -187,7 +187,7 @@ export class GrpcStreamManager {
    */
   handleBidirectionalStream(options: BidirectionalStreamOptions): void {
     const { service, methodName, requests, metadata, callbacks } = options;
-    
+
     const call = {
       metadata,
       getPeer: () => 'mcp-internal',
@@ -207,7 +207,7 @@ export class GrpcStreamManager {
       on: (event: string, listener: (...args: unknown[]) => void) => {
         if (event === 'data') {
           // Simulate receiving data from client
-          requests.forEach(req => listener(req));
+          requests.forEach((req) => listener(req));
         } else if (event === 'end') {
           // Simulate end of client stream
           setTimeout(() => listener(), 0);

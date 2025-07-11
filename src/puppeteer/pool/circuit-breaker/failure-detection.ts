@@ -22,7 +22,11 @@ export abstract class BaseFailureDetectionStrategy implements IFailureDetectionS
   constructor(protected name: string) {}
 
   abstract shouldOpen(failures: Date[], requests: Date[], config: CircuitBreakerConfig): boolean;
-  abstract shouldTransitionToHalfOpen(state: CircuitBreakerState, lastStateChange: Date, config: CircuitBreakerConfig): boolean;
+  abstract shouldTransitionToHalfOpen(
+    state: CircuitBreakerState,
+    lastStateChange: Date,
+    config: CircuitBreakerConfig,
+  ): boolean;
   abstract shouldClose(successes: Date[], config: CircuitBreakerConfig): boolean;
 
   /**
@@ -30,7 +34,7 @@ export abstract class BaseFailureDetectionStrategy implements IFailureDetectionS
    */
   protected filterWithinTimeWindow(dates: Date[], timeWindow: number): Date[] {
     const cutoff = new Date(Date.now() - timeWindow);
-    return dates.filter(date => date > cutoff);
+    return dates.filter((date) => date > cutoff);
   }
 
   /**
@@ -57,20 +61,27 @@ export class ThresholdFailureDetectionStrategy extends BaseFailureDetectionStrat
     const exceedsFailureThreshold = recentFailures.length >= config.failureThreshold;
 
     if (meetsMinimumThroughput && exceedsFailureThreshold) {
-      logger.debug({
-        strategy: this.name,
-        recentFailures: recentFailures.length,
-        recentRequests: recentRequests.length,
-        failureThreshold: config.failureThreshold,
-        minimumThroughput: config.minimumThroughput,
-      }, 'Circuit should open based on threshold');
+      logger.debug(
+        {
+          strategy: this.name,
+          recentFailures: recentFailures.length,
+          recentRequests: recentRequests.length,
+          failureThreshold: config.failureThreshold,
+          minimumThroughput: config.minimumThroughput,
+        },
+        'Circuit should open based on threshold',
+      );
       return true;
     }
 
     return false;
   }
 
-  shouldTransitionToHalfOpen(state: CircuitBreakerState, lastStateChange: Date, config: CircuitBreakerConfig): boolean {
+  shouldTransitionToHalfOpen(
+    state: CircuitBreakerState,
+    lastStateChange: Date,
+    config: CircuitBreakerConfig,
+  ): boolean {
     if (state !== CircuitBreakerState.OPEN) {
       return false;
     }
@@ -84,7 +95,6 @@ export class ThresholdFailureDetectionStrategy extends BaseFailureDetectionStrat
     return recentSuccesses.length >= config.successThreshold;
   }
 }
-
 
 /**
  * Factory for creating failure detection strategies

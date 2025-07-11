@@ -24,16 +24,13 @@ export class MetricsAggregator {
     }
 
     const totalActions = metrics.length;
-    const successfulActions = metrics.filter(m => m.success).length;
+    const successfulActions = metrics.filter((m) => m.success).length;
     const failedActions = totalActions - successfulActions;
 
-    const durations = metrics
-      .filter(m => m.duration !== undefined)
-      .map(m => m.duration!);
+    const durations = metrics.filter((m) => m.duration !== undefined).map((m) => m.duration!);
 
-    const averageDuration = durations.length > 0
-      ? durations.reduce((sum, d) => sum + d, 0) / durations.length
-      : 0;
+    const averageDuration =
+      durations.length > 0 ? durations.reduce((sum, d) => sum + d, 0) / durations.length : 0;
 
     const actionTypeBreakdown = this.calculateActionTypeBreakdown(metrics);
     const errorTypeBreakdown = this.calculateErrorTypeBreakdown(metrics);
@@ -69,24 +66,23 @@ export class MetricsAggregator {
     let filtered = [...metrics];
 
     if (context) {
-      filtered = filtered.filter(m => 
-        m.sessionId === context.sessionId &&
-        m.contextId === context.contextId
+      filtered = filtered.filter(
+        (m) => m.sessionId === context.sessionId && m.contextId === context.contextId,
       );
     }
 
     if (options?.startDate) {
       const startTime = options.startDate.getTime();
-      filtered = filtered.filter(m => m.startTime >= startTime);
+      filtered = filtered.filter((m) => m.startTime >= startTime);
     }
 
     if (options?.endDate) {
       const endTime = options.endDate.getTime();
-      filtered = filtered.filter(m => m.startTime <= endTime);
+      filtered = filtered.filter((m) => m.startTime <= endTime);
     }
 
     if (options?.actionTypes && options.actionTypes.length > 0) {
-      filtered = filtered.filter(m => options.actionTypes!.includes(m.actionType));
+      filtered = filtered.filter((m) => options.actionTypes!.includes(m.actionType));
     }
 
     return filtered;
@@ -219,7 +215,10 @@ export class MetricsAggregator {
    * @param limit - Maximum number of action types
    * @returns Top action types
    */
-  getTopActionTypes(metrics: AggregatedMetrics, limit = 10): Array<{ type: string; count: number }> {
+  getTopActionTypes(
+    metrics: AggregatedMetrics,
+    limit = 10,
+  ): Array<{ type: string; count: number }> {
     return Object.entries(metrics.actionTypeBreakdown)
       .map(([type, count]) => ({ type, count }))
       .sort((a, b) => b.count - a.count)

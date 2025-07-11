@@ -6,7 +6,11 @@
  */
 
 import type { Page } from 'puppeteer';
-import type { BrowserAction, ActionContext, ActionResult } from '../../../interfaces/action-executor.interface.js';
+import type {
+  BrowserAction,
+  ActionContext,
+  ActionResult,
+} from '../../../interfaces/action-executor.interface.js';
 import type { ActionHandler, RetryConfig } from '../types.js';
 import { RetryStrategy, RetryStrategyFactory } from './retry-strategy.js';
 import { ErrorClassifier } from './error-classifier.js';
@@ -47,10 +51,7 @@ export class RetryExecutor {
   private readonly recoveryChain: ErrorRecoveryChain;
   private readonly enableRecovery: boolean;
 
-  constructor(
-    retryConfig?: Partial<RetryConfig>,
-    options?: RetryExecutionOptions,
-  ) {
+  constructor(retryConfig?: Partial<RetryConfig>, options?: RetryExecutionOptions) {
     const strategyType = options?.strategy ?? 'exponential';
     this.retryStrategy = RetryStrategyFactory.create(strategyType, retryConfig);
     this.errorClassifier = new ErrorClassifier();
@@ -70,10 +71,10 @@ export class RetryExecutor {
 
     while (true) {
       attempt++;
-      
+
       try {
         const result = await this.executeAttempt({ handler, action, page, context, attempt });
-        
+
         if (result.success) {
           this.logSuccessfulExecution(context, action.type, attempt);
           return result;
@@ -86,7 +87,6 @@ export class RetryExecutor {
 
         // Convert result error to exception for retry handling
         lastError = new Error(result.error ?? 'Action failed');
-        
       } catch (error) {
         lastError = this.normalizeError(error);
         this.logExecutionError(context, action.type, attempt, lastError);
@@ -210,7 +210,7 @@ export class RetryExecutor {
         context,
         options,
       });
-      
+
       if (!recovered && attempt >= 2) {
         // Skip further retries if recovery failed after multiple attempts
         return false;
@@ -232,12 +232,7 @@ export class RetryExecutor {
   }): Promise<boolean> {
     const { error, action, page, context, options } = params;
     const errorDetails = this.errorClassifier.classify(error, action);
-    const recovered = await this.recoveryChain.attemptRecovery(
-      page,
-      action,
-      context,
-      errorDetails,
-    );
+    const recovered = await this.recoveryChain.attemptRecovery(page, action, context, errorDetails);
 
     if (recovered) {
       options?.onRecovery?.(errorDetails.type);
@@ -267,7 +262,7 @@ export class RetryExecutor {
    */
   private shouldRetryResult(result: ActionResult, attempt: number): boolean {
     if (result.success) return false;
-    
+
     return this.retryStrategy.shouldRetry(attempt);
   }
 
@@ -282,7 +277,7 @@ export class RetryExecutor {
    * Wait for specified duration
    */
   private async wait(ms: number): Promise<void> {
-    await new Promise<void>(resolve => setTimeout(resolve, ms));
+    await new Promise<void>((resolve) => setTimeout(resolve, ms));
   }
 
   /**

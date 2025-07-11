@@ -201,7 +201,14 @@ export class WebSocketOperationHandlers {
     _connection: MCPWebSocketConnection,
     operation: WebSocketOperation,
   ): Promise<MCPResponse> {
-    if (operation.topic === null || operation.topic === undefined || operation.topic === '' || operation.event === null || operation.event === undefined || operation.event === '') {
+    if (
+      operation.topic === null ||
+      operation.topic === undefined ||
+      operation.topic === '' ||
+      operation.event === null ||
+      operation.event === undefined ||
+      operation.event === ''
+    ) {
       throw new AppError('Topic and event are required for broadcast', 400);
     }
 

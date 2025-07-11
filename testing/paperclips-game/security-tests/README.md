@@ -1,12 +1,14 @@
 # Security Tests for puppeteer-mcp
 
-This directory contains comprehensive security tests designed to validate input sanitization, XSS prevention, and overall security posture of the puppeteer-mcp project.
+This directory contains comprehensive security tests designed to validate input sanitization, XSS
+prevention, and overall security posture of the puppeteer-mcp project.
 
 ## Test Coverage
 
 The security test suite covers the following vulnerability categories:
 
 ### 1. **XSS Prevention** (`xss-prevention.test.ts`)
+
 - URL parameter XSS
 - Script injection in selectors
 - HTML injection
@@ -15,6 +17,7 @@ The security test suite covers the following vulnerability categories:
 - Event handler XSS
 
 ### 2. **Path Traversal** (`path-traversal.test.ts`)
+
 - Directory traversal in file operations
 - URL path traversal
 - Protocol smuggling
@@ -22,6 +25,7 @@ The security test suite covers the following vulnerability categories:
 - Download path validation
 
 ### 3. **Command Injection** (`command-injection.test.ts`)
+
 - Shell command injection
 - Process spawning attempts
 - Browser command injection
@@ -30,6 +34,7 @@ The security test suite covers the following vulnerability categories:
 - Function constructor abuse
 
 ### 4. **SSRF Prevention** (`ssrf-prevention.test.ts`)
+
 - Internal network access blocking
 - DNS rebinding attacks
 - URL parser confusion
@@ -38,6 +43,7 @@ The security test suite covers the following vulnerability categories:
 - Data exfiltration prevention
 
 ### 5. **CSP Bypass** (`csp-bypass.test.ts`)
+
 - Content Security Policy enforcement
 - Inline script blocking
 - Nonce/hash bypass attempts
@@ -48,6 +54,7 @@ The security test suite covers the following vulnerability categories:
 - Web Worker bypasses
 
 ### 6. **Cookie Security** (`cookie-security.test.ts`)
+
 - Secure cookie attributes
 - Cookie theft prevention
 - Cookie injection attacks
@@ -58,6 +65,7 @@ The security test suite covers the following vulnerability categories:
 - Unicode poisoning
 
 ### 7. **Authentication Bypass** (`auth-bypass.test.ts`)
+
 - SQL injection in login forms
 - Token manipulation
 - Parameter pollution
@@ -69,6 +77,7 @@ The security test suite covers the following vulnerability categories:
 - Brute force protection
 
 ### 8. **Resource Exhaustion** (`resource-exhaustion.test.ts`)
+
 - Memory exhaustion
 - CPU exhaustion
 - DOM exhaustion
@@ -79,6 +88,7 @@ The security test suite covers the following vulnerability categories:
 - Fork bomb prevention
 
 ### 9. **Prototype Pollution** (`prototype-pollution.test.ts`)
+
 - Object prototype pollution
 - JSON-based pollution
 - Merge/extend pollution
@@ -89,6 +99,7 @@ The security test suite covers the following vulnerability categories:
 - Built-in method pollution
 
 ### 10. **Unsafe JavaScript Execution** (`unsafe-js-execution.test.ts`)
+
 - eval() abuse prevention
 - Function constructor restrictions
 - setTimeout/setInterval string execution
@@ -164,6 +175,7 @@ After running the security tests, two reports are generated:
 ## Test Targets
 
 The tests are run against:
+
 - https://williamzujkowski.github.io/paperclips/index2.html
 - https://williamzujkowski.github.io/
 

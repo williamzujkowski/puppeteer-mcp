@@ -37,7 +37,7 @@ export class MonitoringScheduler extends EventEmitter {
    */
   registerTask(task: ScheduledTask): void {
     this.tasks.set(task.name, task);
-    
+
     if (this.isRunning && task.enabled) {
       this.startTask(task);
     }
@@ -181,7 +181,7 @@ export class MonitoringScheduler extends EventEmitter {
       exists: true,
       enabled: task.enabled,
       interval: task.interval,
-      running: this.timers.has(name)
+      running: this.timers.has(name),
     };
   }
 
@@ -198,7 +198,7 @@ export class MonitoringScheduler extends EventEmitter {
       name,
       enabled: task.enabled,
       interval: task.interval,
-      running: this.timers.has(name)
+      running: this.timers.has(name),
     }));
   }
 

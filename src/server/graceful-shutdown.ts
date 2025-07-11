@@ -11,11 +11,7 @@ import { stopGrpcServer } from './grpc-server.js';
 import { stopWebSocketServer } from './websocket-server.js';
 import { shutdownAllServices } from './service-registry.js';
 import { stopHealthMonitoring } from './health-monitor.js';
-import { 
-  ServerComponents, 
-  ServerDependencies, 
-  ShutdownSignal
-} from './types.js';
+import { ServerComponents, ServerDependencies, ShutdownSignal } from './types.js';
 
 // Graceful shutdown tracking
 let isShuttingDown = false;
@@ -71,7 +67,7 @@ export async function gracefulShutdown(
     await shutdownAllServices(
       dependencies.browserPool,
       dependencies.sessionStore,
-      dependencies.logger
+      dependencies.logger,
     );
 
     // Clear the timeout since we completed gracefully
@@ -85,10 +81,9 @@ export async function gracefulShutdown(
     setTimeout(() => {
       process.exit(0);
     }, 1000);
-
   } catch (error) {
     dependencies.logger.error({ error }, 'Error during graceful shutdown');
-    
+
     // Log shutdown failure
     await logSecurityEvent(SecurityEventType.SERVICE_STOP, {
       reason: signal,

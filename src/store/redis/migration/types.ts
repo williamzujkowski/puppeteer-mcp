@@ -80,7 +80,7 @@ export interface MigrationStrategy {
   execute(
     source: RedisClient,
     target: RedisClient,
-    options: MigrationOptions
+    options: MigrationOptions,
   ): Promise<SessionMigrationResult>;
 }
 

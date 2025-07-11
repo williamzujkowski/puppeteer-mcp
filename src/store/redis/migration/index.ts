@@ -35,26 +35,15 @@ export type {
   MigrationOptions,
   BackupOptions,
   RestoreOptions,
-  MigrationContext
+  MigrationContext,
 } from './types.js';
 
-export type {
-  BackupConfig
-} from './backup-strategy.js';
+export type { BackupConfig } from './backup-strategy.js';
 
-export type {
-  RestoreConfig
-} from './restore-strategy.js';
+export type { RestoreConfig } from './restore-strategy.js';
 
-export type {
-  TransferConfig
-} from './transfer-strategy.js';
+export type { TransferConfig } from './transfer-strategy.js';
 
-export type {
-  CleanupResult,
-  CleanupOptions
-} from './cleanup-service.js';
+export type { CleanupResult, CleanupOptions } from './cleanup-service.js';
 
-export type {
-  ValidationOptions
-} from './validation-service.js';
+export type { ValidationOptions } from './validation-service.js';

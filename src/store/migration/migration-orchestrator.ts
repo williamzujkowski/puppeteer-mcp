@@ -8,13 +8,12 @@
 import type { pino } from 'pino';
 import type { SessionStore } from '../session-store.interface.js';
 import type { Session } from '../../types/session.js';
-import type { 
-  MigrationOptions, 
-  MigrationStats, 
-  MigrationContext,
-  BackupOptions
-} from './types.js';
-import { getAllSessions, filterExpiredSessions, filterSessionsByCustomFilter } from './migration-utils.js';
+import type { MigrationOptions, MigrationStats, MigrationContext, BackupOptions } from './types.js';
+import {
+  getAllSessions,
+  filterExpiredSessions,
+  filterSessionsByCustomFilter,
+} from './migration-utils.js';
 import { BatchProcessor } from './batch-processor.js';
 import { MigrationValidator } from './migration-validator.js';
 import { MigrationMetrics } from './migration-metrics.js';
@@ -41,10 +40,10 @@ export class MigrationOrchestrator {
   async migrate(
     sourceStore: SessionStore,
     targetStore: SessionStore,
-    options: MigrationOptions = {}
+    options: MigrationOptions = {},
   ): Promise<MigrationStats> {
     const context = this.createMigrationContext(sourceStore, targetStore, options);
-    
+
     this.metrics.recordMigrationStart(context);
 
     try {
@@ -60,7 +59,7 @@ export class MigrationOrchestrator {
 
       // Filter sessions for migration
       const sessionsToMigrate = this.filterSessionsForMigration(allSessions, context.options);
-      
+
       this.metrics.logSessionProcessingInfo(context.stats.totalSessions, sessionsToMigrate.length);
 
       // Process sessions in batches
@@ -79,23 +78,20 @@ export class MigrationOrchestrator {
   /**
    * Create a backup of all sessions from a store
    */
-  async backup(
-    store: SessionStore,
-    options: BackupOptions = {}
-  ): Promise<Session[]> {
+  async backup(store: SessionStore, options: BackupOptions = {}): Promise<Session[]> {
     const { includeExpired = false, filter } = options;
-    
+
     this.metrics.logBackupStart();
 
     const allSessions = await getAllSessions(store, this.logger);
-    
+
     let sessionsToBackup = allSessions;
-    
+
     // Filter out expired sessions if requested
     if (!includeExpired) {
       sessionsToBackup = filterExpiredSessions(sessionsToBackup);
     }
-    
+
     // Apply custom filter if provided
     if (filter) {
       sessionsToBackup = filterSessionsByCustomFilter(sessionsToBackup, filter);
@@ -120,14 +116,14 @@ export class MigrationOrchestrator {
   private createMigrationContext(
     sourceStore: SessionStore,
     targetStore: SessionStore,
-    options: MigrationOptions
+    options: MigrationOptions,
   ): MigrationContext {
     return {
       sourceStore,
       targetStore,
       options,
       startTime: Date.now(),
-      stats: this.metrics.initializeMigrationStats()
+      stats: this.metrics.initializeMigrationStats(),
     };
   }
 
@@ -141,13 +137,16 @@ export class MigrationOrchestrator {
   /**
    * Process migration batches
    */
-  private async processMigrationBatches(sessions: Session[], context: MigrationContext): Promise<void> {
-    const { 
+  private async processMigrationBatches(
+    sessions: Session[],
+    context: MigrationContext,
+  ): Promise<void> {
+    const {
       skipExisting = false,
       deleteAfterMigration = false,
       batchSize = 100,
       continueOnError = true,
-      onProgress
+      onProgress,
     } = context.options;
 
     await this.batchProcessor.processBatches({
@@ -157,11 +156,11 @@ export class MigrationOrchestrator {
       options: {
         skipExisting,
         deleteAfterMigration,
-        continueOnError
+        continueOnError,
       },
       stats: context.stats,
       batchSize,
-      onProgress
+      onProgress,
     });
   }
 }

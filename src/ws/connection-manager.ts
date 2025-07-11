@@ -51,7 +51,7 @@ export class WSConnectionManager {
   addConnection(connectionId: string, ws: WebSocket, state: WSConnectionState): void {
     this.connections.set(connectionId, { connectionId, ws, state });
     this.logger.debug('Connection added', { connectionId });
-    
+
     // Log WebSocket connection establishment
     void logSecurityEvent(SecurityEventType.WS_CONNECTION_ESTABLISHED, {
       resource: 'websocket',
@@ -114,7 +114,7 @@ export class WSConnectionManager {
 
     this.connections.delete(connectionId);
     this.logger.debug('Connection removed', { connectionId });
-    
+
     // Log WebSocket connection termination
     void logSecurityEvent(SecurityEventType.WS_CONNECTION_TERMINATED, {
       resource: 'websocket',
@@ -124,7 +124,8 @@ export class WSConnectionManager {
         connectionId,
         userId,
         sessionId,
-        connectionDuration: connection.state.lastActivity.getTime() - connection.state.connectedAt.getTime(),
+        connectionDuration:
+          connection.state.lastActivity.getTime() - connection.state.connectedAt.getTime(),
         authenticated: connection.state.authenticated,
         subscriptionCount: connection.state.subscriptions.size,
       },
@@ -202,7 +203,7 @@ export class WSConnectionManager {
         userId,
         sessionId,
       });
-      
+
       // Log WebSocket authentication success
       void logSecurityEvent(SecurityEventType.WS_CONNECTION_ESTABLISHED, {
         resource: 'websocket',
@@ -270,7 +271,7 @@ export class WSConnectionManager {
     ) {
       connection.state.subscriptions.add(topic);
       this.logger.debug('Subscription added', { connectionId, topic });
-      
+
       // Log subscription change
       void logSecurityEvent(SecurityEventType.WS_SUBSCRIPTION_CHANGED, {
         resource: 'websocket',
@@ -284,7 +285,7 @@ export class WSConnectionManager {
           totalSubscriptions: connection.state.subscriptions.size,
         },
       });
-      
+
       return true;
     }
     return false;
@@ -298,7 +299,7 @@ export class WSConnectionManager {
     if (connection) {
       connection.state.subscriptions.delete(topic);
       this.logger.debug('Subscription removed', { connectionId, topic });
-      
+
       // Log subscription change
       void logSecurityEvent(SecurityEventType.WS_SUBSCRIPTION_CHANGED, {
         resource: 'websocket',
@@ -312,7 +313,7 @@ export class WSConnectionManager {
           totalSubscriptions: connection.state.subscriptions.size,
         },
       });
-      
+
       return true;
     }
     return false;
@@ -365,7 +366,7 @@ export class WSConnectionManager {
         if (connection.ws.readyState === WebSocket.OPEN) {
           connection.ws.close(1001, 'Connection timeout');
         }
-        
+
         // Log stale connection cleanup
         void logSecurityEvent(SecurityEventType.WS_CONNECTION_TERMINATED, {
           resource: 'websocket',
@@ -381,7 +382,7 @@ export class WSConnectionManager {
             authenticated: connection.state.authenticated,
           },
         });
-        
+
         this.removeConnection(connectionId);
         cleaned++;
       }

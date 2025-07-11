@@ -3,7 +3,7 @@
  * @module puppeteer/actions/execution/wait-executor
  * @nist ac-3 "Access enforcement"
  * @nist au-3 "Content of audit records"
- * 
+ *
  * This file maintains backward compatibility by re-exporting the modularized wait executor.
  * The implementation has been refactored into smaller, focused modules under the wait/ directory.
  */
@@ -41,7 +41,7 @@ declare module 'puppeteer' {
   interface Page {
     waitForLoadState?(
       state: 'load' | 'domcontentloaded' | 'networkidle',
-      options?: { timeout?: number }
+      options?: { timeout?: number },
     ): Promise<void>;
   }
 }

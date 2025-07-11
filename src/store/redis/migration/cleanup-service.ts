@@ -44,23 +44,26 @@ export class CleanupService {
    */
   async cleanupExpiredSessions(
     client: RedisClient,
-    options: CleanupOptions = {}
+    options: CleanupOptions = {},
   ): Promise<CleanupResult> {
     const result: CleanupResult = {
       success: false,
       cleanedCount: 0,
       scannedCount: 0,
-      errors: []
+      errors: [],
     };
 
     try {
       const sessionKeys = await client.keys(`${this.SESSION_KEY_PREFIX}*`);
       result.scannedCount = sessionKeys.length;
 
-      this.logger.info({ 
-        sessionCount: sessionKeys.length,
-        dryRun: options.dryRun 
-      }, 'Starting expired session cleanup');
+      this.logger.info(
+        {
+          sessionCount: sessionKeys.length,
+          dryRun: options.dryRun,
+        },
+        'Starting expired session cleanup',
+      );
 
       const batchSize = options.batchSize ?? 100;
       const keysToDelete: string[] = [];
@@ -68,7 +71,7 @@ export class CleanupService {
       // Process in batches
       for (let i = 0; i < sessionKeys.length; i += batchSize) {
         const batch = sessionKeys.slice(i, i + batchSize);
-        
+
         for (const key of batch) {
           try {
             const shouldDelete = await this.shouldDeleteSession(client, key);
@@ -98,23 +101,28 @@ export class CleanupService {
 
         // Log progress
         if (i % (batchSize * 10) === 0 && i > 0) {
-          this.logger.info({ 
-            progress: `${i + batch.length}/${sessionKeys.length}`,
-            cleaned: result.cleanedCount 
-          }, 'Cleanup progress');
+          this.logger.info(
+            {
+              progress: `${i + batch.length}/${sessionKeys.length}`,
+              cleaned: result.cleanedCount,
+            },
+            'Cleanup progress',
+          );
         }
       }
 
       result.success = result.errors.length === 0;
-      
-      this.logger.info({
-        cleanedCount: result.cleanedCount,
-        scannedCount: result.scannedCount,
-        errorCount: result.errors.length
-      }, 'Expired session cleanup completed');
+
+      this.logger.info(
+        {
+          cleanedCount: result.cleanedCount,
+          scannedCount: result.scannedCount,
+          errorCount: result.errors.length,
+        },
+        'Expired session cleanup completed',
+      );
 
       return result;
-
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       result.errors.push(`Cleanup failed: ${errorMessage}`);
@@ -126,10 +134,7 @@ export class CleanupService {
   /**
    * Check if session should be deleted
    */
-  private async shouldDeleteSession(
-    client: RedisClient,
-    key: string
-  ): Promise<boolean> {
+  private async shouldDeleteSession(client: RedisClient, key: string): Promise<boolean> {
     const data = await client.get(key);
     if (!data) {
       return true; // Delete empty keys
@@ -158,7 +163,7 @@ export class CleanupService {
       total: 0,
       expired: 0,
       invalid: 0,
-      valid: 0
+      valid: 0,
     };
 
     try {
@@ -191,7 +196,6 @@ export class CleanupService {
       }
 
       return stats;
-
     } catch (error) {
       this.logger.error({ error }, 'Failed to get session statistics');
       return stats;

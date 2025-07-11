@@ -30,17 +30,17 @@ export class HealthChecker {
         username: 'health-check',
         roles: [],
         createdAt: new Date().toISOString(),
-        expiresAt: new Date(Date.now() + 1000).toISOString()
+        expiresAt: new Date(Date.now() + 1000).toISOString(),
       };
-      
+
       const testId = await primaryStore.create(testSessionData);
       await primaryStore.delete(testId);
-      
+
       return { available: true };
     } catch (error) {
       return {
         available: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       };
     }
   }
@@ -50,7 +50,7 @@ export class HealthChecker {
    */
   async getHealth(
     primaryStore: SessionStore,
-    replicaManager: ReplicaManager
+    replicaManager: ReplicaManager,
   ): Promise<{
     primary: HealthCheckResult;
     replicas: ReplicaHealthStatus[];
@@ -61,15 +61,18 @@ export class HealthChecker {
     // Check replica health
     const replicasHealth = await replicaManager.getAllReplicasHealth();
 
-    this.logger.debug({
-      primaryAvailable: primaryHealth.available,
-      replicaCount: replicasHealth.length,
-      healthyReplicas: replicasHealth.filter(r => r.available).length
-    }, 'Health check completed');
+    this.logger.debug(
+      {
+        primaryAvailable: primaryHealth.available,
+        replicaCount: replicasHealth.length,
+        healthyReplicas: replicasHealth.filter((r) => r.available).length,
+      },
+      'Health check completed',
+    );
 
     return {
       primary: primaryHealth,
-      replicas: replicasHealth
+      replicas: replicasHealth,
     };
   }
 }

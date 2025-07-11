@@ -36,5 +36,5 @@ export type {
   MigrationConfig,
   StoreLogger,
   OperationContext,
-  SessionQuery
+  SessionQuery,
 } from './types.js';

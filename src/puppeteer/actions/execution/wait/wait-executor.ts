@@ -67,11 +67,7 @@ export class ModularWaitExecutor {
    * @param context - Execution context
    * @returns Action result
    */
-  async executeWait(
-    action: WaitAction,
-    page: Page,
-    context: ActionContext,
-  ): Promise<ActionResult> {
+  async executeWait(action: WaitAction, page: Page, context: ActionContext): Promise<ActionResult> {
     try {
       logger.debug('Executing wait action', {
         sessionId: context.sessionId,
@@ -90,12 +86,12 @@ export class ModularWaitExecutor {
 
       // Get appropriate strategy
       const strategy = this.factory.getStrategy(action.waitType);
-      
+
       // Execute strategy
       return await strategy.execute(page, config, context);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Wait action failed';
-      
+
       logger.error('Wait action failed', {
         sessionId: context.sessionId,
         contextId: context.contextId,
@@ -212,9 +208,9 @@ export class ModularWaitExecutor {
   }): ActionResult {
     const metadata = options.success
       ? { hasArgs: options.argsCount > 0 }
-      : { 
-          functionLength: options.functionLength, 
-          argsCount: options.argsCount, 
+      : {
+          functionLength: options.functionLength,
+          argsCount: options.argsCount,
           timeout: options.timeout,
         };
 
@@ -266,7 +262,8 @@ export class ModularWaitExecutor {
       };
     } catch (error) {
       const duration = Date.now() - startTime;
-      const errorMessage = error instanceof Error ? error.message : 'WaitForNavigation action failed';
+      const errorMessage =
+        error instanceof Error ? error.message : 'WaitForNavigation action failed';
 
       return {
         success: false,
@@ -322,7 +319,7 @@ export class ModularWaitExecutor {
 
     // Handle extended wait actions that might not be in BrowserAction union
     const actionType = action.type as string;
-    
+
     switch (actionType) {
       case 'waitForSelector': {
         const waitAction = action as {
@@ -332,18 +329,13 @@ export class ModularWaitExecutor {
           visible?: boolean;
           hidden?: boolean;
         };
-        return this.executeWaitForSelector(
-          waitAction.selector,
-          page,
-          context,
-          {
-            timeout: waitAction.timeout,
-            visible: waitAction.visible,
-            hidden: waitAction.hidden,
-          },
-        );
+        return this.executeWaitForSelector(waitAction.selector, page, context, {
+          timeout: waitAction.timeout,
+          visible: waitAction.visible,
+          hidden: waitAction.hidden,
+        });
       }
-      
+
       case 'waitForFunction': {
         const waitAction = action as {
           type: string;
@@ -351,17 +343,12 @@ export class ModularWaitExecutor {
           timeout?: number;
           args?: unknown[];
         };
-        return this.executeWaitForFunction(
-          waitAction.function,
-          page,
-          context,
-          {
-            timeout: waitAction.timeout,
-            args: waitAction.args,
-          },
-        );
+        return this.executeWaitForFunction(waitAction.function, page, context, {
+          timeout: waitAction.timeout,
+          args: waitAction.args,
+        });
       }
-      
+
       case 'waitForNavigation': {
         const waitAction = action as {
           type: string;
@@ -375,12 +362,12 @@ export class ModularWaitExecutor {
           waitAction.waitUntil,
         );
       }
-      
+
       case 'waitForTimeout': {
         const waitAction = action as { type: string; duration: number };
         return this.executeWaitForTimeout(waitAction.duration, page, context);
       }
-      
+
       default:
         throw new Error(`Unsupported wait action: ${actionType}`);
     }
@@ -391,13 +378,7 @@ export class ModularWaitExecutor {
    * @returns Array of supported action types
    */
   getSupportedActions(): string[] {
-    return [
-      'wait',
-      'waitForSelector',
-      'waitForFunction',
-      'waitForNavigation',
-      'waitForTimeout',
-    ];
+    return ['wait', 'waitForSelector', 'waitForFunction', 'waitForNavigation', 'waitForTimeout'];
   }
 
   /**

@@ -48,7 +48,7 @@ export class EvaluationEngine {
   evaluateBrowsers(
     browsers: Map<string, InternalBrowserInstance>,
     resourceUsage: Map<string, BrowserResourceUsage>,
-    recyclingThreshold: number
+    recyclingThreshold: number,
   ): RecyclingCandidate[] {
     const candidates: RecyclingCandidate[] = [];
 
@@ -56,7 +56,7 @@ export class EvaluationEngine {
       const candidate = this.evaluateBrowser(
         instance,
         resourceUsage.get(browserId),
-        recyclingThreshold
+        recyclingThreshold,
       );
       if (candidate.score >= recyclingThreshold) {
         candidates.push(candidate);
@@ -70,11 +70,10 @@ export class EvaluationEngine {
       {
         totalBrowsers: browsers.size,
         candidates: candidates.length,
-        highPriority: candidates.filter(c => 
-          c.urgency === 'critical' || c.urgency === 'high'
-        ).length,
+        highPriority: candidates.filter((c) => c.urgency === 'critical' || c.urgency === 'high')
+          .length,
       },
-      'Browser recycling evaluation completed'
+      'Browser recycling evaluation completed',
     );
 
     return candidates;
@@ -86,48 +85,48 @@ export class EvaluationEngine {
   evaluateBrowser(
     instance: InternalBrowserInstance,
     resourceUsage: BrowserResourceUsage | undefined,
-    _recyclingThreshold: number
+    _recyclingThreshold: number,
   ): RecyclingCandidate {
     const browserId = instance.id;
-    
+
     // Get health metrics
     const healthMetrics = this.healthChecker.getHealthMetrics(browserId);
     const healthScore = healthMetrics?.overallHealth ?? 100;
     const errorRate = healthMetrics?.failureRate ?? 0;
-    
+
     // Extract candidate metrics
     const metrics = this.resourceAnalyzer.extractCandidateMetrics(
       instance,
       resourceUsage,
       healthScore,
-      errorRate
+      errorRate,
     );
-    
+
     // Calculate idle time
     const idleTimeMs = this.resourceAnalyzer.calculateIdleTime(instance);
-    
+
     // Calculate score based on strategy
     const config = this.getConfig();
     const strategyResult = this.strategyManager.calculateScore(
       { ...metrics, idleTimeMs },
       config.strategy,
-      config
+      config,
     );
-    
+
     // Determine urgency and impact
     const urgency = this.lifecycleManager.determineUrgency(
       strategyResult.score,
-      strategyResult.reasons
+      strategyResult.reasons,
     );
     const estimatedImpact = this.lifecycleManager.estimateImpact(
       strategyResult.score,
-      strategyResult.reasons
+      strategyResult.reasons,
     );
     const recommendedAction = this.lifecycleManager.getRecommendedAction(
       strategyResult.score,
-      urgency
+      urgency,
     );
-    
+
     const candidate: RecyclingCandidate = {
       browserId,
       instance,
@@ -138,10 +137,10 @@ export class EvaluationEngine {
       recommendedAction,
       metrics,
     };
-    
+
     // Update lifecycle state
     this.lifecycleManager.updateBrowserState(candidate);
-    
+
     return candidate;
   }
 }

@@ -16,13 +16,13 @@ Generated: 2025-07-06T02:22:37.292Z
 - Passed: 3
 - Failed: 2
 
-| Test | Result | Duration | Error |
-|------|--------|----------|-------|
-| Invalid Protocol | ❌ | 43ms | Unexpected error: net::ERR_ABORTED at htp://invali... |
-| Non-existent Domain | ✅ | 50ms | net::ERR_NAME_NOT_RESOLVED at https://this-domain-... |
-| Security Protocol | ✅ | 37ms | net::ERR_ABORTED at javascript:alert(1)... |
-| File Protocol | ❌ | 693ms | Expected error but navigation succeeded... |
-| About Blank | ✅ | 2013ms | - |
+| Test                | Result | Duration | Error                                                 |
+| ------------------- | ------ | -------- | ----------------------------------------------------- |
+| Invalid Protocol    | ❌     | 43ms     | Unexpected error: net::ERR_ABORTED at htp://invali... |
+| Non-existent Domain | ✅     | 50ms     | net::ERR_NAME_NOT_RESOLVED at https://this-domain-... |
+| Security Protocol   | ✅     | 37ms     | net::ERR_ABORTED at javascript:alert(1)...            |
+| File Protocol       | ❌     | 693ms    | Expected error but navigation succeeded...            |
+| About Blank         | ✅     | 2013ms   | -                                                     |
 
 ### Timeout Handling
 
@@ -30,9 +30,9 @@ Generated: 2025-07-06T02:22:37.292Z
 - Passed: 0
 - Failed: 1
 
-| Test | Result | Duration | Error |
-|------|--------|----------|-------|
-| Navigation Timeout | ❌ | 131ms | net::ERR_CONNECTION_CLOSED at https://httpstat.us/... |
+| Test               | Result | Duration | Error                                                 |
+| ------------------ | ------ | -------- | ----------------------------------------------------- |
+| Navigation Timeout | ❌     | 131ms    | net::ERR_CONNECTION_CLOSED at https://httpstat.us/... |
 
 ### JavaScript Errors
 
@@ -40,11 +40,11 @@ Generated: 2025-07-06T02:22:37.292Z
 - Passed: 3
 - Failed: 0
 
-| Test | Result | Duration | Error |
-|------|--------|----------|-------|
-| Syntax Error | ✅ | 248ms | Unexpected token ';'... |
-| Reference Error | ✅ | 65ms | nonExistentVariable is not defined... |
-| Type Error | ✅ | 81ms | Cannot read properties of null (reading 'toString'... |
+| Test            | Result | Duration | Error                                                 |
+| --------------- | ------ | -------- | ----------------------------------------------------- |
+| Syntax Error    | ✅     | 248ms    | Unexpected token ';'...                               |
+| Reference Error | ✅     | 65ms     | nonExistentVariable is not defined...                 |
+| Type Error      | ✅     | 81ms     | Cannot read properties of null (reading 'toString'... |
 
 ### Selector Errors
 
@@ -52,10 +52,10 @@ Generated: 2025-07-06T02:22:37.292Z
 - Passed: 1
 - Failed: 1
 
-| Test | Result | Duration | Error |
-|------|--------|----------|-------|
-| Invalid CSS Selector | ❌ | 82ms | Expected error but selector operation succeeded... |
-| Non-existent Element | ✅ | 1063ms | Waiting for selector `#this-element-definitely-doe... |
+| Test                 | Result | Duration | Error                                                 |
+| -------------------- | ------ | -------- | ----------------------------------------------------- |
+| Invalid CSS Selector | ❌     | 82ms     | Expected error but selector operation succeeded...    |
+| Non-existent Element | ✅     | 1063ms   | Waiting for selector `#this-element-definitely-doe... |
 
 ## Key Findings
 
@@ -68,7 +68,8 @@ Generated: 2025-07-06T02:22:37.292Z
 
 ⚠️ Some error handling tests failed. Review the following:
 
-- **Invalid Protocol**: Unexpected error: net::ERR_ABORTED at htp://invalid-protocol. Expected: /Protocol error|ERR_UNKNOWN_URL_SCHEME/
+- **Invalid Protocol**: Unexpected error: net::ERR_ABORTED at htp://invalid-protocol. Expected:
+  /Protocol error|ERR_UNKNOWN_URL_SCHEME/
 - **File Protocol**: Expected error but navigation succeeded
 - **Navigation Timeout**: net::ERR_CONNECTION_CLOSED at https://httpstat.us/200?sleep=60000
 - **Invalid CSS Selector**: Expected error but selector operation succeeded

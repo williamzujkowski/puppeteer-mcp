@@ -5,7 +5,12 @@
  */
 
 import type { SessionStore } from '../session-store.interface.js';
-import type { ReplicaInfo, ReplicationConfig, HealthCheckResult, ReplicaHealthStatus } from './types.js';
+import type {
+  ReplicaInfo,
+  ReplicationConfig,
+  HealthCheckResult,
+  ReplicaHealthStatus,
+} from './types.js';
 import type { SessionData } from '../../types/session.js';
 import type { Logger } from 'pino';
 import { EventEmitter } from 'events';
@@ -25,11 +30,7 @@ export class ReplicaManager extends EventEmitter {
   /**
    * Add a replica store
    */
-  addReplica(
-    id: string,
-    store: SessionStore,
-    config: Partial<ReplicationConfig> = {}
-  ): void {
+  addReplica(id: string, store: SessionStore, config: Partial<ReplicationConfig> = {}): void {
     if (this.replicas.has(id)) {
       throw new Error(`Replica with id ${id} already exists`);
     }
@@ -40,12 +41,12 @@ export class ReplicaManager extends EventEmitter {
       isActive: true,
       lastSync: null,
       syncErrors: 0,
-      config
+      config,
     };
 
     this.replicas.set(id, replicaInfo);
     this.emit('replica:connected', id);
-    
+
     this.logger.info({ replicaId: id }, 'Replica added');
   }
 
@@ -60,7 +61,7 @@ export class ReplicaManager extends EventEmitter {
 
     this.replicas.delete(id);
     this.emit('replica:disconnected', id);
-    
+
     this.logger.info({ replicaId: id }, 'Replica removed');
   }
 
@@ -82,7 +83,7 @@ export class ReplicaManager extends EventEmitter {
    * Get active replicas
    */
   getActiveReplicas(): ReplicaInfo[] {
-    return Array.from(this.replicas.values()).filter(r => r.isActive);
+    return Array.from(this.replicas.values()).filter((r) => r.isActive);
   }
 
   /**
@@ -121,7 +122,7 @@ export class ReplicaManager extends EventEmitter {
     this.updateReplicaStatus(id, {
       lastSync: new Date(),
       syncErrors: 0,
-      isActive: true
+      isActive: true,
     });
   }
 
@@ -135,15 +136,15 @@ export class ReplicaManager extends EventEmitter {
     }
 
     replica.syncErrors++;
-    
+
     if (replica.syncErrors >= maxRetries) {
       replica.isActive = false;
       this.emit('replica:failed', id);
     }
-    
+
     this.logger.warn(
       { replicaId: id, syncErrors: replica.syncErrors, maxRetries },
-      'Replica sync error recorded'
+      'Replica sync error recorded',
     );
   }
 
@@ -157,17 +158,17 @@ export class ReplicaManager extends EventEmitter {
         username: 'health-check',
         roles: [],
         createdAt: new Date().toISOString(),
-        expiresAt: new Date(Date.now() + 1000).toISOString()
+        expiresAt: new Date(Date.now() + 1000).toISOString(),
       };
-      
+
       const testId = await replica.store.create(testSessionData);
       await replica.store.delete(testId);
-      
+
       return { available: true };
     } catch (error) {
       return {
         available: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       };
     }
   }
@@ -179,15 +180,15 @@ export class ReplicaManager extends EventEmitter {
     const healthChecks = await Promise.all(
       Array.from(this.replicas.values()).map(async (replica) => {
         const health = await this.checkReplicaHealth(replica);
-        
+
         return {
           id: replica.id,
           available: health.available,
           lastSync: replica.lastSync,
           syncErrors: replica.syncErrors,
-          error: health.error
+          error: health.error,
         };
-      })
+      }),
     );
 
     return healthChecks;
@@ -204,13 +205,13 @@ export class ReplicaManager extends EventEmitter {
     healthy: number;
   } {
     const replicas = Array.from(this.replicas.values());
-    
+
     return {
       total: replicas.length,
-      active: replicas.filter(r => r.isActive).length,
-      inactive: replicas.filter(r => !r.isActive).length,
-      failed: replicas.filter(r => r.syncErrors > 0).length,
-      healthy: replicas.filter(r => r.isActive && r.syncErrors === 0).length
+      active: replicas.filter((r) => r.isActive).length,
+      inactive: replicas.filter((r) => !r.isActive).length,
+      failed: replicas.filter((r) => r.syncErrors > 0).length,
+      healthy: replicas.filter((r) => r.isActive && r.syncErrors === 0).length,
     };
   }
 

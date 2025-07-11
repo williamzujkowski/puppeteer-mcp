@@ -7,10 +7,7 @@
  */
 
 import type { Page, JSHandle } from 'puppeteer';
-import type {
-  ActionResult,
-  ActionContext,
-} from '../../../interfaces/action-executor.interface.js';
+import type { ActionResult, ActionContext } from '../../../interfaces/action-executor.interface.js';
 import type {
   BaseEvaluationStrategy,
   CodeEvaluationConfig,
@@ -46,7 +43,7 @@ export class HandleExecutionStrategy implements BaseEvaluationStrategy {
     context: ActionContext,
   ): Promise<ActionResult> {
     const metrics = this.createMetrics(config);
-    
+
     try {
       // Validate configuration first
       const validationResult = this.validateConfig(config);
@@ -61,10 +58,9 @@ export class HandleExecutionStrategy implements BaseEvaluationStrategy {
 
       // Execute handle evaluation
       const handle = await this.executeHandleEvaluation(config, page, context);
-      
+
       // Process successful result
       return await this.processSuccessfulHandle(handle, config, metrics, context);
-
     } catch (error) {
       return this.handleExecutionError(error, metrics, context);
     }
@@ -91,14 +87,11 @@ export class HandleExecutionStrategy implements BaseEvaluationStrategy {
 
     const timeout = config.timeout ?? EVALUATION_TIMEOUTS.HANDLE_OPERATION;
     const originalTimeout = page.getDefaultTimeout();
-    
+
     try {
       page.setDefaultTimeout(timeout);
-      
-      return await page.evaluateHandle(
-        config.functionToEvaluate,
-        ...(config.args ?? []),
-      );
+
+      return await page.evaluateHandle(config.functionToEvaluate, ...(config.args ?? []));
     } finally {
       page.setDefaultTimeout(originalTimeout);
     }
@@ -181,7 +174,7 @@ export class HandleExecutionStrategy implements BaseEvaluationStrategy {
     metrics.success = false;
 
     const errorMessage = error instanceof Error ? error.message : 'Handle evaluation failed';
-    
+
     logger.error('Handle evaluation failed', {
       sessionId: context.sessionId,
       contextId: context.contextId,
@@ -242,23 +235,32 @@ export class HandleExecutionStrategy implements BaseEvaluationStrategy {
     try {
       // Get basic type information
       const type = await handle.evaluate((obj: unknown) => typeof obj);
-      
+
       // Check if it's an Element
-      const isElement = await handle.evaluate((obj: unknown) => {
-        return typeof obj === 'object' && obj !== null && 'nodeType' in obj && 
-               Object.prototype.hasOwnProperty.call(obj, 'nodeType') &&
-               (obj as { nodeType: unknown }).nodeType === 1;
-      }).catch(() => false);
+      const isElement = await handle
+        .evaluate((obj: unknown) => {
+          return (
+            typeof obj === 'object' &&
+            obj !== null &&
+            'nodeType' in obj &&
+            Object.prototype.hasOwnProperty.call(obj, 'nodeType') &&
+            (obj as { nodeType: unknown }).nodeType === 1
+          );
+        })
+        .catch(() => false);
 
       // Check if it's an Array
-      const isArray = await handle.evaluate((obj: unknown) => Array.isArray(obj)).catch(() => false);
+      const isArray = await handle
+        .evaluate((obj: unknown) => Array.isArray(obj))
+        .catch(() => false);
 
       let elementTag: string | undefined;
       if (isElement) {
-        elementTag = await handle.evaluate((el: unknown) => {
-           
-          return el instanceof Element ? el.tagName.toLowerCase() : undefined;
-        }).catch(() => undefined);
+        elementTag = await handle
+          .evaluate((el: unknown) => {
+            return el instanceof Element ? el.tagName.toLowerCase() : undefined;
+          })
+          .catch(() => undefined);
       }
 
       // Get property names (limited for security)
@@ -275,7 +277,7 @@ export class HandleExecutionStrategy implements BaseEvaluationStrategy {
       logger.warn('Failed to analyze handle', {
         error: error instanceof Error ? error.message : String(error),
       });
-      
+
       return {
         type: 'unknown',
         isElement: false,
@@ -296,7 +298,7 @@ export class HandleExecutionStrategy implements BaseEvaluationStrategy {
         if (obj === null || typeof obj !== 'object') {
           return [];
         }
-        
+
         // Limit to 20 properties for performance and security
         return Object.keys(obj).slice(0, 20);
       });
@@ -345,8 +347,9 @@ export class HandleExecutionStrategy implements BaseEvaluationStrategy {
    * @returns Promise that resolves when cleanup is complete
    */
   async cleanupSessionHandles(sessionId: string): Promise<void> {
-    const sessionHandles = Array.from(this.activeHandles.entries())
-      .filter(([handleId, _]) => handleId.includes(sessionId));
+    const sessionHandles = Array.from(this.activeHandles.entries()).filter(([handleId, _]) =>
+      handleId.includes(sessionId),
+    );
 
     const cleanupPromises = sessionHandles.map(async ([handleId, handle]) => {
       try {
@@ -408,7 +411,7 @@ export class HandleExecutionStrategy implements BaseEvaluationStrategy {
       success: false,
       actionType,
       error: errorMessage,
-      duration: metrics.duration ?? (Date.now() - metrics.startTime),
+      duration: metrics.duration ?? Date.now() - metrics.startTime,
       timestamp: new Date(),
       metadata: {
         sessionId: context.sessionId,

@@ -15,7 +15,7 @@ export function sanitizeDetails(details: Record<string, unknown>): Record<string
 
   for (const [key, value] of Object.entries(details)) {
     const lowercaseKey = key.toLowerCase();
-    if (sensitiveKeys.some(sensitiveKey => lowercaseKey.includes(sensitiveKey))) {
+    if (sensitiveKeys.some((sensitiveKey) => lowercaseKey.includes(sensitiveKey))) {
       Object.assign(sanitized, { [key]: '[REDACTED]' });
     } else if (typeof value === 'object' && value !== null) {
       Object.assign(sanitized, { [key]: sanitizeDetails(value as Record<string, unknown>) });
@@ -32,7 +32,7 @@ export function sanitizeDetails(details: Record<string, unknown>): Record<string
  */
 export function inferCategory(errorName: string): ErrorCategory {
   const name = errorName.toLowerCase();
-  
+
   if (name.includes('auth')) return ErrorCategory.AUTHENTICATION;
   if (name.includes('validation')) return ErrorCategory.VALIDATION;
   if (name.includes('network')) return ErrorCategory.NETWORK;
@@ -42,7 +42,7 @@ export function inferCategory(errorName: string): ErrorCategory {
   if (name.includes('ratelimit')) return ErrorCategory.RATE_LIMIT;
   if (name.includes('security')) return ErrorCategory.SECURITY;
   if (name.includes('config')) return ErrorCategory.CONFIGURATION;
-  
+
   return ErrorCategory.SYSTEM;
 }
 
@@ -65,7 +65,7 @@ export function inferRecoverySuggestions(statusCode: number): RecoveryAction[] {
   if (statusCode === 404) return [RecoveryAction.VALIDATE_INPUT];
   if (statusCode === 429) return [RecoveryAction.WAIT_AND_RETRY];
   if (statusCode >= 500) return [RecoveryAction.RETRY_WITH_BACKOFF, RecoveryAction.CONTACT_SUPPORT];
-  
+
   return [RecoveryAction.CONTACT_SUPPORT];
 }
 

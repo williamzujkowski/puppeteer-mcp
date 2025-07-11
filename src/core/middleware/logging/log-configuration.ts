@@ -61,7 +61,9 @@ export const DEFAULT_LOGGED_CONTENT_TYPES = [
 /**
  * Default configuration based on verbosity level
  */
-export const getDefaultConfig = (verbosity: VerbosityLevel): Partial<RequestResponseLoggerOptions> => {
+export const getDefaultConfig = (
+  verbosity: VerbosityLevel,
+): Partial<RequestResponseLoggerOptions> => {
   const baseConfig = {
     maxBodySize: 8192, // 8KB
     sensitiveHeaders: DEFAULT_SENSITIVE_HEADERS,
@@ -136,7 +138,9 @@ export const createPresetConfigs = {
    * @nist au-2 "Audit events"
    * @nist au-3 "Content of audit records"
    */
-  production: (options: Partial<RequestResponseLoggerOptions> = {}): RequestResponseLoggerOptions => ({
+  production: (
+    options: Partial<RequestResponseLoggerOptions> = {},
+  ): RequestResponseLoggerOptions => ({
     verbosity: VerbosityLevel.STANDARD,
     auditLogging: true,
     includeHeaders: false,
@@ -152,7 +156,9 @@ export const createPresetConfigs = {
   /**
    * Development configuration
    */
-  development: (options: Partial<RequestResponseLoggerOptions> = {}): RequestResponseLoggerOptions => ({
+  development: (
+    options: Partial<RequestResponseLoggerOptions> = {},
+  ): RequestResponseLoggerOptions => ({
     verbosity: VerbosityLevel.VERBOSE,
     auditLogging: false,
     includeHeaders: true,
@@ -171,7 +177,9 @@ export const createPresetConfigs = {
    * @nist au-3 "Content of audit records"
    * @nist au-10 "Non-repudiation"
    */
-  security: (options: Partial<RequestResponseLoggerOptions> = {}): RequestResponseLoggerOptions => ({
+  security: (
+    options: Partial<RequestResponseLoggerOptions> = {},
+  ): RequestResponseLoggerOptions => ({
     verbosity: VerbosityLevel.VERBOSE,
     auditLogging: true,
     includeHeaders: true,
@@ -189,7 +197,9 @@ export const createPresetConfigs = {
    * Performance-focused configuration
    * @nist au-8 "Time stamps"
    */
-  performance: (options: Partial<RequestResponseLoggerOptions> = {}): RequestResponseLoggerOptions => ({
+  performance: (
+    options: Partial<RequestResponseLoggerOptions> = {},
+  ): RequestResponseLoggerOptions => ({
     verbosity: VerbosityLevel.MINIMAL,
     auditLogging: false,
     includeHeaders: false,

@@ -29,8 +29,17 @@ export function parseSessionConfig(sessionSecret: string): {
     SESSION_SECRET: sessionSecret,
     SESSION_RENEWAL_THRESHOLD: parseInt(process.env.SESSION_RENEWAL_THRESHOLD, 300000),
     ENABLE_SESSION_MONITORING: parseBoolean(process.env.ENABLE_SESSION_MONITORING, true),
-    SESSION_STORE_MONITORING_ENABLED: parseBoolean(process.env.SESSION_STORE_MONITORING_ENABLED, true),
-    SESSION_STORE_REPLICATION_ENABLED: parseBoolean(process.env.SESSION_STORE_REPLICATION_ENABLED, false),
-    SESSION_STORE_MIGRATION_ENABLED: parseBoolean(process.env.SESSION_STORE_MIGRATION_ENABLED, false),
+    SESSION_STORE_MONITORING_ENABLED: parseBoolean(
+      process.env.SESSION_STORE_MONITORING_ENABLED,
+      true,
+    ),
+    SESSION_STORE_REPLICATION_ENABLED: parseBoolean(
+      process.env.SESSION_STORE_REPLICATION_ENABLED,
+      false,
+    ),
+    SESSION_STORE_MIGRATION_ENABLED: parseBoolean(
+      process.env.SESSION_STORE_MIGRATION_ENABLED,
+      false,
+    ),
   };
 }

@@ -7,6 +7,7 @@ Advanced debugging techniques for the puppeteer-mcp Docker environment.
 ### Chrome DevTools Debugging
 
 1. **Start the application with debugging enabled** (already configured in docker-compose.dev.yml):
+
    ```bash
    ./docker/start.sh
    ```
@@ -25,6 +26,7 @@ Advanced debugging techniques for the puppeteer-mcp Docker environment.
 ### VS Code Debugging
 
 1. **Create `.vscode/launch.json`**:
+
    ```json
    {
      "version": "0.2.0",
@@ -174,9 +176,9 @@ docker-compose logs -f postgres | grep "LOG:"
 
 # Check slow queries
 docker-compose exec postgres psql -U mcp -d puppeteer_mcp -c "
-SELECT query, mean_exec_time, calls 
-FROM pg_stat_statements 
-ORDER BY mean_exec_time DESC 
+SELECT query, mean_exec_time, calls
+FROM pg_stat_statements
+ORDER BY mean_exec_time DESC
 LIMIT 10;
 "
 
@@ -284,16 +286,16 @@ const puppeteer = require('puppeteer');
 // Add to your Puppeteer scripts for debugging
 
 // Log console messages
-page.on('console', msg => console.log('PAGE LOG:', msg.text()));
+page.on('console', (msg) => console.log('PAGE LOG:', msg.text()));
 
 // Log page errors
-page.on('pageerror', error => console.log('PAGE ERROR:', error));
+page.on('pageerror', (error) => console.log('PAGE ERROR:', error));
 
 // Log requests
-page.on('request', request => console.log('REQUEST:', request.url()));
+page.on('request', (request) => console.log('REQUEST:', request.url()));
 
 // Log responses
-page.on('response', response => console.log('RESPONSE:', response.status(), response.url()));
+page.on('response', (response) => console.log('RESPONSE:', response.status(), response.url()));
 
 // Take screenshot on error
 page.on('pageerror', async () => {
@@ -379,27 +381,30 @@ docker-compose logs app | grep '{"level"' | jq -r '.err.type' | sort | uniq -c
 ### Issue Investigation Workflow
 
 1. **Reproduce the issue**
+
    ```bash
    # Clear logs
    docker-compose logs --tail=0 -f app > debug.log &
-   
+
    # Reproduce issue
    # ...
-   
+
    # Stop logging
    kill %1
    ```
 
 2. **Analyze logs**
+
    ```bash
    # Find errors
    grep -i error debug.log
-   
+
    # Find specific request
    grep "request-id" debug.log
    ```
 
 3. **Enable detailed logging**
+
    ```bash
    docker-compose exec -e LOG_LEVEL=trace app npm run dev
    ```
@@ -411,18 +416,20 @@ docker-compose logs app | grep '{"level"' | jq -r '.err.type' | sort | uniq -c
 ### Performance Investigation
 
 1. **Start monitoring**
+
    ```bash
    # Terminal 1: System stats
    watch -n 1 docker stats
-   
+
    # Terminal 2: Application logs
    docker-compose logs -f app
-   
+
    # Terminal 3: Database queries
    docker-compose logs -f postgres
    ```
 
 2. **Generate load**
+
    ```bash
    docker-compose run --rm k6
    ```

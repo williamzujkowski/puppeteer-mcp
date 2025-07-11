@@ -36,11 +36,11 @@ export class ValidationService {
    */
   async validateBackupFile(
     backupPath: string,
-    options: ValidationOptions = {}
+    options: ValidationOptions = {},
   ): Promise<BackupValidationResult> {
     const result: BackupValidationResult = {
       valid: false,
-      errors: []
+      errors: [],
     };
 
     try {
@@ -59,13 +59,10 @@ export class ValidationService {
       const validBackup = backupData as BackupData;
 
       // Validate sessions
-      const sessionValidation = await this.validator.validateSessions(
-        validBackup.sessions,
-        {
-          sampleSize: options.sampleSize,
-          strict: options.strict
-        }
-      );
+      const sessionValidation = await this.validator.validateSessions(validBackup.sessions, {
+        sampleSize: options.sampleSize,
+        strict: options.strict,
+      });
 
       if (!sessionValidation.valid) {
         result.errors.push(...sessionValidation.errors);
@@ -76,24 +73,23 @@ export class ValidationService {
         const expiryCheck = this.checkExpiredSessions(validBackup.sessions);
         if (expiryCheck.expiredCount > 0) {
           result.errors.push(
-            `Found ${expiryCheck.expiredCount} expired sessions out of ${expiryCheck.checkedCount} checked`
+            `Found ${expiryCheck.expiredCount} expired sessions out of ${expiryCheck.checkedCount} checked`,
           );
         }
       }
 
       result.valid = result.errors.length === 0;
-      
+
       if (result.valid) {
         return {
           ...result,
           version: validBackup.version,
           sessionCount: validBackup.sessionCount,
-          timestamp: validBackup.timestamp
+          timestamp: validBackup.timestamp,
         };
       }
 
       return result;
-
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       result.errors.push(`Backup validation failed: ${errorMessage}`);
@@ -113,13 +109,13 @@ export class ValidationService {
 
     if (!this.validator.validateBackupData(data)) {
       errors.push('Invalid backup data structure');
-      
+
       // Provide specific errors
       if (!data || typeof data !== 'object') {
         errors.push('Backup data must be an object');
       } else {
         const backup = data as Record<string, unknown>;
-        
+
         if (!backup.timestamp) {
           errors.push('Missing timestamp field');
         }
@@ -144,9 +140,7 @@ export class ValidationService {
   /**
    * Check for expired sessions
    */
-  private checkExpiredSessions(
-    sessions: unknown[]
-  ): {
+  private checkExpiredSessions(sessions: unknown[]): {
     checkedCount: number;
     expiredCount: number;
   } {
@@ -171,7 +165,7 @@ export class ValidationService {
    */
   async compareBackups(
     backupPath1: string,
-    backupPath2: string
+    backupPath2: string,
   ): Promise<{
     identical: boolean;
     differences: {
@@ -184,7 +178,7 @@ export class ValidationService {
     try {
       const [backup1, backup2] = await Promise.all([
         this.loadBackupData(backupPath1),
-        this.loadBackupData(backupPath2)
+        this.loadBackupData(backupPath2),
       ]);
 
       const differences: any = {};
@@ -195,7 +189,7 @@ export class ValidationService {
         identical = false;
         differences.sessionCount = {
           file1: backup1.sessionCount,
-          file2: backup2.sessionCount
+          file2: backup2.sessionCount,
         };
       }
 
@@ -203,7 +197,7 @@ export class ValidationService {
         identical = false;
         differences.timestamp = {
           file1: backup1.timestamp,
-          file2: backup2.timestamp
+          file2: backup2.timestamp,
         };
       }
 
@@ -211,7 +205,7 @@ export class ValidationService {
         identical = false;
         differences.version = {
           file1: backup1.version,
-          file2: backup2.version
+          file2: backup2.version,
         };
       }
 
@@ -219,12 +213,11 @@ export class ValidationService {
         identical = false;
         differences.preserveTTL = {
           file1: backup1.preserveTTL,
-          file2: backup2.preserveTTL
+          file2: backup2.preserveTTL,
         };
       }
 
       return { identical, differences };
-
     } catch (error) {
       this.logger.error({ error }, 'Failed to compare backup files');
       throw error;
@@ -237,11 +230,11 @@ export class ValidationService {
   private async loadBackupData(backupPath: string): Promise<BackupData> {
     const backupContent = await readFile(backupPath, 'utf8');
     const backupData = JSON.parse(backupContent);
-    
+
     if (!this.validator.validateBackupData(backupData)) {
       throw new Error(`Invalid backup file: ${backupPath}`);
     }
-    
+
     return backupData;
   }
 }

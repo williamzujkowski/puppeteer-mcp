@@ -51,11 +51,7 @@ export class ActionDispatcher {
    * @param context - Execution context
    * @returns Action result
    */
-  async dispatch(
-    action: BrowserAction,
-    page: Page,
-    context: ActionContext,
-  ): Promise<ActionResult> {
+  async dispatch(action: BrowserAction, page: Page, context: ActionContext): Promise<ActionResult> {
     try {
       logger.debug('Dispatching action', {
         sessionId: context.sessionId,
@@ -244,11 +240,14 @@ export class ActionDispatcher {
       return null;
     }
 
-    const recommendations: Record<string, {
-      category: string;
-      complexity: 'low' | 'medium' | 'high';
-      estimatedDuration: number;
-    }> = {
+    const recommendations: Record<
+      string,
+      {
+        category: string;
+        complexity: 'low' | 'medium' | 'high';
+        estimatedDuration: number;
+      }
+    > = {
       // Navigation actions
       navigate: { category: 'navigation', complexity: 'medium', estimatedDuration: 3000 },
       goBack: { category: 'navigation', complexity: 'low', estimatedDuration: 1000 },
@@ -361,7 +360,7 @@ export class ActionDispatcher {
    * @internal
    */
   clearCustomHandlers(): void {
-    Object.keys(this.customHandlers).forEach(key => {
+    Object.keys(this.customHandlers).forEach((key) => {
       // eslint-disable-next-line security/detect-object-injection
       delete this.customHandlers[key];
     });

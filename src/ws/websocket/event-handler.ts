@@ -139,7 +139,7 @@ export class EventHandler {
         const filteredSubscriptions = topicSubscriptions.filter(
           (sub) => sub.connectionId !== connectionId,
         );
-        
+
         if (filteredSubscriptions.length === 0) {
           this.subscriptions.delete(topic);
         } else {
@@ -151,7 +151,7 @@ export class EventHandler {
       const connectionTopics = this.connectionSubscriptions.get(connectionId);
       if (connectionTopics) {
         connectionTopics.delete(topic);
-        
+
         if (connectionTopics.size === 0) {
           this.connectionSubscriptions.delete(connectionId);
         }
@@ -331,8 +331,10 @@ export class EventHandler {
     connectionsWithSubscriptions: number;
     topicsBySubscriberCount: Array<{ topic: string; subscriberCount: number }>;
   } {
-    const totalSubscriptions = Array.from(this.subscriptions.values())
-      .reduce((sum, subs) => sum + subs.length, 0);
+    const totalSubscriptions = Array.from(this.subscriptions.values()).reduce(
+      (sum, subs) => sum + subs.length,
+      0,
+    );
 
     const topicsBySubscriberCount = Array.from(this.subscriptions.entries())
       .map(([topic, subscriptions]) => ({
@@ -363,7 +365,7 @@ export class EventHandler {
       }
 
       const dataObj = data as Record<string, unknown>;
-      
+
       return Object.entries(filters).every(([key, value]) => {
         if (Array.isArray(value)) {
           return value.includes(dataObj[key]);

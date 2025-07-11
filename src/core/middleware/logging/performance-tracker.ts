@@ -24,25 +24,22 @@ export const createTiming = (highPrecision: boolean = false): RequestTiming => {
  */
 export const calculateTiming = (timing: RequestTiming): RequestTiming => {
   timing.endTime ??= hrtime();
-  
+
   const diff = hrtime(timing.startTime);
   timing.duration = diff[0] * 1000 + diff[1] / 1000000; // Convert to milliseconds
   timing.ttfb = timing.duration; // For now, TTFB = total time
-  
+
   return timing;
 };
 
 /**
  * Calculate duration from start time
  */
-export const calculateDuration = (
-  startTime: number,
-  timing?: RequestTiming,
-): number => {
+export const calculateDuration = (startTime: number, timing?: RequestTiming): number => {
   if (timing?.duration !== undefined) {
     return timing.duration;
   }
-  
+
   return Date.now() - startTime;
 };
 
@@ -74,7 +71,7 @@ export const formatDuration = (duration: number): string => {
  */
 export class PerformanceTracker {
   private metrics: Map<string, number[]> = new Map();
-  
+
   /**
    * Record a timing metric
    */
@@ -83,30 +80,30 @@ export class PerformanceTracker {
     existing.push(duration);
     this.metrics.set(key, existing);
   }
-  
+
   /**
    * Get average for a metric
    */
   getAverage(key: string): number | null {
     const values = this.metrics.get(key);
     if (values === undefined || values === null || values.length === 0) return null;
-    
+
     return values.reduce((sum, val) => sum + val, 0) / values.length;
   }
-  
+
   /**
    * Get percentile for a metric
    */
   getPercentile(key: string, percentile: number): number | null {
     const values = this.metrics.get(key);
     if (values === undefined || values === null || values.length === 0) return null;
-    
+
     const sorted = [...values].sort((a, b) => a - b);
     const index = Math.ceil((percentile / 100) * sorted.length) - 1;
     // eslint-disable-next-line security/detect-object-injection
     return sorted[index] ?? null;
   }
-  
+
   /**
    * Get summary statistics
    */
@@ -121,11 +118,11 @@ export class PerformanceTracker {
   } | null {
     const values = this.metrics.get(key);
     if (values === undefined || values === null || values.length === 0) return null;
-    
+
     const sorted = [...values].sort((a, b) => a - b);
     const count = sorted.length;
     const sum = sorted.reduce((acc, val) => acc + val, 0);
-    
+
     return {
       count,
       min: sorted[0] ?? 0,
@@ -136,7 +133,7 @@ export class PerformanceTracker {
       p99: sorted[Math.floor(count * 0.99)] ?? 0,
     };
   }
-  
+
   /**
    * Clear metrics
    */

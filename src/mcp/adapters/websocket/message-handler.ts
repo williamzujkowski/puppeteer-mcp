@@ -176,7 +176,7 @@ export class WebSocketMessageHandler implements MessageHandlers {
     if (messageId === '') {
       return;
     }
-    
+
     const pending = connection.pendingRequests.get(messageId);
 
     if (pending) {
@@ -214,7 +214,11 @@ export class WebSocketMessageHandler implements MessageHandlers {
       data?: unknown;
     };
 
-    if (updateMessage.topic === null || updateMessage.topic === undefined || updateMessage.topic === '') {
+    if (
+      updateMessage.topic === null ||
+      updateMessage.topic === undefined ||
+      updateMessage.topic === ''
+    ) {
       this.logger.debug('Subscription update without topic', {
         connectionId: connection.connectionId,
         messageId: message.id,

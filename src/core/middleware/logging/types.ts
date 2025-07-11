@@ -39,7 +39,7 @@ export const VerbosityLevel = {
   DEBUG: 'debug',
 } as const;
 
-export type VerbosityLevel = typeof VerbosityLevel[keyof typeof VerbosityLevel];
+export type VerbosityLevel = (typeof VerbosityLevel)[keyof typeof VerbosityLevel];
 
 /**
  * Configuration options for the request/response logger

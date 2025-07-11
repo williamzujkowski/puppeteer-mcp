@@ -46,7 +46,7 @@ export class EnhancedErrorHandler {
     logger: Logger,
     config: ErrorHandlerConfig = {},
     errorTracker?: ErrorTracker,
-    recoveryManager?: ErrorRecoveryManager
+    recoveryManager?: ErrorRecoveryManager,
   ) {
     this.logger = logger;
     this.config = {
@@ -117,7 +117,7 @@ export class EnhancedErrorHandler {
    */
   private convertToEnhancedError(
     err: Error | AppError | EnhancedAppError | ZodError,
-    context: ErrorContext
+    context: ErrorContext,
   ): EnhancedAppError {
     if (err instanceof EnhancedAppError) {
       return err;
@@ -135,17 +135,20 @@ export class EnhancedErrorHandler {
    */
   private async trackErrorIfEnabled(
     enhancedError: EnhancedAppError,
-    context: ErrorContext
+    context: ErrorContext,
   ): Promise<void> {
     if (this.config.trackErrors === true && this.errorTracker !== undefined) {
       try {
         await this.errorTracker.trackError(enhancedError, context);
       } catch (trackingError) {
-        this.logger.error({
-          error: trackingError,
-          originalError: enhancedError.message,
-          requestId: context.requestId,
-        }, 'Failed to track error');
+        this.logger.error(
+          {
+            error: trackingError,
+            originalError: enhancedError.message,
+            requestId: context.requestId,
+          },
+          'Failed to track error',
+        );
       }
     }
   }
@@ -155,27 +158,32 @@ export class EnhancedErrorHandler {
    */
   private async attemptRecoveryIfEnabled(
     enhancedError: EnhancedAppError,
-    context: ErrorContext
+    context: ErrorContext,
   ): Promise<void> {
     if (this.config.enableRecovery === true && this.recoveryManager !== undefined) {
       try {
         const recoveryResult = await this.recoveryManager.recover(enhancedError, context);
         if (recoveryResult.success === true) {
-          this.logger.info({
-            requestId: context.requestId,
-            recovery: recoveryResult.strategy,
-            duration: recoveryResult.duration,
-          }, 'Error recovery succeeded');
+          this.logger.info(
+            {
+              requestId: context.requestId,
+              recovery: recoveryResult.strategy,
+              duration: recoveryResult.duration,
+            },
+            'Error recovery succeeded',
+          );
         }
       } catch (recoveryError) {
-        this.logger.error({
-          error: recoveryError,
-          requestId: context.requestId,
-        }, 'Error recovery failed');
+        this.logger.error(
+          {
+            error: recoveryError,
+            requestId: context.requestId,
+          },
+          'Error recovery failed',
+        );
       }
     }
   }
-
 }
 
 /**
@@ -199,7 +207,7 @@ export const createEnhancedErrorHandler = (
   logger: Logger,
   config: ErrorHandlerConfig = {},
   errorTracker?: ErrorTracker,
-  recoveryManager?: ErrorRecoveryManager
+  recoveryManager?: ErrorRecoveryManager,
 ): ErrorRequestHandler => {
   const enhancedHandler = new EnhancedErrorHandler(logger, config, errorTracker, recoveryManager);
   return enhancedHandler.getMiddleware();

@@ -85,7 +85,9 @@ export class NavigationWaitStrategy extends BaseWaitStrategy {
         },
       };
     } catch (error) {
-      throw new Error(`Navigation wait failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Navigation wait failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
     }
   }
 

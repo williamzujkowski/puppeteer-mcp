@@ -1,6 +1,6 @@
 /**
  * WebSocket Real-Time Monitoring Example
- * 
+ *
  * This example demonstrates:
  * - Establishing WebSocket connections
  * - Real-time event streaming
@@ -55,16 +55,19 @@ class WebSocketMonitor extends EventEmitter {
   private messageQueue: WSMessage[] = [];
   private isAuthenticated = false;
 
-  constructor(private url: string, private apiKey: string) {
+  constructor(
+    private url: string,
+    private apiKey: string,
+  ) {
     super();
   }
 
   async connect(): Promise<void> {
     return new Promise((resolve, reject) => {
       console.log(`Connecting to WebSocket: ${this.url}`);
-      
+
       this.ws = new WebSocket(this.url);
-      
+
       this.ws.on('open', () => {
         console.log('WebSocket connected');
         this.reconnectAttempts = 0;
@@ -100,17 +103,17 @@ class WebSocketMonitor extends EventEmitter {
     const authMessage: AuthMessage = {
       type: 'auth',
       payload: {
-        apiKey: this.apiKey
-      }
+        apiKey: this.apiKey,
+      },
     };
-    
+
     this.send(authMessage);
   }
 
   private handleMessage(data: string): void {
     try {
       const message: WSMessage = JSON.parse(data);
-      
+
       switch (message.type) {
         case 'auth_success':
           this.isAuthenticated = true;
@@ -119,31 +122,31 @@ class WebSocketMonitor extends EventEmitter {
           this.resubscribeAll();
           this.emit('authenticated');
           break;
-          
+
         case 'auth_failed':
           console.error('Authentication failed:', message.payload);
           this.disconnect();
           break;
-          
+
         case 'subscribed':
           console.log(`Subscribed to channel: ${message.payload.channel}`);
           this.emit('subscribed', message.payload.channel);
           break;
-          
+
         case 'unsubscribed':
           console.log(`Unsubscribed from channel: ${message.payload.channel}`);
           this.emit('unsubscribed', message.payload.channel);
           break;
-          
+
         case 'browser_event':
           this.handleBrowserEvent(message.payload);
           break;
-          
+
         case 'error':
           console.error('Server error:', message.payload);
           this.emit('server_error', message.payload);
           break;
-          
+
         default:
           this.emit('message', message);
       }
@@ -154,33 +157,33 @@ class WebSocketMonitor extends EventEmitter {
 
   private handleBrowserEvent(event: BrowserEvent): void {
     console.log(`Browser event: ${event.event} on ${event.pageId || event.contextId}`);
-    
+
     // Emit specific event types
     switch (event.event) {
       case 'page_created':
         this.emit('page_created', event);
         break;
-        
+
       case 'page_navigated':
         this.emit('page_navigated', event);
         break;
-        
+
       case 'page_loaded':
         this.emit('page_loaded', event);
         break;
-        
+
       case 'console_message':
         this.emit('console', event);
         break;
-        
+
       case 'network_request':
         this.emit('network', event);
         break;
-        
+
       case 'error':
         this.emit('browser_error', event);
         break;
-        
+
       default:
         this.emit('browser_event', event);
     }
@@ -192,16 +195,16 @@ class WebSocketMonitor extends EventEmitter {
       this.messageQueue.push({
         type: 'subscribe',
         payload: { channel, filters },
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
       return;
     }
 
     const message: SubscriptionMessage = {
       type: 'subscribe',
-      payload: { channel, filters }
+      payload: { channel, filters },
     };
-    
+
     this.send(message);
     this.subscriptions.add(channel);
   }
@@ -209,16 +212,16 @@ class WebSocketMonitor extends EventEmitter {
   unsubscribe(channel: string): void {
     const message: SubscriptionMessage = {
       type: 'unsubscribe',
-      payload: { channel }
+      payload: { channel },
     };
-    
+
     this.send(message);
     this.subscriptions.delete(channel);
   }
 
   private resubscribeAll(): void {
     console.log('Resubscribing to all channels...');
-    this.subscriptions.forEach(channel => {
+    this.subscriptions.forEach((channel) => {
       this.subscribe(channel);
     });
   }
@@ -248,10 +251,12 @@ class WebSocketMonitor extends EventEmitter {
     }
 
     this.reconnectAttempts++;
-    console.log(`Reconnecting in ${this.reconnectInterval}ms... (attempt ${this.reconnectAttempts})`);
-    
+    console.log(
+      `Reconnecting in ${this.reconnectInterval}ms... (attempt ${this.reconnectAttempts})`,
+    );
+
     setTimeout(() => {
-      this.connect().catch(error => {
+      this.connect().catch((error) => {
         console.error('Reconnection failed:', error);
       });
     }, this.reconnectInterval);
@@ -266,7 +271,7 @@ class WebSocketMonitor extends EventEmitter {
 
   getState(): string {
     if (!this.ws) return 'DISCONNECTED';
-    
+
     switch (this.ws.readyState) {
       case WebSocket.CONNECTING:
         return 'CONNECTING';
@@ -285,12 +290,12 @@ class WebSocketMonitor extends EventEmitter {
 // Example 1: Monitor all browser events
 async function monitorAllEvents() {
   const monitor = new WebSocketMonitor(WS_URL, API_KEY);
-  
+
   try {
     // Set up event handlers
     monitor.on('authenticated', () => {
       console.log('Ready to monitor events');
-      
+
       // Subscribe to all browser events
       monitor.subscribe('browser:*');
     });
@@ -313,10 +318,9 @@ async function monitorAllEvents() {
 
     // Connect and start monitoring
     await monitor.connect();
-    
+
     // Keep monitoring for 60 seconds
-    await new Promise(resolve => setTimeout(resolve, 60000));
-    
+    await new Promise((resolve) => setTimeout(resolve, 60000));
   } finally {
     monitor.disconnect();
   }
@@ -326,7 +330,7 @@ async function monitorAllEvents() {
 async function monitorSession(sessionId: string) {
   const monitor = new WebSocketMonitor(WS_URL, API_KEY);
   const events: BrowserEvent[] = [];
-  
+
   try {
     monitor.on('authenticated', () => {
       // Subscribe to specific session events
@@ -339,23 +343,25 @@ async function monitorSession(sessionId: string) {
     });
 
     await monitor.connect();
-    
+
     // Monitor for 30 seconds
-    await new Promise(resolve => setTimeout(resolve, 30000));
-    
+    await new Promise((resolve) => setTimeout(resolve, 30000));
+
     // Generate report
     console.log('\nSession Event Summary:');
     console.log(`Total events: ${events.length}`);
-    
-    const eventCounts = events.reduce((acc, event) => {
-      acc[event.event] = (acc[event.event] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
-    
+
+    const eventCounts = events.reduce(
+      (acc, event) => {
+        acc[event.event] = (acc[event.event] || 0) + 1;
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
+
     Object.entries(eventCounts).forEach(([event, count]) => {
       console.log(`  ${event}: ${count}`);
     });
-    
   } finally {
     monitor.disconnect();
   }
@@ -365,7 +371,7 @@ async function monitorSession(sessionId: string) {
 async function performanceMonitoring() {
   const monitor = new WebSocketMonitor(WS_URL, API_KEY);
   const performanceMetrics: Map<string, any[]> = new Map();
-  
+
   try {
     monitor.on('authenticated', () => {
       // Subscribe to performance metrics
@@ -376,22 +382,22 @@ async function performanceMonitoring() {
     monitor.on('message', (message: WSMessage) => {
       if (message.type === 'performance_metric') {
         const { metric, value, pageId } = message.payload;
-        
+
         if (!performanceMetrics.has(pageId)) {
           performanceMetrics.set(pageId, []);
         }
-        
+
         performanceMetrics.get(pageId)?.push({
           metric,
           value,
-          timestamp: message.timestamp
+          timestamp: message.timestamp,
         });
-        
+
         // Alert on high values
         if (metric === 'memory_usage' && value > 100 * 1024 * 1024) {
           console.warn(`High memory usage detected: ${value / 1024 / 1024}MB`);
         }
-        
+
         if (metric === 'cpu_usage' && value > 80) {
           console.warn(`High CPU usage detected: ${value}%`);
         }
@@ -399,29 +405,28 @@ async function performanceMonitoring() {
     });
 
     await monitor.connect();
-    
+
     // Monitor for 60 seconds and generate periodic reports
     for (let i = 0; i < 6; i++) {
-      await new Promise(resolve => setTimeout(resolve, 10000));
-      
+      await new Promise((resolve) => setTimeout(resolve, 10000));
+
       console.log('\n--- Performance Report ---');
       performanceMetrics.forEach((metrics, pageId) => {
         console.log(`Page ${pageId}:`);
-        
+
         const latest = metrics.slice(-10); // Last 10 metrics
-        const avgMemory = latest
-          .filter(m => m.metric === 'memory_usage')
-          .reduce((sum, m) => sum + m.value, 0) / latest.length;
-        
-        const avgCpu = latest
-          .filter(m => m.metric === 'cpu_usage')
-          .reduce((sum, m) => sum + m.value, 0) / latest.length;
-        
+        const avgMemory =
+          latest.filter((m) => m.metric === 'memory_usage').reduce((sum, m) => sum + m.value, 0) /
+          latest.length;
+
+        const avgCpu =
+          latest.filter((m) => m.metric === 'cpu_usage').reduce((sum, m) => sum + m.value, 0) /
+          latest.length;
+
         console.log(`  Avg Memory: ${(avgMemory / 1024 / 1024).toFixed(2)}MB`);
         console.log(`  Avg CPU: ${avgCpu.toFixed(2)}%`);
       });
     }
-    
   } finally {
     monitor.disconnect();
   }
@@ -430,11 +435,11 @@ async function performanceMonitoring() {
 // Example 4: Multi-channel subscription
 async function multiChannelMonitoring() {
   const monitor = new WebSocketMonitor(WS_URL, API_KEY);
-  
+
   try {
     // Track events by channel
     const channelEvents: Map<string, number> = new Map();
-    
+
     monitor.on('authenticated', () => {
       // Subscribe to multiple channels
       monitor.subscribe('browser:navigation');
@@ -454,16 +459,16 @@ async function multiChannelMonitoring() {
     });
 
     await monitor.connect();
-    
+
     // Monitor for 30 seconds
-    await new Promise(resolve => setTimeout(resolve, 30000));
-    
+    await new Promise((resolve) => setTimeout(resolve, 30000));
+
     // Show statistics
     console.log('\nChannel Statistics:');
     channelEvents.forEach((count, channel) => {
       console.log(`${channel}: ${count} events`);
     });
-    
+
     // Unsubscribe from busy channels
     channelEvents.forEach((count, channel) => {
       if (count > 100) {
@@ -471,7 +476,6 @@ async function multiChannelMonitoring() {
         monitor.unsubscribe(channel);
       }
     });
-    
   } finally {
     monitor.disconnect();
   }
@@ -481,26 +485,25 @@ async function multiChannelMonitoring() {
 if (require.main === module) {
   (async () => {
     console.log('WebSocket Real-Time Monitoring Examples\n');
-    
+
     // Get session ID from command line or use default
     const sessionId = process.argv[2] || 'example-session-id';
-    
+
     try {
       console.log('1. Monitor All Events (60s)');
       await monitorAllEvents();
       console.log('\n---\n');
-      
+
       console.log(`2. Monitor Specific Session: ${sessionId} (30s)`);
       await monitorSession(sessionId);
       console.log('\n---\n');
-      
+
       console.log('3. Performance Monitoring (60s)');
       await performanceMonitoring();
       console.log('\n---\n');
-      
+
       console.log('4. Multi-Channel Monitoring (30s)');
       await multiChannelMonitoring();
-      
     } catch (error) {
       console.error('Example failed:', error);
     }

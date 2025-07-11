@@ -21,27 +21,27 @@ export class HttpMetricsImpl implements HttpMetrics {
 
   constructor(meter: Meter) {
     this.meter = meter;
-    
+
     this.httpRequestsTotal = meter.createCounter('http_requests_total', {
       description: 'Total number of HTTP requests',
       unit: '1',
     });
-    
+
     this.httpRequestDuration = meter.createHistogram('http_request_duration_ms', {
       description: 'HTTP request duration in milliseconds',
       unit: 'ms',
     });
-    
+
     this.httpRequestSize = meter.createHistogram('http_request_size_bytes', {
       description: 'HTTP request size in bytes',
       unit: 'By',
     });
-    
+
     this.httpResponseSize = meter.createHistogram('http_response_size_bytes', {
       description: 'HTTP response size in bytes',
       unit: 'By',
     });
-    
+
     this.httpActiveRequests = meter.createUpDownCounter('http_active_requests', {
       description: 'Number of active HTTP requests',
       unit: '1',
@@ -53,21 +53,21 @@ export class HttpMetricsImpl implements HttpMetrics {
    */
   recordHttpRequest(options: HttpRequestOptions): void {
     const { method, route, statusCode, duration, requestSize = 0, responseSize = 0 } = options;
-    
+
     const labels: HttpRequestLabels = {
       method,
       route,
       status_code: statusCode.toString(),
       status_class: `${Math.floor(statusCode / 100)}xx`,
     };
-    
+
     this.httpRequestsTotal.add(1, labels);
     this.httpRequestDuration.record(duration, labels);
-    
+
     if (requestSize > 0) {
       this.httpRequestSize.record(requestSize, labels);
     }
-    
+
     if (responseSize > 0) {
       this.httpResponseSize.record(responseSize, labels);
     }

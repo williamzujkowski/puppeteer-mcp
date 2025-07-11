@@ -119,11 +119,7 @@ export function recordProxyRotation(
  * Record proxy health check
  * @nist si-4 "Information system monitoring"
  */
-export function recordProxyHealthCheck(
-  proxyId: string,
-  healthy: boolean,
-  duration: number,
-): void {
+export function recordProxyHealthCheck(proxyId: string, healthy: boolean, duration: number): void {
   proxyMetrics.healthChecksTotal.add(1, {
     proxy_id: proxyId,
     result: healthy ? 'healthy' : 'unhealthy',
@@ -181,23 +177,40 @@ export function updateActiveContextCount(delta: number): void {
  */
 export function initializeProxyTelemetry(): void {
   // Set up event listeners for proxy manager
-  proxyManager.on('proxy:healthy', ({ proxyId, responseTime }: { proxyId: string; responseTime: number }) => {
-    recordProxyHealthCheck(proxyId, true, responseTime);
-    updateHealthyProxyCount(1);
-  });
+  proxyManager.on(
+    'proxy:healthy',
+    ({ proxyId, responseTime }: { proxyId: string; responseTime: number }) => {
+      recordProxyHealthCheck(proxyId, true, responseTime);
+      updateHealthyProxyCount(1);
+    },
+  );
 
-  proxyManager.on('proxy:unhealthy', ({ proxyId, error: _error }: { proxyId: string; error: any }) => {
-    recordProxyHealthCheck(proxyId, false, 0);
-    updateHealthyProxyCount(-1);
-  });
+  proxyManager.on(
+    'proxy:unhealthy',
+    ({ proxyId, error: _error }: { proxyId: string; error: any }) => {
+      recordProxyHealthCheck(proxyId, false, 0);
+      updateHealthyProxyCount(-1);
+    },
+  );
 
   proxyManager.on('proxy:rotated', (event: any) => {
     recordProxyRotation(event.contextId, event.reason, event.oldProxyId, event.newProxyId);
   });
 
-  proxyManager.on('proxy:failover', ({ contextId, failedProxyId, newProxyId }: { contextId: string; failedProxyId: string; newProxyId: string }) => {
-    recordProxyFailover(contextId, failedProxyId, newProxyId);
-  });
+  proxyManager.on(
+    'proxy:failover',
+    ({
+      contextId,
+      failedProxyId,
+      newProxyId,
+    }: {
+      contextId: string;
+      failedProxyId: string;
+      newProxyId: string;
+    }) => {
+      recordProxyFailover(contextId, failedProxyId, newProxyId);
+    },
+  );
 
   // Set up periodic metrics collection
   setInterval(() => {

@@ -154,7 +154,9 @@ export class VersionDetector {
    * @nist ac-3 "Access enforcement"
    */
   static getLatestSupportedVersion(): string {
-    return VersionDetector.SUPPORTED_VERSIONS[VersionDetector.SUPPORTED_VERSIONS.length - 1] || '1.0.14';
+    return (
+      VersionDetector.SUPPORTED_VERSIONS[VersionDetector.SUPPORTED_VERSIONS.length - 1] || '1.0.14'
+    );
   }
 
   /**

@@ -16,7 +16,7 @@ import { ServerInstance, ServerConfig } from './types.js';
 export function createWebSocketServerInstance(
   logger: Logger,
   sessionStore: SessionStore,
-  httpServer: ServerInstance
+  httpServer: ServerInstance,
 ): WSServer {
   return createWebSocketServer(logger, sessionStore, httpServer);
 }
@@ -28,7 +28,7 @@ export function startWebSocketServer(
   logger: Logger,
   sessionStore: SessionStore,
   httpServer: ServerInstance,
-  serverConfig: ServerConfig
+  serverConfig: ServerConfig,
 ): WSServer {
   const wsServer = createWebSocketServerInstance(logger, sessionStore, httpServer);
   logger.info(`WebSocket endpoint: ${serverConfig.wsPath}`);

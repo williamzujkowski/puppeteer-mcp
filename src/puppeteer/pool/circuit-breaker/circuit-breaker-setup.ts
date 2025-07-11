@@ -19,7 +19,7 @@ const logger = createLogger('circuit-breaker-setup');
 export function setupEventHandling(
   eventAggregator: EventAggregator,
   performanceMonitor: PerformanceMonitor,
-  emitter: { emit: (event: string, data: any) => boolean }
+  emitter: { emit: (event: string, data: any) => boolean },
 ): void {
   // Forward events from components
   eventAggregator.on('circuit-breaker-event', (event) => {
@@ -47,7 +47,7 @@ export function startMonitoring(
   stateMachine: CircuitBreakerStateMachine,
   timeoutManager: TimeoutManager,
   failureDetectionStrategy: any,
-  onMonitorCheck: () => void
+  onMonitorCheck: () => void,
 ): NodeJS.Timeout | undefined {
   if (!config.enabled) {
     return undefined;
@@ -59,7 +59,7 @@ export function startMonitoring(
       const shouldTransition = failureDetectionStrategy.shouldTransitionToHalfOpen(
         stateMachine.getState(),
         stateMachine.getStateMetrics().stateChangeTime,
-        config
+        config,
       );
 
       if (shouldTransition && !timeoutManager.getStatus().hasActiveTimeout) {
@@ -83,11 +83,11 @@ export function handleStateTransition(
   context: any,
   stateMachine: CircuitBreakerStateMachine,
   timeoutManager: TimeoutManager,
-  emitEvent: (event: any) => void
+  emitEvent: (event: any) => void,
 ): void {
   const previousState = stateMachine.getState();
   const transitioned = stateMachine.transition(newState, context);
-  
+
   if (transitioned) {
     // Handle state-specific actions
     if (newState === CircuitBreakerState.OPEN) {
@@ -111,21 +111,27 @@ export function handleStateTransition(
  */
 export function initializeComponents(
   name: string,
-  config: CircuitBreakerConfig
+  config: CircuitBreakerConfig,
 ): {
   onTimeout: () => void;
   onMonitorCheck: () => void;
 } {
-  logger.info({
-    circuitBreaker: name,
-    config,
-  }, 'Initializing circuit breaker components');
+  logger.info(
+    {
+      circuitBreaker: name,
+      config,
+    },
+    'Initializing circuit breaker components',
+  );
 
   return {
     onTimeout: () => {
-      logger.debug({
-        circuitBreaker: name,
-      }, 'Timeout callback triggered');
+      logger.debug(
+        {
+          circuitBreaker: name,
+        },
+        'Timeout callback triggered',
+      );
     },
     onMonitorCheck: () => {
       // Additional monitoring logic can be added here

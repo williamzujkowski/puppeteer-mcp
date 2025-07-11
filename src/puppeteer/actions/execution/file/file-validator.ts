@@ -17,10 +17,24 @@ const logger = createLogger('puppeteer:file-validator');
 const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB
 const MAX_FILES_PER_UPLOAD = 10;
 const ALLOWED_UPLOAD_EXTENSIONS = [
-  '.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp',
-  '.pdf', '.doc', '.docx', '.xls', '.xlsx',
-  '.txt', '.csv', '.json', '.xml',
-  '.zip', '.tar', '.gz'
+  '.jpg',
+  '.jpeg',
+  '.png',
+  '.gif',
+  '.svg',
+  '.webp',
+  '.pdf',
+  '.doc',
+  '.docx',
+  '.xls',
+  '.xlsx',
+  '.txt',
+  '.csv',
+  '.json',
+  '.xml',
+  '.zip',
+  '.tar',
+  '.gz',
 ];
 
 /**
@@ -42,9 +56,7 @@ export class FileValidator {
   }) {
     this.maxFileSize = options?.maxFileSize ?? MAX_FILE_SIZE;
     this.maxFilesPerUpload = options?.maxFilesPerUpload ?? MAX_FILES_PER_UPLOAD;
-    this.allowedExtensions = new Set(
-      options?.allowedExtensions ?? ALLOWED_UPLOAD_EXTENSIONS
-    );
+    this.allowedExtensions = new Set(options?.allowedExtensions ?? ALLOWED_UPLOAD_EXTENSIONS);
     this.basePath = options?.basePath ?? '.';
   }
 
@@ -56,21 +68,25 @@ export class FileValidator {
    */
   async validateUploadPaths(filePaths: string[]): Promise<FileValidationResult[]> {
     if (filePaths.length === 0) {
-      return [{
-        valid: false,
-        error: 'At least one file path is required',
-      }];
+      return [
+        {
+          valid: false,
+          error: 'At least one file path is required',
+        },
+      ];
     }
 
     if (filePaths.length > this.maxFilesPerUpload) {
-      return [{
-        valid: false,
-        error: `Too many files. Maximum allowed: ${this.maxFilesPerUpload}`,
-      }];
+      return [
+        {
+          valid: false,
+          error: `Too many files. Maximum allowed: ${this.maxFilesPerUpload}`,
+        },
+      ];
     }
 
     const results = await Promise.all(
-      filePaths.map(filePath => this.validateSingleUploadPath(filePath))
+      filePaths.map((filePath) => this.validateSingleUploadPath(filePath)),
     );
 
     return results;
@@ -99,13 +115,12 @@ export class FileValidator {
       // Get file metadata and validate
       const metadata = await getFileMetadata(filePath);
       return this.validateFileMetadata(filePath, metadata);
-
     } catch {
       const errorMessage = 'File validation failed';
       logger.error('File validation error', { filePath, error: errorMessage });
-      
-      return { 
-        valid: false, 
+
+      return {
+        valid: false,
         error: errorMessage,
       };
     }
@@ -130,8 +145,8 @@ export class FileValidator {
    */
   private validatePathSecurity(filePath: string): FileValidationResult {
     if (!isPathSafe(filePath, this.basePath)) {
-      return { 
-        valid: false, 
+      return {
+        valid: false,
         error: 'File path outside allowed directory',
       };
     }
@@ -146,16 +161,16 @@ export class FileValidator {
    */
   private validateFileMetadata(filePath: string, metadata: FileMetadata): FileValidationResult {
     if (!metadata.exists) {
-      return { 
-        valid: false, 
+      return {
+        valid: false,
         error: `File not found: ${filePath}`,
         metadata,
       };
     }
 
     if (!metadata.isFile) {
-      return { 
-        valid: false, 
+      return {
+        valid: false,
         error: `Path is not a file: ${filePath}`,
         metadata,
       };
@@ -171,13 +186,13 @@ export class FileValidator {
       return { ...extensionValidation, metadata };
     }
 
-    logger.debug('File validation passed', { 
-      filePath, 
+    logger.debug('File validation passed', {
+      filePath,
       size: metadata.size,
       extension: metadata.extension,
     });
 
-    return { 
+    return {
       valid: true,
       metadata,
     };
@@ -190,8 +205,8 @@ export class FileValidator {
    */
   private validateFileSize(metadata: FileMetadata): FileValidationResult {
     if (metadata.size > this.maxFileSize) {
-      return { 
-        valid: false, 
+      return {
+        valid: false,
         error: `File too large (${Math.round(metadata.size / 1024 / 1024)}MB). Maximum: ${Math.round(this.maxFileSize / 1024 / 1024)}MB`,
       };
     }
@@ -204,9 +219,12 @@ export class FileValidator {
    * @returns Validation result
    */
   private validateFileExtension(metadata: FileMetadata): FileValidationResult {
-    if (this.allowedExtensions.size > 0 && !this.allowedExtensions.has(metadata.extension.toLowerCase())) {
-      return { 
-        valid: false, 
+    if (
+      this.allowedExtensions.size > 0 &&
+      !this.allowedExtensions.has(metadata.extension.toLowerCase())
+    ) {
+      return {
+        valid: false,
         error: `File type not allowed: ${metadata.extension}`,
       };
     }
@@ -229,8 +247,8 @@ export class FileValidator {
 
       // Security check: prevent path traversal
       if (!isPathSafe(downloadPath, this.basePath)) {
-        return { 
-          valid: false, 
+        return {
+          valid: false,
           error: 'Download path outside allowed directory',
         };
       }
@@ -244,31 +262,31 @@ export class FileValidator {
           await fs.mkdir(downloadDir, { recursive: true });
           logger.debug('Created download directory', { downloadDir });
         } catch {
-          return { 
-            valid: false, 
+          return {
+            valid: false,
             error: `Cannot create download directory: ${downloadDir}`,
           };
         }
       } else if (!dirMetadata.isDirectory) {
-        return { 
-          valid: false, 
+        return {
+          valid: false,
           error: `Download directory path is not a directory: ${downloadDir}`,
         };
       }
 
-      return { 
+      return {
         valid: true,
         metadata: {
           absolutePath: path.resolve(downloadPath),
         },
       };
-
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Download path validation failed';
+      const errorMessage =
+        error instanceof Error ? error.message : 'Download path validation failed';
       logger.error('Download path validation error', { downloadPath, error: errorMessage });
-      
-      return { 
-        valid: false, 
+
+      return {
+        valid: false,
         error: errorMessage,
       };
     }

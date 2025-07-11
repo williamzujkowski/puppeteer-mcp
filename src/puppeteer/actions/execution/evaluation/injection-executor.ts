@@ -7,10 +7,7 @@
  */
 
 import type { Page } from 'puppeteer';
-import type {
-  ActionResult,
-  ActionContext,
-} from '../../../interfaces/action-executor.interface.js';
+import type { ActionResult, ActionContext } from '../../../interfaces/action-executor.interface.js';
 import type {
   BaseEvaluationStrategy,
   InjectionConfig,
@@ -45,7 +42,7 @@ export class InjectionExecutionStrategy implements BaseEvaluationStrategy {
     context: ActionContext,
   ): Promise<ActionResult> {
     const metrics = this.createMetrics(config);
-    
+
     try {
       logger.debug('Executing content injection', {
         sessionId: context.sessionId,
@@ -70,15 +67,15 @@ export class InjectionExecutionStrategy implements BaseEvaluationStrategy {
       if (this.shouldPreprocessContent(config.content, config.type)) {
         processedContent = this.preprocessContent(config.content, config.type);
       }
-      
+
       // Setup timeout
       const timeout = this.getTimeoutForType(config.type);
       const originalTimeout = page.getDefaultTimeout();
-      
+
       let injectionResult: { url?: string } | undefined;
       try {
         page.setDefaultTimeout(timeout);
-        
+
         // Execute injection based on type
         if (config.type === 'script') {
           injectionResult = await this.injectScript(processedContent, page);
@@ -91,7 +88,7 @@ export class InjectionExecutionStrategy implements BaseEvaluationStrategy {
         // Always restore original timeout
         page.setDefaultTimeout(originalTimeout);
       }
-      
+
       // Validate injection result
       if (!this.validateInjectionResult(injectionResult || {}, config.type)) {
         logger.warn('Injection result validation failed', {
@@ -104,7 +101,8 @@ export class InjectionExecutionStrategy implements BaseEvaluationStrategy {
       metrics.duration = metrics.endTime - metrics.startTime;
       metrics.success = true;
 
-      const actionType = `inject${config.type.charAt(0).toUpperCase()}${config.type.slice(1)}` as const;
+      const actionType =
+        `inject${config.type.charAt(0).toUpperCase()}${config.type.slice(1)}` as const;
 
       logger.info('Content injection completed successfully', {
         sessionId: context.sessionId,
@@ -131,15 +129,15 @@ export class InjectionExecutionStrategy implements BaseEvaluationStrategy {
           executionTime: metrics.duration,
         },
       };
-
     } catch (error) {
       metrics.endTime = Date.now();
       metrics.duration = metrics.endTime - metrics.startTime;
       metrics.success = false;
 
       const errorMessage = error instanceof Error ? error.message : 'Content injection failed';
-      const actionType = `inject${config.type.charAt(0).toUpperCase()}${config.type.slice(1)}` as const;
-      
+      const actionType =
+        `inject${config.type.charAt(0).toUpperCase()}${config.type.slice(1)}` as const;
+
       logger.error('Content injection failed', {
         sessionId: context.sessionId,
         contextId: context.contextId,
@@ -168,11 +166,13 @@ export class InjectionExecutionStrategy implements BaseEvaluationStrategy {
       return {
         isValid: false,
         error: `Unsupported injection type: ${String(config.type)}`,
-        issues: [{
-          type: 'dangerous_pattern',
-          message: `Invalid injection type: ${String(config.type)}`,
-          severity: 'high',
-        }],
+        issues: [
+          {
+            type: 'dangerous_pattern',
+            message: `Invalid injection type: ${String(config.type)}`,
+            severity: 'high',
+          },
+        ],
       };
     }
   }
@@ -195,14 +195,13 @@ export class InjectionExecutionStrategy implements BaseEvaluationStrategy {
   private async injectScript(script: string, page: Page): Promise<{ url?: string }> {
     try {
       // Add script tag to the page
-      const scriptHandle = await page.addScriptTag({ 
-        content: script 
+      const scriptHandle = await page.addScriptTag({
+        content: script,
       });
 
       // Try to get the URL if available
       let url: string | undefined;
       try {
-         
         url = await scriptHandle.evaluate((el: HTMLScriptElement) => el.src ?? undefined);
       } catch {
         // URL might not be available for inline scripts
@@ -234,15 +233,14 @@ export class InjectionExecutionStrategy implements BaseEvaluationStrategy {
   private async injectCSS(css: string, page: Page): Promise<{ url?: string }> {
     try {
       // Add style tag to the page
-      const styleHandle = await page.addStyleTag({ 
-        content: css 
+      const styleHandle = await page.addStyleTag({
+        content: css,
       });
 
       // Try to get the URL if available
       let url: string | undefined;
       try {
         url = await styleHandle.evaluate((el: Element) => {
-           
           return el instanceof HTMLLinkElement ? el.href : undefined;
         });
       } catch {
@@ -313,7 +311,7 @@ export class InjectionExecutionStrategy implements BaseEvaluationStrategy {
       success: false,
       actionType,
       error: errorMessage,
-      duration: metrics.duration ?? (Date.now() - metrics.startTime),
+      duration: metrics.duration ?? Date.now() - metrics.startTime,
       timestamp: new Date(),
       metadata: {
         sessionId: context.sessionId,
@@ -333,12 +331,12 @@ export class InjectionExecutionStrategy implements BaseEvaluationStrategy {
   private shouldPreprocessContent(content: string, _type: string): boolean {
     // Check for templating or dynamic content that might need preprocessing
     const templatePatterns = [
-      /\{\{.*\}\}/,  // Handlebars/Mustache
-      /\$\{.*\}/,    // Template literals
-      /@\w+/,       // Angular-style directives
+      /\{\{.*\}\}/, // Handlebars/Mustache
+      /\$\{.*\}/, // Template literals
+      /@\w+/, // Angular-style directives
     ];
 
-    return templatePatterns.some(pattern => pattern.test(content));
+    return templatePatterns.some((pattern) => pattern.test(content));
   }
 
   /**
@@ -354,7 +352,7 @@ export class InjectionExecutionStrategy implements BaseEvaluationStrategy {
 
     // Remove template literals for security
     processed = processed.replace(/\$\{[^}]*\}/g, '""');
-    
+
     // Remove other template syntax
     processed = processed.replace(/\{\{[^}]*\}\}/g, '""');
     processed = processed.replace(/@\w+[^;]*/g, '');

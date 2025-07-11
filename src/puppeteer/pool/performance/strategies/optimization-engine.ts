@@ -20,7 +20,7 @@ import type { IOptimizationEngine } from '../types/strategy.interfaces.js';
 export class OptimizationEngine implements IOptimizationEngine {
   readonly monitor: EventEmitter;
   readonly config: PerformanceMonitoringConfig;
-  
+
   private recommendations: Map<string, OptimizationRecommendation> = new Map();
   private lastOptimizationCheck = new Date(0);
   private readonly maxRecommendations = 100;
@@ -41,10 +41,10 @@ export class OptimizationEngine implements IOptimizationEngine {
     }
 
     this.lastOptimizationCheck = new Date();
-    
+
     // Analyze all metrics and generate recommendations
     const recommendations = this.analyzeAllMetrics(summary);
-    
+
     // Add all recommendations
     for (const recommendation of recommendations) {
       this.addRecommendation(recommendation);
@@ -58,7 +58,7 @@ export class OptimizationEngine implements IOptimizationEngine {
   getRecommendations(applied?: boolean): OptimizationRecommendation[] {
     const recommendations = Array.from(this.recommendations.values());
     return applied !== undefined
-      ? recommendations.filter(r => r.applied === applied)
+      ? recommendations.filter((r) => r.applied === applied)
       : recommendations;
   }
 
@@ -68,14 +68,14 @@ export class OptimizationEngine implements IOptimizationEngine {
    */
   applyRecommendation(
     recommendationId: string,
-    result: { successful: boolean; actualImprovement: number; notes: string }
+    result: { successful: boolean; actualImprovement: number; notes: string },
   ): boolean {
     const recommendation = this.recommendations.get(recommendationId);
     if (recommendation && !recommendation.applied) {
       recommendation.applied = true;
       recommendation.appliedAt = new Date();
       recommendation.result = result;
-      
+
       this.monitor.emit('recommendation-applied', recommendation);
       return true;
     }
@@ -103,8 +103,8 @@ export class OptimizationEngine implements IOptimizationEngine {
     successRate: number;
   } {
     const recommendations = Array.from(this.recommendations.values());
-    const applied = recommendations.filter(r => r.applied);
-    const successful = applied.filter(r => r.result?.successful);
+    const applied = recommendations.filter((r) => r.applied);
+    const successful = applied.filter((r) => r.result?.successful);
 
     const byPriority = {
       low: 0,
@@ -135,7 +135,7 @@ export class OptimizationEngine implements IOptimizationEngine {
    */
   getHighPriorityRecommendations(): OptimizationRecommendation[] {
     return Array.from(this.recommendations.values()).filter(
-      r => !r.applied && (r.priority === 'high' || r.priority === 'critical')
+      (r) => !r.applied && (r.priority === 'high' || r.priority === 'critical'),
     );
   }
 
@@ -144,7 +144,7 @@ export class OptimizationEngine implements IOptimizationEngine {
    */
   clearOldRecommendations(maxAge: number): void {
     const cutoff = new Date(Date.now() - maxAge);
-    
+
     for (const [id, recommendation] of this.recommendations) {
       if (recommendation.timestamp < cutoff) {
         this.recommendations.delete(id);
@@ -161,7 +161,7 @@ export class OptimizationEngine implements IOptimizationEngine {
     }
 
     const safeRecommendations = this.getSafeAutoApplyRecommendations();
-    
+
     for (const recommendation of safeRecommendations) {
       this.monitor.emit('auto-optimization-requested', recommendation);
     }
@@ -171,7 +171,10 @@ export class OptimizationEngine implements IOptimizationEngine {
    * Analyze specific metric and generate recommendation if threshold exceeded
    * @private
    */
-  private analyzeMetricPerformance(summary: PerformanceSummary, type: PerformanceMetricType): OptimizationRecommendation | null {
+  private analyzeMetricPerformance(
+    summary: PerformanceSummary,
+    type: PerformanceMetricType,
+  ): OptimizationRecommendation | null {
     const metric = summary.metrics[type];
     if (!metric) return null;
 
@@ -181,14 +184,17 @@ export class OptimizationEngine implements IOptimizationEngine {
         rec: () => ({
           id: `latency-opt-${Date.now()}`,
           type: 'configuration' as const,
-          priority: (metric.current > this.config.optimizationThresholds.maxLatency * 2 ? 'high' : 'medium') as 'low' | 'medium' | 'high' | 'critical',
+          priority: (metric.current > this.config.optimizationThresholds.maxLatency * 2
+            ? 'high'
+            : 'medium') as 'low' | 'medium' | 'high' | 'critical',
           title: 'Optimize Latency Performance',
           description: `Current latency ${metric.current}ms exceeds threshold ${this.config.optimizationThresholds.maxLatency}ms`,
           impact: 'Improve response times by 20-30%',
-          implementation: 'Enable connection pooling, optimize request processing, and implement caching',
+          implementation:
+            'Enable connection pooling, optimize request processing, and implement caching',
           expectedImprovement: 25,
           confidence: 0.8,
-        })
+        }),
       },
       [PerformanceMetricType.ERROR_RATE]: {
         condition: () => metric.current > this.config.optimizationThresholds.maxErrorRate,
@@ -199,10 +205,11 @@ export class OptimizationEngine implements IOptimizationEngine {
           title: 'Reduce Error Rate',
           description: `Current error rate ${metric.current}% exceeds threshold ${this.config.optimizationThresholds.maxErrorRate}%`,
           impact: 'Reduce errors by 50-70%',
-          implementation: 'Implement aggressive browser recycling, health checks, and error recovery',
+          implementation:
+            'Implement aggressive browser recycling, health checks, and error recovery',
           expectedImprovement: 60,
           confidence: 0.9,
-        })
+        }),
       },
       [PerformanceMetricType.THROUGHPUT]: {
         condition: () => metric.current < this.config.optimizationThresholds.minThroughput,
@@ -216,7 +223,7 @@ export class OptimizationEngine implements IOptimizationEngine {
           implementation: 'Scale up browser pool size and optimize queue management',
           expectedImprovement: 50,
           confidence: 0.7,
-        })
+        }),
       },
       [PerformanceMetricType.RESOURCE_UTILIZATION]: {
         condition: () => metric.current > this.config.optimizationThresholds.maxResourceUtilization,
@@ -230,7 +237,7 @@ export class OptimizationEngine implements IOptimizationEngine {
           implementation: 'Implement memory management, browser recycling, and resource monitoring',
           expectedImprovement: 20,
           confidence: 0.6,
-        })
+        }),
       },
     };
 
@@ -254,7 +261,7 @@ export class OptimizationEngine implements IOptimizationEngine {
     ];
 
     return metrics
-      .map(type => this.analyzeMetricPerformance(summary, type))
+      .map((type) => this.analyzeMetricPerformance(summary, type))
       .filter((rec): rec is OptimizationRecommendation => rec !== null);
   }
 
@@ -282,10 +289,8 @@ export class OptimizationEngine implements IOptimizationEngine {
   private getSafeAutoApplyRecommendations(): OptimizationRecommendation[] {
     // Only auto-apply low-risk configuration changes
     return Array.from(this.recommendations.values()).filter(
-      r => !r.applied && 
-           r.type === 'configuration' && 
-           r.priority !== 'critical' &&
-           r.confidence > 0.8
+      (r) =>
+        !r.applied && r.type === 'configuration' && r.priority !== 'critical' && r.confidence > 0.8,
     );
   }
 }

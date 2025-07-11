@@ -43,17 +43,17 @@ export class SessionEventEmitter extends EventEmitter {
     event: K,
     ...args: Parameters<SessionEvents[K]>
   ): boolean {
-    this.logger.debug('Emitting session event', { event, hasListeners: this.listenerCount(event) > 0 });
+    this.logger.debug('Emitting session event', {
+      event,
+      hasListeners: this.listenerCount(event) > 0,
+    });
     return super.emit(event, ...args);
   }
 
   /**
    * Add typed event listener
    */
-  override on<K extends keyof SessionEvents>(
-    event: K,
-    listener: SessionEvents[K],
-  ): this {
+  override on<K extends keyof SessionEvents>(event: K, listener: SessionEvents[K]): this {
     this.logger.debug('Adding session event listener', { event });
     return super.on(event, listener as (...args: unknown[]) => void);
   }
@@ -61,10 +61,7 @@ export class SessionEventEmitter extends EventEmitter {
   /**
    * Add one-time typed event listener
    */
-  override once<K extends keyof SessionEvents>(
-    event: K,
-    listener: SessionEvents[K],
-  ): this {
+  override once<K extends keyof SessionEvents>(event: K, listener: SessionEvents[K]): this {
     this.logger.debug('Adding one-time session event listener', { event });
     return super.once(event, listener as (...args: unknown[]) => void);
   }
@@ -72,10 +69,7 @@ export class SessionEventEmitter extends EventEmitter {
   /**
    * Remove typed event listener
    */
-  override off<K extends keyof SessionEvents>(
-    event: K,
-    listener: SessionEvents[K],
-  ): this {
+  override off<K extends keyof SessionEvents>(event: K, listener: SessionEvents[K]): this {
     this.logger.debug('Removing session event listener', { event });
     return super.off(event, listener as (...args: unknown[]) => void);
   }

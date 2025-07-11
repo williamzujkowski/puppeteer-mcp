@@ -6,11 +6,11 @@
 
 import { EventEmitter } from 'events';
 import { createLogger } from '../../../utils/logger.js';
-import type { 
-  ResourceAlert, 
-  ResourceThresholds, 
-  SystemResources, 
-  BrowserResourceUsage 
+import type {
+  ResourceAlert,
+  ResourceThresholds,
+  SystemResources,
+  BrowserResourceUsage,
 } from './resource-types.js';
 
 const logger = createLogger('resource-alert-manager');
@@ -233,17 +233,17 @@ export class ResourceAlertManager extends EventEmitter {
 
     if (!existing || existing.level !== alert.level) {
       this.activeAlerts.set(alertKey, alert);
-      
+
       logger.warn(
         {
           alert,
           isNew: !existing,
         },
-        'Resource alert created'
+        'Resource alert created',
       );
 
       // Notify listeners
-      this.alertListeners.forEach(listener => {
+      this.alertListeners.forEach((listener) => {
         try {
           listener(alert);
         } catch (error) {

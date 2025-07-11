@@ -21,27 +21,27 @@ export class SecurityMetricsImpl implements SecurityMetrics {
 
   constructor(meter: Meter) {
     this.meter = meter;
-    
+
     this.authAttemptsTotal = meter.createCounter('auth_attempts_total', {
       description: 'Total number of authentication attempts',
       unit: '1',
     });
-    
+
     this.authFailuresTotal = meter.createCounter('auth_failures_total', {
       description: 'Total number of authentication failures',
       unit: '1',
     });
-    
+
     this.authTokensIssued = meter.createCounter('auth_tokens_issued_total', {
       description: 'Total number of authentication tokens issued',
       unit: '1',
     });
-    
+
     this.authTokensRevoked = meter.createCounter('auth_tokens_revoked_total', {
       description: 'Total number of authentication tokens revoked',
       unit: '1',
     });
-    
+
     this.authActiveTokens = meter.createUpDownCounter('auth_active_tokens', {
       description: 'Number of active authentication tokens',
       unit: '1',
@@ -51,18 +51,14 @@ export class SecurityMetricsImpl implements SecurityMetrics {
   /**
    * Record authentication attempt
    */
-  recordAuthAttempt(
-    method: string,
-    success: boolean,
-    reason?: string,
-  ): void {
+  recordAuthAttempt(method: string, success: boolean, reason?: string): void {
     const labels: AuthLabels = {
       method,
       success: success.toString(),
     };
-    
+
     this.authAttemptsTotal.add(1, labels);
-    
+
     if (!success) {
       this.authFailuresTotal.add(1, {
         ...labels,
@@ -90,16 +86,12 @@ export class SecurityMetricsImpl implements SecurityMetrics {
   /**
    * Record security event
    */
-  recordSecurityEvent(
-    eventType: string,
-    severity: string,
-    source: string,
-  ): void {
+  recordSecurityEvent(eventType: string, severity: string, source: string): void {
     const securityEventsCounter = this.meter.createCounter('security_events_total', {
       description: 'Total number of security events',
       unit: '1',
     });
-    
+
     securityEventsCounter.add(1, {
       event_type: eventType,
       severity,

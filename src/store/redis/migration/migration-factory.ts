@@ -20,7 +20,7 @@ export enum MigrationType {
   RESTORE = 'restore',
   TRANSFER = 'transfer',
   CLEANUP = 'cleanup',
-  VALIDATE = 'validate'
+  VALIDATE = 'validate',
 }
 
 /**
@@ -103,7 +103,7 @@ export class MigrationFactory {
       restore: this.createRestoreStrategy(),
       transfer: this.createTransferStrategy(),
       cleanup: this.createCleanupService(),
-      validation: this.createValidationService()
+      validation: this.createValidationService(),
     };
   }
 }

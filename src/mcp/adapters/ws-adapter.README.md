@@ -1,6 +1,8 @@
 # WebSocket Adapter for MCP
 
-The WebSocket adapter enables real-time, bidirectional communication through the Model Context Protocol (MCP). It provides subscription management, event broadcasting, and streaming capabilities while maintaining the same security and authentication standards as other protocol adapters.
+The WebSocket adapter enables real-time, bidirectional communication through the Model Context
+Protocol (MCP). It provides subscription management, event broadcasting, and streaming capabilities
+while maintaining the same security and authentication standards as other protocol adapters.
 
 ## Features
 
@@ -112,6 +114,7 @@ await wsAdapter.executeRequest({
 The adapter supports two authentication methods:
 
 ### JWT Authentication
+
 ```typescript
 auth: {
   type: 'jwt',
@@ -120,6 +123,7 @@ auth: {
 ```
 
 ### API Key Authentication
+
 ```typescript
 auth: {
   type: 'apikey',
@@ -142,7 +146,9 @@ The adapter provides structured error responses:
 
 ```typescript
 try {
-  await wsAdapter.executeRequest({ /* ... */ });
+  await wsAdapter.executeRequest({
+    /* ... */
+  });
 } catch (error) {
   if (error instanceof AppError) {
     console.error(`Error ${error.statusCode}: ${error.message}`);

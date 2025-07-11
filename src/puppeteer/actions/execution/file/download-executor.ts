@@ -13,7 +13,11 @@ import type {
   BrowserAction,
   BaseBrowserAction,
 } from '../../../interfaces/action-executor.interface.js';
-import type { FileOperationExecutor, DownloadOperationResult, FileValidationResult } from './file-executor-types.js';
+import type {
+  FileOperationExecutor,
+  DownloadOperationResult,
+  FileValidationResult,
+} from './file-executor-types.js';
 import { createLogger } from '../../../../utils/logger.js';
 import { FileValidator } from './file-validator.js';
 import { checkFileExists, getFileSize, ensureDirectory } from './file-utils.js';
@@ -37,10 +41,7 @@ export class DownloadExecutor implements FileOperationExecutor {
   private readonly validator: FileValidator;
   private downloadTimeout: number;
 
-  constructor(
-    validator?: FileValidator,
-    downloadTimeout: number = 30000,
-  ) {
+  constructor(validator?: FileValidator, downloadTimeout: number = 30000) {
     this.validator = validator ?? new FileValidator();
     this.downloadTimeout = downloadTimeout;
   }
@@ -62,11 +63,7 @@ export class DownloadExecutor implements FileOperationExecutor {
    * @nist ac-3 "Access enforcement"
    * @nist au-3 "Content of audit records"
    */
-  async execute(
-    action: BrowserAction,
-    page: Page,
-    context: ActionContext,
-  ): Promise<ActionResult> {
+  async execute(action: BrowserAction, page: Page, context: ActionContext): Promise<ActionResult> {
     const downloadAction = action as DownloadAction;
     const startTime = Date.now();
 
@@ -119,10 +116,8 @@ export class DownloadExecutor implements FileOperationExecutor {
     downloadAction: DownloadAction,
   ): Promise<DownloadOperationResult> {
     // Validate download path
-    const validationResult = await this.validator.validateDownloadPath(
-      downloadAction.downloadPath
-    );
-    
+    const validationResult = await this.validator.validateDownloadPath(downloadAction.downloadPath);
+
     if (!validationResult.valid) {
       throw new Error(validationResult.error ?? 'Download path validation failed');
     }
@@ -228,10 +223,7 @@ export class DownloadExecutor implements FileOperationExecutor {
    * @param downloadPath - Path to save downloads
    * @nist ac-3 "Access enforcement"
    */
-  private async setupDownloadBehavior(
-    page: Page,
-    downloadPath: string,
-  ): Promise<void> {
+  private async setupDownloadBehavior(page: Page, downloadPath: string): Promise<void> {
     const client = await page.target().createCDPSession();
     await client.send('Page.setDownloadBehavior', {
       behavior: 'allow',
@@ -280,10 +272,7 @@ export class DownloadExecutor implements FileOperationExecutor {
    * @param waitForDownload - Whether to wait for file
    * @returns True if file exists
    */
-  private async waitForDownload(
-    downloadPath: string,
-    waitForDownload: boolean,
-  ): Promise<boolean> {
+  private async waitForDownload(downloadPath: string, waitForDownload: boolean): Promise<boolean> {
     if (!waitForDownload) {
       return checkFileExists(downloadPath);
     }

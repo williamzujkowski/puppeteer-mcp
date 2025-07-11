@@ -107,6 +107,7 @@ Errors:             ▫ 0
 ## Report Structure
 
 ### JSON Report
+
 ```json
 {
   "title": "Puppeteer-MCP Browser Automation Demo Report",
@@ -126,13 +127,12 @@ Errors:             ▫ 0
 ```
 
 ### Markdown Report Preview
+
 ```markdown
 # Puppeteer-MCP Browser Automation Demo Report
 
-**Generated:** 1/6/2025, 2:24:25 PM
-**Platform:** puppeteer-mcp
-**Demo:** Universal Paperclips Automation
-**Duration:** 30.23 seconds
+**Generated:** 1/6/2025, 2:24:25 PM **Platform:** puppeteer-mcp **Demo:** Universal Paperclips
+Automation **Duration:** 30.23 seconds
 
 ## Summary
 

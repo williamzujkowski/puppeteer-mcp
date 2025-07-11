@@ -36,10 +36,10 @@ export class StructuralValidator extends BaseValidator {
 
     // Validate basic structure
     this.validateBasicStructure(action, errors);
-    
+
     // Validate context
     this.validateContext(context, errors);
-    
+
     // Validate timeout
     this.validateTimeout(action, errors);
 
@@ -80,22 +80,12 @@ export class StructuralValidator extends BaseValidator {
   private validateContext(context: ActionContext, errors: ValidationError[]): void {
     // Validate session ID
     if (!context.sessionId) {
-      this.addError(
-        errors,
-        'context.sessionId',
-        'Session ID is required',
-        'MISSING_SESSION_ID'
-      );
+      this.addError(errors, 'context.sessionId', 'Session ID is required', 'MISSING_SESSION_ID');
     }
 
     // Validate context ID
     if (!context.contextId) {
-      this.addError(
-        errors,
-        'context.contextId',
-        'Context ID is required',
-        'MISSING_CONTEXT_ID'
-      );
+      this.addError(errors, 'context.contextId', 'Context ID is required', 'MISSING_CONTEXT_ID');
     }
 
     // Validate user ID if authentication is required
@@ -104,7 +94,7 @@ export class StructuralValidator extends BaseValidator {
         errors,
         'context.userId',
         'User ID is required for authenticated actions',
-        'MISSING_USER_ID'
+        'MISSING_USER_ID',
       );
     }
   }
@@ -122,7 +112,7 @@ export class StructuralValidator extends BaseValidator {
         0,
         300000, // 5 minutes max
         errors,
-        'INVALID_TIMEOUT'
+        'INVALID_TIMEOUT',
       );
     }
   }

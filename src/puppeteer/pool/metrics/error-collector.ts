@@ -7,14 +7,8 @@
  */
 
 import { BaseMetricCollector } from './base-collector.js';
-import {
-  MetricEventType,
-} from './types.js';
-import type {
-  ErrorMetrics,
-  MetricCollector,
-  MetricDataPoint,
-} from './types.js';
+import { MetricEventType } from './types.js';
+import type { ErrorMetrics, MetricCollector, MetricDataPoint } from './types.js';
 import { createLogger } from '../../../utils/logger.js';
 
 const logger = createLogger('error-collector');
@@ -98,10 +92,7 @@ export class ErrorMetricsCollector
    * @nist au-6 "Audit review, analysis, and reporting"
    */
   collect(): ErrorMetrics {
-    const errorRate =
-      this.totalOperations > 0
-        ? (this.errorCount / this.totalOperations) * 100
-        : 0;
+    const errorRate = this.totalOperations > 0 ? (this.errorCount / this.totalOperations) * 100 : 0;
 
     return {
       totalErrors: this.errorCount,
@@ -131,10 +122,7 @@ export class ErrorMetricsCollector
    * @private
    */
   private recordErrorRate(): void {
-    const rate =
-      this.totalOperations > 0
-        ? (this.errorCount / this.totalOperations) * 100
-        : 0;
+    const rate = this.totalOperations > 0 ? (this.errorCount / this.totalOperations) * 100 : 0;
     this.addTimeSeriesDataPoint(this.errorRateHistory, rate);
   }
 }

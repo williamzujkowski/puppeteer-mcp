@@ -68,11 +68,14 @@ export interface ServerLifecycleHooks {
  */
 export interface HealthCheckStatus {
   readonly status: 'healthy' | 'unhealthy' | 'degraded';
-  readonly services: Record<string, {
-    status: 'up' | 'down' | 'warning';
-    message?: string;
-    timestamp: string;
-  }>;
+  readonly services: Record<
+    string,
+    {
+      status: 'up' | 'down' | 'warning';
+      message?: string;
+      timestamp: string;
+    }
+  >;
   readonly uptime: number;
   readonly version: string;
 }

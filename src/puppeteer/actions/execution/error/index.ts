@@ -5,7 +5,7 @@
  */
 
 export { ErrorClassifier } from './error-classifier.js';
-export { 
+export {
   type RetryStrategy,
   BaseRetryStrategy,
   ExponentialBackoffStrategy,
@@ -24,9 +24,5 @@ export {
   ErrorRecoveryChain,
   RecoveryChainFactory,
 } from './error-recovery.js';
-export { 
-  RetryExecutor,
-  type RetryExecutionOptions,
-  type ExecuteParams,
-} from './retry-executor.js';
+export { RetryExecutor, type RetryExecutionOptions, type ExecuteParams } from './retry-executor.js';
 export { ErrorResultFactory } from './error-result-factory.js';

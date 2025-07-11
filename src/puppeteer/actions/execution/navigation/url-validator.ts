@@ -52,7 +52,7 @@ const DEFAULT_CONFIG: Required<UrlValidationConfig> = {
     '0.0.0.0',
     '::1',
     '169.254.169.254', // AWS metadata
-    '100.64.0.0/10',   // RFC 6598 shared address space
+    '100.64.0.0/10', // RFC 6598 shared address space
   ],
   allowPrivateNetworks: false,
   maxLength: 2048,
@@ -69,7 +69,7 @@ export class UrlValidator {
 
   constructor(config?: Partial<UrlValidationConfig>) {
     this.config = { ...DEFAULT_CONFIG, ...config };
-    
+
     logger.debug('URL validator initialized', {
       allowedProtocols: this.config.allowedProtocols,
       allowPrivateNetworks: this.config.allowPrivateNetworks,
@@ -159,7 +159,7 @@ export class UrlValidator {
       };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown validation error';
-      
+
       logger.error('URL validation failed', {
         url,
         error: errorMessage,
@@ -259,10 +259,10 @@ export class UrlValidator {
 
     // IPv4 private ranges
     const ipv4Patterns = [
-      /^10\./,                    // 10.0.0.0/8
+      /^10\./, // 10.0.0.0/8
       /^172\.(1[6-9]|2[0-9]|3[01])\./, // 172.16.0.0/12
-      /^192\.168\./,              // 192.168.0.0/16
-      /^169\.254\./,              // Link-local
+      /^192\.168\./, // 192.168.0.0/16
+      /^169\.254\./, // Link-local
     ];
 
     for (const pattern of ipv4Patterns) {
@@ -273,10 +273,10 @@ export class UrlValidator {
 
     // IPv6 private ranges
     const ipv6Patterns = [
-      /^::1$/,                    // Loopback
-      /^fe80:/i,                  // Link-local
-      /^fc00:/i,                  // Unique local
-      /^fd00:/i,                  // Unique local
+      /^::1$/, // Loopback
+      /^fe80:/i, // Link-local
+      /^fc00:/i, // Unique local
+      /^fd00:/i, // Unique local
     ];
 
     for (const pattern of ipv6Patterns) {
@@ -295,7 +295,7 @@ export class UrlValidator {
    */
   private hasRedirectIndicators(parsedUrl: URL): boolean {
     const url = parsedUrl.href;
-    
+
     // Check for double URL encoding
     if (url.includes('%25')) {
       return true;
@@ -322,13 +322,13 @@ export class UrlValidator {
    */
   private hasSuspiciousHostnamePatterns(hostname: string): boolean {
     const suspiciousPatterns = [
-      /\d+\.\d+\.\d+\.\d+\.nip\.io$/i,  // nip.io dynamic DNS
-      /\d+\.\d+\.\d+\.\d+\.xip\.io$/i,  // xip.io dynamic DNS
-      /[0-9a-f:]+\.sslip\.io$/i,        // sslip.io DNS
-      /\.(tk|ml|ga|cf)$/i,              // Free TLDs often used maliciously
+      /\d+\.\d+\.\d+\.\d+\.nip\.io$/i, // nip.io dynamic DNS
+      /\d+\.\d+\.\d+\.\d+\.xip\.io$/i, // xip.io dynamic DNS
+      /[0-9a-f:]+\.sslip\.io$/i, // sslip.io DNS
+      /\.(tk|ml|ga|cf)$/i, // Free TLDs often used maliciously
     ];
 
-    return suspiciousPatterns.some(pattern => pattern.test(hostname));
+    return suspiciousPatterns.some((pattern) => pattern.test(hostname));
   }
 
   /**
@@ -338,8 +338,10 @@ export class UrlValidator {
    */
   private normalizeUrl(parsedUrl: URL): string {
     // Remove default ports
-    if ((parsedUrl.protocol === 'http:' && parsedUrl.port === '80') ||
-        (parsedUrl.protocol === 'https:' && parsedUrl.port === '443')) {
+    if (
+      (parsedUrl.protocol === 'http:' && parsedUrl.port === '80') ||
+      (parsedUrl.protocol === 'https:' && parsedUrl.port === '443')
+    ) {
       parsedUrl.port = '';
     }
 
@@ -357,9 +359,7 @@ export class UrlValidator {
    * @returns Array of validation results
    */
   async validateUrls(urls: string[]): Promise<UrlValidationResult[]> {
-    const results = await Promise.allSettled(
-      urls.map(url => this.validateUrl(url))
-    );
+    const results = await Promise.allSettled(urls.map((url) => this.validateUrl(url)));
 
     return results.map((result, index) => {
       if (result.status === 'fulfilled') {
@@ -383,7 +383,7 @@ export class UrlValidator {
    */
   updateConfig(config: Partial<UrlValidationConfig>): void {
     Object.assign(this.config, config);
-    
+
     logger.info('URL validator configuration updated', {
       newConfig: config,
     });
@@ -414,8 +414,8 @@ export function createUrlValidator(config?: Partial<UrlValidationConfig>): UrlVa
  * @returns Validation result
  */
 export async function validateUrl(
-  url: string, 
-  config?: Partial<UrlValidationConfig>
+  url: string,
+  config?: Partial<UrlValidationConfig>,
 ): Promise<UrlValidationResult> {
   const validator = createUrlValidator(config);
   return validator.validateUrl(url);

@@ -155,9 +155,13 @@ export class AuthenticationHandler {
    * Check if connection has required permissions
    * @nist ac-3 "Access enforcement"
    */
-  hasPermission(connectionId: string, requiredPermission: string, connectionManager: ConnectionManager): boolean {
+  hasPermission(
+    connectionId: string,
+    requiredPermission: string,
+    connectionManager: ConnectionManager,
+  ): boolean {
     const state = connectionManager.getConnectionState(connectionId);
-    
+
     if (!state?.authenticated || !state.permissions) {
       return false;
     }
@@ -169,9 +173,13 @@ export class AuthenticationHandler {
    * Check if connection has required role
    * @nist ac-3 "Access enforcement"
    */
-  hasRole(connectionId: string, requiredRole: string, connectionManager: ConnectionManager): boolean {
+  hasRole(
+    connectionId: string,
+    requiredRole: string,
+    connectionManager: ConnectionManager,
+  ): boolean {
     const state = connectionManager.getConnectionState(connectionId);
-    
+
     if (!state?.authenticated || !state.roles) {
       return false;
     }
@@ -183,9 +191,13 @@ export class AuthenticationHandler {
    * Check if connection has required scope
    * @nist ac-3 "Access enforcement"
    */
-  hasScope(connectionId: string, requiredScope: string, connectionManager: ConnectionManager): boolean {
+  hasScope(
+    connectionId: string,
+    requiredScope: string,
+    connectionManager: ConnectionManager,
+  ): boolean {
     const state = connectionManager.getConnectionState(connectionId);
-    
+
     if (!state?.authenticated || !state.scopes) {
       return false;
     }
@@ -263,7 +275,10 @@ export class AuthenticationHandler {
   /**
    * Create authentication success message
    */
-  private createAuthSuccessMessage(requestId: string | undefined, authResult: AuthenticationResult): WSMessage {
+  private createAuthSuccessMessage(
+    requestId: string | undefined,
+    authResult: AuthenticationResult,
+  ): WSMessage {
     return {
       type: WSMessageType.AUTH_SUCCESS,
       id: requestId,
@@ -299,7 +314,10 @@ export class AuthenticationHandler {
   /**
    * Get remote address for logging
    */
-  private getRemoteAddress(connectionId: string, connectionManager: ConnectionManager): string | undefined {
+  private getRemoteAddress(
+    connectionId: string,
+    connectionManager: ConnectionManager,
+  ): string | undefined {
     const state = connectionManager.getConnectionState(connectionId);
     return state?.remoteAddress;
   }

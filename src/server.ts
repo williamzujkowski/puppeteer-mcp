@@ -14,10 +14,10 @@ import { startServer } from './server/index.js';
  */
 export async function startHTTPServer(): Promise<void> {
   const result = await startServer();
-  
+
   if (!result.success) {
     console.error('Failed to start server:', result.error?.message);
-    
+
     // Give logger a chance to flush before exit
     setTimeout(() => {
       process.exit(1);

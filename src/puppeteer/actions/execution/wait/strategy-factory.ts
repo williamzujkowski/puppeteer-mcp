@@ -36,7 +36,7 @@ export class WaitStrategyFactory {
   constructor(config: StrategyFactoryConfig = {}) {
     this.strategies = new Map();
     this.initializeStrategies(config);
-    
+
     // Register custom strategies if provided
     if (config.customStrategies) {
       config.customStrategies.forEach((strategy, type) => {
@@ -53,7 +53,10 @@ export class WaitStrategyFactory {
     this.strategies.set('selector', new SelectorWaitStrategy());
     this.strategies.set('navigation', new NavigationWaitStrategy());
     this.strategies.set('timeout', new TimeoutWaitStrategy());
-    this.strategies.set('function', new FunctionWaitStrategy(config.enableFunctionSecurity ?? true));
+    this.strategies.set(
+      'function',
+      new FunctionWaitStrategy(config.enableFunctionSecurity ?? true),
+    );
     this.strategies.set('load', new LoadStateWaitStrategy());
     this.strategies.set('networkidle', new NetworkIdleWaitStrategy());
 
@@ -70,7 +73,7 @@ export class WaitStrategyFactory {
    */
   getStrategy(type: WaitCondition): WaitStrategy {
     const strategy = this.strategies.get(type);
-    
+
     if (!strategy) {
       const available = Array.from(this.strategies.keys()).join(', ');
       throw new Error(`No strategy found for wait type: ${type}. Available: ${available}`);

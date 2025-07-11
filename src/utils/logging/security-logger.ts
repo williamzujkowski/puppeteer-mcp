@@ -28,7 +28,7 @@ const getDataDirectory = (): string => {
   // In test environment, always use current directory
   const isTest = process.env.NODE_ENV === 'test';
   const isJest = process.env.JEST_WORKER_ID !== undefined;
-  
+
   if (isTest || isJest) {
     return process.cwd();
   }
@@ -41,7 +41,7 @@ const getDataDirectory = (): string => {
     // If the script is running from a global node_modules, use home directory
     const isGlobalInstall = scriptPath.includes('node_modules');
     const isNotInCwd = !scriptPath.includes(process.cwd());
-    
+
     if (isGlobalInstall && isNotInCwd) {
       return join(homedir(), '.puppeteer-mcp');
     }
@@ -100,10 +100,7 @@ const createAuditLogger = async (): Promise<PinoLogger> => {
       logger.error({ error, file: auditLogFile }, 'Audit log stream error');
     });
 
-    return pino(
-      createLoggerOptions('audit', true),
-      stream,
-    );
+    return pino(createLoggerOptions('audit', true), stream);
   } catch (error) {
     // If audit logging setup fails, log error and return no-op logger
     logger.error({ error }, 'Failed to initialize audit logger');
@@ -184,7 +181,7 @@ export const logDataAccess = async (
       eventType = SecurityEventType.DATA_DELETION;
       break;
   }
-  
+
   await logSecurityEvent(eventType, {
     action: operation,
     resource,

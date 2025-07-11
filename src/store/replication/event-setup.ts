@@ -29,14 +29,14 @@ export function setupReplicationEventHandlers(setupConfig: EventSetupConfig): vo
   // Forward events from components
   replicaManager.on('replica:connected', (id) => manager.emit('replica:connected', id));
   replicaManager.on('replica:disconnected', (id) => manager.emit('replica:disconnected', id));
-  
+
   syncEngine.on('sync:started', () => manager.emit('sync:started'));
   syncEngine.on('sync:completed', (_replicaId, stats) => {
     metrics.recordSyncCompletion(stats);
     manager.emit('sync:completed', stats);
   });
   syncEngine.on('sync:failed', (_replicaId, error) => manager.emit('sync:failed', error));
-  
+
   coordinator.on('replica:error', (id, error) => {
     replicaManager.recordSyncError(id, config.maxRetries);
     manager.emit('replica:error', id, error);
@@ -46,32 +46,32 @@ export function setupReplicationEventHandlers(setupConfig: EventSetupConfig): vo
   manager.on('session:created', (session: Session) => {
     void coordinator.replicateCreate(
       session,
-      Array.from(replicaManager.getAllReplicas().map(r => r.id)),
-      (id) => replicaManager.getReplica(id)
+      Array.from(replicaManager.getAllReplicas().map((r) => r.id)),
+      (id) => replicaManager.getReplica(id),
     );
   });
 
   manager.on('session:updated', (session: Session) => {
     void coordinator.replicateUpdate(
       session,
-      Array.from(replicaManager.getAllReplicas().map(r => r.id)),
-      (id) => replicaManager.getReplica(id)
+      Array.from(replicaManager.getAllReplicas().map((r) => r.id)),
+      (id) => replicaManager.getReplica(id),
     );
   });
 
   manager.on('session:deleted', (sessionId: string) => {
     void coordinator.replicateDelete(
       sessionId,
-      Array.from(replicaManager.getAllReplicas().map(r => r.id)),
-      (id) => replicaManager.getReplica(id)
+      Array.from(replicaManager.getAllReplicas().map((r) => r.id)),
+      (id) => replicaManager.getReplica(id),
     );
   });
 
   manager.on('session:touched', (sessionId: string) => {
     void coordinator.replicateTouch(
       sessionId,
-      Array.from(replicaManager.getAllReplicas().map(r => r.id)),
-      (id) => replicaManager.getReplica(id)
+      Array.from(replicaManager.getAllReplicas().map((r) => r.id)),
+      (id) => replicaManager.getReplica(id),
     );
   });
 }

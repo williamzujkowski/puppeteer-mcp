@@ -22,7 +22,9 @@ export class ContextProxyEnabledValidator extends BaseValidator<ContextProxyConf
     }
 
     if (context.config.proxy && context.config.pool) {
-      context.warnings.push('Both single proxy and proxy pool specified, pool will take precedence');
+      context.warnings.push(
+        'Both single proxy and proxy pool specified, pool will take precedence',
+      );
     }
   }
 }
@@ -58,14 +60,14 @@ export class ContextProxyPoolValidator extends BaseValidator<ContextProxyConfig>
   private async validatePoolProxies(context: ValidationContext<ContextProxyConfig>): Promise<void> {
     const pool = context.config.pool;
     if (!pool) return;
-    
+
     for (const [index, proxy] of pool.proxies.entries()) {
       const proxyValidation = await validateProxyConfig(proxy, context.options);
-      
+
       if (proxyValidation.errors.length > 0) {
         context.errors.push(...proxyValidation.errors.map((e) => `Pool proxy ${index}: ${e}`));
       }
-      
+
       if (proxyValidation.warnings.length > 0) {
         context.warnings.push(...proxyValidation.warnings.map((w) => `Pool proxy ${index}: ${w}`));
       }
@@ -81,7 +83,9 @@ export class ContextProxyRotationValidator extends BaseValidator<ContextProxyCon
     if (!context.config.enabled) return;
 
     if (context.config.rotateOnInterval && context.config.rotationInterval < 60000) {
-      context.warnings.push('Rotation interval less than 1 minute may cause excessive proxy switching');
+      context.warnings.push(
+        'Rotation interval less than 1 minute may cause excessive proxy switching',
+      );
     }
   }
 }
