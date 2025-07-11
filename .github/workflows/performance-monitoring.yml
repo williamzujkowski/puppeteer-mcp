@@ -204,15 +204,18 @@ jobs:
               peak: null
             };
             
-            // Load the application
-            const server = require('../dist/server.js');
+            // Instead of loading server directly, spawn it as a child process
+            const { spawn } = require('child_process');
+            const server = spawn('node', ['dist/server.js'], {
+              env: { ...process.env, NODE_ENV: 'production', PORT: 3001 },
+              detached: false
+            });
             
             // Wait for initialization
-            await new Promise(resolve => setTimeout(resolve, 2000));
+            await new Promise(resolve => setTimeout(resolve, 3000));
             results.afterLoad = getMemoryUsage();
             
             // Simulate operations
-            // This would normally interact with the server
             let peakMemory = results.afterLoad.heapUsed;
             
             for (let i = 0; i < 10; i++) {
@@ -225,6 +228,9 @@ jobs:
             }
             
             results.afterOperations = getMemoryUsage();
+            
+            // Kill the server process
+            server.kill('SIGTERM');
             
             return results;
           }
