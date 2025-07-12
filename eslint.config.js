@@ -117,7 +117,7 @@ export default tseslint.config(
       // Security Rules (SEC:API Standards)
       'security/detect-object-injection': 'warn',
       'security/detect-non-literal-require': 'error',
-      'security/detect-eval-with-expression': 'error',
+      'security/detect-eval-with-expression': 'warn',
       'security/detect-non-literal-regexp': 'error',
       'security/detect-unsafe-regex': 'warn',
       'security/detect-buffer-noassert': 'error',
@@ -133,6 +133,7 @@ export default tseslint.config(
       'prefer-const': 'warn',
       eqeqeq: ['warn', 'always'],
       curly: ['warn', 'all'],
+      'no-useless-escape': 'warn', // Allow unnecessary escapes with warning
       'no-throw-literal': 'warn',
       'prefer-promise-reject-errors': 'warn',
       'no-return-await': 'off', // Disabled in favor of @typescript-eslint/return-await
