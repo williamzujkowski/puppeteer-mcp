@@ -94,10 +94,8 @@ jobs:
 
       - name: Lint code
         run: |
-          # Generate JSON report for artifact upload
           npm run lint -- --format json --output-file eslint-report.json || true
-          # Run lint again but only fail on errors, not warnings
-          npm run lint -- --max-warnings -1 || npm run lint -- --quiet
+          npm run lint
 
       - name: Type check
         run: npm run typecheck

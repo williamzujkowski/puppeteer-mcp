@@ -234,7 +234,7 @@ export class GrpcTestClient {
     return new Promise((resolve, reject) => {
       client[method](request, (error: any, response: any) => {
         if (error) {
-          reject(error);
+          reject(error instanceof Error ? error : new Error(String(error)));
         } else {
           resolve(response);
         }
@@ -251,17 +251,17 @@ export class GrpcTestClient {
     return this.clients.get(service);
   }
 
-  private createMockClient(service: string): any {
+  private createMockClient(_service: string): any {
     // Mock implementation for testing
     return {
-      CreateSession: (request: any, callback: Function) => {
+      CreateSession: (request: any, callback: (error: any, response?: any) => void) => {
         callback(null, {
           sessionId: uuidv4(),
           userId: uuidv4(),
           expiresAt: new Date(Date.now() + 3600000).toISOString()
         });
       },
-      GetSession: (request: any, callback: Function) => {
+      GetSession: (request: any, callback: (error: any, response?: any) => void) => {
         if (request.sessionId) {
           callback(null, { sessionId: request.sessionId, active: true });
         } else {
@@ -279,8 +279,8 @@ export class WebSocketTestClient {
   private url: string;
   private ws?: WebSocket;
   private reconnect: boolean;
-  private messageHandlers: Map<string, Function> = new Map();
-  private subscriptions: Map<string, Function> = new Map();
+  private messageHandlers: Map<string, (data: any) => void> = new Map();
+  private subscriptions: Map<string, (data: any) => void> = new Map();
 
   constructor(config: TestConfig['websocket']) {
     this.url = config.url;
@@ -292,7 +292,7 @@ export class WebSocketTestClient {
       this.ws = new WebSocket(this.url);
 
       this.ws.on('open', () => {
-        console.log('WebSocket connected');
+        // WebSocket connected
         resolve();
       });
 
@@ -306,9 +306,9 @@ export class WebSocketTestClient {
       });
 
       this.ws.on('close', () => {
-        console.log('WebSocket disconnected');
+        // WebSocket disconnected
         if (this.reconnect) {
-          setTimeout(() => this.connect(), 5000);
+          setTimeout(() => { void this.connect(); }, 5000);
         }
       });
     });
@@ -341,7 +341,7 @@ export class WebSocketTestClient {
     });
   }
 
-  async subscribe(topic: string, handler: Function): Promise<void> {
+  async subscribe(topic: string, handler: (data: any) => void): Promise<void> {
     this.subscriptions.set(topic, handler);
     
     await this.send({
@@ -424,7 +424,7 @@ export class CrossProtocolTestRunner {
 
   async runSuite(suite: TestSuite): Promise<TestResults> {
     const startTime = Date.now();
-    console.log(`Running test suite: ${suite.name}`);
+    // Running test suite
 
     // Run suite setup
     if (suite.setup) {
@@ -442,13 +442,13 @@ export class CrossProtocolTestRunner {
     }
 
     this.results.duration = Date.now() - startTime;
-    console.log(`Test suite completed: ${suite.name}`, this.results);
+    // Test suite completed
 
     return this.results;
   }
 
   private async runTest(test: TestCase): Promise<void> {
-    console.log(`Running test: ${test.name}`);
+    // Running test
     const maxRetries = test.retries || 1;
     let lastError: Error | null = null;
 
@@ -472,7 +472,7 @@ export class CrossProtocolTestRunner {
 
         // Test passed
         this.results.passed++;
-        console.log(`Test passed: ${test.name}`);
+        // Test passed
         return;
 
       } catch (error) {
@@ -480,7 +480,7 @@ export class CrossProtocolTestRunner {
         console.error(`Test attempt ${attempt} failed: ${test.name}`, error);
 
         if (attempt < maxRetries) {
-          console.log(`Retrying test: ${test.name}`);
+          // Retrying test
           await this.delay(1000); // Wait 1 second before retry
         }
       } finally {
@@ -505,7 +505,7 @@ export class CrossProtocolTestRunner {
     });
   }
 
-  private async executeWithTimeout(fn: Function, timeout: number): Promise<any> {
+  private async executeWithTimeout(fn: () => Promise<any>, timeout: number): Promise<any> {
     return Promise.race([
       fn(),
       new Promise((_, reject) => 

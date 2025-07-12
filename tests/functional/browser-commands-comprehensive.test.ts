@@ -49,7 +49,7 @@ class MockMCPClient {
 describe('Browser Commands Comprehensive Functional Tests', () => {
   let mcpServer: MCPServer;
   let mcpClient: MockMCPClient;
-  let testSessions: Map<string, any> = new Map();
+  const testSessions: Map<string, any> = new Map();
   let testContexts: Map<string, any> = new Map();
   let primarySessionId: string;
   let primaryContextId: string;
