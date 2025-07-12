@@ -139,6 +139,7 @@ export default tseslint.config(
       'no-empty': 'warn', // Allow empty blocks in security tests
       'no-throw-literal': 'warn',
       'prefer-promise-reject-errors': 'warn',
+      '@typescript-eslint/prefer-promise-reject-errors': 'warn', // Allow non-Error rejections with warning
       'no-return-await': 'off', // Disabled in favor of @typescript-eslint/return-await
       '@typescript-eslint/return-await': 'warn',
       'require-await': 'off', // Disabled in favor of @typescript-eslint/require-await
