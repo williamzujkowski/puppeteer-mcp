@@ -17,7 +17,7 @@ const checks = [
   },
   {
     name: 'ESLint',
-    command: 'npm run lint',
+    command: 'npm run lint -- --quiet',
     emoji: '📝',
   },
   {
