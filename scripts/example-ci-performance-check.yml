@@ -1,0 +1,91 @@
+# Example GitHub Actions workflow using the performance regression checker
+# Copy this to .github/workflows/performance-check.yml to use in your CI/CD pipeline
+
+name: Performance Regression Check
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+  push:
+    branches: [ main ]
+
+jobs:
+  performance-check:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0  # Full history for baseline comparison
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Run performance tests on current branch
+      run: |
+        npm run test:performance -- --reporter json --output current-metrics.json
+      env:
+        NODE_ENV: test
+
+    - name: Checkout baseline branch
+      run: |
+        git checkout ${{ github.base_ref || 'main' }}
+
+    - name: Install baseline dependencies
+      run: npm ci
+
+    - name: Run performance tests on baseline branch
+      run: |
+        npm run test:performance -- --reporter json --output baseline-metrics.json
+      env:
+        NODE_ENV: test
+
+    - name: Checkout current branch again
+      run: |
+        git checkout ${{ github.head_ref || github.ref_name }}
+
+    - name: Check for performance regressions
+      run: |
+        node scripts/check-performance-regression.js \
+          --baseline baseline-metrics.json \
+          --current current-metrics.json \
+          --threshold 10
+
+    - name: Upload performance metrics
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: performance-metrics
+        path: |
+          baseline-metrics.json
+          current-metrics.json
+
+    - name: Comment PR with results
+      if: github.event_name == 'pull_request' && failure()
+      uses: actions/github-script@v6
+      with:
+        script: |
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: '⚠️ **Performance Regression Detected**\n\nThis PR introduces performance regressions that exceed the 10% threshold. Please review the workflow logs for details.'
+          })
+
+    - name: Comment PR with success
+      if: github.event_name == 'pull_request' && success()
+      uses: actions/github-script@v6
+      with:
+        script: |
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: '✅ **Performance Check Passed**\n\nNo significant performance regressions detected.'
+          })

@@ -132,6 +132,11 @@ export class ApiCatalogResource {
         methods: ['GET'],
         description: 'Health check',
       },
+      {
+        path: '/catalog',
+        methods: ['GET'],
+        description: 'API catalog and documentation',
+      },
     ];
   }
 }

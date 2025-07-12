@@ -5,6 +5,13 @@
 [![License](https://img.shields.io/npm/l/puppeteer-mcp.svg)](LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue.svg)](https://www.typescriptlang.org/)
 [![Node.js](https://img.shields.io/badge/Node.js-20+-green.svg)](https://nodejs.org/)
+![Version](./badges/version.svg)
+![Coverage-functions](./badges/coverage-functions.svg)
+![Coverage-branches](./badges/coverage-branches.svg)
+![Coverage-lines](./badges/coverage-lines.svg)
+![Coverage](./badges/coverage.svg)
+![Tests](./badges/tests.svg)
+![Build](./badges/build.svg)
 
 **Beta release of AI-enabled browser automation platform** with REST, gRPC, WebSocket, and Model
 Context Protocol (MCP) interfaces, unified session management, and enterprise-focused security.

@@ -1,0 +1,85 @@
+{
+  "name": "@puppeteer-mcp/security-tests",
+  "version": "1.0.0",
+  "description": "Security testing suite for Puppeteer MCP",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "jest",
+    "test:auth": "jest auth/",
+    "test:injection": "jest injection/",
+    "test:network": "jest network/",
+    "test:privacy": "jest privacy/",
+    "test:browser": "jest browser/",
+    "test:compliance": "jest compliance/",
+    "test:coverage": "jest --coverage",
+    "test:watch": "jest --watch",
+    "test:ci": "jest --ci --coverage --maxWorkers=2",
+    "lint": "eslint . --ext .ts,.js",
+    "type-check": "tsc --noEmit",
+    "generate-report": "node scripts/generate-security-report.js",
+    "update-payloads": "node scripts/update-attack-payloads.js"
+  },
+  "dependencies": {
+    "@types/jest": "^29.5.5",
+    "@types/node": "^20.8.0",
+    "@types/supertest": "^2.0.14",
+    "@zaproxy/zap-api": "^1.0.0",
+    "axios": "^1.5.1",
+    "bcrypt": "^5.1.1",
+    "burp-rest-api": "^0.1.0",
+    "gitleaks": "^8.18.0",
+    "jest": "^29.7.0",
+    "jsonwebtoken": "^9.0.2",
+    "nuclei": "^3.0.0",
+    "puppeteer": "^21.3.8",
+    "semgrep": "^1.0.0",
+    "snyk": "^1.1200.0",
+    "supertest": "^6.3.3",
+    "trivy": "^0.45.0",
+    "ts-jest": "^29.1.1",
+    "typescript": "^5.2.2",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^6.7.5",
+    "@typescript-eslint/parser": "^6.7.5",
+    "eslint": "^8.51.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-jest": "^27.4.2",
+    "eslint-plugin-security": "^1.7.1",
+    "prettier": "^3.0.3"
+  },
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node",
+    "roots": [
+      "<rootDir>"
+    ],
+    "testMatch": [
+      "**/*.test.ts"
+    ],
+    "transform": {
+      "^.+\\.ts$": "ts-jest"
+    },
+    "collectCoverageFrom": [
+      "**/*.ts",
+      "!**/*.test.ts",
+      "!**/node_modules/**",
+      "!**/reports/**",
+      "!**/fixtures/**"
+    ],
+    "coverageDirectory": "reports/coverage",
+    "coverageReporters": [
+      "text",
+      "lcov",
+      "html"
+    ],
+    "testTimeout": 30000,
+    "maxWorkers": 4,
+    "verbose": true
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

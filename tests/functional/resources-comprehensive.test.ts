@@ -67,23 +67,9 @@ class MockMCPResourceClient {
     const server = this.server as any;
     
     if (uri === 'api://catalog') {
-      const catalog = await server.apiCatalogResource.getApiCatalog();
-      return {
-        contents: [{
-          uri: 'api://catalog',
-          mimeType: 'application/json',
-          text: JSON.stringify(catalog)
-        }]
-      };
+      return await server.apiCatalogResource.getApiCatalog();
     } else if (uri === 'api://health') {
-      const health = server.systemHealthResource.getSystemHealth();
-      return {
-        contents: [{
-          uri: 'api://health',
-          mimeType: 'application/json',
-          text: JSON.stringify(health)
-        }]
-      };
+      return server.systemHealthResource.getSystemHealth();
     } else {
       throw new Error(`Unknown resource: ${uri}`);
     }

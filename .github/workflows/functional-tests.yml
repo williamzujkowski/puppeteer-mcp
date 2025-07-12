@@ -1,0 +1,307 @@
+name: Functional Tests
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '0 */6 * * *' # Run every 6 hours
+  workflow_dispatch: # Allow manual trigger
+
+env:
+  NODE_VERSION: '20'
+  PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: false
+  PUPPETEER_EXECUTABLE_PATH: /usr/bin/google-chrome-stable
+
+jobs:
+  test-matrix:
+    name: Functional Test Suite - ${{ matrix.suite }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        suite:
+          - mcp-tools
+          - browser-commands
+          - cross-protocol
+          - resources
+          - performance
+        include:
+          - suite: mcp-tools
+            test-pattern: 'tests/functional/mcp-tools-*.test.ts'
+            timeout: 20
+          - suite: browser-commands
+            test-pattern: 'tests/functional/browser-commands-*.test.ts'
+            timeout: 25
+          - suite: cross-protocol
+            test-pattern: 'tests/functional/cross-protocol-*.test.ts'
+            timeout: 30
+          - suite: resources
+            test-pattern: 'tests/functional/resources-*.test.ts'
+            timeout: 15
+          - suite: performance
+            test-pattern: 'tests/performance/*.test.ts'
+            timeout: 30
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: Install Chrome
+        uses: browser-actions/setup-chrome@latest
+        with:
+          chrome-version: stable
+          
+      - name: Install dependencies
+        run: |
+          npm ci
+          npm run build
+          
+      - name: Setup test environment
+        run: |
+          # Create test directories
+          mkdir -p test-results
+          mkdir -p test-reports
+          mkdir -p screenshots
+          
+          # Setup environment variables
+          echo "JWT_SECRET=test-secret-key" >> $GITHUB_ENV
+          echo "API_KEY_SECRET=test-api-key-secret" >> $GITHUB_ENV
+          echo "NODE_ENV=test" >> $GITHUB_ENV
+          
+      - name: Start services
+        run: |
+          # Start all services in background
+          npm run start:all > services.log 2>&1 &
+          
+          # Wait for services to be ready
+          echo "Waiting for services to start..."
+          sleep 10
+          
+          # Check service health
+          curl -f http://localhost:3000/api/v1/health || exit 1
+          
+      - name: Run functional tests
+        id: test
+        run: |
+          npm run test:functional -- \
+            --testPathPattern="${{ matrix.test-pattern }}" \
+            --json \
+            --outputFile=test-results/${{ matrix.suite }}-results.json \
+            --coverage \
+            --coverageDirectory=coverage/${{ matrix.suite }}
+        timeout-minutes: ${{ matrix.timeout }}
+        
+      - name: Generate test report
+        if: always()
+        run: |
+          # Generate HTML report
+          npm run test:report -- \
+            --input=test-results/${{ matrix.suite }}-results.json \
+            --output=test-reports/${{ matrix.suite }}-report.html
+            
+          # Generate summary
+          node scripts/generate-test-summary.js \
+            test-results/${{ matrix.suite }}-results.json \
+            > test-reports/${{ matrix.suite }}-summary.md
+            
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-results-${{ matrix.suite }}
+          path: |
+            test-results/
+            test-reports/
+            coverage/
+            screenshots/
+            services.log
+          retention-days: 30
+          
+      - name: Upload coverage to Codecov
+        if: matrix.suite != 'performance'
+        uses: codecov/codecov-action@v3
+        with:
+          directory: coverage/${{ matrix.suite }}
+          flags: functional-${{ matrix.suite }}
+          fail_ci_if_error: false
+          
+      - name: Comment PR with results
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            
+            // Read test summary
+            const summaryPath = path.join('test-reports', '${{ matrix.suite }}-summary.md');
+            let summary = '## Functional Test Results - ${{ matrix.suite }}\n\n';
+            
+            if (fs.existsSync(summaryPath)) {
+              summary += fs.readFileSync(summaryPath, 'utf8');
+            } else {
+              summary += '❌ Test summary not found';
+            }
+            
+            // Find existing comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            
+            const botComment = comments.find(comment => 
+              comment.user.type === 'Bot' && 
+              comment.body.includes('Functional Test Results - ${{ matrix.suite }}')
+            );
+            
+            // Update or create comment
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: summary
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: summary
+              });
+            }
+            
+  aggregate-results:
+    name: Aggregate Test Results
+    needs: test-matrix
+    runs-on: ubuntu-latest
+    if: always()
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Download all artifacts
+        uses: actions/download-artifact@v3
+        with:
+          path: test-artifacts
+          
+      - name: Generate aggregate report
+        run: |
+          # Combine all test results
+          node scripts/aggregate-test-results.js test-artifacts > aggregate-report.md
+          
+          # Generate badges
+          node scripts/generate-badges.js test-artifacts
+          
+      - name: Upload aggregate report
+        uses: actions/upload-artifact@v3
+        with:
+          name: aggregate-test-report
+          path: |
+            aggregate-report.md
+            badges/
+            
+      - name: Update README badges
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: |
+          # Update README with latest test badges
+          node scripts/update-readme-badges.js
+          
+          # Commit if changed
+          if git diff --quiet; then
+            echo "No badge updates needed"
+          else
+            git config --local user.email "action@github.com"
+            git config --local user.name "GitHub Action"
+            git commit -am "Update test badges [skip ci]"
+            git push
+          fi
+          
+  performance-analysis:
+    name: Performance Analysis
+    needs: test-matrix
+    runs-on: ubuntu-latest
+    if: always()
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Download performance results
+        uses: actions/download-artifact@v3
+        with:
+          name: test-results-performance
+          path: performance-results
+          
+      - name: Analyze performance trends
+        run: |
+          # Compare with baseline
+          node scripts/analyze-performance.js \
+            --baseline=performance-baseline.json \
+            --current=performance-results/performance-results.json \
+            --output=performance-analysis.md
+            
+      - name: Check performance regression
+        run: |
+          # Fail if performance regressed significantly
+          node scripts/check-performance-regression.js \
+            --baseline=performance-baseline.json \
+            --current=performance-results/performance-results.json \
+            --threshold=20
+            
+      - name: Update performance baseline
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: |
+          # Update baseline with current results
+          cp performance-results/performance-results.json performance-baseline.json
+          
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add performance-baseline.json
+          git commit -m "Update performance baseline [skip ci]"
+          git push
+
+  notify-status:
+    name: Notify Test Status
+    needs: [test-matrix, aggregate-results]
+    runs-on: ubuntu-latest
+    if: always()
+    
+    steps:
+      - name: Determine overall status
+        id: status
+        run: |
+          if [ "${{ needs.test-matrix.result }}" == "success" ]; then
+            echo "status=success" >> $GITHUB_OUTPUT
+            echo "emoji=✅" >> $GITHUB_OUTPUT
+            echo "message=All functional tests passed!" >> $GITHUB_OUTPUT
+          else
+            echo "status=failure" >> $GITHUB_OUTPUT
+            echo "emoji=❌" >> $GITHUB_OUTPUT
+            echo "message=Some functional tests failed." >> $GITHUB_OUTPUT
+          fi
+          
+      - name: Send Slack notification
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ steps.status.outputs.status }}
+          text: |
+            ${{ steps.status.outputs.emoji }} Functional Tests: ${{ steps.status.outputs.message }}
+            Repository: ${{ github.repository }}
+            Branch: ${{ github.ref_name }}
+            Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}

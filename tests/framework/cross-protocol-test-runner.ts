@@ -292,12 +292,12 @@ export class WebSocketTestClient {
       this.ws = new WebSocket(this.url);
 
       this.ws.on('open', () => {
-        logger.info('WebSocket connected');
+        console.log('WebSocket connected');
         resolve();
       });
 
       this.ws.on('error', (error) => {
-        logger.error('WebSocket error:', error);
+        console.error('WebSocket error:', error);
         reject(error);
       });
 
@@ -306,7 +306,7 @@ export class WebSocketTestClient {
       });
 
       this.ws.on('close', () => {
-        logger.info('WebSocket disconnected');
+        console.log('WebSocket disconnected');
         if (this.reconnect) {
           setTimeout(() => this.connect(), 5000);
         }
@@ -383,7 +383,7 @@ export class WebSocketTestClient {
         handler!(message.data);
       }
     } catch (error) {
-      logger.error('Failed to parse WebSocket message:', error);
+      console.error('Failed to parse WebSocket message:', error);
     }
   }
 }
@@ -424,7 +424,7 @@ export class CrossProtocolTestRunner {
 
   async runSuite(suite: TestSuite): Promise<TestResults> {
     const startTime = Date.now();
-    logger.info(`Running test suite: ${suite.name}`);
+    console.log(`Running test suite: ${suite.name}`);
 
     // Run suite setup
     if (suite.setup) {
@@ -442,13 +442,13 @@ export class CrossProtocolTestRunner {
     }
 
     this.results.duration = Date.now() - startTime;
-    logger.info(`Test suite completed: ${suite.name}`, this.results);
+    console.log(`Test suite completed: ${suite.name}`, this.results);
 
     return this.results;
   }
 
   private async runTest(test: TestCase): Promise<void> {
-    logger.info(`Running test: ${test.name}`);
+    console.log(`Running test: ${test.name}`);
     const maxRetries = test.retries || 1;
     let lastError: Error | null = null;
 
@@ -472,15 +472,15 @@ export class CrossProtocolTestRunner {
 
         // Test passed
         this.results.passed++;
-        logger.info(`Test passed: ${test.name}`);
+        console.log(`Test passed: ${test.name}`);
         return;
 
       } catch (error) {
         lastError = error as Error;
-        logger.error(`Test attempt ${attempt} failed: ${test.name}`, error);
+        console.error(`Test attempt ${attempt} failed: ${test.name}`, error);
 
         if (attempt < maxRetries) {
-          logger.info(`Retrying test: ${test.name}`);
+          console.log(`Retrying test: ${test.name}`);
           await this.delay(1000); // Wait 1 second before retry
         }
       } finally {
@@ -489,7 +489,7 @@ export class CrossProtocolTestRunner {
           try {
             await test.cleanup();
           } catch (cleanupError) {
-            logger.error(`Test cleanup failed: ${test.name}`, cleanupError);
+            console.error(`Test cleanup failed: ${test.name}`, cleanupError);
           }
         }
       }
