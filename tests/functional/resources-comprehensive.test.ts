@@ -23,7 +23,7 @@ class MockMCPResourceClient {
   private setupMockTransport(): void {
     this.mockTransport = {
       send: jest.fn(),
-      close: jest.fn()
+      close: jest.fn(),
     };
   }
 
@@ -44,16 +44,16 @@ class MockMCPResourceClient {
           name: 'api-catalog',
           title: 'API Catalog',
           description: 'Complete catalog of available APIs across all protocols',
-          mimeType: 'application/json'
+          mimeType: 'application/json',
         },
         {
           uri: 'api://health',
           name: 'system-health',
           title: 'System Health',
           description: 'Current system health and status including browser pool',
-          mimeType: 'application/json'
-        }
-      ]
+          mimeType: 'application/json',
+        },
+      ],
     };
   }
 
@@ -65,7 +65,7 @@ class MockMCPResourceClient {
     }>;
   }> {
     const server = this.server as any;
-    
+
     if (uri === 'api://catalog') {
       return await server.apiCatalogResource.getApiCatalog();
     } else if (uri === 'api://health') {
@@ -84,7 +84,7 @@ describe('MCP Resources Comprehensive Functional Tests', () => {
     // Create MCP server
     mcpServer = createMCPServer();
     mcpClient = new MockMCPResourceClient(mcpServer);
-    
+
     // Start the server
     await mcpServer.start();
   });
@@ -102,32 +102,32 @@ describe('MCP Resources Comprehensive Functional Tests', () => {
       expect(result.resources).toHaveLength(2);
 
       // Verify catalog resource
-      const catalogResource = result.resources.find(r => r.uri === 'api://catalog');
+      const catalogResource = result.resources.find((r) => r.uri === 'api://catalog');
       expect(catalogResource).toBeDefined();
       expect(catalogResource).toMatchObject({
         uri: 'api://catalog',
         name: 'api-catalog',
         title: 'API Catalog',
         description: 'Complete catalog of available APIs across all protocols',
-        mimeType: 'application/json'
+        mimeType: 'application/json',
       });
 
       // Verify health resource
-      const healthResource = result.resources.find(r => r.uri === 'api://health');
+      const healthResource = result.resources.find((r) => r.uri === 'api://health');
       expect(healthResource).toBeDefined();
       expect(healthResource).toMatchObject({
         uri: 'api://health',
         name: 'system-health',
         title: 'System Health',
         description: 'Current system health and status including browser pool',
-        mimeType: 'application/json'
+        mimeType: 'application/json',
       });
     });
 
     it('should have correct resource metadata', async () => {
       const result = await mcpClient.listResources();
 
-      result.resources.forEach(resource => {
+      result.resources.forEach((resource) => {
         expect(resource.uri).toMatch(/^api:\/\/(catalog|health)$/);
         expect(resource.name).toBeDefined();
         expect(resource.title).toBeDefined();
@@ -156,9 +156,9 @@ describe('MCP Resources Comprehensive Functional Tests', () => {
       it('should parse catalog JSON content correctly', async () => {
         const result = await mcpClient.readResource('api://catalog');
         const content = result.contents[0];
-        
+
         expect(() => JSON.parse(content.text)).not.toThrow();
-        
+
         const catalog: ApiCatalog = JSON.parse(content.text);
         expect(catalog).toBeDefined();
       });
@@ -176,9 +176,9 @@ describe('MCP Resources Comprehensive Functional Tests', () => {
         expect(catalog.rest).toBeDefined();
         expect(catalog.rest.baseUrl).toBe('/api/v1');
         expect(Array.isArray(catalog.rest.endpoints)).toBe(true);
-        
+
         // Validate endpoint structure
-        catalog.rest.endpoints.forEach(endpoint => {
+        catalog.rest.endpoints.forEach((endpoint) => {
           expect(endpoint.path).toBeDefined();
           expect(typeof endpoint.path).toBe('string');
           expect(Array.isArray(endpoint.methods)).toBe(true);
@@ -194,7 +194,7 @@ describe('MCP Resources Comprehensive Functional Tests', () => {
         expect(catalog.grpc.services.length).toBeGreaterThan(0);
 
         // Validate service structure
-        catalog.grpc.services.forEach(service => {
+        catalog.grpc.services.forEach((service) => {
           expect(service.name).toBeDefined();
           expect(typeof service.name).toBe('string');
           expect(Array.isArray(service.methods)).toBe(true);
@@ -202,7 +202,7 @@ describe('MCP Resources Comprehensive Functional Tests', () => {
         });
 
         // Check for expected services
-        const serviceNames = catalog.grpc.services.map(s => s.name);
+        const serviceNames = catalog.grpc.services.map((s) => s.name);
         expect(serviceNames).toContain('SessionService');
         expect(serviceNames).toContain('ContextService');
         expect(serviceNames).toContain('HealthService');
@@ -215,7 +215,7 @@ describe('MCP Resources Comprehensive Functional Tests', () => {
         expect(Array.isArray(catalog.websocket.topics)).toBe(true);
 
         // Validate topics structure
-        catalog.websocket.topics.forEach(topic => {
+        catalog.websocket.topics.forEach((topic) => {
           expect(topic.name).toBeDefined();
           expect(typeof topic.name).toBe('string');
           expect(topic.description).toBeDefined();
@@ -227,7 +227,7 @@ describe('MCP Resources Comprehensive Functional Tests', () => {
         expect(catalog.rest.authentication).toBeDefined();
         expect(Array.isArray(catalog.rest.authentication.methods)).toBe(true);
         expect(catalog.rest.authentication.methods.length).toBeGreaterThan(0);
-        
+
         // Check for expected auth methods
         const authMethods = catalog.rest.authentication.methods;
         expect(authMethods).toContain('jwt');
@@ -242,21 +242,21 @@ describe('MCP Resources Comprehensive Functional Tests', () => {
       });
 
       it('should contain essential REST endpoints', () => {
-        const endpointPaths = catalog.rest.endpoints.map(e => e.path);
-        
+        const endpointPaths = catalog.rest.endpoints.map((e) => e.path);
+
         // Check for core endpoints
         expect(endpointPaths).toContain('/health');
         expect(endpointPaths).toContain('/sessions');
         expect(endpointPaths).toContain('/catalog');
 
         // Validate health endpoint
-        const healthEndpoint = catalog.rest.endpoints.find(e => e.path === '/health');
+        const healthEndpoint = catalog.rest.endpoints.find((e) => e.path === '/health');
         expect(healthEndpoint).toBeDefined();
         expect(healthEndpoint.methods).toContain('GET');
         expect(healthEndpoint!.description).toBeDefined();
 
         // Validate sessions endpoint
-        const sessionsEndpoint = catalog.rest.endpoints.find(e => e.path === '/sessions');
+        const sessionsEndpoint = catalog.rest.endpoints.find((e) => e.path === '/sessions');
         expect(sessionsEndpoint).toBeDefined();
         expect(sessionsEndpoint.methods).toContain('GET');
         expect(sessionsEndpoint.methods).toContain('POST');
@@ -283,9 +283,9 @@ describe('MCP Resources Comprehensive Functional Tests', () => {
       it('should parse health JSON content correctly', async () => {
         const result = await mcpClient.readResource('api://health');
         const content = result.contents[0];
-        
+
         expect(() => JSON.parse(content.text)).not.toThrow();
-        
+
         const health: SystemHealth = JSON.parse(content.text);
         expect(health).toBeDefined();
       });
@@ -320,7 +320,7 @@ describe('MCP Resources Comprehensive Functional Tests', () => {
 
         // Check all required services
         const requiredServices = ['rest', 'grpc', 'websocket', 'mcp'];
-        requiredServices.forEach(service => {
+        requiredServices.forEach((service) => {
           expect(health.services[service]).toBeDefined();
           expect(typeof health.services[service]).toBe('string');
           expect(['operational', 'degraded', 'down']).toContain(health.services[service]);
@@ -330,7 +330,7 @@ describe('MCP Resources Comprehensive Functional Tests', () => {
       it('should have recent timestamp', () => {
         const healthTime = new Date(health.timestamp).getTime();
         const now = Date.now();
-        const fiveMinutesAgo = now - (5 * 60 * 1000);
+        const fiveMinutesAgo = now - 5 * 60 * 1000;
 
         expect(healthTime).toBeGreaterThan(fiveMinutesAgo);
         expect(healthTime).toBeLessThanOrEqual(now);
@@ -349,23 +349,23 @@ describe('MCP Resources Comprehensive Functional Tests', () => {
         const health1: SystemHealth = JSON.parse(result1.contents[0].text);
 
         // Wait a small amount
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise((resolve) => setTimeout(resolve, 100));
 
         const result2 = await mcpClient.readResource('api://health');
         const health2: SystemHealth = JSON.parse(result2.contents[0].text);
 
         // Status should be the same
         expect(health2.status).toBe(health1.status);
-        
+
         // Services should be the same
         expect(health2.services).toEqual(health1.services);
-        
+
         // Uptime should have increased
         expect(health2.uptime).toBeGreaterThanOrEqual(health1.uptime);
-        
+
         // Timestamp should be more recent
         expect(new Date(health2.timestamp).getTime()).toBeGreaterThanOrEqual(
-          new Date(health1.timestamp).getTime()
+          new Date(health1.timestamp).getTime(),
         );
       });
     });
@@ -373,55 +373,53 @@ describe('MCP Resources Comprehensive Functional Tests', () => {
 
   describe('4. Error Cases for Invalid Resource URIs', () => {
     it('should reject invalid resource URI', async () => {
-      await expect(
-        mcpClient.readResource('api://invalid')
-      ).rejects.toThrow('Unknown resource: api://invalid');
+      await expect(mcpClient.readResource('api://invalid')).rejects.toThrow(
+        'Unknown resource: api://invalid',
+      );
     });
 
     it('should reject non-api protocol', async () => {
-      await expect(
-        mcpClient.readResource('http://catalog')
-      ).rejects.toThrow('Unknown resource: http://catalog');
+      await expect(mcpClient.readResource('http://catalog')).rejects.toThrow(
+        'Unknown resource: http://catalog',
+      );
     });
 
     it('should reject empty URI', async () => {
-      await expect(
-        mcpClient.readResource('')
-      ).rejects.toThrow('Unknown resource: ');
+      await expect(mcpClient.readResource('')).rejects.toThrow('Unknown resource: ');
     });
 
     it('should reject malformed URI', async () => {
-      await expect(
-        mcpClient.readResource('not-a-uri')
-      ).rejects.toThrow('Unknown resource: not-a-uri');
+      await expect(mcpClient.readResource('not-a-uri')).rejects.toThrow(
+        'Unknown resource: not-a-uri',
+      );
     });
 
     it('should reject URI with invalid scheme', async () => {
-      await expect(
-        mcpClient.readResource('file://catalog')
-      ).rejects.toThrow('Unknown resource: file://catalog');
+      await expect(mcpClient.readResource('file://catalog')).rejects.toThrow(
+        'Unknown resource: file://catalog',
+      );
     });
 
     it('should reject URI with query parameters', async () => {
-      await expect(
-        mcpClient.readResource('api://catalog?param=value')
-      ).rejects.toThrow('Unknown resource: api://catalog?param=value');
+      await expect(mcpClient.readResource('api://catalog?param=value')).rejects.toThrow(
+        'Unknown resource: api://catalog?param=value',
+      );
     });
 
     it('should reject URI with fragments', async () => {
-      await expect(
-        mcpClient.readResource('api://health#section')
-      ).rejects.toThrow('Unknown resource: api://health#section');
+      await expect(mcpClient.readResource('api://health#section')).rejects.toThrow(
+        'Unknown resource: api://health#section',
+      );
     });
 
     it('should handle case-sensitive URIs', async () => {
-      await expect(
-        mcpClient.readResource('API://CATALOG')
-      ).rejects.toThrow('Unknown resource: API://CATALOG');
+      await expect(mcpClient.readResource('API://CATALOG')).rejects.toThrow(
+        'Unknown resource: API://CATALOG',
+      );
 
-      await expect(
-        mcpClient.readResource('api://HEALTH')
-      ).rejects.toThrow('Unknown resource: api://HEALTH');
+      await expect(mcpClient.readResource('api://HEALTH')).rejects.toThrow(
+        'Unknown resource: api://HEALTH',
+      );
     });
   });
 
@@ -436,23 +434,23 @@ describe('MCP Resources Comprehensive Functional Tests', () => {
       ];
 
       const results = await Promise.all(promises);
-      
+
       expect(results).toHaveLength(5);
-      results.forEach(result => {
+      results.forEach((result) => {
         expect(result.contents).toBeDefined();
         expect(result.contents).toHaveLength(1);
       });
 
       // Verify catalog results
       const catalogResults = results.filter((_, index) => [0, 2, 4].includes(index));
-      catalogResults.forEach(result => {
+      catalogResults.forEach((result) => {
         expect(result.contents[0].uri).toBe('api://catalog');
         expect(() => JSON.parse(result.contents[0].text)).not.toThrow();
       });
 
       // Verify health results
       const healthResults = results.filter((_, index) => [1, 3].includes(index));
-      healthResults.forEach(result => {
+      healthResults.forEach((result) => {
         expect(result.contents[0].uri).toBe('api://health');
         expect(() => JSON.parse(result.contents[0].text)).not.toThrow();
       });
@@ -460,12 +458,12 @@ describe('MCP Resources Comprehensive Functional Tests', () => {
 
     it('should respond quickly to resource reads', async () => {
       const startTime = Date.now();
-      
+
       await mcpClient.readResource('api://catalog');
-      
+
       const endTime = Date.now();
       const duration = endTime - startTime;
-      
+
       // Should respond within 1 second
       expect(duration).toBeLessThan(1000);
     });
@@ -481,7 +479,7 @@ describe('MCP Resources Comprehensive Functional Tests', () => {
       }
 
       expect(results).toHaveLength(10);
-      results.forEach(result => {
+      results.forEach((result) => {
         expect(result.contents).toBeDefined();
         expect(result.contents[0].text).toBeDefined();
         expect(() => JSON.parse(result.contents[0].text)).not.toThrow();
@@ -493,11 +491,11 @@ describe('MCP Resources Comprehensive Functional Tests', () => {
     it('should handle large catalog data', async () => {
       const result = await mcpClient.readResource('api://catalog');
       const catalogText = result.contents[0].text;
-      
+
       // Catalog should be reasonably sized but not empty
       expect(catalogText.length).toBeGreaterThan(100);
       expect(catalogText.length).toBeLessThan(100000); // Reasonable upper limit
-      
+
       // Should be valid JSON
       const catalog = JSON.parse(catalogText);
       expect(catalog).toBeDefined();
@@ -506,18 +504,18 @@ describe('MCP Resources Comprehensive Functional Tests', () => {
     it('should validate catalog endpoint uniqueness', async () => {
       const result = await mcpClient.readResource('api://catalog');
       const catalog: ApiCatalog = JSON.parse(result.contents[0].text);
-      
-      const endpointPaths = catalog.rest.endpoints.map(e => e.path);
+
+      const endpointPaths = catalog.rest.endpoints.map((e) => e.path);
       const uniquePaths = new Set(endpointPaths);
-      
+
       expect(uniquePaths.size).toBe(endpointPaths.length);
     });
 
     it('should validate gRPC service method uniqueness within services', async () => {
       const result = await mcpClient.readResource('api://catalog');
       const catalog: ApiCatalog = JSON.parse(result.contents[0].text);
-      
-      catalog.grpc.services.forEach(service => {
+
+      catalog.grpc.services.forEach((service) => {
         const uniqueMethods = new Set(service.methods);
         expect(uniqueMethods.size).toBe(service.methods.length);
       });
@@ -526,10 +524,10 @@ describe('MCP Resources Comprehensive Functional Tests', () => {
     it('should validate WebSocket topic uniqueness', async () => {
       const result = await mcpClient.readResource('api://catalog');
       const catalog: ApiCatalog = JSON.parse(result.contents[0].text);
-      
-      const topicNames = catalog.websocket.topics.map(t => t.name);
+
+      const topicNames = catalog.websocket.topics.map((t) => t.name);
       const uniqueTopics = new Set(topicNames);
-      
+
       expect(uniqueTopics.size).toBe(topicNames.length);
     });
   });

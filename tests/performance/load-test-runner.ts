@@ -81,7 +81,7 @@ export class LoadTestRunner extends EventEmitter {
     this.config = {
       timeout: 30000,
       retries: 3,
-      ...config
+      ...config,
     };
   }
 
@@ -168,8 +168,13 @@ export class LoadTestRunner extends EventEmitter {
   /**
    * Schedule a user to start after a delay
    */
-  private async scheduleUser(userId: number, executor: Function, delay: number, endTime: number): Promise<void> {
-    await new Promise(resolve => setTimeout(resolve, delay));
+  private async scheduleUser(
+    userId: number,
+    executor: Function,
+    delay: number,
+    endTime: number,
+  ): Promise<void> {
+    await new Promise((resolve) => setTimeout(resolve, delay));
     await this.runUser(userId, executor, endTime);
   }
 
@@ -183,7 +188,7 @@ export class LoadTestRunner extends EventEmitter {
         const result = await executor(userId);
         const latency = Date.now() - startTime;
         this.recordMetric('overall', latency);
-        
+
         if (result && result.metrics) {
           for (const [metric, value] of Object.entries(result.metrics)) {
             this.recordMetric(metric, value as number);
@@ -196,7 +201,7 @@ export class LoadTestRunner extends EventEmitter {
       }
 
       // Small delay between iterations
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
     }
   }
 
@@ -216,18 +221,21 @@ export class LoadTestRunner extends EventEmitter {
       const session = config.sessions[sessionIndex];
 
       // Execute action without waiting
-      config.action(session).then(result => {
-        results.push(result);
-      }).catch(error => {
-        results.push({ success: false, error, latency: 0 });
-      });
+      config
+        .action(session)
+        .then((result) => {
+          results.push(result);
+        })
+        .catch((error) => {
+          results.push({ success: false, error, latency: 0 });
+        });
 
       actionCount++;
-      await new Promise(resolve => setTimeout(resolve, interval));
+      await new Promise((resolve) => setTimeout(resolve, interval));
     }
 
     // Wait for all pending actions to complete
-    await new Promise(resolve => setTimeout(resolve, 5000));
+    await new Promise((resolve) => setTimeout(resolve, 5000));
 
     return results;
   }
@@ -240,15 +248,17 @@ export class LoadTestRunner extends EventEmitter {
     const promises = [];
 
     for (let i = 0; i < size; i++) {
-      promises.push(this.createSession({
-        username: `test_user_${i}`,
-        password: 'test123!',
-        duration: 3600
-      }));
+      promises.push(
+        this.createSession({
+          username: `test_user_${i}`,
+          password: 'test123!',
+          duration: 3600,
+        }),
+      );
     }
 
     const results = await Promise.allSettled(promises);
-    
+
     for (const result of results) {
       if (result.status === 'fulfilled') {
         sessions.push(result.value);
@@ -313,7 +323,7 @@ export class LoadTestRunner extends EventEmitter {
       for (const operation of config.operations) {
         const operationResults = await this.benchmarkOperation(operation, {
           iterations: config.iterations,
-          concurrency: config.concurrency
+          concurrency: config.concurrency,
         });
 
         results[protocol][operation] = operationResults;
@@ -333,7 +343,14 @@ export class LoadTestRunner extends EventEmitter {
 
     const workerPromises = [];
     for (let i = 0; i < config.concurrency; i++) {
-      workerPromises.push(this.runBenchmarkWorker(operation, config.iterations / config.concurrency, latencies, errors));
+      workerPromises.push(
+        this.runBenchmarkWorker(
+          operation,
+          config.iterations / config.concurrency,
+          latencies,
+          errors,
+        ),
+      );
     }
 
     await Promise.all(workerPromises);
@@ -345,7 +362,7 @@ export class LoadTestRunner extends EventEmitter {
       latency: this.calculatePercentiles(latencies),
       throughput,
       errorRate: errors.length / config.iterations,
-      errors: errors.slice(0, 10) // First 10 errors
+      errors: errors.slice(0, 10), // First 10 errors
     };
   }
 
@@ -367,7 +384,7 @@ export class LoadTestRunner extends EventEmitter {
       timestamp: new Date(),
       userId,
       error: error.message || String(error),
-      operation
+      operation,
     });
   }
 
@@ -381,7 +398,7 @@ export class LoadTestRunner extends EventEmitter {
     for (const [name, values] of this.metrics.entries()) {
       const sortedValues = values.sort((a, b) => a - b);
       const errorValues = this.metrics.get(`${name}_error`) || [];
-      
+
       metrics[name] = {
         count: values.length,
         min: Math.min(...values),
@@ -391,7 +408,7 @@ export class LoadTestRunner extends EventEmitter {
         p90: this.percentile(sortedValues, 0.9),
         p95: this.percentile(sortedValues, 0.95),
         p99: this.percentile(sortedValues, 0.99),
-        errorRate: errorValues.length / (values.length + errorValues.length)
+        errorRate: errorValues.length / (values.length + errorValues.length),
       };
     }
 
@@ -405,7 +422,7 @@ export class LoadTestRunner extends EventEmitter {
       successfulRequests: overallMetrics.count,
       failedRequests: errorMetrics.count,
       metrics,
-      errors: this.errors
+      errors: this.errors,
     };
   }
 
@@ -429,7 +446,7 @@ export class LoadTestRunner extends EventEmitter {
       p90: this.percentile(sorted, 0.9),
       p95: this.percentile(sorted, 0.95),
       p99: this.percentile(sorted, 0.99),
-      max: sorted[sorted.length - 1] || 0
+      max: sorted[sorted.length - 1] || 0,
     };
   }
 
@@ -480,7 +497,7 @@ export class LoadTestRunner extends EventEmitter {
     const response = await fetch(`${this.config.baseUrl}/api/sessions`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(credentials)
+      body: JSON.stringify(credentials),
     });
     return response.json();
   }
@@ -489,11 +506,11 @@ export class LoadTestRunner extends EventEmitter {
     // WebSocket implementation
     return new Promise((resolve, reject) => {
       const ws = new WebSocket(`${this.config.baseUrl.replace('http', 'ws')}/ws`);
-      
+
       ws.on('open', () => {
         ws.send(JSON.stringify({ type: 'create_session', ...credentials }));
       });
-      
+
       ws.on('message', (data) => {
         const message = JSON.parse(data.toString());
         if (message.type === 'session_created') {
@@ -533,9 +550,9 @@ export class LoadTestRunner extends EventEmitter {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${sessionId}`
+        Authorization: `Bearer ${sessionId}`,
       },
-      body: JSON.stringify(action)
+      body: JSON.stringify(action),
     });
     return response.json();
   }
@@ -543,7 +560,12 @@ export class LoadTestRunner extends EventEmitter {
   /**
    * Run benchmark in worker
    */
-  private async runBenchmarkWorker(operation: string, iterations: number, latencies: number[], errors: any[]): Promise<void> {
+  private async runBenchmarkWorker(
+    operation: string,
+    iterations: number,
+    latencies: number[],
+    errors: any[],
+  ): Promise<void> {
     for (let i = 0; i < iterations; i++) {
       const startTime = Date.now();
       try {
@@ -557,7 +579,7 @@ export class LoadTestRunner extends EventEmitter {
 
   private async executeBenchmarkOperation(operation: string): Promise<any> {
     // Placeholder for operation execution
-    await new Promise(resolve => setTimeout(resolve, Math.random() * 100));
+    await new Promise((resolve) => setTimeout(resolve, Math.random() * 100));
   }
 
   /**
@@ -594,9 +616,9 @@ export class MetricsCollector {
   }
 
   analyze(results: any[]): any {
-    const successful = results.filter(r => r.success);
-    const failed = results.filter(r => !r.success);
-    const latencies = successful.map(r => r.latency).sort((a, b) => a - b);
+    const successful = results.filter((r) => r.success);
+    const failed = results.filter((r) => !r.success);
+    const latencies = successful.map((r) => r.latency).sort((a, b) => a - b);
 
     return {
       successRate: successful.length / results.length,
@@ -605,7 +627,7 @@ export class MetricsCollector {
       failed: failed.length,
       p50Latency: this.percentile(latencies, 0.5),
       p95Latency: this.percentile(latencies, 0.95),
-      p99Latency: this.percentile(latencies, 0.99)
+      p99Latency: this.percentile(latencies, 0.99),
     };
   }
 

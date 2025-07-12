@@ -107,7 +107,10 @@ export class MCPTestClient {
     }
   }
 
-  async callTool(name: string, args: unknown): Promise<{
+  async callTool(
+    name: string,
+    args: unknown,
+  ): Promise<{
     content: Array<{
       type: string;
       text: string;
@@ -120,15 +123,15 @@ export class MCPTestClient {
     // Direct server call for testing
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const result = await (this.server as any).executeTool(name, args);
-    
+
     // Convert result to MCP response format for consistency with other tests
     return {
       content: [
         {
           type: 'text',
-          text: JSON.stringify(result)
-        }
-      ]
+          text: JSON.stringify(result),
+        },
+      ],
     };
   }
 
@@ -163,7 +166,7 @@ export class RestTestClient {
     this.timeout = config.timeout ?? 30000;
     this.defaultHeaders = {
       'Content-Type': 'application/json',
-      'Accept': 'application/json'
+      Accept: 'application/json',
     };
   }
 
@@ -183,7 +186,7 @@ export class RestTestClient {
         method: options.method,
         headers: { ...this.defaultHeaders, ...options.headers },
         body: options.body ? JSON.stringify(options.body) : undefined,
-        signal: controller.signal
+        signal: controller.signal,
       });
 
       clearTimeout(timeoutId);
@@ -230,7 +233,7 @@ export class GrpcTestClient {
 
   async call(service: string, method: string, request: any): Promise<any> {
     const client = this.getClient(service);
-    
+
     return new Promise((resolve, reject) => {
       client[method](request, (error: any, response: any) => {
         if (error) {
@@ -258,7 +261,7 @@ export class GrpcTestClient {
         callback(null, {
           sessionId: uuidv4(),
           userId: uuidv4(),
-          expiresAt: new Date(Date.now() + 3600000).toISOString()
+          expiresAt: new Date(Date.now() + 3600000).toISOString(),
         });
       },
       GetSession: (request: any, callback: (error: any, response?: any) => void) => {
@@ -267,7 +270,7 @@ export class GrpcTestClient {
         } else {
           callback(new Error('Session not found'));
         }
-      }
+      },
     };
   }
 }
@@ -308,7 +311,9 @@ export class WebSocketTestClient {
       this.ws.on('close', () => {
         // WebSocket disconnected
         if (this.reconnect) {
-          setTimeout(() => { void this.connect(); }, 5000);
+          setTimeout(() => {
+            void this.connect();
+          }, 5000);
         }
       });
     });
@@ -343,19 +348,19 @@ export class WebSocketTestClient {
 
   async subscribe(topic: string, handler: (data: any) => void): Promise<void> {
     this.subscriptions.set(topic, handler);
-    
+
     await this.send({
       type: 'subscribe',
-      topic
+      topic,
     });
   }
 
   async unsubscribe(topic: string): Promise<void> {
     this.subscriptions.delete(topic);
-    
+
     await this.send({
       type: 'unsubscribe',
-      topic
+      topic,
     });
   }
 
@@ -402,7 +407,7 @@ export class CrossProtocolTestRunner {
       mcp: new MCPTestClient(config.mcp),
       rest: new RestTestClient(config.rest),
       grpc: new GrpcTestClient(config.grpc),
-      websocket: new WebSocketTestClient(config.websocket)
+      websocket: new WebSocketTestClient(config.websocket),
     };
     this.results = {
       passed: 0,
@@ -410,7 +415,7 @@ export class CrossProtocolTestRunner {
       skipped: 0,
       errors: [],
       duration: 0,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
   }
 
@@ -460,10 +465,7 @@ export class CrossProtocolTestRunner {
         }
 
         // Execute test with timeout
-        await this.executeWithTimeout(
-          () => test.execute(this.clients),
-          test.timeout ?? 30000
-        );
+        await this.executeWithTimeout(() => test.execute(this.clients), test.timeout ?? 30000);
 
         // Run validation if provided
         if (test.validate) {
@@ -474,7 +476,6 @@ export class CrossProtocolTestRunner {
         this.results.passed++;
         // Test passed
         return;
-
       } catch (error) {
         lastError = error as Error;
         console.error(`Test attempt ${attempt} failed: ${test.name}`, error);
@@ -501,21 +502,19 @@ export class CrossProtocolTestRunner {
       test: test.name,
       error: lastError?.message || 'Unknown error',
       stack: lastError?.stack,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   }
 
   private async executeWithTimeout(fn: () => Promise<any>, timeout: number): Promise<any> {
     return Promise.race([
       fn(),
-      new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Test timeout')), timeout)
-      )
+      new Promise((_, reject) => setTimeout(() => reject(new Error('Test timeout')), timeout)),
     ]);
   }
 
   private delay(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   async cleanup(): void {

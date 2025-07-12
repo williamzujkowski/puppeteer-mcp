@@ -26,22 +26,22 @@ class MockMCPClient {
     // Mock the transport to intercept tool calls
     this.mockTransport = {
       send: jest.fn(),
-      close: jest.fn()
+      close: jest.fn(),
     };
   }
 
   async callTool(name: string, args: any): Promise<ToolResponse> {
     // Directly call the server's executeTool method
     const result = await (this.server as any).executeTool(name, args);
-    
+
     // Convert result to ToolResponse format
     return {
       content: [
         {
           type: 'text',
-          text: JSON.stringify(result)
-        }
-      ]
+          text: JSON.stringify(result),
+        },
+      ],
     };
   }
 }
@@ -58,14 +58,14 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
     // Create MCP server
     mcpServer = createMCPServer();
     mcpClient = new MockMCPClient(mcpServer);
-    
+
     // Start the server
     await mcpServer.start();
 
     // Create a primary session and context for most tests
     const sessionResult = await mcpClient.callTool('create-session', {
       username: 'browsertest',
-      password: 'testpass123'
+      password: 'testpass123',
     });
     const sessionData = JSON.parse(sessionResult.content[0].text);
     primarySessionId = sessionData.sessionId;
@@ -74,8 +74,8 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
     const contextResult = await mcpClient.callTool('create-browser-context', {
       sessionId: primarySessionId,
       options: {
-        viewport: { width: 1280, height: 720 }
-      }
+        viewport: { width: 1280, height: 720 },
+      },
     });
     const contextData = JSON.parse(contextResult.content[0].text);
     primaryContextId = contextData.contextId;
@@ -88,7 +88,7 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
       try {
         await mcpClient.callTool('close-browser-context', {
           contextId,
-          sessionId: testContexts.get(contextId).sessionId
+          sessionId: testContexts.get(contextId).sessionId,
         });
       } catch {
         // Ignore cleanup errors
@@ -111,7 +111,7 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
     await mcpClient.callTool('execute-in-context', {
       contextId: primaryContextId,
       command: 'navigate',
-      parameters: { url: 'about:blank' }
+      parameters: { url: 'about:blank' },
     });
   });
 
@@ -121,7 +121,7 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
         const result = await mcpClient.callTool('execute-in-context', {
           contextId: primaryContextId,
           command: 'navigate',
-          parameters: { url: 'https://example.com' }
+          parameters: { url: 'https://example.com' },
         });
 
         const executeData = JSON.parse(result.content[0].text);
@@ -131,15 +131,15 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
 
       it('should navigate with different wait options', async () => {
         const waitOptions = ['load', 'domcontentloaded', 'networkidle0', 'networkidle2'];
-        
+
         for (const waitUntil of waitOptions) {
           const result = await mcpClient.callTool('execute-in-context', {
             contextId: primaryContextId,
             command: 'navigate',
             parameters: {
               url: 'https://example.com',
-              waitUntil
-            }
+              waitUntil,
+            },
           });
 
           const executeData = JSON.parse(result.content[0].text);
@@ -151,7 +151,7 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
         const result = await mcpClient.callTool('execute-in-context', {
           contextId: primaryContextId,
           command: 'navigate',
-          parameters: { url: 'not-a-valid-url' }
+          parameters: { url: 'not-a-valid-url' },
         });
 
         const executeData = JSON.parse(result.content[0].text);
@@ -165,8 +165,8 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
           command: 'navigate',
           parameters: {
             url: 'https://httpstat.us/200?sleep=60000', // Slow response
-            timeout: 1000 // 1 second timeout
-          }
+            timeout: 1000, // 1 second timeout
+          },
         });
 
         const executeData = JSON.parse(result.content[0].text);
@@ -183,7 +183,7 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
         await mcpClient.callTool('execute-in-context', {
           contextId: primaryContextId,
           command: 'navigate',
-          parameters: { url: 'https://example.com' }
+          parameters: { url: 'https://example.com' },
         });
       });
 
@@ -191,7 +191,7 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
         const result = await mcpClient.callTool('execute-in-context', {
           contextId: primaryContextId,
           command: 'click',
-          parameters: { selector: 'a' }
+          parameters: { selector: 'a' },
         });
 
         const executeData = JSON.parse(result.content[0].text);
@@ -206,8 +206,8 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
             selector: 'a',
             button: 'right',
             clickCount: 2,
-            delay: 100
-          }
+            delay: 100,
+          },
         });
 
         const executeData = JSON.parse(result.content[0].text);
@@ -218,7 +218,7 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
         const result = await mcpClient.callTool('execute-in-context', {
           contextId: primaryContextId,
           command: 'click',
-          parameters: { selector: '#non-existent-element' }
+          parameters: { selector: '#non-existent-element' },
         });
 
         const executeData = JSON.parse(result.content[0].text);
@@ -236,8 +236,8 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
           parameters: {
             code: `
               document.body.innerHTML = '<input id="test-input" type="text" />';
-            `
-          }
+            `,
+          },
         });
 
         const result = await mcpClient.callTool('execute-in-context', {
@@ -245,8 +245,8 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
           command: 'type',
           parameters: {
             selector: '#test-input',
-            text: 'Hello, World!'
-          }
+            text: 'Hello, World!',
+          },
         });
 
         const executeData = JSON.parse(result.content[0].text);
@@ -257,8 +257,8 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
           contextId: primaryContextId,
           command: 'evaluate',
           parameters: {
-            code: 'document.querySelector("#test-input").value'
-          }
+            code: 'document.querySelector("#test-input").value',
+          },
         });
 
         const verifyData = JSON.parse(verifyResult.content[0].text);
@@ -270,8 +270,8 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
           contextId: primaryContextId,
           command: 'evaluate',
           parameters: {
-            code: `document.body.innerHTML = '<input id="test-input" type="text" />';`
-          }
+            code: `document.body.innerHTML = '<input id="test-input" type="text" />';`,
+          },
         });
 
         const result = await mcpClient.callTool('execute-in-context', {
@@ -280,8 +280,8 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
           parameters: {
             selector: '#test-input',
             text: 'Slow typing',
-            delay: 50
-          }
+            delay: 50,
+          },
         });
 
         const executeData = JSON.parse(result.content[0].text);
@@ -304,8 +304,8 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
                   <option value="option3">Option 3</option>
                 </select>
               \`;
-            `
-          }
+            `,
+          },
         });
       });
 
@@ -315,8 +315,8 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
           command: 'select',
           parameters: {
             selector: '#test-select',
-            values: ['option2']
-          }
+            values: ['option2'],
+          },
         });
 
         const executeData = JSON.parse(result.content[0].text);
@@ -327,8 +327,8 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
           contextId: primaryContextId,
           command: 'evaluate',
           parameters: {
-            code: 'document.querySelector("#test-select").value'
-          }
+            code: 'document.querySelector("#test-select").value',
+          },
         });
 
         const verifyData = JSON.parse(verifyResult.content[0].text);
@@ -349,8 +349,8 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
                   <option value="option3">Option 3</option>
                 </select>
               \`;
-            `
-          }
+            `,
+          },
         });
 
         const result = await mcpClient.callTool('execute-in-context', {
@@ -358,8 +358,8 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
           command: 'select',
           parameters: {
             selector: '#test-multi-select',
-            values: ['option1', 'option3']
-          }
+            values: ['option1', 'option3'],
+          },
         });
 
         const executeData = JSON.parse(result.content[0].text);
@@ -374,8 +374,8 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
           contextId: primaryContextId,
           command: 'evaluate',
           parameters: {
-            code: `document.body.innerHTML = '<input id="file-input" type="file" />';`
-          }
+            code: `document.body.innerHTML = '<input id="file-input" type="file" />';`,
+          },
         });
 
         // Create a temporary test file
@@ -388,8 +388,8 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
             command: 'upload',
             parameters: {
               selector: '#file-input',
-              filePaths: [testFilePath]
-            }
+              filePaths: [testFilePath],
+            },
           });
 
           const executeData = JSON.parse(result.content[0].text);
@@ -400,8 +400,8 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
             contextId: primaryContextId,
             command: 'evaluate',
             parameters: {
-              code: 'document.querySelector("#file-input").files.length'
-            }
+              code: 'document.querySelector("#file-input").files.length',
+            },
           });
 
           const verifyData = JSON.parse(verifyResult.content[0].text);
@@ -417,8 +417,8 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
           contextId: primaryContextId,
           command: 'evaluate',
           parameters: {
-            code: `document.body.innerHTML = '<input id="file-input" type="file" />';`
-          }
+            code: `document.body.innerHTML = '<input id="file-input" type="file" />';`,
+          },
         });
 
         const result = await mcpClient.callTool('execute-in-context', {
@@ -426,8 +426,8 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
           command: 'upload',
           parameters: {
             selector: '#file-input',
-            filePaths: ['/non/existent/file.txt']
-          }
+            filePaths: ['/non/existent/file.txt'],
+          },
         });
 
         const executeData = JSON.parse(result.content[0].text);
@@ -447,14 +447,14 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
               document.querySelector('#hover-target').addEventListener('mouseenter', function() {
                 this.style.background = 'red';
               });
-            `
-          }
+            `,
+          },
         });
 
         const result = await mcpClient.callTool('execute-in-context', {
           contextId: primaryContextId,
           command: 'hover',
-          parameters: { selector: '#hover-target' }
+          parameters: { selector: '#hover-target' },
         });
 
         const executeData = JSON.parse(result.content[0].text);
@@ -465,8 +465,8 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
           contextId: primaryContextId,
           command: 'evaluate',
           parameters: {
-            code: 'getComputedStyle(document.querySelector("#hover-target")).backgroundColor'
-          }
+            code: 'getComputedStyle(document.querySelector("#hover-target")).backgroundColor',
+          },
         });
 
         const verifyData = JSON.parse(verifyResult.content[0].text);
@@ -486,8 +486,8 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
               const input = document.querySelector('#focus-input');
               input.addEventListener('focus', () => window.focusEvents.push('focus'));
               input.addEventListener('blur', () => window.focusEvents.push('blur'));
-            `
-          }
+            `,
+          },
         });
       });
 
@@ -495,7 +495,7 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
         const result = await mcpClient.callTool('execute-in-context', {
           contextId: primaryContextId,
           command: 'focus',
-          parameters: { selector: '#focus-input' }
+          parameters: { selector: '#focus-input' },
         });
 
         const executeData = JSON.parse(result.content[0].text);
@@ -506,8 +506,8 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
           contextId: primaryContextId,
           command: 'evaluate',
           parameters: {
-            code: 'window.focusEvents'
-          }
+            code: 'window.focusEvents',
+          },
         });
 
         const verifyData = JSON.parse(verifyResult.content[0].text);
@@ -519,14 +519,14 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
         await mcpClient.callTool('execute-in-context', {
           contextId: primaryContextId,
           command: 'focus',
-          parameters: { selector: '#focus-input' }
+          parameters: { selector: '#focus-input' },
         });
 
         // Then blur it
         const result = await mcpClient.callTool('execute-in-context', {
           contextId: primaryContextId,
           command: 'blur',
-          parameters: { selector: '#focus-input' }
+          parameters: { selector: '#focus-input' },
         });
 
         const executeData = JSON.parse(result.content[0].text);
@@ -537,8 +537,8 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
           contextId: primaryContextId,
           command: 'evaluate',
           parameters: {
-            code: 'window.focusEvents'
-          }
+            code: 'window.focusEvents',
+          },
         });
 
         const verifyData = JSON.parse(verifyResult.content[0].text);
@@ -554,8 +554,8 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
           contextId: primaryContextId,
           command: 'evaluate',
           parameters: {
-            code: '1 + 2 + 3'
-          }
+            code: '1 + 2 + 3',
+          },
         });
 
         const executeData = JSON.parse(result.content[0].text);
@@ -571,8 +571,8 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
             code: `
               const obj = { a: 1, b: 2, c: 3 };
               Object.values(obj).reduce((sum, val) => sum + val, 0)
-            `
-          }
+            `,
+          },
         });
 
         const executeData = JSON.parse(result.content[0].text);
@@ -585,8 +585,8 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
           contextId: primaryContextId,
           command: 'evaluate',
           parameters: {
-            code: 'throw new Error("Test error")'
-          }
+            code: 'throw new Error("Test error")',
+          },
         });
 
         const executeData = JSON.parse(result.content[0].text);
@@ -600,8 +600,8 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
           command: 'evaluate',
           parameters: {
             code: '(a, b) => a + b',
-            args: [10, 20]
-          }
+            args: [10, 20],
+          },
         });
 
         const executeData = JSON.parse(result.content[0].text);
@@ -615,7 +615,7 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
         await mcpClient.callTool('execute-in-context', {
           contextId: primaryContextId,
           command: 'navigate',
-          parameters: { url: 'https://example.com' }
+          parameters: { url: 'https://example.com' },
         });
       });
 
@@ -623,7 +623,7 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
         const result = await mcpClient.callTool('execute-in-context', {
           contextId: primaryContextId,
           command: 'screenshot',
-          parameters: {}
+          parameters: {},
         });
 
         const executeData = JSON.parse(result.content[0].text);
@@ -635,7 +635,7 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
         const result = await mcpClient.callTool('execute-in-context', {
           contextId: primaryContextId,
           command: 'screenshot',
-          parameters: { fullPage: true }
+          parameters: { fullPage: true },
         });
 
         const executeData = JSON.parse(result.content[0].text);
@@ -649,8 +649,8 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
           command: 'screenshot',
           parameters: {
             type: 'jpeg',
-            quality: 50
-          }
+            quality: 50,
+          },
         });
 
         const executeData = JSON.parse(result.content[0].text);
@@ -664,8 +664,8 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
           command: 'screenshot',
           parameters: {
             selector: 'h1',
-            clip: { x: 0, y: 0, width: 200, height: 100 }
-          }
+            clip: { x: 0, y: 0, width: 200, height: 100 },
+          },
         });
 
         const executeData = JSON.parse(result.content[0].text);
@@ -679,7 +679,7 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
         await mcpClient.callTool('execute-in-context', {
           contextId: primaryContextId,
           command: 'navigate',
-          parameters: { url: 'https://example.com' }
+          parameters: { url: 'https://example.com' },
         });
       });
 
@@ -687,7 +687,7 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
         const result = await mcpClient.callTool('execute-in-context', {
           contextId: primaryContextId,
           command: 'pdf',
-          parameters: {}
+          parameters: {},
         });
 
         const executeData = JSON.parse(result.content[0].text);
@@ -701,8 +701,8 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
           command: 'pdf',
           parameters: {
             format: 'A4',
-            landscape: true
-          }
+            landscape: true,
+          },
         });
 
         const executeData = JSON.parse(result.content[0].text);
@@ -719,9 +719,9 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
               top: '1in',
               right: '1in',
               bottom: '1in',
-              left: '1in'
-            }
-          }
+              left: '1in',
+            },
+          },
         });
 
         const executeData = JSON.parse(result.content[0].text);
@@ -735,7 +735,7 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
         await mcpClient.callTool('execute-in-context', {
           contextId: primaryContextId,
           command: 'navigate',
-          parameters: { url: 'https://example.com' }
+          parameters: { url: 'https://example.com' },
         });
       });
 
@@ -743,7 +743,7 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
         const result = await mcpClient.callTool('execute-in-context', {
           contextId: primaryContextId,
           command: 'content',
-          parameters: {}
+          parameters: {},
         });
 
         const executeData = JSON.parse(result.content[0].text);
@@ -757,8 +757,8 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
           contextId: primaryContextId,
           command: 'content',
           parameters: {
-            selector: 'h1'
-          }
+            selector: 'h1',
+          },
         });
 
         const executeData = JSON.parse(result.content[0].text);
@@ -775,7 +775,7 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
         const result = await mcpClient.callTool('execute-in-context', {
           contextId: primaryContextId,
           command: 'wait',
-          parameters: { duration: 1000 }
+          parameters: { duration: 1000 },
         });
         const endTime = Date.now();
 
@@ -797,8 +797,8 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
                 div.textContent = 'I appeared!';
                 document.body.appendChild(div);
               }, 500);
-            `
-          }
+            `,
+          },
         });
 
         const result = await mcpClient.callTool('execute-in-context', {
@@ -806,8 +806,8 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
           command: 'wait',
           parameters: {
             selector: '#delayed-element',
-            timeout: 2000
-          }
+            timeout: 2000,
+          },
         });
 
         const executeData = JSON.parse(result.content[0].text);
@@ -820,8 +820,8 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
           command: 'wait',
           parameters: {
             selector: '#will-never-exist',
-            timeout: 1000
-          }
+            timeout: 1000,
+          },
         });
 
         const executeData = JSON.parse(result.content[0].text);
@@ -837,8 +837,8 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
             code: `
               window.testValue = false;
               setTimeout(() => { window.testValue = true; }, 500);
-            `
-          }
+            `,
+          },
         });
 
         const result = await mcpClient.callTool('execute-in-context', {
@@ -846,8 +846,8 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
           command: 'wait',
           parameters: {
             function: 'window.testValue === true',
-            timeout: 2000
-          }
+            timeout: 2000,
+          },
         });
 
         const executeData = JSON.parse(result.content[0].text);
@@ -865,8 +865,8 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
             code: `
               document.body.style.height = '3000px';
               document.body.innerHTML = '<div id="bottom" style="position: absolute; bottom: 0;">Bottom element</div>';
-            `
-          }
+            `,
+          },
         });
       });
 
@@ -876,8 +876,8 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
           command: 'scroll',
           parameters: {
             x: 0,
-            y: 500
-          }
+            y: 500,
+          },
         });
 
         const executeData = JSON.parse(result.content[0].text);
@@ -888,8 +888,8 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
           contextId: primaryContextId,
           command: 'evaluate',
           parameters: {
-            code: 'window.scrollY'
-          }
+            code: 'window.scrollY',
+          },
         });
 
         const verifyData = JSON.parse(verifyResult.content[0].text);
@@ -901,8 +901,8 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
           contextId: primaryContextId,
           command: 'scroll',
           parameters: {
-            selector: '#bottom'
-          }
+            selector: '#bottom',
+          },
         });
 
         const executeData = JSON.parse(result.content[0].text);
@@ -917,8 +917,8 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
               const elem = document.querySelector('#bottom');
               const rect = elem.getBoundingClientRect();
               rect.top >= 0 && rect.bottom <= window.innerHeight
-            `
-          }
+            `,
+          },
         });
 
         const verifyData = JSON.parse(verifyResult.content[0].text);
@@ -939,8 +939,8 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
               input.addEventListener('keydown', (e) => window.keyEvents.push({ type: 'keydown', key: e.key }));
               input.addEventListener('keyup', (e) => window.keyEvents.push({ type: 'keyup', key: e.key }));
               input.focus();
-            `
-          }
+            `,
+          },
         });
       });
 
@@ -950,8 +950,8 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
           command: 'keyboard',
           parameters: {
             action: 'press',
-            key: 'Enter'
-          }
+            key: 'Enter',
+          },
         });
 
         const executeData = JSON.parse(result.content[0].text);
@@ -962,8 +962,8 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
           contextId: primaryContextId,
           command: 'evaluate',
           parameters: {
-            code: 'window.keyEvents'
-          }
+            code: 'window.keyEvents',
+          },
         });
 
         const verifyData = JSON.parse(verifyResult.content[0].text);
@@ -977,8 +977,8 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
           command: 'keyboard',
           parameters: {
             action: 'type',
-            text: 'Hello'
-          }
+            text: 'Hello',
+          },
         });
 
         const executeData = JSON.parse(result.content[0].text);
@@ -989,8 +989,8 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
           contextId: primaryContextId,
           command: 'evaluate',
           parameters: {
-            code: 'document.querySelector("#keyboard-input").value'
-          }
+            code: 'document.querySelector("#keyboard-input").value',
+          },
         });
 
         const verifyData = JSON.parse(verifyResult.content[0].text);
@@ -1003,8 +1003,8 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
           command: 'keyboard',
           parameters: {
             action: 'down',
-            key: 'Control'
-          }
+            key: 'Control',
+          },
         });
 
         expect(JSON.parse(result.content[0].text).success).toBe(true);
@@ -1014,8 +1014,8 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
           command: 'keyboard',
           parameters: {
             action: 'press',
-            key: 'a'
-          }
+            key: 'a',
+          },
         });
 
         expect(JSON.parse(result2.content[0].text).success).toBe(true);
@@ -1025,8 +1025,8 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
           command: 'keyboard',
           parameters: {
             action: 'up',
-            key: 'Control'
-          }
+            key: 'Control',
+          },
         });
 
         expect(JSON.parse(result3.content[0].text).success).toBe(true);
@@ -1048,8 +1048,8 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
                   window.mouseEvents.push({ type: event, x: e.clientX, y: e.clientY });
                 });
               });
-            `
-          }
+            `,
+          },
         });
       });
 
@@ -1060,8 +1060,8 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
           parameters: {
             action: 'move',
             x: 50,
-            y: 50
-          }
+            y: 50,
+          },
         });
 
         const executeData = JSON.parse(result.content[0].text);
@@ -1076,8 +1076,8 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
             action: 'click',
             x: 50,
             y: 50,
-            button: 'left'
-          }
+            button: 'left',
+          },
         });
 
         const executeData = JSON.parse(result.content[0].text);
@@ -1088,8 +1088,8 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
           contextId: primaryContextId,
           command: 'evaluate',
           parameters: {
-            code: 'window.mouseEvents.map(e => e.type)'
-          }
+            code: 'window.mouseEvents.map(e => e.type)',
+          },
         });
 
         const verifyData = JSON.parse(verifyResult.content[0].text);
@@ -1103,8 +1103,8 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
           command: 'mouse',
           parameters: {
             action: 'down',
-            button: 'left'
-          }
+            button: 'left',
+          },
         });
 
         expect(JSON.parse(downResult.content[0].text).success).toBe(true);
@@ -1114,8 +1114,8 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
           command: 'mouse',
           parameters: {
             action: 'up',
-            button: 'left'
-          }
+            button: 'left',
+          },
         });
 
         expect(JSON.parse(upResult.content[0].text).success).toBe(true);
@@ -1128,8 +1128,8 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
           parameters: {
             action: 'wheel',
             deltaX: 0,
-            deltaY: 100
-          }
+            deltaY: 100,
+          },
         });
 
         const executeData = JSON.parse(result.content[0].text);
@@ -1142,7 +1142,7 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
         await mcpClient.callTool('execute-in-context', {
           contextId: primaryContextId,
           command: 'navigate',
-          parameters: { url: 'https://example.com' }
+          parameters: { url: 'https://example.com' },
         });
       });
 
@@ -1154,8 +1154,8 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
             action: 'set',
             name: 'test-cookie',
             value: 'test-value',
-            domain: 'example.com'
-          }
+            domain: 'example.com',
+          },
         });
 
         const executeData = JSON.parse(result.content[0].text);
@@ -1171,8 +1171,8 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
             action: 'set',
             name: 'test-cookie',
             value: 'test-value',
-            domain: 'example.com'
-          }
+            domain: 'example.com',
+          },
         });
 
         // Then get all cookies
@@ -1180,8 +1180,8 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
           contextId: primaryContextId,
           command: 'cookie',
           parameters: {
-            action: 'get'
-          }
+            action: 'get',
+          },
         });
 
         const executeData = JSON.parse(result.content[0].text);
@@ -1189,8 +1189,8 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
         expect(executeData.data).toContainEqual(
           expect.objectContaining({
             name: 'test-cookie',
-            value: 'test-value'
-          })
+            value: 'test-value',
+          }),
         );
       });
 
@@ -1203,8 +1203,8 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
             action: 'set',
             name: 'specific-cookie',
             value: 'specific-value',
-            domain: 'example.com'
-          }
+            domain: 'example.com',
+          },
         });
 
         // Get specific cookie
@@ -1213,15 +1213,15 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
           command: 'cookie',
           parameters: {
             action: 'get',
-            name: 'specific-cookie'
-          }
+            name: 'specific-cookie',
+          },
         });
 
         const executeData = JSON.parse(result.content[0].text);
         expect(executeData.success).toBe(true);
         expect(executeData.data).toMatchObject({
           name: 'specific-cookie',
-          value: 'specific-value'
+          value: 'specific-value',
         });
       });
 
@@ -1234,8 +1234,8 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
             action: 'set',
             name: 'delete-me',
             value: 'temp-value',
-            domain: 'example.com'
-          }
+            domain: 'example.com',
+          },
         });
 
         // Delete the cookie
@@ -1244,8 +1244,8 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
           command: 'cookie',
           parameters: {
             action: 'delete',
-            name: 'delete-me'
-          }
+            name: 'delete-me',
+          },
         });
 
         const executeData = JSON.parse(result.content[0].text);
@@ -1257,8 +1257,8 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
           command: 'cookie',
           parameters: {
             action: 'get',
-            name: 'delete-me'
-          }
+            name: 'delete-me',
+          },
         });
 
         const verifyData = JSON.parse(verifyResult.content[0].text);
@@ -1274,8 +1274,8 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
             action: 'set',
             name: 'cookie1',
             value: 'value1',
-            domain: 'example.com'
-          }
+            domain: 'example.com',
+          },
         });
 
         await mcpClient.callTool('execute-in-context', {
@@ -1285,8 +1285,8 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
             action: 'set',
             name: 'cookie2',
             value: 'value2',
-            domain: 'example.com'
-          }
+            domain: 'example.com',
+          },
         });
 
         // Clear all cookies
@@ -1294,8 +1294,8 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
           contextId: primaryContextId,
           command: 'cookie',
           parameters: {
-            action: 'clear'
-          }
+            action: 'clear',
+          },
         });
 
         const executeData = JSON.parse(result.content[0].text);
@@ -1306,8 +1306,8 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
           contextId: primaryContextId,
           command: 'cookie',
           parameters: {
-            action: 'get'
-          }
+            action: 'get',
+          },
         });
 
         const verifyData = JSON.parse(verifyResult.content[0].text);
@@ -1320,21 +1320,21 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
     it('should handle command on closed context gracefully', async () => {
       // Create a new context
       const contextResult = await mcpClient.callTool('create-browser-context', {
-        sessionId: primarySessionId
+        sessionId: primarySessionId,
       });
       const tempContextId = JSON.parse(contextResult.content[0].text).contextId;
 
       // Close the context
       await mcpClient.callTool('close-browser-context', {
         contextId: tempContextId,
-        sessionId: primarySessionId
+        sessionId: primarySessionId,
       });
 
       // Try to execute command on closed context
       const result = await mcpClient.callTool('execute-in-context', {
         contextId: tempContextId,
         command: 'navigate',
-        parameters: { url: 'https://example.com' }
+        parameters: { url: 'https://example.com' },
       });
 
       const executeData = JSON.parse(result.content[0].text);
@@ -1346,7 +1346,7 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
       const result = await mcpClient.callTool('execute-in-context', {
         contextId: primaryContextId,
         command: 'invalid-command',
-        parameters: {}
+        parameters: {},
       });
 
       const executeData = JSON.parse(result.content[0].text);
@@ -1358,7 +1358,7 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
       const result = await mcpClient.callTool('execute-in-context', {
         contextId: primaryContextId,
         command: 'navigate',
-        parameters: {} // Missing 'url' parameter
+        parameters: {}, // Missing 'url' parameter
       });
 
       const executeData = JSON.parse(result.content[0].text);
@@ -1371,24 +1371,24 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
         mcpClient.callTool('execute-in-context', {
           contextId: primaryContextId,
           command: 'evaluate',
-          parameters: { code: '1 + 1' }
+          parameters: { code: '1 + 1' },
         }),
         mcpClient.callTool('execute-in-context', {
           contextId: primaryContextId,
           command: 'evaluate',
-          parameters: { code: '2 + 2' }
+          parameters: { code: '2 + 2' },
         }),
         mcpClient.callTool('execute-in-context', {
           contextId: primaryContextId,
           command: 'evaluate',
-          parameters: { code: '3 + 3' }
-        })
+          parameters: { code: '3 + 3' },
+        }),
       ];
 
       const results = await Promise.all(promises);
-      
+
       // All commands should succeed
-      results.forEach(result => {
+      results.forEach((result) => {
         const executeData = JSON.parse(result.content[0].text);
         expect(executeData.success).toBe(true);
         expect(executeData.data).toBeGreaterThan(0);

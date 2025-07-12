@@ -32,10 +32,7 @@ if (
   process.env.START_SERVER === 'true'
 ) {
   // Don't start if running in Jest or MCP mode
-  if (
-    process.env.JEST_WORKER_ID === undefined &&
-    process.env.MCP_TRANSPORT === undefined
-  ) {
+  if (process.env.JEST_WORKER_ID === undefined && process.env.MCP_TRANSPORT === undefined) {
     void startHTTPServer();
   }
 }

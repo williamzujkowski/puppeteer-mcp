@@ -25,22 +25,22 @@ class MockMCPClient {
     // Mock the transport to intercept tool calls
     this.mockTransport = {
       send: jest.fn(),
-      close: jest.fn()
+      close: jest.fn(),
     };
   }
 
   async callTool(name: string, args: any): Promise<ToolResponse> {
     // Directly call the server's executeTool method
     const result = await (this.server as any).executeTool(name, args);
-    
+
     // Convert result to ToolResponse format
     return {
       content: [
         {
           type: 'text',
-          text: JSON.stringify(result)
-        }
-      ]
+          text: JSON.stringify(result),
+        },
+      ],
     };
   }
 }
@@ -55,7 +55,7 @@ describe('MCP Tools Comprehensive Functional Tests', () => {
     // Create MCP server
     mcpServer = createMCPServer();
     mcpClient = new MockMCPClient(mcpServer);
-    
+
     // Start the server
     await mcpServer.start();
   });
@@ -66,7 +66,7 @@ describe('MCP Tools Comprehensive Functional Tests', () => {
       try {
         await mcpClient.callTool('close-browser-context', {
           contextId,
-          sessionId: testContexts.get(contextId).sessionId
+          sessionId: testContexts.get(contextId).sessionId,
         });
       } catch {
         // Ignore cleanup errors
@@ -89,7 +89,7 @@ describe('MCP Tools Comprehensive Functional Tests', () => {
       it('should create a basic session successfully', async () => {
         const result = await mcpClient.callTool('create-session', {
           username: 'testuser',
-          password: 'testpass123'
+          password: 'testpass123',
         });
 
         expect(result.content).toHaveLength(1);
@@ -110,13 +110,13 @@ describe('MCP Tools Comprehensive Functional Tests', () => {
         const result = await mcpClient.callTool('create-session', {
           username: 'testuser',
           password: 'testpass123',
-          duration: customDuration
+          duration: customDuration,
         });
 
         const sessionData = JSON.parse(result.content[0].text);
         const expiresAt = new Date(sessionData.expiresAt).getTime();
-        const expectedExpiry = Date.now() + (customDuration * 1000);
-        
+        const expectedExpiry = Date.now() + customDuration * 1000;
+
         // Allow 5 second tolerance for execution time
         expect(Math.abs(expiresAt - expectedExpiry)).toBeLessThan(5000);
 
@@ -128,7 +128,7 @@ describe('MCP Tools Comprehensive Functional Tests', () => {
         const result = await mcpClient.callTool('create-session', {
           username: 'testuser',
           password: 'testpass123',
-          duration: maxDuration
+          duration: maxDuration,
         });
 
         const sessionData = JSON.parse(result.content[0].text);
@@ -142,16 +142,16 @@ describe('MCP Tools Comprehensive Functional Tests', () => {
       it('should reject missing username', async () => {
         await expect(
           mcpClient.callTool('create-session', {
-            password: 'testpass123'
-          })
+            password: 'testpass123',
+          }),
         ).rejects.toThrow();
       });
 
       it('should reject missing password', async () => {
         await expect(
           mcpClient.callTool('create-session', {
-            username: 'testuser'
-          })
+            username: 'testuser',
+          }),
         ).rejects.toThrow();
       });
 
@@ -160,8 +160,8 @@ describe('MCP Tools Comprehensive Functional Tests', () => {
           mcpClient.callTool('create-session', {
             username: 'testuser',
             password: 'testpass123',
-            duration: -1
-          })
+            duration: -1,
+          }),
         ).rejects.toThrow();
       });
 
@@ -170,8 +170,8 @@ describe('MCP Tools Comprehensive Functional Tests', () => {
           mcpClient.callTool('create-session', {
             username: 'testuser',
             password: 'testpass123',
-            duration: 86401 // > 24 hours
-          })
+            duration: 86401, // > 24 hours
+          }),
         ).rejects.toThrow();
       });
     });
@@ -180,7 +180,7 @@ describe('MCP Tools Comprehensive Functional Tests', () => {
       it('should handle special characters in username', async () => {
         const result = await mcpClient.callTool('create-session', {
           username: 'test.user@example.com',
-          password: 'testpass123'
+          password: 'testpass123',
         });
 
         const sessionData = JSON.parse(result.content[0].text);
@@ -192,7 +192,7 @@ describe('MCP Tools Comprehensive Functional Tests', () => {
       it('should handle minimum username length', async () => {
         const result = await mcpClient.callTool('create-session', {
           username: 'abc', // 3 characters
-          password: 'testpass123'
+          password: 'testpass123',
         });
 
         const sessionData = JSON.parse(result.content[0].text);
@@ -205,8 +205,8 @@ describe('MCP Tools Comprehensive Functional Tests', () => {
         await expect(
           mcpClient.callTool('create-session', {
             username: 'ab', // 2 characters
-            password: 'testpass123'
-          })
+            password: 'testpass123',
+          }),
         ).rejects.toThrow();
       });
     });
@@ -218,7 +218,7 @@ describe('MCP Tools Comprehensive Functional Tests', () => {
       for (let i = 0; i < 3; i++) {
         const result = await mcpClient.callTool('create-session', {
           username: `listuser${i}`,
-          password: 'testpass123'
+          password: 'testpass123',
         });
         const sessionData = JSON.parse(result.content[0].text);
         testSessions.set(sessionData.sessionId, sessionData);
@@ -240,16 +240,16 @@ describe('MCP Tools Comprehensive Functional Tests', () => {
       // Get a specific user's sessions
       const firstSession = Array.from(testSessions.values())[0];
       const result = await mcpClient.callTool('list-sessions', {
-        userId: firstSession.userId
+        userId: firstSession.userId,
       });
 
       const listData = JSON.parse(result.content[0].text);
-      expect(listData.sessions.every(s => s.userId === firstSession.userId)).toBe(true);
+      expect(listData.sessions.every((s) => s.userId === firstSession.userId)).toBe(true);
     });
 
     it('should handle non-existent userId gracefully', async () => {
       const result = await mcpClient.callTool('list-sessions', {
-        userId: 'non-existent-user-id'
+        userId: 'non-existent-user-id',
       });
 
       const listData = JSON.parse(result.content[0].text);
@@ -263,13 +263,13 @@ describe('MCP Tools Comprehensive Functional Tests', () => {
       // Create a session to delete
       const createResult = await mcpClient.callTool('create-session', {
         username: 'deleteuser',
-        password: 'testpass123'
+        password: 'testpass123',
       });
       const sessionData = JSON.parse(createResult.content[0].text);
 
       // Delete the session
       const deleteResult = await mcpClient.callTool('delete-session', {
-        sessionId: sessionData.sessionId
+        sessionId: sessionData.sessionId,
       });
 
       const deleteData = JSON.parse(deleteResult.content[0].text);
@@ -278,23 +278,21 @@ describe('MCP Tools Comprehensive Functional Tests', () => {
       // Verify session is deleted by trying to list it
       const listResult = await mcpClient.callTool('list-sessions', {});
       const listData = JSON.parse(listResult.content[0].text);
-      expect(listData.sessions.find(s => s.id === sessionData.sessionId)).toBeUndefined();
+      expect(listData.sessions.find((s) => s.id === sessionData.sessionId)).toBeUndefined();
     });
 
     it('should handle non-existent session deletion', async () => {
       const nonExistentId = uuidv4();
-      
+
       await expect(
         mcpClient.callTool('delete-session', {
-          sessionId: nonExistentId
-        })
+          sessionId: nonExistentId,
+        }),
       ).rejects.toThrow();
     });
 
     it('should reject missing sessionId', async () => {
-      await expect(
-        mcpClient.callTool('delete-session', {})
-      ).rejects.toThrow();
+      await expect(mcpClient.callTool('delete-session', {})).rejects.toThrow();
     });
   });
 
@@ -305,7 +303,7 @@ describe('MCP Tools Comprehensive Functional Tests', () => {
       // Create a valid session for context creation
       const result = await mcpClient.callTool('create-session', {
         username: 'contextuser',
-        password: 'testpass123'
+        password: 'testpass123',
       });
       const sessionData = JSON.parse(result.content[0].text);
       validSessionId = sessionData.sessionId;
@@ -315,7 +313,7 @@ describe('MCP Tools Comprehensive Functional Tests', () => {
     describe('Valid Input Cases', () => {
       it('should create a basic browser context', async () => {
         const result = await mcpClient.callTool('create-browser-context', {
-          sessionId: validSessionId
+          sessionId: validSessionId,
         });
 
         const contextData = JSON.parse(result.content[0].text);
@@ -331,14 +329,14 @@ describe('MCP Tools Comprehensive Functional Tests', () => {
           sessionId: validSessionId,
           options: {
             headless: false,
-            viewport: { width: 1920, height: 1080 }
-          }
+            viewport: { width: 1920, height: 1080 },
+          },
         });
 
         const contextData = JSON.parse(result.content[0].text);
         expect(contextData.config).toMatchObject({
           headless: false,
-          viewport: { width: 1920, height: 1080 }
+          viewport: { width: 1920, height: 1080 },
         });
 
         testContexts.set(contextData.contextId, contextData);
@@ -349,14 +347,14 @@ describe('MCP Tools Comprehensive Functional Tests', () => {
           sessionId: validSessionId,
           options: {
             viewport: { width: 375, height: 667 },
-            userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X)'
-          }
+            userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X)',
+          },
         });
 
         const contextData = JSON.parse(result.content[0].text);
         expect(contextData.config.viewport).toMatchObject({
           width: 375,
-          height: 667
+          height: 667,
         });
 
         testContexts.set(contextData.contextId, contextData);
@@ -367,15 +365,13 @@ describe('MCP Tools Comprehensive Functional Tests', () => {
       it('should reject invalid sessionId', async () => {
         await expect(
           mcpClient.callTool('create-browser-context', {
-            sessionId: uuidv4() // Non-existent session
-          })
+            sessionId: uuidv4(), // Non-existent session
+          }),
         ).rejects.toThrow();
       });
 
       it('should reject missing sessionId', async () => {
-        await expect(
-          mcpClient.callTool('create-browser-context', {})
-        ).rejects.toThrow();
+        await expect(mcpClient.callTool('create-browser-context', {})).rejects.toThrow();
       });
 
       it('should reject invalid viewport dimensions', async () => {
@@ -383,9 +379,9 @@ describe('MCP Tools Comprehensive Functional Tests', () => {
           mcpClient.callTool('create-browser-context', {
             sessionId: validSessionId,
             options: {
-              viewport: { width: -1, height: 1080 }
-            }
-          })
+              viewport: { width: -1, height: 1080 },
+            },
+          }),
         ).rejects.toThrow();
       });
 
@@ -394,9 +390,9 @@ describe('MCP Tools Comprehensive Functional Tests', () => {
           mcpClient.callTool('create-browser-context', {
             sessionId: validSessionId,
             options: {
-              viewport: { width: 10000, height: 10000 } // Too large
-            }
-          })
+              viewport: { width: 10000, height: 10000 }, // Too large
+            },
+          }),
         ).rejects.toThrow();
       });
     });
@@ -410,13 +406,13 @@ describe('MCP Tools Comprehensive Functional Tests', () => {
       // Create session and context for testing
       const sessionResult = await mcpClient.callTool('create-session', {
         username: 'executeuser',
-        password: 'testpass123'
+        password: 'testpass123',
       });
       const sessionData = JSON.parse(sessionResult.content[0].text);
       validSessionId = sessionData.sessionId;
 
       const contextResult = await mcpClient.callTool('create-browser-context', {
-        sessionId: validSessionId
+        sessionId: validSessionId,
       });
       const contextData = JSON.parse(contextResult.content[0].text);
       validContextId = contextData.contextId;
@@ -430,7 +426,7 @@ describe('MCP Tools Comprehensive Functional Tests', () => {
         const result = await mcpClient.callTool('execute-in-context', {
           contextId: validContextId,
           command: 'navigate',
-          parameters: { url: 'https://example.com' }
+          parameters: { url: 'https://example.com' },
         });
 
         const executeData = JSON.parse(result.content[0].text);
@@ -444,8 +440,8 @@ describe('MCP Tools Comprehensive Functional Tests', () => {
           command: 'navigate',
           parameters: {
             url: 'https://example.com',
-            waitUntil: 'networkidle0'
-          }
+            waitUntil: 'networkidle0',
+          },
         });
 
         const executeData = JSON.parse(result.content[0].text);
@@ -459,13 +455,13 @@ describe('MCP Tools Comprehensive Functional Tests', () => {
         await mcpClient.callTool('execute-in-context', {
           contextId: validContextId,
           command: 'navigate',
-          parameters: { url: 'https://example.com' }
+          parameters: { url: 'https://example.com' },
         });
 
         const result = await mcpClient.callTool('execute-in-context', {
           contextId: validContextId,
           command: 'screenshot',
-          parameters: { fullPage: true }
+          parameters: { fullPage: true },
         });
 
         const executeData = JSON.parse(result.content[0].text);
@@ -478,8 +474,8 @@ describe('MCP Tools Comprehensive Functional Tests', () => {
           contextId: validContextId,
           command: 'evaluate',
           parameters: {
-            code: 'document.title'
-          }
+            code: 'document.title',
+          },
         });
 
         const executeData = JSON.parse(result.content[0].text);
@@ -492,7 +488,7 @@ describe('MCP Tools Comprehensive Functional Tests', () => {
       it('should reject missing contextId', async () => {
         const result = await mcpClient.callTool('execute-in-context', {
           command: 'navigate',
-          parameters: { url: 'https://example.com' }
+          parameters: { url: 'https://example.com' },
         });
 
         const executeData = JSON.parse(result.content[0].text);
@@ -503,7 +499,7 @@ describe('MCP Tools Comprehensive Functional Tests', () => {
       it('should reject missing command', async () => {
         const result = await mcpClient.callTool('execute-in-context', {
           contextId: validContextId,
-          parameters: { url: 'https://example.com' }
+          parameters: { url: 'https://example.com' },
         });
 
         const executeData = JSON.parse(result.content[0].text);
@@ -515,7 +511,7 @@ describe('MCP Tools Comprehensive Functional Tests', () => {
         const result = await mcpClient.callTool('execute-in-context', {
           contextId: uuidv4(), // Non-existent context
           command: 'navigate',
-          parameters: { url: 'https://example.com' }
+          parameters: { url: 'https://example.com' },
         });
 
         const executeData = JSON.parse(result.content[0].text);
@@ -531,8 +527,8 @@ describe('MCP Tools Comprehensive Functional Tests', () => {
           protocol: 'rest',
           operation: {
             method: 'GET',
-            endpoint: '/health'
-          }
+            endpoint: '/health',
+          },
         });
 
         const apiData = JSON.parse(result.content[0].text);
@@ -543,7 +539,7 @@ describe('MCP Tools Comprehensive Functional Tests', () => {
         // Create a session first
         const sessionResult = await mcpClient.callTool('create-session', {
           username: 'apiuser',
-          password: 'testpass123'
+          password: 'testpass123',
         });
         const sessionData = JSON.parse(sessionResult.content[0].text);
 
@@ -551,12 +547,12 @@ describe('MCP Tools Comprehensive Functional Tests', () => {
           protocol: 'rest',
           operation: {
             method: 'GET',
-            endpoint: '/sessions'
+            endpoint: '/sessions',
           },
           auth: {
             type: 'session',
-            credentials: sessionData.sessionId
-          }
+            credentials: sessionData.sessionId,
+          },
         });
 
         const apiData = JSON.parse(result.content[0].text);
@@ -571,16 +567,16 @@ describe('MCP Tools Comprehensive Functional Tests', () => {
         await expect(
           mcpClient.callTool('execute-api', {
             protocol: 'invalid-protocol',
-            operation: { method: 'GET', endpoint: '/health' }
-          })
+            operation: { method: 'GET', endpoint: '/health' },
+          }),
         ).rejects.toThrow();
       });
 
       it('should reject missing operation', async () => {
         await expect(
           mcpClient.callTool('execute-api', {
-            protocol: 'rest'
-          })
+            protocol: 'rest',
+          }),
         ).rejects.toThrow();
       });
     });
@@ -595,8 +591,8 @@ describe('MCP Tools Comprehensive Functional Tests', () => {
         protocol: 'rest',
         operation: {
           method: 'GET',
-          endpoint: '/catalog'
-        }
+          endpoint: '/catalog',
+        },
       });
 
       const catalogData = JSON.parse(result.content[0].text);
@@ -608,8 +604,8 @@ describe('MCP Tools Comprehensive Functional Tests', () => {
         protocol: 'rest',
         operation: {
           method: 'GET',
-          endpoint: '/health'
-        }
+          endpoint: '/health',
+        },
       });
 
       const healthData = JSON.parse(result.content[0].text);
@@ -624,19 +620,19 @@ describe('MCP Tools Comprehensive Functional Tests', () => {
         promises.push(
           mcpClient.callTool('create-session', {
             username: `concurrent${i}`,
-            password: 'testpass123'
-          })
+            password: 'testpass123',
+          }),
         );
       }
 
       const results = await Promise.all(promises);
-      const sessionIds = results.map(r => JSON.parse(r.content[0].text).sessionId);
-      
+      const sessionIds = results.map((r) => JSON.parse(r.content[0].text).sessionId);
+
       // All session IDs should be unique
       expect(new Set(sessionIds).size).toBe(sessionIds.length);
 
       // Store for cleanup
-      results.forEach(r => {
+      results.forEach((r) => {
         const data = JSON.parse(r.content[0].text);
         testSessions.set(data.sessionId, data);
       });
@@ -646,7 +642,7 @@ describe('MCP Tools Comprehensive Functional Tests', () => {
       // Create a session first
       const sessionResult = await mcpClient.callTool('create-session', {
         username: 'concurrentcontextuser',
-        password: 'testpass123'
+        password: 'testpass123',
       });
       const sessionData = JSON.parse(sessionResult.content[0].text);
       testSessions.set(sessionData.sessionId, sessionData);
@@ -656,19 +652,19 @@ describe('MCP Tools Comprehensive Functional Tests', () => {
       for (let i = 0; i < 3; i++) {
         promises.push(
           mcpClient.callTool('create-browser-context', {
-            sessionId: sessionData.sessionId
-          })
+            sessionId: sessionData.sessionId,
+          }),
         );
       }
 
       const results = await Promise.all(promises);
-      const contextIds = results.map(r => JSON.parse(r.content[0].text).contextId);
-      
+      const contextIds = results.map((r) => JSON.parse(r.content[0].text).contextId);
+
       // All context IDs should be unique
       expect(new Set(contextIds).size).toBe(contextIds.length);
 
       // Store for cleanup
-      results.forEach(r => {
+      results.forEach((r) => {
         const data = JSON.parse(r.content[0].text);
         testContexts.set(data.contextId, data);
       });
@@ -681,7 +677,7 @@ describe('MCP Tools Comprehensive Functional Tests', () => {
       // For now, we'll test error handling
       const sessionResult = await mcpClient.callTool('create-session', {
         username: 'crashuser',
-        password: 'testpass123'
+        password: 'testpass123',
       });
       const sessionData = JSON.parse(sessionResult.content[0].text);
       testSessions.set(sessionData.sessionId, sessionData);
@@ -690,7 +686,7 @@ describe('MCP Tools Comprehensive Functional Tests', () => {
       const result = await mcpClient.callTool('execute-in-context', {
         contextId: uuidv4(),
         command: 'navigate',
-        parameters: { url: 'https://example.com' }
+        parameters: { url: 'https://example.com' },
       });
 
       const executeData = JSON.parse(result.content[0].text);
@@ -701,12 +697,12 @@ describe('MCP Tools Comprehensive Functional Tests', () => {
       // Create context for testing
       const sessionResult = await mcpClient.callTool('create-session', {
         username: 'timeoutuser',
-        password: 'testpass123'
+        password: 'testpass123',
       });
       const sessionData = JSON.parse(sessionResult.content[0].text);
-      
+
       const contextResult = await mcpClient.callTool('create-browser-context', {
-        sessionId: sessionData.sessionId
+        sessionId: sessionData.sessionId,
       });
       const contextData = JSON.parse(contextResult.content[0].text);
 
@@ -719,8 +715,8 @@ describe('MCP Tools Comprehensive Functional Tests', () => {
         command: 'wait',
         parameters: {
           selector: '#non-existent-element',
-          timeout: 1000 // 1 second timeout
-        }
+          timeout: 1000, // 1 second timeout
+        },
       });
 
       const executeData = JSON.parse(result.content[0].text);

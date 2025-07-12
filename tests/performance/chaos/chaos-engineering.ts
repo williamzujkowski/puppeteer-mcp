@@ -56,13 +56,13 @@ export class ChaosEngineer extends EventEmitter {
    */
   async stop(): Promise<void> {
     this.isRunning = false;
-    
+
     // Stop all active scenarios
     for (const [name, timeout] of this.activeScenarios) {
       clearTimeout(timeout);
       this.emit('scenario-stopped', name);
     }
-    
+
     this.activeScenarios.clear();
     this.emit('chaos-stopped');
   }
@@ -81,26 +81,26 @@ export class ChaosEngineer extends EventEmitter {
         errorsInduced: 0,
         recoveryTime: 0,
         dataLoss: false,
-        serviceAvailable: true
-      }
+        serviceAvailable: true,
+      },
     };
 
     try {
       this.emit('scenario-started', scenario.name);
-      
+
       // Execute chaos action
       await scenario.action();
-      
+
       // Wait for duration
-      await new Promise(resolve => setTimeout(resolve, scenario.duration));
-      
+      await new Promise((resolve) => setTimeout(resolve, scenario.duration));
+
       // Rollback
       await scenario.rollback();
-      
+
       result.success = true;
       result.ended = new Date();
       result.impact.recoveryTime = result.ended.getTime() - startTime.getTime();
-      
+
       this.emit('scenario-completed', result);
     } catch (error) {
       result.success = false;
@@ -230,11 +230,11 @@ export class ProcessChaos {
     try {
       const { stdout } = await execAsync(`pgrep ${processName}`);
       const pids = stdout.trim().split('\n').filter(Boolean);
-      
+
       for (const pid of pids) {
         await execAsync(`kill -9 ${pid}`);
       }
-      
+
       return pids.length;
     } catch (error) {
       return 0;
@@ -246,7 +246,7 @@ export class ProcessChaos {
    */
   async suspendProcess(pid: number, durationMs: number): Promise<void> {
     await execAsync(`kill -STOP ${pid}`);
-    
+
     setTimeout(async () => {
       await execAsync(`kill -CONT ${pid}`);
     }, durationMs);
@@ -258,7 +258,7 @@ export class ProcessChaos {
   async killRandomBrowser(): Promise<void> {
     const { stdout } = await execAsync('pgrep -f "chrome|chromium"');
     const pids = stdout.trim().split('\n').filter(Boolean);
-    
+
     if (pids.length > 0) {
       const randomPid = pids[Math.floor(Math.random() * pids.length)];
       await execAsync(`kill -9 ${randomPid}`);
@@ -277,7 +277,7 @@ export class ResourceChaos {
    */
   async stressCPU(cores: number, percentage: number): Promise<() => void> {
     const workers: any[] = [];
-    
+
     for (let i = 0; i < cores; i++) {
       const worker = {
         active: true,
@@ -289,17 +289,17 @@ export class ResourceChaos {
               Math.sqrt(Math.random());
             }
             // Sleep for remaining time
-            await new Promise(resolve => setTimeout(resolve, 100 - percentage));
+            await new Promise((resolve) => setTimeout(resolve, 100 - percentage));
           }
-        }
+        },
       };
-      
+
       workers.push(worker);
       worker.run();
     }
 
     const stopFn = () => {
-      workers.forEach(w => w.active = false);
+      workers.forEach((w) => (w.active = false));
     };
 
     this.activeStressors.set('cpu', stopFn);
@@ -317,15 +317,15 @@ export class ResourceChaos {
     const allocate = async () => {
       while (active && allocated < sizeMB) {
         // Allocate incrementMB of memory
-        const size = incrementMB * 1024 * 1024 / 8; // 8 bytes per number
+        const size = (incrementMB * 1024 * 1024) / 8; // 8 bytes per number
         const array = new Array(size);
         for (let i = 0; i < size; i++) {
           array[i] = Math.random();
         }
         arrays.push(array);
         allocated += incrementMB;
-        
-        await new Promise(resolve => setTimeout(resolve, 100));
+
+        await new Promise((resolve) => setTimeout(resolve, 100));
       }
     };
 
@@ -347,13 +347,13 @@ export class ResourceChaos {
     const filename = path + `/chaos-disk-${Date.now()}.tmp`;
     const chunkSize = 1024 * 1024; // 1MB chunks
     const buffer = Buffer.alloc(chunkSize);
-    
+
     const handle = await fs.open(filename, 'w');
-    
+
     for (let i = 0; i < sizeMB; i++) {
       await handle.write(buffer);
     }
-    
+
     await handle.close();
 
     const cleanupFn = async () => {
@@ -432,7 +432,7 @@ export const chaosScenarios = {
     rollback: async () => {
       const chaos = new NetworkChaos();
       await chaos.reset();
-    }
+    },
   }),
 
   packetLoss: (percentage: number = 5): ChaosScenario => ({
@@ -447,7 +447,7 @@ export const chaosScenarios = {
     rollback: async () => {
       const chaos = new NetworkChaos();
       await chaos.reset();
-    }
+    },
   }),
 
   browserCrash: (): ChaosScenario => ({
@@ -461,7 +461,7 @@ export const chaosScenarios = {
     },
     rollback: async () => {
       // Browser should auto-recover
-    }
+    },
   }),
 
   cpuSpike: (percentage: number = 80): ChaosScenario => ({
@@ -477,7 +477,7 @@ export const chaosScenarios = {
     rollback: async () => {
       const chaos = new ResourceChaos();
       await chaos.stopAll();
-    }
+    },
   }),
 
   memoryLeak: (sizeMB: number = 1000): ChaosScenario => ({
@@ -492,7 +492,7 @@ export const chaosScenarios = {
     rollback: async () => {
       const chaos = new ResourceChaos();
       await chaos.stopAll();
-    }
+    },
   }),
 
   diskFull: (sizeMB: number = 5000): ChaosScenario => ({
@@ -507,7 +507,7 @@ export const chaosScenarios = {
     rollback: async () => {
       const chaos = new ResourceChaos();
       await chaos.stopAll();
-    }
+    },
   }),
 
   serviceRestart: (serviceName: string): ChaosScenario => ({
@@ -521,8 +521,8 @@ export const chaosScenarios = {
     },
     rollback: async () => {
       // Service should be running after restart
-    }
-  })
+    },
+  }),
 };
 
 /**
@@ -540,40 +540,43 @@ export class ChaosTestRunner {
   /**
    * Run chaos tests
    */
-  async run(duration: number, options?: {
-    interval?: number;
-    parallel?: boolean;
-    maxConcurrent?: number;
-  }): Promise<ChaosResult[]> {
+  async run(
+    duration: number,
+    options?: {
+      interval?: number;
+      parallel?: boolean;
+      maxConcurrent?: number;
+    },
+  ): Promise<ChaosResult[]> {
     const { interval = 60000, parallel = false, maxConcurrent = 3 } = options || {};
-    
+
     this.engineer.start();
-    
+
     if (parallel) {
       // Run multiple scenarios concurrently
       const endTime = Date.now() + duration;
       const running = new Set<Promise<ChaosResult>>();
-      
+
       while (Date.now() < endTime) {
         if (running.size < maxConcurrent) {
           const scenario = this.scenarios[Math.floor(Math.random() * this.scenarios.length)];
           const promise = this.engineer.runScenario(scenario);
           running.add(promise);
-          
+
           promise.then(() => running.delete(promise));
         }
-        
-        await new Promise(resolve => setTimeout(resolve, interval));
+
+        await new Promise((resolve) => setTimeout(resolve, interval));
       }
-      
+
       // Wait for remaining scenarios
       await Promise.all(running);
     } else {
       // Run scenarios sequentially
       this.engineer.scheduleRandom(this.scenarios, interval);
-      await new Promise(resolve => setTimeout(resolve, duration));
+      await new Promise((resolve) => setTimeout(resolve, duration));
     }
-    
+
     await this.engineer.stop();
     return this.engineer.getResults();
   }
@@ -590,21 +593,25 @@ export class ChaosTestRunner {
       dataLossIncidents: number;
       serviceUnavailable: number;
     };
-    scenarios: Record<string, {
-      runs: number;
-      successes: number;
-      failures: number;
-      averageRecoveryTime: number;
-    }>;
+    scenarios: Record<
+      string,
+      {
+        runs: number;
+        successes: number;
+        failures: number;
+        averageRecoveryTime: number;
+      }
+    >;
     recommendations: string[];
   } {
     const summary = {
       total: results.length,
-      successful: results.filter(r => r.success).length,
-      failed: results.filter(r => !r.success).length,
-      averageRecoveryTime: results.reduce((sum, r) => sum + r.impact.recoveryTime, 0) / results.length,
-      dataLossIncidents: results.filter(r => r.impact.dataLoss).length,
-      serviceUnavailable: results.filter(r => !r.impact.serviceAvailable).length
+      successful: results.filter((r) => r.success).length,
+      failed: results.filter((r) => !r.success).length,
+      averageRecoveryTime:
+        results.reduce((sum, r) => sum + r.impact.recoveryTime, 0) / results.length,
+      dataLossIncidents: results.filter((r) => r.impact.dataLoss).length,
+      serviceUnavailable: results.filter((r) => !r.impact.serviceAvailable).length,
     };
 
     const scenarios: any = {};
@@ -614,10 +621,10 @@ export class ChaosTestRunner {
           runs: 0,
           successes: 0,
           failures: 0,
-          totalRecoveryTime: 0
+          totalRecoveryTime: 0,
         };
       }
-      
+
       scenarios[result.scenario].runs++;
       if (result.success) {
         scenarios[result.scenario].successes++;

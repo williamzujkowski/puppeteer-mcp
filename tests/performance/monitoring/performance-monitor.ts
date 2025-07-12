@@ -77,7 +77,7 @@ export class TimeSeriesMetricCollector {
   constructor(
     public name: string,
     public type: 'gauge' | 'counter' | 'histogram' = 'gauge',
-    maxAge?: number
+    maxAge?: number,
   ) {
     if (maxAge) this.maxAge = maxAge;
   }
@@ -86,14 +86,14 @@ export class TimeSeriesMetricCollector {
     this.values.push({
       timestamp: new Date(),
       value,
-      labels
+      labels,
     });
     this.cleanup();
   }
 
   getValues(since?: Date): MetricValue[] {
     if (!since) return [...this.values];
-    return this.values.filter(v => v.timestamp >= since);
+    return this.values.filter((v) => v.timestamp >= since);
   }
 
   getLatest(): MetricValue | null {
@@ -110,7 +110,9 @@ export class TimeSeriesMetricCollector {
     p99: number;
   } {
     const since = new Date(Date.now() - windowMs);
-    const recentValues = this.getValues(since).map(v => v.value).sort((a, b) => a - b);
+    const recentValues = this.getValues(since)
+      .map((v) => v.value)
+      .sort((a, b) => a - b);
 
     if (recentValues.length === 0) {
       return { count: 0, min: 0, max: 0, avg: 0, p50: 0, p95: 0, p99: 0 };
@@ -123,7 +125,7 @@ export class TimeSeriesMetricCollector {
       avg: recentValues.reduce((a, b) => a + b, 0) / recentValues.length,
       p50: this.percentile(recentValues, 0.5),
       p95: this.percentile(recentValues, 0.95),
-      p99: this.percentile(recentValues, 0.99)
+      p99: this.percentile(recentValues, 0.99),
     };
   }
 
@@ -134,7 +136,7 @@ export class TimeSeriesMetricCollector {
 
   private cleanup(): void {
     const cutoff = new Date(Date.now() - this.maxAge);
-    this.values = this.values.filter(v => v.timestamp >= cutoff);
+    this.values = this.values.filter((v) => v.timestamp >= cutoff);
   }
 }
 
@@ -155,7 +157,7 @@ export class PerformanceMonitor extends EventEmitter {
       errorRate: { warning: 0.05, critical: 0.1 },
       cpu: { warning: 0.8, critical: 0.95 },
       memory: { warning: 0.85, critical: 0.95 },
-      ...thresholds
+      ...thresholds,
     };
     this.anomalyDetector = new AnomalyDetector();
   }
@@ -212,7 +214,7 @@ export class PerformanceMonitor extends EventEmitter {
    * Get active alerts
    */
   getActiveAlerts(): PerformanceAlert[] {
-    return this.alerts.filter(a => !a.resolved);
+    return this.alerts.filter((a) => !a.resolved);
   }
 
   /**
@@ -226,7 +228,7 @@ export class PerformanceMonitor extends EventEmitter {
    * Acknowledge an alert
    */
   acknowledgeAlert(alertId: string): boolean {
-    const alert = this.alerts.find(a => a.id === alertId);
+    const alert = this.alerts.find((a) => a.id === alertId);
     if (alert && !alert.resolved) {
       alert.acknowledged = true;
       this.emit('alert-acknowledged', alert);
@@ -239,7 +241,7 @@ export class PerformanceMonitor extends EventEmitter {
    * Resolve an alert
    */
   resolveAlert(alertId: string): boolean {
-    const alert = this.alerts.find(a => a.id === alertId);
+    const alert = this.alerts.find((a) => a.id === alertId);
     if (alert && !alert.resolved) {
       alert.resolved = true;
       this.emit('alert-resolved', alert);
@@ -258,17 +260,18 @@ export class PerformanceMonitor extends EventEmitter {
     const memoryUsage = process.memoryUsage();
 
     // Calculate CPU usage
-    const cpuUsage = cpus.reduce((acc, cpu) => {
-      const total = Object.values(cpu.times).reduce((a, b) => a + b, 0);
-      const idle = cpu.times.idle;
-      return acc + (1 - idle / total);
-    }, 0) / cpus.length;
+    const cpuUsage =
+      cpus.reduce((acc, cpu) => {
+        const total = Object.values(cpu.times).reduce((a, b) => a + b, 0);
+        const idle = cpu.times.idle;
+        return acc + (1 - idle / total);
+      }, 0) / cpus.length;
 
     return {
       cpu: {
         usage: cpuUsage,
         cores: cpus.length,
-        loadAverage: os.loadavg()
+        loadAverage: os.loadavg(),
       },
       memory: {
         total: totalMemory,
@@ -276,9 +279,9 @@ export class PerformanceMonitor extends EventEmitter {
         free: freeMemory,
         heapUsed: memoryUsage.heapUsed,
         heapTotal: memoryUsage.heapTotal,
-        external: memoryUsage.external
+        external: memoryUsage.external,
       },
-      timestamp: new Date()
+      timestamp: new Date(),
     };
   }
 
@@ -313,7 +316,7 @@ export class PerformanceMonitor extends EventEmitter {
       healthScore,
       performanceGrade,
       alerts: activeAlerts,
-      recommendations: this.generateRecommendations(metrics, healthScore)
+      recommendations: this.generateRecommendations(metrics, healthScore),
     };
   }
 
@@ -331,7 +334,7 @@ export class PerformanceMonitor extends EventEmitter {
 
     for (const [name, collector] of this.metrics) {
       const detected = this.anomalyDetector.detect(collector);
-      anomalies.push(...detected.map(a => ({ metric: name, ...a })));
+      anomalies.push(...detected.map((a) => ({ metric: name, ...a })));
     }
 
     return anomalies;
@@ -342,15 +345,17 @@ export class PerformanceMonitor extends EventEmitter {
    */
   private collectSystemMetrics(): void {
     const resources = this.getSystemResources();
-    
+
     this.recordMetric('system.cpu.usage', resources.cpu.usage * 100);
-    this.recordMetric('system.memory.usage', 
-      (resources.memory.used / resources.memory.total) * 100
+    this.recordMetric(
+      'system.memory.usage',
+      (resources.memory.used / resources.memory.total) * 100,
     );
-    this.recordMetric('system.memory.heap', 
-      (resources.memory.heapUsed / resources.memory.heapTotal) * 100
+    this.recordMetric(
+      'system.memory.heap',
+      (resources.memory.heapUsed / resources.memory.heapTotal) * 100,
     );
-    
+
     for (let i = 0; i < resources.cpu.loadAverage.length; i++) {
       this.recordMetric(`system.load.${i + 1}m`, resources.cpu.loadAverage[i]);
     }
@@ -365,11 +370,21 @@ export class PerformanceMonitor extends EventEmitter {
     if (latencyMetric) {
       const stats = latencyMetric.getStats();
       if (stats.p95 > this.thresholds.latency.critical) {
-        this.createAlert('api.latency', 'critical', stats.p95, 
-          this.thresholds.latency.critical, 'API latency P95 exceeds critical threshold');
+        this.createAlert(
+          'api.latency',
+          'critical',
+          stats.p95,
+          this.thresholds.latency.critical,
+          'API latency P95 exceeds critical threshold',
+        );
       } else if (stats.p95 > this.thresholds.latency.warning) {
-        this.createAlert('api.latency', 'warning', stats.p95, 
-          this.thresholds.latency.warning, 'API latency P95 exceeds warning threshold');
+        this.createAlert(
+          'api.latency',
+          'warning',
+          stats.p95,
+          this.thresholds.latency.warning,
+          'API latency P95 exceeds warning threshold',
+        );
       }
     }
 
@@ -378,11 +393,21 @@ export class PerformanceMonitor extends EventEmitter {
     if (errorRateMetric) {
       const latest = errorRateMetric.getLatest();
       if (latest && latest.value > this.thresholds.errorRate.critical) {
-        this.createAlert('error.rate', 'critical', latest.value, 
-          this.thresholds.errorRate.critical, 'Error rate exceeds critical threshold');
+        this.createAlert(
+          'error.rate',
+          'critical',
+          latest.value,
+          this.thresholds.errorRate.critical,
+          'Error rate exceeds critical threshold',
+        );
       } else if (latest && latest.value > this.thresholds.errorRate.warning) {
-        this.createAlert('error.rate', 'warning', latest.value, 
-          this.thresholds.errorRate.warning, 'Error rate exceeds warning threshold');
+        this.createAlert(
+          'error.rate',
+          'warning',
+          latest.value,
+          this.thresholds.errorRate.warning,
+          'Error rate exceeds warning threshold',
+        );
       }
     }
 
@@ -391,11 +416,21 @@ export class PerformanceMonitor extends EventEmitter {
     if (cpuMetric) {
       const latest = cpuMetric.getLatest();
       if (latest && latest.value > this.thresholds.cpu.critical * 100) {
-        this.createAlert('system.cpu.usage', 'critical', latest.value, 
-          this.thresholds.cpu.critical * 100, 'CPU usage exceeds critical threshold');
+        this.createAlert(
+          'system.cpu.usage',
+          'critical',
+          latest.value,
+          this.thresholds.cpu.critical * 100,
+          'CPU usage exceeds critical threshold',
+        );
       } else if (latest && latest.value > this.thresholds.cpu.warning * 100) {
-        this.createAlert('system.cpu.usage', 'warning', latest.value, 
-          this.thresholds.cpu.warning * 100, 'CPU usage exceeds warning threshold');
+        this.createAlert(
+          'system.cpu.usage',
+          'warning',
+          latest.value,
+          this.thresholds.cpu.warning * 100,
+          'CPU usage exceeds warning threshold',
+        );
       }
     }
 
@@ -404,11 +439,21 @@ export class PerformanceMonitor extends EventEmitter {
     if (memoryMetric) {
       const latest = memoryMetric.getLatest();
       if (latest && latest.value > this.thresholds.memory.critical * 100) {
-        this.createAlert('system.memory.usage', 'critical', latest.value, 
-          this.thresholds.memory.critical * 100, 'Memory usage exceeds critical threshold');
+        this.createAlert(
+          'system.memory.usage',
+          'critical',
+          latest.value,
+          this.thresholds.memory.critical * 100,
+          'Memory usage exceeds critical threshold',
+        );
       } else if (latest && latest.value > this.thresholds.memory.warning * 100) {
-        this.createAlert('system.memory.usage', 'warning', latest.value, 
-          this.thresholds.memory.warning * 100, 'Memory usage exceeds warning threshold');
+        this.createAlert(
+          'system.memory.usage',
+          'warning',
+          latest.value,
+          this.thresholds.memory.warning * 100,
+          'Memory usage exceeds warning threshold',
+        );
       }
     }
   }
@@ -417,18 +462,19 @@ export class PerformanceMonitor extends EventEmitter {
    * Create an alert
    */
   private createAlert(
-    metric: string, 
-    severity: 'warning' | 'critical', 
-    value: number, 
-    threshold: number, 
-    message: string
+    metric: string,
+    severity: 'warning' | 'critical',
+    value: number,
+    threshold: number,
+    message: string,
   ): void {
     // Check if similar alert already exists
-    const existing = this.alerts.find(a => 
-      a.metric === metric && 
-      a.severity === severity && 
-      !a.resolved &&
-      (Date.now() - a.timestamp.getTime()) < 60000 // Within last minute
+    const existing = this.alerts.find(
+      (a) =>
+        a.metric === metric &&
+        a.severity === severity &&
+        !a.resolved &&
+        Date.now() - a.timestamp.getTime() < 60000, // Within last minute
     );
 
     if (existing) return;
@@ -442,7 +488,7 @@ export class PerformanceMonitor extends EventEmitter {
       timestamp: new Date(),
       acknowledged: false,
       resolved: false,
-      message
+      message,
     };
 
     this.alerts.push(alert);
@@ -550,19 +596,19 @@ class AnomalyDetector {
     if (values.length < this.windowSize) return [];
 
     const anomalies: any[] = [];
-    
+
     for (let i = this.windowSize; i < values.length; i++) {
       const window = values.slice(i - this.windowSize, i);
-      const windowValues = window.map(v => v.value);
+      const windowValues = window.map((v) => v.value);
       const current = values[i];
 
       const mean = windowValues.reduce((a, b) => a + b, 0) / windowValues.length;
       const stdDev = Math.sqrt(
-        windowValues.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / windowValues.length
+        windowValues.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / windowValues.length,
       );
 
-      const lowerBound = mean - (this.sensitivity * stdDev);
-      const upperBound = mean + (this.sensitivity * stdDev);
+      const lowerBound = mean - this.sensitivity * stdDev;
+      const upperBound = mean + this.sensitivity * stdDev;
 
       if (current.value < lowerBound || current.value > upperBound) {
         const deviation = Math.abs(current.value - mean) / stdDev;
@@ -570,7 +616,7 @@ class AnomalyDetector {
           timestamp: current.timestamp,
           value: current.value,
           expectedRange: [lowerBound, upperBound],
-          severity: deviation > 4 ? 'high' : deviation > 3 ? 'medium' : 'low'
+          severity: deviation > 4 ? 'high' : deviation > 3 ? 'medium' : 'low',
         });
       }
     }
@@ -584,12 +630,15 @@ class AnomalyDetector {
  */
 export class SLAMonitor {
   private monitor: PerformanceMonitor;
-  private slaTargets: Map<string, {
-    target: number;
-    window: number;
-    calculation: 'average' | 'percentile' | 'max';
-    percentile?: number;
-  }> = new Map();
+  private slaTargets: Map<
+    string,
+    {
+      target: number;
+      window: number;
+      calculation: 'average' | 'percentile' | 'max';
+      percentile?: number;
+    }
+  > = new Map();
 
   constructor(monitor: PerformanceMonitor) {
     this.monitor = monitor;
@@ -604,31 +653,34 @@ export class SLAMonitor {
     target: number,
     window: string,
     calculation: 'average' | 'percentile' | 'max',
-    percentile?: number
+    percentile?: number,
   ): void {
     this.slaTargets.set(name, {
       target,
       window: this.parseWindow(window),
       calculation,
-      percentile
+      percentile,
     });
   }
 
   /**
    * Check SLA compliance
    */
-  checkCompliance(): Map<string, {
-    compliant: boolean;
-    actual: number;
-    target: number;
-    percentage: number;
-  }> {
+  checkCompliance(): Map<
+    string,
+    {
+      compliant: boolean;
+      actual: number;
+      target: number;
+      percentage: number;
+    }
+  > {
     const results = new Map();
 
     for (const [name, sla] of this.slaTargets) {
       const [metricName] = name.split('.');
       const metric = this.monitor.getMetric(metricName);
-      
+
       if (!metric) continue;
 
       const stats = metric.getStats(sla.window);
@@ -639,8 +691,8 @@ export class SLAMonitor {
           actual = stats.avg;
           break;
         case 'percentile':
-          actual = sla.percentile === 95 ? stats.p95 : 
-                  sla.percentile === 99 ? stats.p99 : stats.p50;
+          actual =
+            sla.percentile === 95 ? stats.p95 : sla.percentile === 99 ? stats.p99 : stats.p50;
           break;
         case 'max':
           actual = stats.max;
@@ -654,7 +706,7 @@ export class SLAMonitor {
         compliant,
         actual,
         target: sla.target,
-        percentage
+        percentage,
       });
     }
 
@@ -669,11 +721,16 @@ export class SLAMonitor {
     const unit = match[2];
 
     switch (unit) {
-      case 's': return value * 1000;
-      case 'm': return value * 60 * 1000;
-      case 'h': return value * 60 * 60 * 1000;
-      case 'd': return value * 24 * 60 * 60 * 1000;
-      default: throw new Error(`Invalid window unit: ${unit}`);
+      case 's':
+        return value * 1000;
+      case 'm':
+        return value * 60 * 1000;
+      case 'h':
+        return value * 60 * 60 * 1000;
+      case 'd':
+        return value * 24 * 60 * 60 * 1000;
+      default:
+        throw new Error(`Invalid window unit: ${unit}`);
     }
   }
 }
