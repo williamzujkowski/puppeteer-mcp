@@ -8,6 +8,7 @@ import type { MCPServer } from '../../src/mcp/server.js';
 import { WebSocket } from 'ws';
 import fetch from 'node-fetch';
 import { v4 as uuidv4 } from 'uuid';
+import jwt from 'jsonwebtoken';
 
 /**
  * Test configuration interface
@@ -394,10 +395,19 @@ export class WebSocketTestClient {
       try {
         this.ws = new WebSocket(this.url);
 
-        this.ws.on('open', () => {
-          // WebSocket connected
+        this.ws.on('open', async () => {
+          // WebSocket connected, now authenticate
           clearTimeout(connectTimeout);
-          resolve();
+          try {
+            await this.authenticate();
+            resolve();
+          } catch (authError) {
+            reject(
+              new Error(
+                `WebSocket authentication failed: ${authError instanceof Error ? authError.message : 'Unknown error'}`,
+              ),
+            );
+          }
         });
 
         this.ws.on('error', (error) => {
@@ -478,6 +488,74 @@ export class WebSocketTestClient {
       this.reconnect = false;
       this.ws.close();
     }
+  }
+
+  /**
+   * Authenticate the WebSocket connection
+   */
+  private async authenticate(): Promise<void> {
+    if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
+      throw new Error('WebSocket connection not established');
+    }
+
+    // Create test token for authentication
+    const testToken = this.createTestToken();
+
+    return new Promise((resolve, reject) => {
+      const authMessageId = uuidv4();
+
+      // Set up authentication response handler
+      this.messageHandlers.set(authMessageId, (response: any) => {
+        this.messageHandlers.delete(authMessageId);
+
+        if (response.type === 'auth_success') {
+          resolve();
+        } else if (response.type === 'auth_error') {
+          reject(new Error(`Authentication failed: ${response.error?.message || 'Unknown error'}`));
+        } else {
+          reject(new Error(`Unexpected auth response type: ${response.type}`));
+        }
+      });
+
+      // Send authentication message with both token and API key for testing
+      const authMessage = {
+        type: 'auth',
+        id: authMessageId,
+        timestamp: new Date().toISOString(),
+        data: {
+          token: testToken,
+          apiKey: process.env.TEST_API_KEY || 'test-api-key-32-chars-long-for-testing',
+        },
+      };
+
+      this.ws!.send(JSON.stringify(authMessage));
+
+      // Timeout after 10 seconds
+      setTimeout(() => {
+        if (this.messageHandlers.has(authMessageId)) {
+          this.messageHandlers.delete(authMessageId);
+          reject(new Error('Authentication timeout'));
+        }
+      }, 10000);
+    });
+  }
+
+  /**
+   * Create a test JWT token for WebSocket authentication
+   */
+  private createTestToken(): string {
+    // Use the same test secret that's configured in CI environment
+    const secret = process.env.JWT_SECRET || 'test-secret-key';
+
+    const payload = {
+      sub: 'test-user-id',
+      username: 'testuser',
+      roles: ['user'],
+      iat: Math.floor(Date.now() / 1000),
+      exp: Math.floor(Date.now() / 1000) + 3600, // 1 hour
+    };
+
+    return jwt.sign(payload, secret, { algorithm: 'HS256' });
   }
 
   private handleMessage(data: string): void {
