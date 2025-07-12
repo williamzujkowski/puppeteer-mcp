@@ -220,7 +220,7 @@ Expected response:
 ```json
 {
   "status": "healthy",
-  "version": "1.0.14",
+  "version": "1.1.0",
   "uptime": 12.345,
   "timestamp": "2025-01-05T12:00:00.000Z"
 }

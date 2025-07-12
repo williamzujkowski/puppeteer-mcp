@@ -3,7 +3,7 @@
 **Version**: 2.2.0  
 **Status**: Active  
 **Type**: AI Assistant Router  
-**NPM Package**: [puppeteer-mcp](https://www.npmjs.com/package/puppeteer-mcp) v1.0.14
+**NPM Package**: [puppeteer-mcp](https://www.npmjs.com/package/puppeteer-mcp) v1.1.0
 
 ## 🎯 Quick Reference (<100 tokens)
 
@@ -95,7 +95,7 @@ npm run dev
 ### 📊 Project Status
 
 - **Release Stage**: Beta - Seeking Production Feedback 🔔
-- **NPM Package**: v1.0.14 (published with beta status)
+- **NPM Package**: v1.1.0 (published with beta status)
 - **TypeScript**: Zero compilation errors ✅
 - **ESLint**: 87 warnings, 0 errors ✅
 - **Tests**: 20/20 suites passing ✅

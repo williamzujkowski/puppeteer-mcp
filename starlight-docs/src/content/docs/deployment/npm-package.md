@@ -170,7 +170,7 @@ npm publish --tag next
 ```json
 {
   "name": "puppeteer-mcp",
-  "version": "1.0.14",
+  "version": "1.1.0",
   "description": "AI-enabled browser automation platform",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

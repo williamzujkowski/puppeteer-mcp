@@ -102,9 +102,9 @@ The version update script (`scripts/update-version.mjs`) searches for version pa
 The script updates patterns like:
 
 ```bash
-v1.0.13
-version: 1.0.13
-puppeteer-mcp v1.0.13
+v1.1.0
+version: 1.1.0
+puppeteer-mcp v1.1.0
 ```
 
 Including NPM package version references throughout documentation files.

@@ -94,7 +94,7 @@ curl http://localhost:3000/api/health
 #   "timestamp": "2025-01-03T12:00:00.000Z",
 #   "uptime": 1234.567,
 #   "environment": "production",
-#   "version": "1.0.14"
+#   "version": "1.1.0"
 # }
 ```
 
@@ -241,7 +241,7 @@ Basic health check endpoint. No authentication required.
   "timestamp": "2025-01-03T12:00:00.000Z",
   "uptime": 1234.567,
   "environment": "production",
-  "version": "1.0.14"
+  "version": "1.1.0"
 }
 ```
 
