@@ -96,7 +96,7 @@ Here's browser automation in action:
 
 ```javascript
 // Using the REST API
-const response = await fetch('http://localhost:3000/api/sessions', {
+const response = await fetch('http://localhost:8443/api/sessions', {
   method: 'POST',
   headers: {
     Authorization: 'Bearer your-token',
@@ -110,7 +110,7 @@ const response = await fetch('http://localhost:3000/api/sessions', {
 const { sessionId } = await response.json();
 
 // Take a screenshot
-await fetch(`http://localhost:3000/api/sessions/${sessionId}/screenshot`, {
+await fetch(`http://localhost:8443/api/sessions/${sessionId}/screenshot`, {
   method: 'POST',
   headers: {
     Authorization: 'Bearer your-token',

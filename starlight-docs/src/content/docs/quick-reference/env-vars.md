@@ -21,7 +21,7 @@ JWT_SECRET=your-secret-key-here
 JWT_EXPIRES_IN=24h
 API_KEY=your-api-key-here
 SESSION_SECRET=your-session-secret
-CORS_ORIGIN=http://localhost:3000
+CORS_ORIGIN=http://localhost:8443
 ```
 
 ## Browser Config

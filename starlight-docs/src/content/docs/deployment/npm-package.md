@@ -10,7 +10,7 @@ Complete guide for deploying Puppeteer MCP as an npm package.
 ## Package Overview
 
 - **Name**: `puppeteer-mcp`
-- **Current Version**: 1.0.13
+- **Current Version**: 1.1.0
 - **License**: MIT
 - **Registry**: [npmjs.com/package/puppeteer-mcp](https://www.npmjs.com/package/puppeteer-mcp)
 

@@ -579,7 +579,7 @@ If `claude mcp add` doesn't work, manually edit the config file:
    npx puppeteer-mcp
 
    # In another terminal, test API
-   curl -H "Authorization: Bearer your-token" http://localhost:3000/api/health
+   curl -H "Authorization: Bearer your-token" http://localhost:8443/api/health
    ```
 
 ## Runtime Issues
@@ -737,7 +737,7 @@ If `claude mcp add` doesn't work, manually edit the config file:
 
    ```bash
    # Should work locally
-   curl http://localhost:3000/api/health
+   curl http://localhost:8443/api/health
 
    # Test from another machine
    curl http://SERVER_IP:3000/api/health
@@ -900,7 +900,7 @@ If `claude mcp add` doesn't work, manually edit the config file:
 
    ```bash
    # Should include "Bearer " prefix
-   curl -H "Authorization: Bearer your-token" http://localhost:3000/api/health
+   curl -H "Authorization: Bearer your-token" http://localhost:8443/api/health
    ```
 
 2. **Verify token matches**:

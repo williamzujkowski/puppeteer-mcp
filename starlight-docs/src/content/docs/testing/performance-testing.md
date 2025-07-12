@@ -79,7 +79,7 @@ describe('Session Management Load Tests', () => {
 
   beforeEach(() => {
     runner = new LoadTestRunner({
-      baseUrl: process.env.TEST_URL || 'http://localhost:3000',
+      baseUrl: process.env.TEST_URL || 'http://localhost:8443',
       protocol: 'rest', // Test each protocol separately
     });
     metrics = new MetricsCollector();

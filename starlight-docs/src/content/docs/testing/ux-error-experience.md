@@ -66,7 +66,7 @@ const userErrorPatterns = {
         'Check for typos in the domain',
         'Verify the URL is accessible',
       ],
-      validFormats: ['https://example.com', 'http://localhost:3000', 'https://sub.domain.com/path'],
+      validFormats: ['https://example.com', 'http://localhost:8443', 'https://sub.domain.com/path'],
     },
   },
 };

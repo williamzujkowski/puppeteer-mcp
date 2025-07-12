@@ -68,7 +68,7 @@ npm run evaluation:dashboard
 
 ## 📊 Evaluation Dashboard Quick View
 
-Access your real-time evaluation dashboard at: `http://localhost:3000/evaluation`
+Access your real-time evaluation dashboard at: `http://localhost:8443/evaluation`
 
 ### Key Metrics to Monitor
 
@@ -271,7 +271,7 @@ For fastest resolution, always start with Level 1 troubleshooting before escalat
 
 ## 🔗 Quick Links
 
-- **Evaluation Dashboard**: http://localhost:3000/evaluation
+- **Evaluation Dashboard**: http://localhost:8443/evaluation
 - **CI/CD Pipeline**: GitHub Actions workflows
 - **Monitoring**: Grafana dashboards
 - **Issue Tracker**: GitHub Issues with `evaluation` label

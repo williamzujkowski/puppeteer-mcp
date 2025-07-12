@@ -24,18 +24,18 @@ Let's create your first browser automation in under 5 minutes!
 npx puppeteer-mcp
 
 # 2. Create a session (in another terminal)
-SESSION_ID=$(curl -s -X POST http://localhost:3000/api/sessions \
+SESSION_ID=$(curl -s -X POST http://localhost:8443/api/sessions \
   -H "Content-Type: application/json" \
   -d '{"baseUrl": "https://example.com"}' \
   | jq -r '.sessionId')
 
 # 3. Navigate to a page
-curl -X POST http://localhost:3000/api/sessions/$SESSION_ID/navigate \
+curl -X POST http://localhost:8443/api/sessions/$SESSION_ID/navigate \
   -H "Content-Type: application/json" \
   -d '{"url": "https://example.com"}'
 
 # 4. Take a screenshot
-curl -X POST http://localhost:3000/api/sessions/$SESSION_ID/screenshot \
+curl -X POST http://localhost:8443/api/sessions/$SESSION_ID/screenshot \
   -H "Content-Type: application/json" \
   -d '{"fullPage": true}' \
   | jq -r '.screenshot' | base64 -d > screenshot.png
@@ -54,7 +54,7 @@ const fetch = require('node-fetch');
 const fs = require('fs');
 
 async function takeScreenshot() {
-  const API_BASE = 'http://localhost:3000/api';
+  const API_BASE = 'http://localhost:8443/api';
 
   // 1. Create a session
   const sessionResponse = await fetch(`${API_BASE}/sessions`, {
@@ -108,7 +108,7 @@ node screenshot.js
 import requests
 import base64
 
-API_BASE = 'http://localhost:3000/api'
+API_BASE = 'http://localhost:8443/api'
 
 # 1. Create a session
 session_response = requests.post(f'{API_BASE}/sessions',
@@ -153,7 +153,7 @@ python screenshot.py
 const fetch = require('node-fetch');
 
 async function extractContent() {
-  const API_BASE = 'http://localhost:3000/api';
+  const API_BASE = 'http://localhost:8443/api';
 
   // Create session and navigate
   const sessionResponse = await fetch(`${API_BASE}/sessions`, {
@@ -210,7 +210,7 @@ extractContent().catch(console.error);
 const fetch = require('node-fetch');
 
 async function automateForm() {
-  const API_BASE = 'http://localhost:3000/api';
+  const API_BASE = 'http://localhost:8443/api';
 
   // Create session
   const sessionResponse = await fetch(`${API_BASE}/sessions`, {
@@ -386,7 +386,7 @@ Already shown in examples above. Use standard HTTP requests.
 ```javascript
 const WebSocket = require('ws');
 
-const ws = new WebSocket('ws://localhost:3000');
+const ws = new WebSocket('ws://localhost:8443');
 
 ws.on('open', () => {
   // Subscribe to browser events

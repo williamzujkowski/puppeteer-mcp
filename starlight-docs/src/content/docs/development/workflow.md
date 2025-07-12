@@ -592,15 +592,15 @@ npx tsc --noEmit src/specific/file.ts
 
 ```bash
 # Health check
-curl http://localhost:3000/api/v1/health
+curl http://localhost:8443/api/v1/health
 
 # Test specific endpoint
-curl -X POST http://localhost:3000/api/v1/sessions \
+curl -X POST http://localhost:8443/api/v1/sessions \
   -H "Content-Type: application/json" \
   -d '{"userId": "test-user"}'
 
 # Monitor WebSocket
-wscat -c ws://localhost:3000/ws
+wscat -c ws://localhost:8443/ws
 
 # Test gRPC service
 grpcurl -plaintext localhost:50051 list

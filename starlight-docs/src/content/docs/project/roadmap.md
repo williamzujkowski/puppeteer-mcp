@@ -1,11 +1,11 @@
 ---
 title: Project Roadmap
-description: 'Version 1.0.13 - Project roadmap and future plans'
+description: 'Version 1.1.0 - Project roadmap and future plans'
 ---
 
 # Project Roadmap
 
-**Version:** 1.0.13  
+**Version:** 1.1.0  
 **Status:** Active
 
 ## Overview

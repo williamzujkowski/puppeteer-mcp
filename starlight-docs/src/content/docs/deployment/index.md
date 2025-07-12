@@ -212,11 +212,11 @@ Deploy for enterprise use:
 
 ```bash
 # Check service health
-curl http://localhost:3000/health
+curl http://localhost:8443/health
 
 # Check detailed status
 curl -H "Authorization: Bearer $TOKEN" \
-  http://localhost:3000/api/status
+  http://localhost:8443/api/status
 ```
 
 ### Performance Testing

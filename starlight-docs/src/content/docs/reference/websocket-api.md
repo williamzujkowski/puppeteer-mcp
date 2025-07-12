@@ -24,7 +24,7 @@ envelopes for reliable communication.
 ### WebSocket URL
 
 ```
-ws://localhost:3000/ws
+ws://localhost:8443/ws
 wss://example.com/ws  # Production with TLS
 ```
 

@@ -52,13 +52,13 @@ protocol offers unique advantages for different use cases.
 
 ```bash
 # Login to get tokens
-curl -X POST http://localhost:3000/api/v1/auth/login \
+curl -X POST http://localhost:8443/api/v1/auth/login \
   -H "Content-Type: application/json" \
   -d '{"username": "user", "password": "pass"}'
 
 # Use access token
 curl -H "Authorization: Bearer <access_token>" \
-  http://localhost:3000/api/v1/sessions
+  http://localhost:8443/api/v1/sessions
 ```
 
 #### gRPC
@@ -72,7 +72,7 @@ client.listSessions({}, metadata, callback);
 #### WebSocket
 
 ```javascript
-const ws = new WebSocket('ws://localhost:3000');
+const ws = new WebSocket('ws://localhost:8443');
 ws.on('open', () => {
   ws.send(
     JSON.stringify({
@@ -98,7 +98,7 @@ const client = new MCPClient({
 
 ```bash
 curl -H "X-API-Key: your-api-key" \
-  http://localhost:3000/api/v1/sessions
+  http://localhost:8443/api/v1/sessions
 ```
 
 #### gRPC

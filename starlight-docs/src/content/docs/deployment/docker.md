@@ -108,7 +108,7 @@ EXPOSE 3000 50051
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
-  CMD curl -f http://localhost:3000/health || exit 1
+  CMD curl -f http://localhost:8443/health || exit 1
 
 # Start application
 CMD ["node", "dist/index.js"]
@@ -186,7 +186,7 @@ EXPOSE 3000 50051
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
-  CMD curl -f http://localhost:3000/health || exit 1
+  CMD curl -f http://localhost:8443/health || exit 1
 
 # Start application
 CMD ["node", "dist/index.js"]
@@ -250,7 +250,7 @@ services:
           memory: 1G
           cpus: '1'
     healthcheck:
-      test: ['CMD', 'curl', '-f', 'http://localhost:3000/health']
+      test: ['CMD', 'curl', '-f', 'http://localhost:8443/health']
       interval: 30s
       timeout: 10s
       retries: 3

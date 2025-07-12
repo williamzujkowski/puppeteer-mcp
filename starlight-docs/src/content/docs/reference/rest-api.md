@@ -21,7 +21,7 @@ https://api.example.com/api/v1
 ### NPM Package (Default)
 
 ```
-http://localhost:3000/api/v1
+http://localhost:8443/api/v1
 ```
 
 - **Protocol**: HTTPS required in production, HTTP allowed for localhost
@@ -62,7 +62,7 @@ npx puppeteer-mcp start --port 8080 --auth-required false
 
 When using the npm package, the server starts with these defaults:
 
-- **Port**: 3000 (REST API)
+- **Port**: 8443 (REST API)
 - **Host**: localhost
 - **Authentication**: Required (generate tokens via CLI)
 - **CORS**: Enabled for localhost origins
@@ -86,7 +86,7 @@ puppeteer-mcp auth generate --username myuser
 
 ```bash
 # Check if server is running
-curl http://localhost:3000/api/health
+curl http://localhost:8443/api/health
 
 # Response:
 # {
@@ -105,7 +105,7 @@ curl http://localhost:3000/api/health
 export TOKEN="your_access_token"
 
 # Create a new browser context
-curl -X POST http://localhost:3000/api/v1/contexts \
+curl -X POST http://localhost:8443/api/v1/contexts \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -119,7 +119,7 @@ curl -X POST http://localhost:3000/api/v1/contexts \
 
 ```bash
 # Navigate the created page
-curl -X POST http://localhost:3000/api/v1/contexts/context_id/execute \
+curl -X POST http://localhost:8443/api/v1/contexts/context_id/execute \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -133,7 +133,7 @@ curl -X POST http://localhost:3000/api/v1/contexts/context_id/execute \
 
 ```bash
 # Capture the current page
-curl -X POST http://localhost:3000/api/v1/contexts/context_id/execute \
+curl -X POST http://localhost:8443/api/v1/contexts/context_id/execute \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -167,7 +167,7 @@ Create a `.puppeteer-mcp.json` in your project:
     "jwtSecret": "your-secret-key"
   },
   "cors": {
-    "origins": ["http://localhost:3000", "http://localhost:8080"]
+    "origins": ["http://localhost:8443", "http://localhost:8080"]
   }
 }
 ```
@@ -974,7 +974,7 @@ sleep 3
 TOKEN=$(npx puppeteer-mcp auth generate --username testuser --json | jq -r .accessToken)
 
 # 2. Create a context
-CONTEXT_RESPONSE=$(curl -s -X POST http://localhost:3000/api/v1/contexts \
+CONTEXT_RESPONSE=$(curl -s -X POST http://localhost:8443/api/v1/contexts \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -987,7 +987,7 @@ CONTEXT_ID=$(echo $CONTEXT_RESPONSE | jq -r .data.id)
 PAGE_ID=$(echo $CONTEXT_RESPONSE | jq -r .data.page.id)
 
 # 3. Navigate to a URL
-curl -X POST http://localhost:3000/api/v1/contexts/$CONTEXT_ID/execute \
+curl -X POST http://localhost:8443/api/v1/contexts/$CONTEXT_ID/execute \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d "{
@@ -997,7 +997,7 @@ curl -X POST http://localhost:3000/api/v1/contexts/$CONTEXT_ID/execute \
   }"
 
 # 4. Take a screenshot
-SCREENSHOT_RESPONSE=$(curl -s -X POST http://localhost:3000/api/v1/contexts/$CONTEXT_ID/execute \
+SCREENSHOT_RESPONSE=$(curl -s -X POST http://localhost:8443/api/v1/contexts/$CONTEXT_ID/execute \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d "{
@@ -1007,7 +1007,7 @@ SCREENSHOT_RESPONSE=$(curl -s -X POST http://localhost:3000/api/v1/contexts/$CON
   }")
 
 # 5. Clean up
-curl -X DELETE http://localhost:3000/api/v1/contexts/$CONTEXT_ID \
+curl -X DELETE http://localhost:8443/api/v1/contexts/$CONTEXT_ID \
   -H "Authorization: Bearer $TOKEN"
 ```
 
@@ -1057,7 +1057,7 @@ curl -X DELETE https://api.example.com/api/v1/contexts/context_789 \
 TOKEN=$(npx puppeteer-mcp auth generate --username admin --json | jq -r .accessToken)
 
 # 2. Create an API key (using JWT auth)
-API_KEY_RESPONSE=$(curl -s -X POST http://localhost:3000/api/v1/api-keys \
+API_KEY_RESPONSE=$(curl -s -X POST http://localhost:8443/api/v1/api-keys \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -1070,7 +1070,7 @@ API_KEY=$(echo $API_KEY_RESPONSE | jq -r .plainTextKey)
 echo "Save this API key: $API_KEY"
 
 # 3. Use the API key for subsequent requests
-curl -X GET http://localhost:3000/api/v1/contexts \
+curl -X GET http://localhost:8443/api/v1/contexts \
   -H "X-API-Key: $API_KEY"
 ```
 
@@ -1136,7 +1136,7 @@ puppeteer-mcp start --port 8080 --auth-required false
 puppeteer-mcp auth generate --username myuser
 
 # Check server status
-curl http://localhost:3000/api/health
+curl http://localhost:8443/api/health
 
 # View help
 puppeteer-mcp --help
@@ -1156,7 +1156,7 @@ puppeteer-mcp start
 
 ```bash
 # Run with Docker
-docker run -p 3000:3000 puppeteer-mcp/server
+docker run -p 8443:8443 puppeteer-mcp/server
 
 # With custom config
 docker run -p 8080:3000 \

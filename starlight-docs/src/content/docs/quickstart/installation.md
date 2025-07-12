@@ -1,11 +1,11 @@
 ---
 title: Installation Guide
-description: 'Version 1.0.13 - Installation guide for Puppeteer MCP'
+description: 'Version 1.1.0 - Installation guide for Puppeteer MCP'
 ---
 
 # Installation Guide
 
-**Version**: 1.0.13  
+**Version**: 1.1.0  
 **Reading Time**: 5 minutes
 
 ## Prerequisites
@@ -212,7 +212,7 @@ npx puppeteer-mcp --version
 puppeteer-mcp
 
 # In another terminal, check health
-curl http://localhost:3000/api/v1/health
+curl http://localhost:8443/api/v1/health
 ```
 
 Expected response:

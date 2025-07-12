@@ -285,7 +285,7 @@ export PUPPETEER_MCP_AUTH_TOKEN=your-secure-token
 
 # Client usage
 curl -H "Authorization: Bearer your-secure-token" \
-  http://localhost:3000/api/sessions
+  http://localhost:8443/api/sessions
 ```
 
 </details>
@@ -299,7 +299,7 @@ export API_KEY_HEADER=X-API-Key
 
 # Client usage
 curl -H "X-API-Key: your-api-key" \
-  http://localhost:3000/api/sessions
+  http://localhost:8443/api/sessions
 ```
 
 </details>
@@ -314,7 +314,7 @@ export JWT_EXPIRES_IN=1h
 export JWT_REFRESH_EXPIRES_IN=7d
 
 # Login to get token
-curl -X POST http://localhost:3000/api/auth/login \
+curl -X POST http://localhost:8443/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email": "user@example.com", "password": "pass"}'
 ```

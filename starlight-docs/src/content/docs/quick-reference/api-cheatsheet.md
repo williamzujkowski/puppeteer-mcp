@@ -9,38 +9,38 @@ description: 'Quick reference for REST API endpoints and usage'
 
 ```bash
 # Authentication
-curl -X POST http://localhost:3000/api/auth/login \
+curl -X POST http://localhost:8443/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"username":"admin","password":"pass"}'
 
 # Create Session
-curl -X POST http://localhost:3000/api/sessions \
+curl -X POST http://localhost:8443/api/sessions \
   -H "Authorization: Bearer TOKEN" \
   -d '{"viewport":{"width":1280,"height":720}}'
 
 # Navigate
-curl -X POST http://localhost:3000/api/sessions/{id}/navigate \
+curl -X POST http://localhost:8443/api/sessions/{id}/navigate \
   -H "Authorization: Bearer TOKEN" \
   -d '{"url":"https://example.com"}'
 
 # Take Screenshot
-curl -X POST http://localhost:3000/api/sessions/{id}/screenshot \
+curl -X POST http://localhost:8443/api/sessions/{id}/screenshot \
   -H "Authorization: Bearer TOKEN"
 
 # Execute Script
-curl -X POST http://localhost:3000/api/sessions/{id}/execute \
+curl -X POST http://localhost:8443/api/sessions/{id}/execute \
   -H "Authorization: Bearer TOKEN" \
   -d '{"script":"document.title"}'
 
 # Close Session
-curl -X DELETE http://localhost:3000/api/sessions/{id} \
+curl -X DELETE http://localhost:8443/api/sessions/{id} \
   -H "Authorization: Bearer TOKEN"
 ```
 
 ## WebSocket
 
 ```javascript
-const ws = new WebSocket('ws://localhost:3000');
+const ws = new WebSocket('ws://localhost:8443');
 
 // Auth
 ws.send(

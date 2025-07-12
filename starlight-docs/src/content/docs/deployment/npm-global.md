@@ -306,7 +306,7 @@ Create a JSON configuration file:
     "grpcPort": 50051,
     "wsPort": 8080,
     "cors": {
-      "origin": ["http://localhost:3000", "https://app.example.com"],
+      "origin": ["http://localhost:8443", "https://app.example.com"],
       "credentials": true
     }
   },
@@ -635,7 +635,7 @@ Create `/etc/logrotate.d/puppeteer-mcp`:
 # Create health check script
 cat > /usr/local/bin/check-puppeteer-mcp.sh << 'EOF'
 #!/bin/bash
-response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/api/v1/health)
+response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8443/api/v1/health)
 if [ $response -eq 200 ]; then
     echo "Puppeteer MCP is healthy"
     exit 0

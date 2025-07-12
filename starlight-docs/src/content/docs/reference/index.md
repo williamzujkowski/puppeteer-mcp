@@ -186,7 +186,7 @@ Default limits per authentication token:
 ### REST API
 
 ```bash
-curl -X POST http://localhost:3000/api/sessions \
+curl -X POST http://localhost:8443/api/sessions \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"baseUrl": "https://example.com"}'
@@ -195,7 +195,7 @@ curl -X POST http://localhost:3000/api/sessions \
 ### WebSocket
 
 ```javascript
-const ws = new WebSocket('ws://localhost:3000');
+const ws = new WebSocket('ws://localhost:8443');
 ws.send(JSON.stringify({ type: 'auth', token: 'YOUR_TOKEN' }));
 ```
 

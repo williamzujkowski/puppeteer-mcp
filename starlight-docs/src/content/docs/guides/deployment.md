@@ -85,7 +85,7 @@ RUN addgroup -g 1001 -S nodejs && \
 USER nodejs
 EXPOSE 3000 50051 8080
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD node -e "require('http').get('http://localhost:3000/api/v1/health', (res) => process.exit(res.statusCode === 200 ? 0 : 1))"
+    CMD node -e "require('http').get('http://localhost:8443/api/v1/health', (res) => process.exit(res.statusCode === 200 ? 0 : 1))"
 CMD ["node", "dist/index.js"]
 ```
 

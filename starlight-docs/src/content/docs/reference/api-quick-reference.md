@@ -108,10 +108,10 @@ const result = await client.executeCommand({
 
 ```javascript
 // Connect with JWT
-ws://localhost:3000/ws?token=<jwt>
+ws://localhost:8443/ws?token=<jwt>
 
 // Connect with API key
-ws://localhost:3000/ws
+ws://localhost:8443/ws
 → {"type": "auth", "apiKey": "pk_live_..."}
 ```
 
