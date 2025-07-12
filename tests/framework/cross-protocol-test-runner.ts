@@ -564,7 +564,7 @@ export class WebSocketTestClient {
       }
 
       const sessionData = await response.json();
-      return sessionData.token || sessionData.sessionId;
+      return sessionData.accessToken || sessionData.token || sessionData.sessionId;
     } catch (error) {
       throw new Error(`Failed to create valid session for WebSocket auth: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
