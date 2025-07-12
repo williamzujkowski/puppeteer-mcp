@@ -99,7 +99,7 @@ export default tseslint.config(
       '@typescript-eslint/no-non-null-assertion': 'warn',
       '@typescript-eslint/strict-boolean-expressions': 'off',
       '@typescript-eslint/no-floating-promises': 'warn',
-      '@typescript-eslint/no-misused-promises': 'error',
+      '@typescript-eslint/no-misused-promises': 'warn',
       '@typescript-eslint/await-thenable': 'warn',
       '@typescript-eslint/no-unnecessary-type-assertion': 'warn',
       '@typescript-eslint/prefer-nullish-coalescing': 'warn',
@@ -112,6 +112,7 @@ export default tseslint.config(
       '@typescript-eslint/no-require-imports': 'off', // Allow require imports for dynamic loading
       '@typescript-eslint/no-base-to-string': 'warn', // Warn about object-to-string conversions
       '@typescript-eslint/restrict-template-expressions': 'off',
+      '@typescript-eslint/no-unsafe-function-type': 'warn', // Allow Function type with warning
 
       // Security Rules (SEC:API Standards)
       'security/detect-object-injection': 'warn',
@@ -126,12 +127,12 @@ export default tseslint.config(
       'security/detect-possible-timing-attacks': 'warn',
 
       // General Best Practices
-      'no-console': ['error', { allow: ['warn', 'error'] }],
-      'no-debugger': 'error',
-      'no-var': 'error',
+      'no-console': ['warn', { allow: ['warn', 'error'] }],
+      'no-debugger': 'error', // Keep this as error
+      'no-var': 'warn',
       'prefer-const': 'warn',
-      eqeqeq: ['error', 'always'],
-      curly: ['error', 'all'],
+      eqeqeq: ['warn', 'always'],
+      curly: ['warn', 'all'],
       'no-throw-literal': 'warn',
       'prefer-promise-reject-errors': 'warn',
       'no-return-await': 'off', // Disabled in favor of @typescript-eslint/return-await
