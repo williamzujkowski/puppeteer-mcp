@@ -544,7 +544,7 @@ export class WebSocketTestClient {
    */
   private async createValidSession(): Promise<string> {
     const testPort = process.env.TEST_SERVER_PORT || process.env.PORT || '3000';
-    const createSessionUrl = `http://localhost:${testPort}/api/v1/sessions`;
+    const createSessionUrl = `http://localhost:${testPort}/api/v1/sessions/dev-create`;
 
     try {
       const response = await fetch(createSessionUrl, {
