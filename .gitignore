@@ -92,6 +92,20 @@ src/grpc/generated/
 # Benchmark results
 benchmark-results/
 
+# Test results and artifacts
+test-results.json
+test-output.log
+*/results/
+**/results/
+
+# Package artifacts
+*.tgz
+*.tar.gz
+
+# Temporary development files
+TEMP_*
+*.temp.*
+
 # Documentation build
 docs/_build/
 docs/.docusaurus/
