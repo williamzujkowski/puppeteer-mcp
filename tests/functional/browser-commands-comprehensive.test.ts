@@ -64,8 +64,8 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
 
     // Create a primary session and context for most tests
     const sessionResult = await mcpClient.callTool('create-session', {
-      username: 'browsertest',
-      password: 'testpass123',
+      username: 'demo',
+      password: 'demo123!',
     });
     const sessionData = JSON.parse(sessionResult.content[0].text);
     primarySessionId = sessionData.sessionId;
