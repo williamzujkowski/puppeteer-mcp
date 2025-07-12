@@ -80,15 +80,28 @@ jobs:
 
       - name: Start services
         run: |
-          # Start all services in background
-          npm run start:all > services.log 2>&1 &
+          # Start main REST server in background
+          npm run start > services.log 2>&1 &
 
-          # Wait for services to be ready
-          echo "Waiting for services to start..."
-          sleep 10
+          # Wait for service to be ready
+          echo "Waiting for service to start..."
+          sleep 15
 
-          # Check service health
-          curl -f http://localhost:3000/api/v1/health || exit 1
+          # Check service health with retries
+          for i in {1..5}; do
+            if curl -f http://localhost:3000/api/v1/health; then
+              echo "Service is healthy!"
+              break
+            else
+              echo "Attempt $i failed, waiting..."
+              sleep 5
+            fi
+            if [ $i -eq 5 ]; then
+              echo "Service failed to start after 5 attempts"
+              cat services.log
+              exit 1
+            fi
+          done
 
       - name: Run functional tests
         id: test
