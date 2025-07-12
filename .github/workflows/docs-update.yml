@@ -625,7 +625,7 @@ jobs:
           fi
 
       - name: Create PR for changelog update
-        uses: peter-evans/create-pull-request@v6
+        uses: peter-evans/create-pull-request@v7
         with:
           branch: docs/changelog-${{ github.event.release.tag_name }}
           title: 'docs: update changelog for ${{ github.event.release.tag_name }}'
