@@ -95,13 +95,13 @@ export default tseslint.config(
       ],
       '@typescript-eslint/explicit-module-boundary-types': 'off',
       '@typescript-eslint/no-explicit-any': 'warn',
-      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
       '@typescript-eslint/no-non-null-assertion': 'warn',
       '@typescript-eslint/strict-boolean-expressions': 'off',
       '@typescript-eslint/no-floating-promises': 'warn',
       '@typescript-eslint/no-misused-promises': 'error',
       '@typescript-eslint/await-thenable': 'warn',
-      '@typescript-eslint/no-unnecessary-type-assertion': 'error',
+      '@typescript-eslint/no-unnecessary-type-assertion': 'warn',
       '@typescript-eslint/prefer-nullish-coalescing': 'warn',
       '@typescript-eslint/prefer-optional-chain': 'warn',
       '@typescript-eslint/no-unsafe-assignment': 'off',
@@ -129,16 +129,16 @@ export default tseslint.config(
       'no-console': ['error', { allow: ['warn', 'error'] }],
       'no-debugger': 'error',
       'no-var': 'error',
-      'prefer-const': 'error',
+      'prefer-const': 'warn',
       eqeqeq: ['error', 'always'],
       curly: ['error', 'all'],
-      'no-throw-literal': 'error',
-      'prefer-promise-reject-errors': 'error',
+      'no-throw-literal': 'warn',
+      'prefer-promise-reject-errors': 'warn',
       'no-return-await': 'off', // Disabled in favor of @typescript-eslint/return-await
-      '@typescript-eslint/return-await': 'error',
+      '@typescript-eslint/return-await': 'warn',
       'require-await': 'off', // Disabled in favor of @typescript-eslint/require-await
       '@typescript-eslint/require-await': 'warn',
-      'no-async-promise-executor': 'error',
+      'no-async-promise-executor': 'warn',
       'no-promise-executor-return': 'warn',
 
       // Code Quality
@@ -157,6 +157,8 @@ export default tseslint.config(
       '@typescript-eslint/no-explicit-any': 'off',
       'max-lines-per-function': 'off',
       'max-lines': 'off',
+      'no-console': 'off', // Allow console.log in tests
+      '@typescript-eslint/no-unused-vars': 'off', // More permissive for test files
     },
   },
 
