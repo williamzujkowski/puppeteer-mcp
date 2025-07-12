@@ -129,16 +129,15 @@ export class CodeExecutionStrategy implements BaseEvaluationStrategy {
     return {
       success: true,
       actionType: 'evaluate',
-      data: {
+      data: finalResult, // Return actual result directly for test compatibility
+      duration: metrics.duration,
+      timestamp: new Date(),
+      metadata: {
         result: finalResult,
         resultType: typeof result,
         argsCount: config.args?.length ?? 0,
         codeLength: config.functionToEvaluate.length,
         truncated: shouldTruncate,
-      },
-      duration: metrics.duration,
-      timestamp: new Date(),
-      metadata: {
         functionLength: config.functionToEvaluate.length,
         hasArgs: (config.args?.length ?? 0) > 0,
         executionTime: metrics.duration,

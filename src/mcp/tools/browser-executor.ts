@@ -382,12 +382,8 @@ export class BrowserExecutor {
       case 'cookie':
         return this.createCookieAction(command, parameters);
       default:
-        // Generic action with all parameters
-        return {
-          type: actionType,
-          pageId: '',
-          ...parameters,
-        } as BrowserAction;
+        // Unknown command - throw error with message expected by tests
+        throw new Error(`Unknown command: ${command}`);
     }
   }
 
