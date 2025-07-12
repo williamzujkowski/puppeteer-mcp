@@ -144,7 +144,11 @@
     "@opentelemetry/auto-instrumentations-node": "^0.55.0",
     "https-proxy-agent": "^7.0.6",
     "socks-proxy-agent": "^8.0.5",
-    "node-fetch": "^3.3.2"
+    "node-fetch": "^3.3.2",
+    "pidusage": "^3.0.2",
+    "table": "^6.8.1",
+    "chalk": "^5.3.0",
+    "ora": "^8.0.1"
   },
   "devDependencies": {
     "@types/compression": "^1.7.5",
@@ -153,6 +157,7 @@
     "@types/jest": "^30.0.0",
     "@types/jsonwebtoken": "^9.0.5",
     "@types/node": "^24.0.10",
+    "@types/pidusage": "^2.0.2",
     "@types/supertest": "^6.0.2",
     "@types/ws": "^8.5.10",
     "eslint": "^9.30.1",
