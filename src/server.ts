@@ -25,14 +25,19 @@ export async function startHTTPServer(): Promise<void> {
   }
 }
 
-// Start server if not in test environment and not in MCP mode
+// Start server if not in unit test environment and not in MCP mode
+// Allow functional tests to start the server by setting START_SERVER=true
 if (
-  config.NODE_ENV !== 'test' &&
-  process.env.NODE_ENV !== 'test' &&
-  process.env.JEST_WORKER_ID === undefined &&
-  process.env.MCP_TRANSPORT === undefined
+  (config.NODE_ENV !== 'test' && process.env.NODE_ENV !== 'test') ||
+  process.env.START_SERVER === 'true'
 ) {
-  void startHTTPServer();
+  // Don't start if running in Jest or MCP mode
+  if (
+    process.env.JEST_WORKER_ID === undefined &&
+    process.env.MCP_TRANSPORT === undefined
+  ) {
+    void startHTTPServer();
+  }
 }
 
 // Re-export for testing compatibility

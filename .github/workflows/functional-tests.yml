@@ -80,8 +80,8 @@ jobs:
 
       - name: Start services
         run: |
-          # Start main REST server in background
-          npm run start > services.log 2>&1 &
+          # Start main REST server in background with functional test flag
+          START_SERVER=true npm run start > services.log 2>&1 &
 
           # Wait for service to be ready
           echo "Waiting for service to start..."
