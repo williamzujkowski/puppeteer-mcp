@@ -78,6 +78,7 @@ jobs:
           echo "API_KEY_SECRET=test-api-key-secret" >> $GITHUB_ENV
           echo "NODE_ENV=test" >> $GITHUB_ENV
           echo "TLS_ENABLED=false" >> $GITHUB_ENV
+          echo "TEST_SERVER_PORT=8443" >> $GITHUB_ENV
 
       - name: Start services
         run: |

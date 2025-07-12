@@ -100,7 +100,7 @@ expect.extend({
 });
 
 // Timeout for async operations
-jest.setTimeout(5000);
+jest.setTimeout(30000); // Increased to 30s for complex integration tests
 
 // Suppress console during tests unless explicitly needed
 const originalConsole = {

@@ -18,11 +18,13 @@ import { v4 as uuidv4 } from 'uuid';
 
 /**
  * Enhanced cross-protocol test configuration
+ * Uses environment variables for port configuration to work in both local and CI environments
  */
+const testPort = process.env.TEST_SERVER_PORT || process.env.PORT || '3000';
 const testConfig = {
   mcp: { transport: 'stdio' as const },
   rest: {
-    baseUrl: 'http://localhost:3000/api/v1',
+    baseUrl: `http://localhost:${testPort}/api/v1`,
     timeout: 30000,
   },
   grpc: {
@@ -31,7 +33,7 @@ const testConfig = {
     secure: false,
   },
   websocket: {
-    url: 'ws://localhost:3000/ws',
+    url: `ws://localhost:${testPort}/ws`,
     reconnect: true,
   },
 };
@@ -186,6 +188,16 @@ const enhancedSessionManagementSuite: TestSuite = {
 
         // Execute all concurrent operations
         const results = await Promise.allSettled(sessionPromises);
+
+        // Check for any failures
+        const failedSessions = results.filter((r) => r.status === 'rejected');
+        if (failedSessions.length > 0) {
+          const errors = failedSessions.map((r) => r.reason);
+          console.error('Failed session creations:', errors);
+          throw new Error(
+            `${failedSessions.length} session creations failed: ${errors[0]?.message || 'Unknown error'}`,
+          );
+        }
 
         // Verify all sessions were created successfully
         const successfulSessions = results.filter((r) => r.status === 'fulfilled');
@@ -924,13 +936,18 @@ describe('Enhanced Cross-Protocol Integration Tests', () => {
   let mcpServer: MCPServer;
 
   beforeAll(async () => {
-    // Create and start MCP server
-    mcpServer = createMCPServer();
-    await mcpServer.start();
+    try {
+      // Create and start MCP server
+      mcpServer = createMCPServer();
+      await mcpServer.start();
 
-    // Initialize test runner
-    runner = new CrossProtocolTestRunner(testConfig);
-    await runner.initialize(mcpServer);
+      // Initialize test runner
+      runner = new CrossProtocolTestRunner(testConfig);
+      await runner.initialize(mcpServer);
+    } catch (error) {
+      console.error('Failed to initialize test environment:', error);
+      throw error;
+    }
   }, 60000);
 
   afterAll(async () => {
@@ -950,27 +967,43 @@ describe('Enhanced Cross-Protocol Integration Tests', () => {
 
   describe('Enhanced Session Management', () => {
     it('should pass all enhanced session management tests', async () => {
-      const results = await runner.runSuite(enhancedSessionManagementSuite);
-
-      expect(results.failed).toBe(0);
-      expect(results.passed).toBe(enhancedSessionManagementSuite.tests.length);
+      let results;
+      try {
+        results = await runner.runSuite(enhancedSessionManagementSuite);
+      } catch (error) {
+        console.error('Suite execution failed:', error);
+        throw error;
+      }
 
       if (results.errors.length > 0) {
         console.error('Session management test errors:', results.errors);
+        const errorDetails = results.errors.map((e) => `${e.test}: ${e.error}`).join('\n');
+        throw new Error(`Test failures:\n${errorDetails}`);
       }
+
+      expect(results.failed).toBe(0);
+      expect(results.passed).toBe(enhancedSessionManagementSuite.tests.length);
     }, 120000);
   });
 
   describe('Enhanced Context Management', () => {
     it('should pass all enhanced context management tests', async () => {
-      const results = await runner.runSuite(enhancedContextManagementSuite);
-
-      expect(results.failed).toBe(0);
-      expect(results.passed).toBe(enhancedContextManagementSuite.tests.length);
+      let results;
+      try {
+        results = await runner.runSuite(enhancedContextManagementSuite);
+      } catch (error) {
+        console.error('Suite execution failed:', error);
+        throw error;
+      }
 
       if (results.errors.length > 0) {
         console.error('Context management test errors:', results.errors);
+        const errorDetails = results.errors.map((e) => `${e.test}: ${e.error}`).join('\n');
+        throw new Error(`Test failures:\n${errorDetails}`);
       }
+
+      expect(results.failed).toBe(0);
+      expect(results.passed).toBe(enhancedContextManagementSuite.tests.length);
     }, 120000);
   });
 

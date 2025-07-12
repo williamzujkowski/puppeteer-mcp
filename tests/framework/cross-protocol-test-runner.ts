@@ -254,24 +254,116 @@ export class GrpcTestClient {
     return this.clients.get(service);
   }
 
-  private createMockClient(_service: string): any {
+  private createMockClient(service: string): any {
     // Mock implementation for testing
-    return {
-      CreateSession: (request: any, callback: (error: any, response?: any) => void) => {
-        callback(null, {
-          sessionId: uuidv4(),
-          userId: uuidv4(),
-          expiresAt: new Date(Date.now() + 3600000).toISOString(),
-        });
+    const mockImplementations: Record<string, any> = {
+      SessionService: {
+        CreateSession: (request: any, callback: (error: any, response?: any) => void) => {
+          if (!request.username || !request.password) {
+            callback(new Error('Missing required fields: username and password'));
+            return;
+          }
+          callback(null, {
+            sessionId: uuidv4(),
+            userId: uuidv4(),
+            username: request.username,
+            expiresAt: new Date(Date.now() + 3600000).toISOString(),
+          });
+        },
+        GetSession: (request: any, callback: (error: any, response?: any) => void) => {
+          if (!request.sessionId) {
+            callback(new Error('Session ID is required'));
+            return;
+          }
+          if (request.sessionId === 'invalid-session-id-12345') {
+            callback(new Error('Session not found'));
+            return;
+          }
+          callback(null, {
+            sessionId: request.sessionId,
+            active: true,
+            metadata: request.metadata || {},
+          });
+        },
+        ExtendSession: (request: any, callback: (error: any, response?: any) => void) => {
+          if (!request.sessionId) {
+            callback(new Error('Session ID is required'));
+            return;
+          }
+          callback(null, {
+            success: true,
+            newExpiryTime: new Date(
+              Date.now() + (request.extensionMinutes || 30) * 60000,
+            ).toISOString(),
+          });
+        },
+        UpdateSession: (request: any, callback: (error: any, response?: any) => void) => {
+          if (!request.sessionId) {
+            callback(new Error('Session ID is required'));
+            return;
+          }
+          callback(null, {
+            success: true,
+            sessionId: request.sessionId,
+            metadata: request.metadata,
+          });
+        },
       },
-      GetSession: (request: any, callback: (error: any, response?: any) => void) => {
-        if (request.sessionId) {
-          callback(null, { sessionId: request.sessionId, active: true });
-        } else {
-          callback(new Error('Session not found'));
-        }
+      ContextService: {
+        CreateContext: (request: any, callback: (error: any, response?: any) => void) => {
+          if (!request.sessionId) {
+            callback(new Error('Session ID is required'));
+            return;
+          }
+          callback(null, {
+            contextId: uuidv4(),
+            sessionId: request.sessionId,
+            options: request.options,
+          });
+        },
+        ExecuteScript: (request: any, callback: (error: any, response?: any) => void) => {
+          if (!request.contextId) {
+            callback(new Error('Context ID is required'));
+            return;
+          }
+          if (request.contextId === 'invalid-context-id-67890') {
+            callback(new Error('Context not found'));
+            return;
+          }
+          callback(null, {
+            success: true,
+            result: 'complete',
+          });
+        },
+        Navigate: (request: any, callback: (error: any, response?: any) => void) => {
+          if (!request.contextId || !request.url) {
+            callback(new Error('Context ID and URL are required'));
+            return;
+          }
+          callback(null, {
+            success: true,
+            url: request.url,
+          });
+        },
       },
     };
+
+    const implementation = mockImplementations[service];
+    if (!implementation) {
+      // Return a proxy that throws for any method call
+      return new Proxy(
+        {},
+        {
+          get: (target, prop) => {
+            return (request: any, callback: (error: any, response?: any) => void) => {
+              callback(new Error(`Service '${service}' not found`));
+            };
+          },
+        },
+      );
+    }
+
+    return implementation;
   }
 }
 
@@ -292,30 +384,47 @@ export class WebSocketTestClient {
 
   async connect(): Promise<void> {
     return new Promise((resolve, reject) => {
-      this.ws = new WebSocket(this.url);
-
-      this.ws.on('open', () => {
-        // WebSocket connected
-        resolve();
-      });
-
-      this.ws.on('error', (error) => {
-        console.error('WebSocket error:', error);
-        reject(error);
-      });
-
-      this.ws.on('message', (data) => {
-        this.handleMessage(data.toString());
-      });
-
-      this.ws.on('close', () => {
-        // WebSocket disconnected
-        if (this.reconnect) {
-          setTimeout(() => {
-            void this.connect();
-          }, 5000);
+      const connectTimeout = setTimeout(() => {
+        if (this.ws) {
+          this.ws.terminate();
         }
-      });
+        reject(new Error('WebSocket connection timeout after 10 seconds'));
+      }, 10000);
+
+      try {
+        this.ws = new WebSocket(this.url);
+
+        this.ws.on('open', () => {
+          // WebSocket connected
+          clearTimeout(connectTimeout);
+          resolve();
+        });
+
+        this.ws.on('error', (error) => {
+          clearTimeout(connectTimeout);
+          console.error('WebSocket error:', error);
+          reject(error);
+        });
+
+        this.ws.on('message', (data) => {
+          this.handleMessage(data.toString());
+        });
+
+        this.ws.on('close', () => {
+          // WebSocket disconnected
+          clearTimeout(connectTimeout);
+          if (this.reconnect) {
+            setTimeout(() => {
+              void this.connect().catch((err) => {
+                console.error('WebSocket reconnection failed:', err);
+              });
+            }, 5000);
+          }
+        });
+      } catch (error) {
+        clearTimeout(connectTimeout);
+        reject(error);
+      }
     });
   }
 
@@ -421,29 +530,82 @@ export class CrossProtocolTestRunner {
 
   async initialize(mcpServer?: MCPServer): Promise<void> {
     // Initialize MCP client with server
-    await this.clients.mcp.initialize(mcpServer);
+    this.clients.mcp.initialize(mcpServer);
 
-    // Connect WebSocket
-    await this.clients.websocket.connect();
+    // Connect WebSocket with retry
+    let retries = 3;
+    let lastError: Error | null = null;
+
+    while (retries > 0) {
+      try {
+        await this.clients.websocket.connect();
+        return; // Success
+      } catch (error) {
+        lastError = error as Error;
+        console.error(`WebSocket connection attempt ${4 - retries} failed:`, error);
+        retries--;
+        if (retries > 0) {
+          await new Promise((resolve) => setTimeout(resolve, 2000));
+        }
+      }
+    }
+
+    throw new Error(
+      `Failed to connect WebSocket after 3 attempts: ${lastError?.message || 'Unknown error'}`,
+    );
   }
 
   async runSuite(suite: TestSuite): Promise<TestResults> {
     const startTime = Date.now();
     // Running test suite
 
-    // Run suite setup
-    if (suite.setup) {
-      await suite.setup();
-    }
+    // Reset results for this suite
+    this.results = {
+      passed: 0,
+      failed: 0,
+      skipped: 0,
+      errors: [],
+      duration: 0,
+      timestamp: new Date().toISOString(),
+    };
 
-    // Run each test
-    for (const test of suite.tests) {
-      await this.runTest(test);
-    }
+    try {
+      // Run suite setup
+      if (suite.setup) {
+        await suite.setup();
+      }
 
-    // Run suite teardown
-    if (suite.teardown) {
-      await suite.teardown();
+      // Run each test
+      for (const test of suite.tests) {
+        try {
+          await this.runTest(test);
+        } catch (error) {
+          // Ensure test failures are captured
+          console.error(`Test '${test.name}' failed with uncaught error:`, error);
+          if (this.results.failed === 0 && this.results.errors.length === 0) {
+            this.results.failed++;
+            this.results.errors.push({
+              test: test.name,
+              error: error instanceof Error ? error.message : String(error),
+              stack: error instanceof Error ? error.stack : undefined,
+              timestamp: new Date().toISOString(),
+            });
+          }
+        }
+      }
+
+      // Run suite teardown
+      if (suite.teardown) {
+        try {
+          await suite.teardown();
+        } catch (error) {
+          console.error('Suite teardown failed:', error);
+        }
+      }
+    } catch (error) {
+      // Suite-level failure
+      console.error('Suite execution failed:', error);
+      throw error;
     }
 
     this.results.duration = Date.now() - startTime;
