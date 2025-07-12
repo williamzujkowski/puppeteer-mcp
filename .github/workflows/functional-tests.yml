@@ -77,6 +77,7 @@ jobs:
           echo "JWT_SECRET=test-secret-key" >> $GITHUB_ENV
           echo "API_KEY_SECRET=test-api-key-secret" >> $GITHUB_ENV
           echo "NODE_ENV=test" >> $GITHUB_ENV
+          echo "TLS_ENABLED=false" >> $GITHUB_ENV
 
       - name: Start services
         run: |

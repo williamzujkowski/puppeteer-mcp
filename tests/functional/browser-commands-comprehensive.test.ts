@@ -34,7 +34,12 @@ class MockMCPClient {
     // Directly call the server's executeTool method
     const result = await (this.server as any).executeTool(name, args);
 
-    // Convert result to ToolResponse format
+    // Check if result is already a ToolResponse (e.g., from execute-in-context)
+    if (result && typeof result === 'object' && result.content && Array.isArray(result.content)) {
+      return result as ToolResponse;
+    }
+
+    // Convert raw result to ToolResponse format
     return {
       content: [
         {
@@ -50,7 +55,7 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
   let mcpServer: MCPServer;
   let mcpClient: MockMCPClient;
   const testSessions: Map<string, any> = new Map();
-  let testContexts: Map<string, any> = new Map();
+  const testContexts: Map<string, any> = new Map();
   let primarySessionId: string;
   let primaryContextId: string;
 

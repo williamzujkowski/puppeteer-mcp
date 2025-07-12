@@ -135,10 +135,10 @@ export class ExecuteInContextTool {
   }
 
   /**
-   * Parse the response from the adapter
+   * Parse the response from the adapter with consistent structure
    */
   private parseResponse(result: MCPResponse): ToolResponse {
-    let responseBody = {};
+    let responseBody: any = {};
 
     if (
       result.content?.[0] &&
@@ -148,11 +148,31 @@ export class ExecuteInContextTool {
       result.content[0].text !== ''
     ) {
       try {
-        responseBody = JSON.parse(result.content[0].text);
+        const parsed = JSON.parse(result.content[0].text);
+        // Ensure consistent structure with success field
+        responseBody = {
+          success: parsed.success ?? (parsed.error ? false : true),
+          data: parsed.data ?? parsed.result ?? parsed,
+          error: parsed.error,
+          timestamp: parsed.timestamp ?? new Date().toISOString(),
+          duration: parsed.duration,
+        };
       } catch {
-        // If parsing fails, return the raw text
-        responseBody = { result: result.content[0].text };
+        // If parsing fails, treat as error
+        responseBody = {
+          success: false,
+          error: 'Failed to parse response',
+          data: result.content[0].text,
+          timestamp: new Date().toISOString(),
+        };
       }
+    } else {
+      // No content or empty content is an error
+      responseBody = {
+        success: false,
+        error: 'Empty response from server',
+        timestamp: new Date().toISOString(),
+      };
     }
 
     return {
@@ -166,14 +186,19 @@ export class ExecuteInContextTool {
   }
 
   /**
-   * Create error response
+   * Create error response with consistent structure
    */
   private errorResponse(error: string, code: string): ToolResponse {
     return {
       content: [
         {
           type: 'text',
-          text: JSON.stringify({ error, code }),
+          text: JSON.stringify({
+            success: false,
+            error,
+            code,
+            timestamp: new Date().toISOString(),
+          }),
         },
       ],
     };
