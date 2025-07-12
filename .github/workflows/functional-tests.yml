@@ -117,12 +117,7 @@ jobs:
       - name: Generate test report
         if: always()
         run: |
-          # Generate HTML report
-          npm run test:report -- \
-            --input=test-results/${{ matrix.suite }}-results.json \
-            --output=test-reports/${{ matrix.suite }}-report.html
-            
-          # Generate summary
+          # Generate summary (HTML report generation not yet implemented)
           node scripts/generate-test-summary.js \
             test-results/${{ matrix.suite }}-results.json \
             > test-reports/${{ matrix.suite }}-summary.md
