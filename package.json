@@ -141,7 +141,7 @@
     "@opentelemetry/exporter-zipkin": "^1.29.0",
     "@opentelemetry/propagator-b3": "^1.29.0",
     "@opentelemetry/propagator-jaeger": "^1.29.0",
-    "@opentelemetry/auto-instrumentations-node": "^0.55.0",
+    "@opentelemetry/auto-instrumentations-node": "^0.62.0",
     "https-proxy-agent": "^7.0.6",
     "socks-proxy-agent": "^8.0.5",
     "node-fetch": "^3.3.2",
