@@ -89,7 +89,7 @@ jobs:
 
           # Check service health with retries
           for i in {1..5}; do
-            if curl -f http://localhost:8443/api/v1/health; then
+            if curl -f http://localhost:8443/health; then
               echo "Service is healthy!"
               break
             else
