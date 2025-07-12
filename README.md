@@ -84,7 +84,7 @@ export TELEMETRY_TRACE_OTLP_ENDPOINT=http://localhost:4318/v1/traces
 puppeteer-mcp
 ```
 
-See the [Telemetry Documentation](docs/telemetry.md) for detailed configuration options.
+See the [Telemetry Documentation](starlight-docs/src/content/docs/operations/telemetry.md) for detailed configuration options.
 
 ## 🎯 Key Features
 

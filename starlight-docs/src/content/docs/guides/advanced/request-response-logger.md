@@ -1,8 +1,15 @@
+---
+title: Request/Response Logger Middleware
+description: Comprehensive HTTP request and response logging with configurable verbosity levels, security features, performance monitoring, and NIST-compliant audit capabilities
+---
+
 # Request/Response Logger Middleware
 
-The `request-response-logger` middleware provides comprehensive logging of HTTP requests and
-responses with configurable verbosity levels, security features, and performance monitoring
-capabilities.
+The `request-response-logger` middleware provides comprehensive logging of HTTP requests and responses with configurable verbosity levels, security features, and performance monitoring capabilities.
+
+:::note[Enterprise Logging]
+This middleware provides NIST-compliant audit logging with sensitive data redaction, high-precision timing, and comprehensive security event tracking for production environments.
+:::
 
 ## Features
 
@@ -291,6 +298,10 @@ await logSecurityEvent(SecurityEventType.HTTP_REQUEST_COMPLETED, {
 });
 ```
 
+:::caution[Security Best Practices]
+Always customize sensitive field lists for your specific data model and regularly review audit logs for security events and compliance requirements.
+:::
+
 ## Performance Considerations
 
 ### High-Throughput Optimization
@@ -456,6 +467,8 @@ The middleware includes comprehensive error handling:
 
 ## Best Practices
 
+:::tip[Best Practice Guidelines]
+
 ### Production Deployment
 
 1. **Use Production Preset**: Start with the production configuration
@@ -477,6 +490,7 @@ The middleware includes comprehensive error handling:
 2. **Audit Reviews**: Regularly review audit logs
 3. **Access Control**: Secure log file access
 4. **Retention Policies**: Implement appropriate log retention
+:::
 
 ## Troubleshooting
 
@@ -503,6 +517,39 @@ app.use(
 );
 ```
 
+## Related Documentation
+
+- [Architecture Overview](/architecture/) for system design context
+- [Security Testing](/testing/security-testing) for security validation
+- [Operations Guide](/operations/) for production deployment
+- [Telemetry](/operations/telemetry) for observability integration
+
+## Use Cases
+
+### Compliance and Auditing
+
+The middleware provides comprehensive audit trails for:
+- Financial services compliance (SOX, PCI-DSS)
+- Healthcare compliance (HIPAA)
+- Government compliance (NIST, FedRAMP)
+- Data protection compliance (GDPR, CCPA)
+
+### Performance Monitoring
+
+Track application performance with:
+- Request duration monitoring
+- Slow request detection
+- Throughput analysis
+- Error rate tracking
+
+### Security Monitoring
+
+Monitor security events including:
+- Authentication attempts
+- Authorization failures
+- Suspicious request patterns
+- Data access auditing
+
 ## Contributing
 
 When contributing to the middleware:
@@ -512,3 +559,7 @@ When contributing to the middleware:
 3. Update documentation for configuration changes
 4. Consider performance impact of new features
 5. Maintain NIST compliance for security features
+
+## Conclusion
+
+The request/response logger middleware provides enterprise-grade HTTP logging capabilities with comprehensive security features, performance monitoring, and NIST compliance. By offering multiple verbosity levels and extensive configuration options, it adapts to various deployment scenarios from development debugging to production compliance monitoring.

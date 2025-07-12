@@ -73,6 +73,17 @@ export default defineConfig({
           ],
         },
         {
+          label: 'Advanced Guides',
+          items: [
+            { label: 'Overview', link: '/guides/advanced/index' },
+            { label: 'Telemetry & Monitoring', link: '/guides/advanced/telemetry' },
+            { label: 'Session Persistence', link: '/guides/advanced/session-persistence' },
+            { label: 'Browser Pool Optimization', link: '/guides/advanced/browser-pool-optimization' },
+            { label: 'Proxy Configuration', link: '/guides/advanced/proxy-configuration' },
+            { label: 'Middleware Development', link: '/guides/advanced/middleware' },
+          ],
+        },
+        {
           label: 'API Reference',
           items: [
             { label: 'Overview', link: '/reference/index' },
@@ -81,6 +92,35 @@ export default defineConfig({
             { label: 'WebSocket API', link: '/reference/websocket-api' },
             { label: 'MCP Tools', link: '/reference/mcp-tools' },
             { label: 'Puppeteer Actions', link: '/reference/puppeteer-actions' },
+          ],
+        },
+        {
+          label: 'Testing',
+          items: [
+            { label: 'Overview', link: '/testing/index' },
+            { label: 'Security Testing', link: '/testing/security-testing' },
+            { label: 'Performance Testing', link: '/testing/performance-testing' },
+            { label: 'UX Testing', link: '/testing/ux-testing' },
+            { label: 'UX Checklist', link: '/testing/ux-checklist' },
+            { label: 'UX Test Scenarios', link: '/testing/ux-test-scenarios' },
+            { label: 'Acceptance Testing', link: '/testing/acceptance-testing' },
+          ],
+        },
+        {
+          label: 'Evaluation',
+          items: [
+            { label: 'Overview', link: '/evaluation/index' },
+            { label: 'Quick Start', link: '/evaluation/quick-start' },
+            { label: 'Project Plan', link: '/evaluation/project-plan' },
+          ],
+        },
+        {
+          label: 'Operations',
+          items: [
+            { label: 'Overview', link: '/operations/index' },
+            { label: 'CI/CD Pipeline', link: '/operations/ci-cd' },
+            { label: 'Version Management', link: '/operations/version-management' },
+            { label: 'Error Handling', link: '/operations/error-handling' },
           ],
         },
         {

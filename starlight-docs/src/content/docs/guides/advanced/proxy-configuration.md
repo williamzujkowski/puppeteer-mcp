@@ -1,10 +1,15 @@
+---
+title: Proxy Configuration Guide
+description: Comprehensive proxy support for browser contexts including HTTP/HTTPS/SOCKS proxies, authentication, health monitoring, automatic rotation, and failover capabilities
+---
+
 # Proxy Configuration Guide
 
-## Overview
+The puppeteer-mcp project includes comprehensive proxy support for browser contexts, allowing you to route browser traffic through HTTP/HTTPS/SOCKS proxies. This feature supports authentication, health monitoring, automatic rotation, and failover capabilities.
 
-The puppeteer-mcp project now includes comprehensive proxy support for browser contexts, allowing
-you to route browser traffic through HTTP/HTTPS/SOCKS proxies. This feature supports authentication,
-health monitoring, automatic rotation, and failover capabilities.
+:::note[Enterprise Proxy Support]
+The proxy system provides enterprise-grade features including multiple protocols, authentication, health monitoring, automatic rotation, and NIST-compliant security controls.
+:::
 
 ## Features
 
@@ -13,8 +18,7 @@ health monitoring, automatic rotation, and failover capabilities.
 - **Bypass Lists**: Configure domains/IPs to bypass proxy
 - **Proxy Pools**: Configure multiple proxies with automatic rotation
 - **Health Monitoring**: Automatic health checks and failover
-- **Load Balancing**: Multiple rotation strategies (round-robin, random, least-used, priority,
-  health-based)
+- **Load Balancing**: Multiple rotation strategies (round-robin, random, least-used, priority, health-based)
 - **Security**: NIST-compliant implementation with secure credential handling
 - **Monitoring**: Comprehensive metrics and alerting
 
@@ -157,10 +161,12 @@ console.log('Pool health:', status.currentMetrics.poolHealth);
 
 ### Credential Management
 
+:::caution[Security Best Practices]
 - Never hardcode proxy credentials in source code
 - Use environment variables or secure credential stores
 - Passwords are automatically redacted in logs
 - Minimum 8-character password requirement
+:::
 
 ### Network Security
 
@@ -334,6 +340,8 @@ const secureContext = {
 
 ### Common Issues
 
+:::tip[Troubleshooting Guide]
+
 1. **Proxy Authentication Failed**
    - Verify credentials are correct
    - Check if proxy requires specific authentication method
@@ -353,6 +361,7 @@ const secureContext = {
    - Enable health monitoring to identify failing proxies
    - Increase `failoverThreshold` for unstable networks
    - Check proxy provider's rate limits
+:::
 
 ### Debug Logging
 
@@ -381,6 +390,7 @@ healthCheckInterval: 600000, // Check less frequently
 
 ## Best Practices
 
+:::tip[Proxy Best Practices]
 1. **Use Proxy Pools**: Configure multiple proxies for better reliability
 2. **Enable Health Checks**: Automatically detect and remove failing proxies
 3. **Set Appropriate Timeouts**: Balance between reliability and performance
@@ -388,3 +398,42 @@ healthCheckInterval: 600000, // Check less frequently
 5. **Secure Credentials**: Use environment variables and secure storage
 6. **Test Thoroughly**: Verify proxy configuration in development before production
 7. **Plan for Failures**: Always have fallback options and error handling
+:::
+
+## Related Documentation
+
+- [Architecture Overview](/architecture/) for system design context
+- [Security Testing](/testing/security-testing) for proxy security validation
+- [Operations Guide](/operations/) for monitoring proxy health
+- [Browser Pool Optimization](/guides/advanced/browser-pool-optimization) for performance optimization
+- [Session Persistence](/guides/advanced/session-persistence) for session management
+
+## Use Cases
+
+### Enterprise Network Access
+
+Proxy configuration is essential for enterprise environments where:
+- Direct internet access is restricted
+- Corporate firewalls require proxy routing
+- Network policies mandate traffic inspection
+- Geographic restrictions apply
+
+### Web Scraping and Data Collection
+
+Proxy rotation provides:
+- IP address rotation to avoid rate limiting
+- Geographic diversity for location-specific content
+- Load distribution across multiple proxy providers
+- Fault tolerance with automatic failover
+
+### Security and Privacy
+
+Proxy usage enhances security by:
+- Hiding original IP addresses
+- Encrypting traffic through secure proxies
+- Bypassing geographic restrictions
+- Adding an additional layer of network security
+
+## Conclusion
+
+The proxy configuration system provides enterprise-grade capabilities for routing browser traffic through various proxy types with comprehensive monitoring, health checks, and automatic rotation. This enables reliable browser automation in enterprise environments while maintaining security and performance standards.

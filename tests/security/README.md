@@ -1,6 +1,6 @@
 # Security Testing Suite for Puppeteer MCP
 
-This directory contains the comprehensive security testing suite for the Puppeteer MCP project, implementing the security testing strategy outlined in `/docs/SECURITY_TESTING_STRATEGY.md`.
+This directory contains the comprehensive security testing suite for the Puppeteer MCP project, implementing the security testing strategy outlined in `/starlight-docs/src/content/docs/testing/security-testing.md`.
 
 ## Directory Structure
 
@@ -305,5 +305,5 @@ When adding new security tests:
 
 - [OWASP Testing Guide](https://owasp.org/www-project-web-security-testing-guide/)
 - [NIST SP 800-53](https://csrc.nist.gov/publications/detail/sp/800-53/rev-5/final)
-- [Security Testing Strategy](/docs/SECURITY_TESTING_STRATEGY.md)
+- [Security Testing Strategy](/starlight-docs/src/content/docs/testing/security-testing.md)
 - [Project Security Policy](/SECURITY.md)

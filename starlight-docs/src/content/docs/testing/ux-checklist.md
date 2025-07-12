@@ -1,9 +1,15 @@
+---
+title: UX Testing Checklist
+description: Practical implementation roadmap and checklist for executing comprehensive UX testing of Puppeteer MCP across all user personas and scenarios
+---
+
 # UX Testing Implementation Checklist
 
-## Quick Start Guide
+This checklist provides a practical implementation roadmap for the comprehensive UX testing strategy. Use this to track progress and ensure all critical areas are covered.
 
-This checklist provides a practical implementation roadmap for the comprehensive UX testing
-strategy. Use this to track progress and ensure all critical areas are covered.
+:::tip[Quick Start Guide]
+This checklist is designed as a living document. Check off items as you complete them and update the checklist as you learn more about your users and their needs.
+:::
 
 ## Pre-Testing Setup ✓
 
@@ -255,13 +261,15 @@ strategy. Use this to track progress and ensure all critical areas are covered.
 
 ## Critical Success Factors
 
-### Must-Have Improvements
+:::caution[Must-Have Improvements]
+These five improvements are essential for user success:
 
 1. [ ] Error messages that guide users to solutions
 2. [ ] Natural language MCP interface working smoothly
 3. [ ] First-time user success without documentation
 4. [ ] Automatic recovery from common failures
 5. [ ] Clear progress indicators for long operations
+:::
 
 ### Quick Wins (< 1 day)
 
@@ -365,7 +373,24 @@ strategy. Use this to track progress and ensure all critical areas are covered.
 - [ ] Feature requests aligned with vision
 - [ ] Platform becoming industry standard
 
----
+:::note[Continuous Process]
+**Remember**: UX testing is not a one-time event but a continuous process. Use this checklist as a living document, updating it as you learn more about your users and their needs.
+:::
 
-**Remember**: UX testing is not a one-time event but a continuous process. Use this checklist as a
-living document, updating it as you learn more about your users and their needs.
+## Related Documentation
+
+- [UX Testing Strategy](/testing/ux-testing) for detailed methodology
+- [Performance Testing](/testing/performance-testing) for performance impact on UX
+- [Security Testing](/testing/security-testing) for security UX considerations
+- [Operations Guide](/operations/) for production UX monitoring
+- [Development Workflow](/development/workflow) for integrating UX testing into development
+
+## Quick Reference
+
+For immediate UX validation, focus on these key areas:
+
+1. **First-time user experience** - Can new users succeed within 30 minutes?
+2. **Error recovery** - Do users understand errors and know how to fix them?
+3. **Natural language interface** - Does the MCP integration work intuitively?
+4. **Documentation effectiveness** - Can users complete tasks using docs alone?
+5. **Performance satisfaction** - Do response times meet user expectations?

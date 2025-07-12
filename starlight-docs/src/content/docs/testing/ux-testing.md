@@ -1,22 +1,15 @@
-# Comprehensive UX Testing Strategy for Puppeteer-MCP
+---
+title: UX Testing Strategy
+description: Comprehensive user experience testing methodology for Puppeteer MCP covering user personas, real-world scenarios, MCP client integration, API usability, and error handling
+---
 
-## Executive Summary
+# UX Testing Strategy
 
-This document outlines a comprehensive User Experience (UX) testing strategy for the puppeteer-mcp
-project, focusing on real-world usage scenarios, user journey validation, MCP client integration,
-API usability, workflow complexity, and error handling from the user's perspective.
+This comprehensive User Experience (UX) testing strategy for Puppeteer MCP focuses on real-world usage scenarios, user journey validation, MCP client integration, API usability, workflow complexity, and error handling from the user's perspective.
 
-## Table of Contents
-
-1. [User Personas](#user-personas)
-2. [Real User Scenarios](#real-user-scenarios)
-3. [User Journey Testing](#user-journey-testing)
-4. [MCP Client Integration Testing](#mcp-client-integration-testing)
-5. [API Usability Testing](#api-usability-testing)
-6. [Workflow Complexity Testing](#workflow-complexity-testing)
-7. [Error Experience Testing](#error-experience-testing)
-8. [Implementation Strategy](#implementation-strategy)
-9. [Success Metrics](#success-metrics)
+:::note[User-Centered Approach]
+Our UX testing strategy prioritizes real user needs across five distinct personas, from business analysts using AI assistants to expert DevOps engineers building scalable automation pipelines.
+:::
 
 ## User Personas
 
@@ -64,8 +57,8 @@ API usability, workflow complexity, and error handling from the user's perspecti
 
 ### Scenario 1: E-commerce Price Monitoring
 
-**User**: Mike (Business Analyst) **Goal**: Monitor product prices across 5 competitor websites
-daily
+**User**: Mike (Business Analyst)  
+**Goal**: Monitor product prices across 5 competitor websites daily
 
 #### Test Cases:
 
@@ -100,8 +93,8 @@ TC-1.2: Daily Price Collection
 
 ### Scenario 2: Automated Testing Pipeline
 
-**User**: Sarah (QA Automation Engineer) **Goal**: Run 50 parallel browser tests with real-time
-monitoring
+**User**: Sarah (QA Automation Engineer)  
+**Goal**: Run 50 parallel browser tests with real-time monitoring
 
 #### Test Cases:
 
@@ -139,7 +132,8 @@ TC-2.2: Test Debugging
 
 ### Scenario 3: Data Extraction Pipeline
 
-**User**: Alex (Web Scraping Developer) **Goal**: Extract structured data from 100 product pages
+**User**: Alex (Web Scraping Developer)  
+**Goal**: Extract structured data from 100 product pages
 
 #### Test Cases:
 
@@ -177,7 +171,8 @@ TC-3.2: Dynamic Content Handling
 
 ### Scenario 4: Visual Monitoring System
 
-**User**: Emma (DevOps Engineer) **Goal**: Monitor 20 websites for visual changes every hour
+**User**: Emma (DevOps Engineer)  
+**Goal**: Monitor 20 websites for visual changes every hour
 
 #### Test Cases:
 
@@ -200,7 +195,8 @@ TC-4.1: Screenshot Pipeline
 
 ### Scenario 5: AI-Powered Automation
 
-**User**: David (AI Developer) **Goal**: Build autonomous web agents using LLMs
+**User**: David (AI Developer)  
+**Goal**: Build autonomous web agents using LLMs
 
 #### Test Cases:
 
@@ -406,7 +402,10 @@ Test Areas:
     - Cancellation
 
 Compliance Checklist:
-  ✓ JSON-RPC 2.0 compliance ✓ Tool/Resource format ✓ Error code standards ✓ Async operation handling
+  ✓ JSON-RPC 2.0 compliance
+  ✓ Tool/Resource format
+  ✓ Error code standards
+  ✓ Async operation handling
 ```
 
 ## API Usability Testing
@@ -423,8 +422,9 @@ Evaluate:
   - Predictable response formats
 
 Examples to Test:
-  ✓ GET /sessions vs GET /api/v1/sessions ✓ "sessionId" vs "session_id" vs "id" ✓ Error format
-  consistency
+  ✓ GET /sessions vs GET /api/v1/sessions
+  ✓ "sessionId" vs "session_id" vs "id"
+  ✓ Error format consistency
 
 Success Criteria:
   - 100% naming consistency
@@ -516,10 +516,17 @@ const browser = await client.createBrowser({
 ```yaml
 Test: API Documentation Completeness
 Check Each Endpoint For:
-  ✓ Description of purpose ✓ All parameters documented ✓ Example request/response ✓ Error codes
-  possible ✓ Rate limits specified ✓ Authentication required
+  ✓ Description of purpose
+  ✓ All parameters documented
+  ✓ Example request/response
+  ✓ Error codes possible
+  ✓ Rate limits specified
+  ✓ Authentication required
 
-Test Method: 1. New developer reads docs 2. Implements common scenario 3. No additional help needed
+Test Method:
+  1. New developer reads docs
+  2. Implements common scenario
+  3. No additional help needed
 
 Success Rate Target: 90%
 ```
@@ -533,7 +540,11 @@ Success Rate Target: 90%
 ```yaml
 Scenario: Take Screenshot
 Complexity: Minimal
-Steps: 1. Create session 2. Navigate to URL 3. Take screenshot 4. Close session
+Steps:
+  1. Create session
+  2. Navigate to URL
+  3. Take screenshot
+  4. Close session
 
 Test Focus:
   - Clear getting started guide
@@ -552,8 +563,12 @@ Success Criteria:
 Scenario: Login and Extract Data
 Complexity: Medium
 Steps:
-  1. Navigate to login page 2. Fill credentials 3. Submit and wait 4. Navigate to data page 5.
-  Extract information 6. Handle pagination
+  1. Navigate to login page
+  2. Fill credentials
+  3. Submit and wait
+  4. Navigate to data page
+  5. Extract information
+  6. Handle pagination
 
 Test Focus:
   - State preservation
@@ -572,8 +587,12 @@ Success Criteria:
 Scenario: Scrape 100 Product Pages
 Complexity: High
 Steps:
-  1. Create session pool 2. Queue URLs for processing 3. Execute in parallel 4. Handle
-  failures/retries 5. Aggregate results 6. Resource cleanup
+  1. Create session pool
+  2. Queue URLs for processing
+  3. Execute in parallel
+  4. Handle failures/retries
+  5. Aggregate results
+  6. Resource cleanup
 
 Test Focus:
   - Resource management
@@ -594,8 +613,13 @@ Success Criteria:
 Scenario: Multi-Site Price Comparison
 Complexity: Expert
 Steps:
-  1. Identify product across sites 2. Handle different layouts 3. Extract comparable data 4. Handle
-  authentication 5. Rate limit compliance 6. Real-time updates 7. Generate reports
+  1. Identify product across sites
+  2. Handle different layouts
+  3. Extract comparable data
+  4. Handle authentication
+  5. Rate limit compliance
+  6. Real-time updates
+  7. Generate reports
 
 Test Focus:
   - Abstraction patterns
@@ -685,14 +709,23 @@ Success Criteria:
 Test: Error Recovery Assistance
 Scenario: Navigation Timeout
 
-Poor Experience: 'Navigation timeout of 30000ms exceeded'
+Poor Experience:
+  'Navigation timeout of 30000ms exceeded'
 
-Good Experience: "Page load timeout after 30 seconds URL: https://slow-site.example.com
+Good Experience:
+  "Page load timeout after 30 seconds
+  URL: https://slow-site.example.com
 
-  Common solutions: 1. Increase timeout: { timeout: 60000 } 2. Wait for specific element instead 3.
-  Use 'domcontentloaded' instead of 'load'
+  Common solutions:
+  1. Increase timeout: { timeout: 60000 }
+  2. Wait for specific element instead
+  3. Use 'domcontentloaded' instead of 'load'
 
-  Code example: await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 })"
+  Code example:
+  await page.goto(url, { 
+    waitUntil: 'domcontentloaded', 
+    timeout: 60000 
+  })"
 
 Success Metrics:
   - 90% errors include recovery steps
@@ -938,19 +971,27 @@ Access Control:
   - Easy reset capability
 ```
 
+:::tip[Testing Best Practices]
+The success of this UX testing strategy depends on:
+
+1. **Commitment to user-centered design**
+2. **Iterative testing and improvement**  
+3. **Clear metrics and accountability**
+4. **Cross-functional collaboration**
+
+Regular testing cycles should continue post-launch to ensure the platform evolves with user needs and maintains high usability standards.
+:::
+
+## Related Documentation
+
+- [Security Testing](/testing/security-testing) for security UX considerations
+- [Performance Testing](/testing/performance-testing) for performance impact on UX
+- [UX Testing Checklist](/testing/ux-checklist) for quick validation tasks
+- [API Reference](/api/) for technical implementation details
+- [Operations Guide](/operations/) for monitoring user experience metrics
+
 ## Conclusion
 
-This comprehensive UX testing strategy ensures puppeteer-mcp delivers an exceptional user experience
-across all user types and use cases. By focusing on real-world scenarios, progressive complexity,
-and clear error handling, we can create a browser automation platform that is both powerful and
-approachable.
+This comprehensive UX testing strategy ensures Puppeteer MCP delivers an exceptional user experience across all user types and use cases. By focusing on real-world scenarios, progressive complexity, and clear error handling, we create a browser automation platform that is both powerful and approachable.
 
-The success of this testing strategy depends on:
-
-1. Commitment to user-centered design
-2. Iterative testing and improvement
-3. Clear metrics and accountability
-4. Cross-functional collaboration
-
-Regular testing cycles should continue post-launch to ensure the platform evolves with user needs
-and maintains high usability standards.
+The framework addresses the unique needs of each persona while maintaining consistency across all interaction methods, from natural language commands through Claude Desktop to expert-level gRPC integrations.

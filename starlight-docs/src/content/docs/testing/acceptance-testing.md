@@ -1,13 +1,15 @@
+---
+title: Acceptance Testing Framework
+description: Comprehensive acceptance testing framework for puppeteer-mcp, designed to validate real-world functionality against live websites and APIs with end-to-end validation
+---
+
 # Acceptance Testing Framework
 
-This document describes the comprehensive acceptance testing framework for puppeteer-mcp, designed
-to validate real-world functionality against live websites and APIs.
+The acceptance testing framework provides end-to-end validation of puppeteer-mcp's capabilities by testing against publicly available, stable websites and APIs. These tests ensure that the system works correctly in real-world scenarios.
 
-## Overview
-
-The acceptance testing framework provides end-to-end validation of puppeteer-mcp's capabilities by
-testing against publicly available, stable websites and APIs. These tests ensure that the system
-works correctly in real-world scenarios.
+:::note[Real-World Validation]
+Acceptance tests validate puppeteer-mcp against live websites and APIs to ensure real-world functionality, complementing unit and integration tests with comprehensive end-to-end scenarios.
+:::
 
 ## Test Structure
 
@@ -64,10 +66,12 @@ ACCEPTANCE_TEST_SLOW_MO=100 npm run test:acceptance:basic
 
 ### Environment Variables
 
-- `ACCEPTANCE_TEST_TIMEOUT`: Test timeout in ms (default: 60000)
-- `ACCEPTANCE_TEST_RETRIES`: Number of retries for flaky tests (default: 2)
-- `ACCEPTANCE_TEST_HEADLESS`: Run in headless mode (default: true)
-- `ACCEPTANCE_TEST_SLOW_MO`: Slow down actions in ms (default: 0)
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `ACCEPTANCE_TEST_TIMEOUT` | Test timeout in ms | `60000` |
+| `ACCEPTANCE_TEST_RETRIES` | Number of retries for flaky tests | `2` |
+| `ACCEPTANCE_TEST_HEADLESS` | Run in headless mode | `true` |
+| `ACCEPTANCE_TEST_SLOW_MO` | Slow down actions in ms | `0` |
 
 ### CI/CD Integration
 
@@ -117,7 +121,9 @@ Centralized configuration for:
 
 ## Best Practices
 
-### Test Design
+:::tip[Test Design Guidelines]
+
+### Robust Test Design
 
 1. **Use Stable Targets**: Only test against sites designed for automation
 2. **Handle Flakiness**: Implement retries and appropriate wait strategies
@@ -125,7 +131,7 @@ Centralized configuration for:
 4. **Clean Resources**: Always close browser contexts and sessions
 5. **Collect Artifacts**: Save screenshots and logs on failure
 
-### Error Handling
+### Error Handling Pattern
 
 ```typescript
 // Example retry pattern
@@ -148,10 +154,13 @@ performance.checkpoint('interaction');
 console.log('Performance report:', performance.getReport());
 expect(performance.getElapsed()).toBeLessThan(10000);
 ```
+:::
 
 ## Troubleshooting
 
 ### Common Issues
+
+:::caution[Common Issues and Solutions]
 
 1. **External Service Unavailable**
    - Tests validate URL accessibility before running
@@ -167,8 +176,9 @@ expect(performance.getElapsed()).toBeLessThan(10000);
    - Chrome dependencies installed in CI
    - Headless mode for CI, visible for debugging
    - Resource cleanup to prevent memory leaks
+:::
 
-### Debugging
+### Debugging Commands
 
 ```bash
 # Run with visible browser and slow motion
@@ -183,10 +193,12 @@ DEBUG=puppeteer:* npm run test:acceptance:basic
 
 ## Configuration Files
 
-- `jest.acceptance.config.mjs`: Jest configuration for acceptance tests
-- `package.json`: Test scripts and dependencies
-- `.github/workflows/acceptance-tests.yml`: CI/CD workflow
-- `tests/acceptance/utils/`: Framework utilities and configuration
+| File | Purpose |
+|------|---------|
+| `jest.acceptance.config.mjs` | Jest configuration for acceptance tests |
+| `package.json` | Test scripts and dependencies |
+| `.github/workflows/acceptance-tests.yml` | CI/CD workflow |
+| `tests/acceptance/utils/` | Framework utilities and configuration |
 
 ## Maintenance
 
@@ -216,13 +228,14 @@ DEBUG=puppeteer:* npm run test:acceptance:basic
 
 Acceptance tests complement the existing test suite:
 
-- **Unit Tests**: Fast, isolated component testing
-- **Integration Tests**: Internal API and component integration
-- **Acceptance Tests**: Real-world end-to-end validation
-- **Security Tests**: Automated security scanning
+| Test Type | Purpose | Scope |
+|-----------|---------|-------|
+| **Unit Tests** | Fast, isolated component testing | Individual functions |
+| **Integration Tests** | Internal API and component integration | System components |
+| **Acceptance Tests** | Real-world end-to-end validation | Complete workflows |
+| **Security Tests** | Automated security scanning | Security compliance |
 
-This multi-layered approach ensures comprehensive coverage from individual functions to complete
-user workflows.
+This multi-layered approach ensures comprehensive coverage from individual functions to complete user workflows.
 
 ## Future Enhancements
 
@@ -234,5 +247,13 @@ Planned improvements to the acceptance testing framework:
 4. **Accessibility Testing**: Automated accessibility compliance checking
 5. **Load Testing**: Concurrent session and performance testing
 
-The acceptance testing framework provides confidence that puppeteer-mcp works correctly in
-real-world scenarios while maintaining reliability and performance standards.
+## Related Documentation
+
+- [Testing Overview](/testing/) for complete testing strategy
+- [Security Testing](/testing/security-testing) for security validation
+- [Performance Testing](/testing/performance-testing) for performance validation
+- [UX Testing](/testing/ux-testing) for user experience validation
+
+## Conclusion
+
+The acceptance testing framework provides confidence that puppeteer-mcp works correctly in real-world scenarios while maintaining reliability and performance standards. By testing against stable public targets with robust retry mechanisms and comprehensive monitoring, the framework ensures system reliability in production environments.

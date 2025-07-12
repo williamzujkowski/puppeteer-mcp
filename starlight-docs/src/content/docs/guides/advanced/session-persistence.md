@@ -1,7 +1,15 @@
+---
+title: Session Persistence with Redis
+description: Redis-backed session persistence implementation with automatic failover, migration utilities, replication features, and comprehensive monitoring for production-ready browser automation
+---
+
 # Session Persistence with Redis
 
-This document describes the Redis-backed session persistence implementation for the puppeteer-mcp
-project, including configuration, usage, and operational considerations.
+This document describes the Redis-backed session persistence implementation for the puppeteer-mcp project, including configuration, usage, and operational considerations.
+
+:::note[Enterprise Session Management]
+The session persistence system provides enterprise-grade reliability with Redis-backed storage, automatic failover, and comprehensive monitoring for production browser automation workloads.
+:::
 
 ## Overview
 
@@ -298,6 +306,10 @@ The implementation includes NIST compliance features:
 - **Access controls**: Role-based session data access
 - **Data encryption**: Support for TLS/SSL connections
 
+:::caution[Security Best Practices]
+Always enable TLS for production Redis connections and implement proper access controls for session data. Regularly review audit logs and monitor for suspicious session activity.
+:::
+
 ## Operational Procedures
 
 ### Deployment
@@ -391,6 +403,8 @@ npm run test:e2e -- --testPathPattern=session-persistence
 
 ## Best Practices
 
+:::tip[Best Practice Guidelines]
+
 ### Configuration
 
 1. **Use environment variables**: Configure via environment for different environments
@@ -411,6 +425,7 @@ npm run test:e2e -- --testPathPattern=session-persistence
 2. **Implement backups**: Regular backup procedures for session data
 3. **Plan for scaling**: Design for horizontal scaling requirements
 4. **Security auditing**: Regular security reviews and compliance checks
+:::
 
 ## Migration Guide
 
@@ -479,6 +494,13 @@ class SessionStoreFactory {
 }
 ```
 
+## Related Documentation
+
+- [Architecture Overview](/architecture/) for system design context
+- [Security Testing](/testing/security-testing) for session security validation
+- [Operations Guide](/operations/) for monitoring and maintenance
+- [Browser Pool Optimization](/guides/advanced/browser-pool-optimization) for performance optimization
+
 ## Support
 
 For issues, questions, or contributions:
@@ -488,7 +510,6 @@ For issues, questions, or contributions:
 3. **Tests**: Review test cases for usage examples
 4. **Community**: Engage with the community for support
 
-## License
+## Conclusion
 
-This session persistence implementation is part of the puppeteer-mcp project and is licensed under
-the MIT License.
+The session persistence system provides enterprise-grade reliability and performance for browser automation workloads. By leveraging Redis for persistent storage with intelligent fallback mechanisms, comprehensive monitoring, and migration utilities, the system ensures session data integrity and high availability in production environments.

@@ -1,7 +1,15 @@
+---
+title: OpenTelemetry Integration
+description: Comprehensive OpenTelemetry instrumentation for distributed tracing, performance monitoring, and observability in Puppeteer MCP
+---
+
 # OpenTelemetry Integration
 
-This document describes the OpenTelemetry instrumentation added to puppeteer-mcp for distributed
-tracing and performance monitoring.
+This document describes the OpenTelemetry instrumentation added to puppeteer-mcp for distributed tracing and performance monitoring.
+
+:::note[Production-Ready Observability]
+Puppeteer MCP includes comprehensive OpenTelemetry instrumentation that provides enterprise-grade monitoring and observability out of the box.
+:::
 
 ## Overview
 
@@ -305,11 +313,13 @@ spec:
 
 ## Performance Considerations
 
+:::tip[Optimization Best Practices]
 1. **Sampling**: Use appropriate sampling rates to balance visibility and overhead
 2. **Batch Processing**: Traces and metrics are batched before export
 3. **Async Export**: Telemetry export doesn't block application code
 4. **Resource Detection**: Automatic detection can be disabled if not needed
 5. **Selective Instrumentation**: Disable unused instrumentations
+:::
 
 ## Troubleshooting
 
@@ -331,10 +341,12 @@ TELEMETRY_LOG_LEVEL=debug
 
 ## Security Considerations
 
+:::caution[Security Best Practices]
 1. **Sensitive Data**: Telemetry automatically excludes sensitive fields
 2. **PII Protection**: User IDs are included but PII is not exported
 3. **Network Security**: Use TLS for exporter endpoints in production
 4. **Access Control**: Protect telemetry endpoints with authentication
+:::
 
 ## Testing
 
@@ -354,9 +366,20 @@ For existing deployments:
 4. Existing metrics remain available at `/metrics`
 5. New telemetry metrics available via configured exporter
 
-## Further Reading
+## Related Documentation
+
+- [Operations Guide](/operations/) for operational procedures
+- [Performance Testing](/testing/performance-testing) for monitoring performance
+- [Security Testing](/testing/security-testing) for security monitoring
+- [Architecture Overview](/architecture/) for system design context
+
+## External Resources
 
 - [OpenTelemetry Documentation](https://opentelemetry.io/docs/)
 - [Jaeger Documentation](https://www.jaegertracing.io/docs/)
 - [Prometheus Documentation](https://prometheus.io/docs/)
 - [OTLP Specification](https://opentelemetry.io/docs/reference/specification/protocol/otlp/)
+
+## Conclusion
+
+OpenTelemetry integration provides comprehensive observability for Puppeteer MCP deployments. The instrumentation is production-ready with minimal performance impact and extensive configuration options to match your specific monitoring needs.

@@ -1,10 +1,15 @@
+---
+title: UX Test Scenarios - Implementation Guide
+description: Comprehensive test scenario implementations for puppeteer-mcp UX testing strategy with concrete examples, measurement frameworks, and evaluation criteria
+---
+
 # UX Test Scenarios - Implementation Guide
 
-## Overview
+This document provides concrete test scenario implementations for the puppeteer-mcp UX testing strategy. Each scenario includes setup instructions, test scripts, expected outcomes, and evaluation criteria.
 
-This document provides concrete test scenario implementations for the puppeteer-mcp UX testing
-strategy. Each scenario includes setup instructions, test scripts, expected outcomes, and evaluation
-criteria.
+:::note[Comprehensive UX Testing]
+These scenarios cover real-world usage patterns across different user personas, from web scraping developers to QA automation engineers, providing comprehensive validation of user experience quality.
+:::
 
 ## Test Scenario Implementations
 
@@ -862,39 +867,36 @@ function calculateOverallScore(session) {
 
 ### Qualitative Analysis
 
-```javascript
-const qualitativeFramework = {
-  thinkAloudAnalysis: {
-    capturePoints: [
-      'Initial reaction to interface',
-      'Confusion moments',
-      'Delight moments',
-      'Frustration points',
-      'Learning breakthroughs',
-    ],
+:::tip[Qualitative Analysis Framework]
 
-    codingScheme: {
-      confusion: ['unclear', 'lost', 'not sure', 'what does'],
-      frustration: ['annoying', 'why', 'stupid', 'broken'],
-      satisfaction: ['nice', 'easy', 'cool', 'works great'],
-      learning: ['oh I see', 'now I get it', 'that makes sense'],
-    },
-  },
+#### Think-Aloud Analysis
 
-  sentimentAnalysis: {
-    tool: 'Natural language processing',
-    categories: ['positive', 'negative', 'neutral'],
-    aspects: ['ease_of_use', 'functionality', 'documentation', 'performance'],
-  },
+**Capture Points**:
+- Initial reaction to interface
+- Confusion moments  
+- Delight moments
+- Frustration points
+- Learning breakthroughs
 
-  behaviorPatterns: {
-    exploration: 'How users discover features',
-    problemSolving: 'Approaches to obstacles',
-    documentation: 'When and how docs are used',
-    collaboration: 'Seeking help patterns',
-  },
-};
-```
+**Coding Scheme**:
+- **Confusion**: ['unclear', 'lost', 'not sure', 'what does']
+- **Frustration**: ['annoying', 'why', 'stupid', 'broken']
+- **Satisfaction**: ['nice', 'easy', 'cool', 'works great']
+- **Learning**: ['oh I see', 'now I get it', 'that makes sense']
+
+#### Sentiment Analysis
+
+- **Tool**: Natural language processing
+- **Categories**: ['positive', 'negative', 'neutral']
+- **Aspects**: ['ease_of_use', 'functionality', 'documentation', 'performance']
+
+#### Behavior Patterns
+
+- **Exploration**: How users discover features
+- **Problem Solving**: Approaches to obstacles
+- **Documentation**: When and how docs are used
+- **Collaboration**: Seeking help patterns
+:::
 
 ## Continuous Improvement Process
 
@@ -935,5 +937,23 @@ Participants per Cycle: 10-15
 Success Metric: 10% improvement per cycle
 ```
 
-This comprehensive test scenario implementation guide provides concrete examples and frameworks for
-executing the UX testing strategy effectively.
+## Test Scenario Summary
+
+| Scenario Set | Scenarios | Complexity Range | Total Duration |
+|--------------|-----------|------------------|----------------|
+| Web Scraping | 2 scenarios | Medium - High | 35 minutes |
+| Automated Testing | 2 scenarios | Low - Medium | 25 minutes |
+| Data Extraction | 2 scenarios | Low - High | 35 minutes |
+| Error Recovery | 2 scenarios | Medium | 27 minutes |
+| MCP Integration | 2 scenarios | Low - Medium | 23 minutes |
+
+## Related Documentation
+
+- [UX Testing Strategy](/testing/ux-testing) for overall testing approach
+- [UX Testing Checklist](/testing/ux-checklist) for validation criteria
+- [UX Error Experience Guide](/testing/ux-error-experience) for error handling
+- [Acceptance Testing](/testing/acceptance-testing) for end-to-end validation
+
+## Conclusion
+
+This comprehensive test scenario implementation guide provides concrete examples and frameworks for executing the UX testing strategy effectively. By covering diverse user personas, complexity levels, and measurement frameworks, these scenarios ensure thorough validation of user experience quality across all puppeteer-mcp use cases.

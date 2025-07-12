@@ -1,9 +1,15 @@
+---
+title: CI/CD Pipeline
+description: Comprehensive automated release pipeline built with GitHub Actions, ensuring code quality, security, and reliable releases for puppeteer-mcp
+---
+
 # CI/CD Pipeline Documentation
 
-## Overview
+The puppeteer-mcp project uses a comprehensive automated release pipeline built with GitHub Actions. This pipeline ensures code quality, security, and reliable releases.
 
-The puppeteer-mcp project uses a comprehensive automated release pipeline built with GitHub Actions.
-This pipeline ensures code quality, security, and reliable releases.
+:::note[Enterprise CI/CD]
+The CI/CD pipeline provides enterprise-grade automation with multi-stage validation, security scanning, performance monitoring, and automated rollback capabilities for production reliability.
+:::
 
 ## Pipeline Components
 
@@ -176,18 +182,20 @@ body
 footer
 ```
 
-Types:
+**Types**:
 
-- `feat`: New feature
-- `fix`: Bug fix
-- `docs`: Documentation changes
-- `style`: Code style changes
-- `refactor`: Code refactoring
-- `perf`: Performance improvements
-- `test`: Test changes
-- `build`: Build system changes
-- `ci`: CI/CD changes
-- `chore`: Other changes
+| Type | Description |
+|------|-------------|
+| `feat` | New feature |
+| `fix` | Bug fix |
+| `docs` | Documentation changes |
+| `style` | Code style changes |
+| `refactor` | Code refactoring |
+| `perf` | Performance improvements |
+| `test` | Test changes |
+| `build` | Build system changes |
+| `ci` | CI/CD changes |
+| `chore` | Other changes |
 
 ## Security Measures
 
@@ -200,10 +208,12 @@ Types:
 
 ### Security Gates
 
+:::caution[Security Requirements]
 1. No high/critical vulnerabilities allowed in production dependencies
 2. Security scans on every PR
 3. Daily security monitoring
 4. Automated dependency updates for security patches
+:::
 
 ## Performance Monitoring
 
@@ -217,10 +227,12 @@ Types:
 
 ### Performance Thresholds
 
-- Startup time: < 5 seconds
-- Memory usage: < 512MB
-- API response: < 100ms average
-- Bundle size: < 50MB
+| Metric | Threshold |
+|--------|-----------|
+| Startup time | < 5 seconds |
+| Memory usage | < 512MB |
+| API response | < 100ms average |
+| Bundle size | < 50MB |
 
 ## Quality Gates
 
@@ -259,22 +271,23 @@ After each release:
 
 ## Troubleshooting
 
-### Common Issues
+:::tip[Common Issues and Solutions]
 
-1. **Release fails at NPM publish**
-   - Check NPM_TOKEN secret
-   - Verify package.json is valid
-   - Ensure version doesn't already exist
+### 1. Release fails at NPM publish
+- Check NPM_TOKEN secret
+- Verify package.json is valid
+- Ensure version doesn't already exist
 
-2. **Docker build fails**
-   - Check Dockerfile syntax
-   - Verify base image availability
-   - Review multi-platform compatibility
+### 2. Docker build fails
+- Check Dockerfile syntax
+- Verify base image availability
+- Review multi-platform compatibility
 
-3. **Tests fail in CI but pass locally**
-   - Check environment variables
-   - Review service dependencies
-   - Verify Node.js version match
+### 3. Tests fail in CI but pass locally
+- Check environment variables
+- Review service dependencies
+- Verify Node.js version match
+:::
 
 ### Debug Mode
 
@@ -288,6 +301,7 @@ env:
 
 ## Best Practices
 
+:::tip[CI/CD Best Practices]
 1. **Always run the release checklist** before creating a release
 2. **Use semantic commit messages** for automatic versioning
 3. **Test releases in pre-release** before going to production
@@ -295,27 +309,30 @@ env:
 5. **Document rollback reasons** if needed
 6. **Keep dependencies updated** weekly
 7. **Review performance trends** regularly
+:::
 
 ## Scripts Reference
 
-| Script                      | Description                  |
-| --------------------------- | ---------------------------- |
-| `npm run release:checklist` | Run pre-release validations  |
-| `npm run release`           | Create a new release         |
-| `npm run release:dry-run`   | Preview release changes      |
-| `npm run release:rollback`  | Rollback to previous version |
-| `npm run changelog`         | Generate changelog           |
-| `npm run version:check`     | Check version consistency    |
-| `npm run security:check`    | Run security validations     |
+| Script | Description |
+|--------|-------------|
+| `npm run release:checklist` | Run pre-release validations |
+| `npm run release` | Create a new release |
+| `npm run release:dry-run` | Preview release changes |
+| `npm run release:rollback` | Rollback to previous version |
+| `npm run changelog` | Generate changelog |
+| `npm run version:check` | Check version consistency |
+| `npm run security:check` | Run security validations |
 
 ## GitHub Secrets Required
 
-- `NPM_TOKEN`: NPM authentication token
-- `DOCKER_USERNAME`: Docker Hub username
-- `DOCKER_PASSWORD`: Docker Hub password
-- `CODECOV_TOKEN`: Codecov integration token
-- `APP_ID`: GitHub App ID for automated PRs
-- `APP_PRIVATE_KEY`: GitHub App private key
+| Secret | Purpose |
+|--------|---------|
+| `NPM_TOKEN` | NPM authentication token |
+| `DOCKER_USERNAME` | Docker Hub username |
+| `DOCKER_PASSWORD` | Docker Hub password |
+| `CODECOV_TOKEN` | Codecov integration token |
+| `APP_ID` | GitHub App ID for automated PRs |
+| `APP_PRIVATE_KEY` | GitHub App private key |
 
 ## Maintenance
 
@@ -338,3 +355,14 @@ env:
 - Performance baseline updates
 - CI/CD pipeline optimization
 - Dependency major version updates
+
+## Related Documentation
+
+- [Development Workflow](/development/workflow) for development processes
+- [Security Testing](/testing/security-testing) for security validation
+- [Performance Testing](/testing/performance-testing) for performance monitoring
+- [Version Management](/operations/version-management) for version control
+
+## Conclusion
+
+The CI/CD pipeline provides enterprise-grade automation ensuring code quality, security, and reliable releases. With comprehensive validation stages, automated rollback capabilities, and continuous monitoring, the pipeline maintains high standards for production deployments while enabling rapid development cycles.

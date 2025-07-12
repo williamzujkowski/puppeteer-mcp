@@ -1,11 +1,15 @@
+---
+title: Browser Pool Optimization Guide
+description: Advanced resource management, scaling algorithms, and performance monitoring for production-ready browser automation with intelligent resource allocation and comprehensive failure handling
+---
+
 # Browser Pool Optimization Guide
 
-## Overview
+The Browser Pool Optimization system provides advanced resource management, scaling algorithms, and performance monitoring for the puppeteer-mcp browser pool. These features enable production-ready browser automation with intelligent resource allocation, predictive scaling, and comprehensive failure handling.
 
-The Browser Pool Optimization system provides advanced resource management, scaling algorithms, and
-performance monitoring for the puppeteer-mcp browser pool. These features enable production-ready
-browser automation with intelligent resource allocation, predictive scaling, and comprehensive
-failure handling.
+:::note[Enterprise Features]
+These optimization features are designed for production environments where reliability, performance, and resource efficiency are critical for business operations.
+:::
 
 ## Key Features
 
@@ -557,6 +561,8 @@ interface PerformanceMonitoringConfig {
 
 ## Best Practices
 
+:::tip[Optimization Best Practices]
+
 ### 1. Resource Management
 
 - **Monitor memory usage** regularly and set appropriate thresholds
@@ -591,6 +597,7 @@ interface PerformanceMonitoringConfig {
 - **Configure appropriate thresholds** for your workload
 - **Enable batch recycling** for better performance
 - **Monitor recycling events** and adjust configuration
+:::
 
 ## Troubleshooting
 
@@ -692,10 +699,12 @@ To migrate from the standard browser pool to the optimized version:
 
 ## Security Considerations
 
+:::caution[Security Notes]
 - **Resource monitoring** may expose system information
 - **Performance metrics** should be properly secured
 - **Circuit breaker events** may indicate system vulnerabilities
 - **Optimization recommendations** should be reviewed before auto-application
+:::
 
 ## Performance Impact
 
@@ -704,12 +713,15 @@ To migrate from the standard browser pool to the optimized version:
 - **Network overhead:** Minimal (local monitoring only)
 - **Storage overhead:** Configurable retention periods
 
+## Related Documentation
+
+- [Architecture Overview](/architecture/) for system design context
+- [Performance Testing](/testing/performance-testing) for testing optimization features
+- [Operations Guide](/operations/) for monitoring and maintenance
+- [Telemetry](/operations/telemetry) for observability integration
+
 ## Conclusion
 
-The Browser Pool Optimization system provides enterprise-grade resource management, scaling, and
-monitoring capabilities. By following this guide and implementing the recommended configurations,
-you can achieve optimal performance, reliability, and observability for your browser automation
-workloads.
+The Browser Pool Optimization system provides enterprise-grade resource management, scaling, and monitoring capabilities. By following this guide and implementing the recommended configurations, you can achieve optimal performance, reliability, and observability for your browser automation workloads.
 
-For additional support and advanced configuration options, refer to the API documentation and source
-code comments.
+For additional support and advanced configuration options, refer to the API documentation and source code comments.

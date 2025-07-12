@@ -1,33 +1,23 @@
-# Comprehensive Performance Testing Strategy for Puppeteer-MCP
+---
+title: Performance Testing Strategy
+description: Comprehensive performance testing methodology for Puppeteer MCP covering load testing, stress testing, benchmarking, scalability, and chaos engineering
+---
 
-## Executive Summary
+# Performance Testing Strategy
 
-This document outlines a comprehensive performance testing strategy for the puppeteer-mcp browser
-automation platform. The strategy covers load testing, stress testing, performance benchmarking,
-scalability testing, monitoring, and chaos engineering to ensure the system meets enterprise-grade
-performance requirements.
+This comprehensive performance testing strategy for Puppeteer MCP covers load testing, stress testing, performance benchmarking, scalability testing, monitoring, and chaos engineering to ensure enterprise-grade performance requirements are met.
 
-## Table of Contents
+:::note[Enterprise Performance Standards]
+Puppeteer MCP targets enterprise-grade performance with 99.9% availability, sub-second response times, and automatic scaling capabilities.
+:::
 
-1. [Overview](#overview)
-2. [Load Testing Strategy](#1-load-testing-strategy)
-3. [Stress Testing](#2-stress-testing)
-4. [Performance Benchmarking](#3-performance-benchmarking)
-5. [Scalability Testing](#4-scalability-testing)
-6. [Monitoring and Alerting](#5-monitoring-and-alerting)
-7. [Chaos Engineering](#6-chaos-engineering)
-8. [Implementation Roadmap](#implementation-roadmap)
-9. [Performance Targets](#performance-targets)
+## System Architecture Overview
 
-## Overview
+The Puppeteer MCP system architecture includes:
 
-### System Architecture Considerations
-
-The puppeteer-mcp system consists of:
-
-- **Multi-Protocol Gateway**: REST, WebSocket, gRPC, MCP
+- **Multi-Protocol Gateway**: REST, WebSocket, gRPC, MCP protocols
 - **Session Management**: JWT-based authentication with in-memory/Redis storage
-- **Browser Pool**: Optimized browser instance management with scaling capabilities
+- **Browser Pool**: Optimized browser instance management with scaling capabilities  
 - **Resource Management**: CPU/memory monitoring and optimization
 - **Circuit Breaker**: Fault tolerance and recovery mechanisms
 
@@ -1171,18 +1161,22 @@ export class ResourceExhaustionTests {
 
 ### Availability Targets
 
-- Service Availability: 99.9% (43.2 minutes downtime/month)
-- Recovery Time Objective (RTO): < 5 minutes
-- Recovery Point Objective (RPO): < 1 minute
-- Mean Time To Recovery (MTTR): < 15 minutes
+- **Service Availability**: 99.9% (43.2 minutes downtime/month)
+- **Recovery Time Objective (RTO)**: < 5 minutes
+- **Recovery Point Objective (RPO)**: < 1 minute
+- **Mean Time To Recovery (MTTR)**: < 15 minutes
+
+:::caution[Performance Monitoring]
+Regular execution of these tests, combined with continuous monitoring and optimization, ensures the platform meets and exceeds performance expectations as it scales to support production workloads.
+:::
+
+## Related Documentation
+
+- [Security Testing](/testing/security-testing) for security performance impact
+- [Operations Guide](/operations/) for performance monitoring setup
+- [Architecture Overview](/architecture/) for system design context
+- [Development Workflow](/development/workflow) for performance testing integration
 
 ## Conclusion
 
-This comprehensive performance testing strategy provides a structured approach to validating and
-optimizing the puppeteer-mcp platform's performance. By implementing these tests and monitoring
-systems, the platform can achieve enterprise-grade reliability and performance while maintaining the
-flexibility to handle diverse automation workloads.
-
-Regular execution of these tests, combined with continuous monitoring and optimization, will ensure
-the platform meets and exceeds performance expectations as it scales to support production
-workloads.
+This comprehensive performance testing strategy provides a structured approach to validating and optimizing Puppeteer MCP's performance. The framework ensures enterprise-grade reliability and performance while maintaining flexibility to handle diverse automation workloads.

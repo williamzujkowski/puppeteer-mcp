@@ -1,10 +1,15 @@
+---
+title: Error Experience Testing Guide
+description: Comprehensive framework for testing and improving error handling in Puppeteer MCP from the user's perspective, turning failures into learning opportunities
+---
+
 # Error Experience Testing Guide
 
-## Overview
+This guide provides a comprehensive framework for testing and improving error handling in Puppeteer MCP from the user's perspective. Good error experiences turn frustrating failures into learning opportunities and maintain user confidence.
 
-This guide provides a comprehensive framework for testing and improving error handling in
-puppeteer-mcp from the user's perspective. Good error experiences turn frustrating failures into
-learning opportunities and maintain user confidence.
+:::note[Error Experience Philosophy]
+Great error handling transforms technical failures into teachable moments, preserving user state and confidence while guiding toward resolution.
+:::
 
 ## Error Experience Principles
 
@@ -702,12 +707,25 @@ class ErrorHandler {
 
 ## Continuous Improvement Process
 
+:::tip[Improvement Cycle]
 1. **Monitor**: Track all errors and their impact
 2. **Analyze**: Identify patterns and problem areas
 3. **Prioritize**: Focus on high-impact improvements
 4. **Implement**: Enhance messages and recovery
 5. **Test**: Validate with real users
 6. **Iterate**: Continuous refinement
+:::
 
-By following this comprehensive error experience testing guide, puppeteer-mcp can transform
-frustrating failures into opportunities for user education and confidence building.
+## Related Documentation
+
+- [UX Testing Strategy](/testing/ux-testing) for overall UX methodology
+- [UX Testing Checklist](/testing/ux-checklist) for validation tasks
+- [Security Testing](/testing/security-testing) for security error handling
+- [Operations Guide](/operations/error-handling) for production error management
+- [Development Workflow](/development/workflow) for error handling standards
+
+## Conclusion
+
+By following this comprehensive error experience testing guide, Puppeteer MCP can transform frustrating failures into opportunities for user education and confidence building. Great error handling is not just about preventing crashes—it's about creating a system that users trust and can learn from, even when things go wrong.
+
+The key is to remember that every error is a conversation with your user. Make sure it's a helpful one.
