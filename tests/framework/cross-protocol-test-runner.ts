@@ -498,8 +498,8 @@ export class WebSocketTestClient {
       throw new Error('WebSocket connection not established');
     }
 
-    // Create test token for authentication
-    const testToken = this.createTestToken();
+    // Create a valid session via REST API first, then use that token for WebSocket auth
+    const sessionToken = await this.createValidSession();
 
     return new Promise((resolve, reject) => {
       const authMessageId = uuidv4();
@@ -517,14 +517,13 @@ export class WebSocketTestClient {
         }
       });
 
-      // Send authentication message with both token and API key for testing
+      // Send authentication message with the session token
       const authMessage = {
         type: 'auth',
         id: authMessageId,
         timestamp: new Date().toISOString(),
         data: {
-          token: testToken,
-          apiKey: process.env.TEST_API_KEY || 'test-api-key-32-chars-long-for-testing',
+          token: sessionToken,
         },
       };
 
@@ -538,6 +537,37 @@ export class WebSocketTestClient {
         }
       }, 10000);
     });
+  }
+
+  /**
+   * Create a valid session via REST API to get a token that exists in the session store
+   */
+  private async createValidSession(): Promise<string> {
+    const testPort = process.env.TEST_SERVER_PORT || process.env.PORT || '3000';
+    const createSessionUrl = `http://localhost:${testPort}/api/v1/sessions`;
+
+    try {
+      const response = await fetch(createSessionUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        body: JSON.stringify({
+          username: 'websocket-test-user',
+          password: 'test-password-123',
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to create session: ${response.status} ${response.statusText}`);
+      }
+
+      const sessionData = await response.json();
+      return sessionData.token || sessionData.sessionId;
+    } catch (error) {
+      throw new Error(`Failed to create valid session for WebSocket auth: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 
   /**
