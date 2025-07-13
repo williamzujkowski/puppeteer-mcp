@@ -303,9 +303,11 @@ export class SecurityManager {
         this.options.allowedOrigins.includes('*') ||
         (info.origin && this.options.allowedOrigins.includes(info.origin)) ||
         // Allow undefined origin in test environments or when connecting from server-side clients
-        (!info.origin && (config.NODE_ENV === 'test' || this.options.allowedOrigins.some(origin => 
-          origin.includes('localhost') || origin.includes('127.0.0.1')
-        )));
+        (!info.origin &&
+          (config.NODE_ENV === 'test' ||
+            this.options.allowedOrigins.some(
+              (origin) => origin.includes('localhost') || origin.includes('127.0.0.1'),
+            )));
 
       if (!isOriginAllowed) {
         return {
