@@ -31,8 +31,9 @@ import {
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 
 // Test configuration
+const testPort = process.env.TEST_SERVER_PORT || process.env.PORT || '3000';
 const PERFORMANCE_CONFIG = {
-  baseUrl: 'http://localhost:3000',
+  baseUrl: `http://localhost:${testPort}`,
   testDuration: '30s',
   warmupDuration: '5s',
   targetConcurrency: 10,

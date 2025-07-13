@@ -17,11 +17,12 @@ import { v4 as uuidv4 } from 'uuid';
 /**
  * Cross-protocol test configuration
  */
+const testPort = process.env.TEST_SERVER_PORT || process.env.PORT || '3000';
 const testConfig = {
   mcp: { transport: 'stdio' as const },
-  rest: { baseUrl: 'http://localhost:3000/api/v1' },
+  rest: { baseUrl: `http://localhost:${testPort}/api/v1` },
   grpc: { host: 'localhost', port: 50051 },
-  websocket: { url: 'ws://localhost:3000/ws' },
+  websocket: { url: `ws://localhost:${testPort}/ws` },
 };
 
 /**
