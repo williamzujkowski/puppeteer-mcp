@@ -13,6 +13,7 @@ import { WSMessageType } from '../../types/websocket.js';
 import type { WSAuthMessage, WSMessage } from '../../types/websocket.js';
 import type { ConnectionManager } from './connection-manager.js';
 import type { WSComponentDependencies } from './types.js';
+import { verifyAccessToken } from '../../auth/jwt.js';
 
 /**
  * Authentication result
@@ -222,18 +223,37 @@ export class AuthenticationHandler {
     }
 
     try {
-      // Authenticate with session store
+      // Authenticate with JWT access token
       if (token) {
-        const session = await this.sessionStore.get(token);
-        if (session && session.data.userId) {
-          return {
-            success: true,
-            userId: session.data.userId,
-            sessionId: session.id,
-            roles: session.data.roles ?? [],
-            permissions: (session.data as any).permissions ?? [],
-            scopes: (session.data as any).scopes ?? [],
-          };
+        try {
+          // Verify the JWT token and extract payload
+          const payload = await verifyAccessToken(token);
+          
+          // Use the session ID from the JWT payload to look up the session
+          const session = await this.sessionStore.get(payload.sessionId);
+          if (session && session.data.userId) {
+            return {
+              success: true,
+              userId: session.data.userId,
+              sessionId: session.id,
+              roles: session.data.roles ?? [],
+              permissions: (session.data as any).permissions ?? [],
+              scopes: (session.data as any).scopes ?? [],
+            };
+          }
+        } catch (jwtError) {
+          // JWT verification failed, but we'll try treating it as a direct session ID for backward compatibility
+          const session = await this.sessionStore.get(token);
+          if (session && session.data.userId) {
+            return {
+              success: true,
+              userId: session.data.userId,
+              sessionId: session.id,
+              roles: session.data.roles ?? [],
+              permissions: (session.data as any).permissions ?? [],
+              scopes: (session.data as any).scopes ?? [],
+            };
+          }
         }
       }
 
