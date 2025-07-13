@@ -25,7 +25,33 @@ export async function launchBrowser(
     handleSIGHUP: false,
   };
 
-  let browser = await puppeteer.launch(launchOptions);
+  logger.debug(
+    {
+      executablePath: launchOptions.executablePath,
+      headless: launchOptions.headless,
+      args: launchOptions.args?.slice(0, 5), // Log first 5 args to avoid clutter
+    },
+    'Launching browser with options',
+  );
+
+  let browser: Browser;
+  try {
+    browser = await puppeteer.launch(launchOptions);
+  } catch (error) {
+    logger.error(
+      {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
+        launchOptions: {
+          executablePath: launchOptions.executablePath,
+          headless: launchOptions.headless,
+          argsCount: launchOptions.args?.length || 0,
+        },
+      },
+      'Failed to launch browser',
+    );
+    throw error;
+  }
 
   // Instrument browser if telemetry is enabled
   if (isTelemetryInitialized()) {
@@ -33,7 +59,19 @@ export async function launchBrowser(
   }
 
   // Verify browser is working
-  const version = await browser.version();
+  let version: string;
+  try {
+    version = await browser.version();
+  } catch (error) {
+    logger.error(
+      {
+        error: error instanceof Error ? error.message : 'Unknown error',
+      },
+      'Browser launched but failed version check',
+    );
+    await browser.close();
+    throw error;
+  }
 
   const instance: BrowserInstance = {
     id: `browser-${Date.now()}-${Math.random().toString(36).substring(7)}`,
@@ -44,7 +82,14 @@ export async function launchBrowser(
     pageCount: 0,
   };
 
-  logger.debug({ browserId: instance.id, version }, 'Browser launched successfully');
+  logger.info(
+    {
+      browserId: instance.id,
+      version,
+      executablePath: launchOptions.executablePath,
+    },
+    'Browser launched successfully',
+  );
 
   return { browser, instance };
 }

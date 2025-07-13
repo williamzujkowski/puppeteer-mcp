@@ -5,6 +5,7 @@
  */
 
 import type { BrowserPoolOptions } from '../interfaces/browser-pool.interface.js';
+import { getDefaultLaunchOptions } from '../config.js';
 
 /**
  * Default pool options
@@ -15,9 +16,7 @@ export const DEFAULT_OPTIONS: Partial<BrowserPoolOptions> = {
   idleTimeout: 5 * 60 * 1000, // 5 minutes
   acquisitionTimeout: 30000,
   healthCheckInterval: 30000,
-  launchOptions: {
-    headless: true,
-  },
+  launchOptions: getDefaultLaunchOptions(),
 };
 
 /**

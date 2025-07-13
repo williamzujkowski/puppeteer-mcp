@@ -26,20 +26,27 @@ export async function initializePool(
   );
 
   // Launch one browser initially
+  let initialBrowserLaunched = false;
   try {
     await launchNewBrowser();
+    initialBrowserLaunched = true;
+    logger.info('Initial browser launched successfully');
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     logger.error(
       {
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: errorMessage,
+        stack: error instanceof Error ? error.stack : undefined,
       },
-      'Failed to launch initial browser',
+      'Failed to launch initial browser - browser pool will be empty',
     );
+    // Don't throw here - let the pool start empty and browsers will be created on demand
   }
 
   logger.info(
     {
-      activeBrowsers: 1,
+      activeBrowsers: initialBrowserLaunched ? 1 : 0,
+      initialized: true,
     },
     'Browser pool initialized',
   );
