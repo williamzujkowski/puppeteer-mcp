@@ -13,6 +13,10 @@ import {
   type TestClients,
 } from '../framework/cross-protocol-test-runner.js';
 import { createMCPServer } from '../../src/mcp/server.js';
+import { createApp, sessionStore, browserPool } from '../../src/server.js';
+import { createLogger } from '../../src/server/service-registry.js';
+import type { Application } from 'express';
+import * as http from 'http';
 import type { MCPServer } from '../../src/mcp/server.js';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -934,11 +938,27 @@ const stateSynchronizationSuite: TestSuite = {
 describe('Enhanced Cross-Protocol Integration Tests', () => {
   let runner: CrossProtocolTestRunner;
   let mcpServer: MCPServer;
+  let app: Application;
+  let httpServer: http.Server;
 
   beforeAll(async () => {
     try {
-      // Create and start MCP server
-      mcpServer = createMCPServer();
+      // Create Express app with required dependencies
+      const logger = createLogger();
+      app = createApp(logger, sessionStore, browserPool);
+
+      // Start HTTP server for REST and WebSocket endpoints
+      httpServer = http.createServer(app);
+      const port = parseInt(testPort, 10);
+      await new Promise<void>((resolve) => {
+        httpServer.listen(port, () => {
+          console.log(`Test HTTP server started on port ${port}`);
+          resolve();
+        });
+      });
+
+      // Create and start MCP server with Express app
+      mcpServer = createMCPServer({ app });
       await mcpServer.start();
 
       // Initialize test runner
@@ -954,6 +974,16 @@ describe('Enhanced Cross-Protocol Integration Tests', () => {
     // Cleanup
     await runner.cleanup();
     await mcpServer.stop();
+
+    // Close HTTP server
+    if (httpServer) {
+      await new Promise<void>((resolve) => {
+        httpServer.close(() => {
+          console.log('Test HTTP server closed');
+          resolve();
+        });
+      });
+    }
   }, 30000);
 
   beforeEach(() => {

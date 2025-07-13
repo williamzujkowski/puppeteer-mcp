@@ -8,6 +8,9 @@ import { describe, it, expect, beforeAll, afterAll, beforeEach } from '@jest/glo
 import { MCPServer, createMCPServer } from '../../src/mcp/server.js';
 import type { ToolResponse } from '../../src/mcp/types/tool-types.js';
 import { v4 as uuidv4 } from 'uuid';
+import { createApp, sessionStore, browserPool } from '../../src/server.js';
+import { createLogger } from '../../src/server/service-registry.js';
+import type { Application } from 'express';
 
 /**
  * Mock MCP client for testing
@@ -53,12 +56,17 @@ class MockMCPClient {
 describe('MCP Tools Comprehensive Functional Tests', () => {
   let mcpServer: MCPServer;
   let mcpClient: MockMCPClient;
+  let app: Application;
   const testSessions: Map<string, any> = new Map();
   const testContexts: Map<string, any> = new Map();
 
   beforeAll(async () => {
-    // Create MCP server
-    mcpServer = createMCPServer();
+    // Create Express app with required dependencies
+    const logger = createLogger();
+    app = createApp(logger, sessionStore, browserPool);
+
+    // Create MCP server with Express app for REST adapter
+    mcpServer = createMCPServer({ app });
     mcpClient = new MockMCPClient(mcpServer);
 
     // Start the server
