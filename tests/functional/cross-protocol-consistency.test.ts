@@ -450,7 +450,7 @@ describe('Cross-Protocol Consistency Tests', () => {
     // Initialize test runner
     runner = new CrossProtocolTestRunner(testConfig);
     await runner.initialize(mcpServer);
-  });
+  }, 60000);
 
   afterAll(async () => {
     // Cleanup
@@ -466,7 +466,7 @@ describe('Cross-Protocol Consistency Tests', () => {
         });
       });
     }
-  });
+  }, 60000);
 
   it('should pass session management tests', async () => {
     const results = await runner.runSuite(sessionManagementSuite);

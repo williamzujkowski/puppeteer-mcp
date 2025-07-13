@@ -25,27 +25,48 @@ export async function initializePool(
     'Initializing browser pool',
   );
 
-  // Launch one browser initially
-  let initialBrowserLaunched = false;
-  try {
-    await launchNewBrowser();
-    initialBrowserLaunched = true;
-    logger.info('Initial browser launched successfully');
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    logger.error(
-      {
-        error: errorMessage,
-        stack: error instanceof Error ? error.stack : undefined,
-      },
-      'Failed to launch initial browser - browser pool will be empty',
+  // Launch multiple browsers initially for better concurrency
+  const browsersToLaunch = Math.min(Math.max(2, Math.floor(maxBrowsers / 2)), maxBrowsers);
+  let browsersLaunched = 0;
+  const launchPromises: Promise<unknown>[] = [];
+
+  logger.info({ browsersToLaunch }, 'Launching initial browsers');
+
+  // Launch browsers in parallel
+  for (let i = 0; i < browsersToLaunch; i++) {
+    launchPromises.push(
+      launchNewBrowser()
+        .then(() => {
+          browsersLaunched++;
+          logger.debug({ browserIndex: i + 1, browsersLaunched }, 'Browser launched');
+        })
+        .catch((error) => {
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+          logger.error(
+            {
+              browserIndex: i + 1,
+              error: errorMessage,
+              stack: error instanceof Error ? error.stack : undefined,
+            },
+            'Failed to launch browser',
+          );
+        }),
     );
+  }
+
+  // Wait for all launch attempts to complete
+  await Promise.allSettled(launchPromises);
+
+  if (browsersLaunched === 0) {
+    logger.error('Failed to launch any browsers - browser pool will be empty');
     // Don't throw here - let the pool start empty and browsers will be created on demand
+  } else {
+    logger.info({ browsersLaunched }, 'Initial browsers launched successfully');
   }
 
   logger.info(
     {
-      activeBrowsers: initialBrowserLaunched ? 1 : 0,
+      activeBrowsers: browsersLaunched,
       initialized: true,
     },
     'Browser pool initialized',
