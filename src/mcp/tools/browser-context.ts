@@ -149,16 +149,28 @@ export class BrowserContextTool {
     proxyConfig?: ContextProxyConfig,
     sessionId?: string,
   ): Promise<{ proxyId?: string; browserContextId?: string }> {
-    if (!proxyConfig) {
-      return {};
-    }
-
     if (sessionId === null || sessionId === undefined || sessionId.trim() === '') {
-      throw new Error('Session ID is required for proxy setup');
+      throw new Error('Session ID is required for browser context setup');
     }
 
     try {
       const browserInstance = await browserPool.acquireBrowser(sessionId);
+
+      if (!proxyConfig) {
+        // Create regular browser context without proxy
+        const browserContext = await browserInstance.browser.createBrowserContext();
+        const browserContextId = `ctx-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
+
+        await contextStore.update(context.id, {
+          browserContextId,
+        });
+
+        return {
+          browserContextId,
+        };
+      }
+
+      // Create browser context with proxy
       const proxyContext = await createProxyBrowserContext(browserInstance.browser, {
         proxyConfig,
         contextId: context.id,
