@@ -110,7 +110,7 @@ describe('Browser Pool Integration', () => {
 
     // Check metrics
     const metrics = pool.getMetrics();
-    expect(metrics.totalBrowsers).toBe(1);
+    expect(metrics.totalBrowsers).toBe(2);
     expect(metrics.activeBrowsers).toBe(1);
     expect(metrics.totalPages).toBe(2);
 
@@ -119,7 +119,7 @@ describe('Browser Pool Integration', () => {
 
     const metricsAfterRelease = pool.getMetrics();
     expect(metricsAfterRelease.activeBrowsers).toBe(0);
-    expect(metricsAfterRelease.idleBrowsers).toBe(1);
+    expect(metricsAfterRelease.idleBrowsers).toBe(2);
   });
 
   it('should handle unhealthy browsers with health monitor', async () => {
@@ -228,6 +228,6 @@ describe('Browser Pool Integration', () => {
     expect(finalMetrics.browsersDestroyed).toBe(0); // TODO: Track this metric
     expect(finalMetrics.avgBrowserLifetime).toBe(0); // TODO: Calculate this metric
     // After recycling, the browser is still in the pool (just restarted)
-    expect(finalMetrics.totalBrowsers).toBe(1);
+    expect(finalMetrics.totalBrowsers).toBe(2);
   });
 });

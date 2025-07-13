@@ -41,7 +41,7 @@ describe('CLI Module', () => {
       });
 
       child.on('close', () => {
-        expect(stdout).toContain('puppeteer-mcp v1.0.14');
+        expect(stdout).toContain('puppeteer-mcp v1.1.0');
         expect(stdout).toContain('Node.js');
         expect(stdout).toContain('Platform:');
         done();

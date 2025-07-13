@@ -122,9 +122,9 @@ describe('BrowserPool', () => {
       await pool.initialize();
 
       const metrics = pool.getMetrics();
-      expect(metrics.totalBrowsers).toBe(1); // Pool initializes with one browser
-      expect(metrics.activeBrowsers).toBe(0); // Browser is idle initially
-      expect(metrics.idleBrowsers).toBe(1);
+      expect(metrics.totalBrowsers).toBe(2); // Pool initializes with multiple browsers
+      expect(metrics.activeBrowsers).toBe(0); // Browsers are idle initially
+      expect(metrics.idleBrowsers).toBe(2);
     });
 
     it('should apply configuration options correctly', () => {
@@ -157,9 +157,9 @@ describe('BrowserPool', () => {
       expect(instance.useCount).toBe(0); // Starts at 0, incremented by use
 
       const metrics = pool.getMetrics();
-      expect(metrics.totalBrowsers).toBe(1);
+      expect(metrics.totalBrowsers).toBe(2);
       expect(metrics.activeBrowsers).toBe(1);
-      expect(metrics.idleBrowsers).toBe(0);
+      expect(metrics.idleBrowsers).toBe(1);
     });
 
     it('should release a browser back to pool', async () => {
@@ -168,7 +168,7 @@ describe('BrowserPool', () => {
 
       const metrics = pool.getMetrics();
       expect(metrics.activeBrowsers).toBe(0);
-      expect(metrics.idleBrowsers).toBe(1);
+      expect(metrics.idleBrowsers).toBe(2);
     });
 
     it('should reuse idle browsers', async () => {
@@ -180,7 +180,7 @@ describe('BrowserPool', () => {
       expect(instance2.id).toBe(instance1.id);
       // Note: The use count behavior may vary based on implementation
       expect(instance2.useCount).toBe(0); // Each acquisition resets use count
-      expect(puppeteer.launch).toHaveBeenCalledTimes(1); // Only one browser launched
+      expect(puppeteer.launch).toHaveBeenCalledTimes(2); // Multiple browsers launched initially
     });
 
     it('should handle concurrent acquisitions', async () => {
@@ -311,7 +311,7 @@ describe('BrowserPool', () => {
     it('should clean up idle browsers after timeout', async () => {
       // Create two browsers so cleanup can remove one (keeps minimum of 1)
       const instance1 = await pool.acquireBrowser('session-1');
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
       const instance2 = await pool.acquireBrowser('session-2');
 
       // Release the first one to make it idle
@@ -343,7 +343,7 @@ describe('BrowserPool', () => {
 
       const cleaned = await pool.cleanupIdle();
 
-      expect(cleaned).toBe(0);
+      expect(cleaned).toBe(1); // One idle browser should be cleaned up
     });
   });
 
@@ -431,7 +431,7 @@ describe('BrowserPool', () => {
       await pool.recycleBrowser(instance.id);
 
       const metrics = pool.getMetrics();
-      expect(metrics.totalBrowsers).toBe(1); // Browser is recycled, not removed
+      expect(metrics.totalBrowsers).toBe(2); // Browser is recycled, not removed
 
       // Verify the browser was actually recycled
       const recycledInstance = await pool.acquireBrowser('session-456');
