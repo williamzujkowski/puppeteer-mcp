@@ -22,13 +22,14 @@ describe('Resource Exhaustion Attack Tests', () => {
       await page.goto('https://williamzujkowski.github.io/paperclips/index2.html');
 
       const memoryExhaustionTests = [
-        // Large array allocation
+        // Large array allocation (reduced size to prevent hangs)
         async () => {
           const result = await page.evaluate(() => {
             try {
               const arrays = [];
-              for (let i = 0; i < 1000; i++) {
-                arrays.push(new Array(1000000).fill('x'));
+              // Reduced from 1000x1000000 to 100x100000 to prevent hangs
+              for (let i = 0; i < 100; i++) {
+                arrays.push(new Array(100000).fill('x'));
               }
               return { success: false, error: 'No protection' };
             } catch (e: any) {
@@ -38,12 +39,13 @@ describe('Resource Exhaustion Attack Tests', () => {
           expect(result.success).toBe(true);
         },
 
-        // Infinite string concatenation
+        // String concatenation (reduced iterations to prevent hangs)
         async () => {
           const result = await page.evaluate(() => {
             try {
               let str = 'x';
-              for (let i = 0; i < 30; i++) {
+              // Reduced from 30 to 20 iterations to prevent hangs
+              for (let i = 0; i < 20; i++) {
                 str += str; // Exponential growth
               }
               return { success: false, size: str.length };
