@@ -26,6 +26,11 @@ const checks = [
     emoji: '💅',
   },
   {
+    name: 'Build Project',
+    command: 'npm run build',
+    emoji: '🏗️',
+  },
+  {
     name: 'Unit Tests',
     command: 'npm test -- --testPathPattern="tests/unit"',
     emoji: '🧪',
