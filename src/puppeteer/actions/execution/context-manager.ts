@@ -121,18 +121,37 @@ export class ActionContextManager {
       }
 
       // Try to evaluate a simple expression to ensure page is responsive
-      try {
-        await page.evaluate(() => true);
-      } catch (error) {
-        logger.warn('Page is not responsive', {
-          sessionId: context.sessionId,
-          contextId: context.contextId,
-          error: error instanceof Error ? error.message : 'Unknown error',
-        });
-        return false;
+      // Retry a few times with small delays to handle initialization timing
+      let attempts = 3;
+      let lastError: Error | null = null;
+
+      while (attempts > 0) {
+        try {
+          await page.evaluate(() => true);
+          return true; // Page is ready
+        } catch (error) {
+          lastError = error instanceof Error ? error : new Error('Unknown error');
+          attempts--;
+
+          if (attempts > 0) {
+            logger.debug('Page not ready yet, retrying...', {
+              sessionId: context.sessionId,
+              contextId: context.contextId,
+              attemptsLeft: attempts,
+            });
+            // Small delay before retry
+            await new Promise((resolve) => setTimeout(resolve, 100));
+          }
+        }
       }
 
-      return true;
+      // All attempts failed
+      logger.warn('Page is not responsive after retries', {
+        sessionId: context.sessionId,
+        contextId: context.contextId,
+        error: lastError?.message || 'Unknown error',
+      });
+      return false;
     } catch (error) {
       logger.error('Failed to validate page readiness', {
         sessionId: context.sessionId,

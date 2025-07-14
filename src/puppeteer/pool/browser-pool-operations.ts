@@ -71,6 +71,29 @@ export async function createPage(
   instance.pageCount++;
   instance.lastUsedAt = new Date();
 
+  // Wait for page to be ready
+  try {
+    // Ensure the page is fully initialized by waiting for it to be responsive
+    await page.evaluateHandle(() => document);
+    logger.debug(
+      {
+        browserId: instance.id,
+        sessionId,
+      },
+      'Page created and initialized successfully',
+    );
+  } catch (error) {
+    logger.warn(
+      {
+        browserId: instance.id,
+        sessionId,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      },
+      'Page initialization warning - continuing anyway',
+    );
+    // Don't throw - the page might still be usable
+  }
+
   return page;
 }
 
