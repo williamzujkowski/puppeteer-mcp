@@ -20,6 +20,7 @@ import { errorHandler } from '../core/middleware/error-handler.js';
 import { SessionStore } from '../store/session-store.interface.js';
 import { BrowserPool } from '../puppeteer/pool/browser-pool.js';
 import { RouteConfig } from './types.js';
+import { setupWebSocketBypass } from './websocket-fix.js';
 
 /**
  * Create default route configuration
@@ -147,6 +148,9 @@ export function setupAllRoutes(
   browserPool: BrowserPool,
 ): void {
   const routeConfig = createRouteConfig();
+
+  // IMPORTANT: Setup WebSocket bypass FIRST to prevent Express from handling WebSocket upgrades
+  setupWebSocketBypass(app, config.WS_PATH || '/ws');
 
   // Setup routes in order
   setupRootRoute(app, routeConfig);
