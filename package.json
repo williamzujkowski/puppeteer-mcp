@@ -34,7 +34,7 @@
     "test:acceptance:workflows": "jest --config jest.acceptance.config.mjs --testPathPattern=tests/acceptance/workflows",
     "test:e2e": "jest --testPathPattern=tests/e2e",
     "test:benchmark": "jest --testPathPattern=tests/benchmark",
-    "test:functional": "jest --testPathPattern=tests/functional",
+    "test:functional": "jest --config jest.functional.config.mjs",
     "test:report": "node scripts/generate-test-summary.js",
     "start:all": "concurrently \"npm run start\" \"npm run grpc:start\" \"npm run ws:start\"",
     "grpc:start": "node dist/grpc/server.js",

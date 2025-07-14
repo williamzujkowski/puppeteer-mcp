@@ -1,0 +1,31 @@
+{
+  "version": "1.0.0",
+  "timestamp": "2025-07-14T15:00:00.000Z",
+  "metrics": {
+    "startup_time": {
+      "average": 2000,
+      "threshold": 3000
+    },
+    "memory_usage": {
+      "average": 150000000,
+      "threshold": 200000000
+    },
+    "browser_launch_time": {
+      "average": 1500,
+      "threshold": 2500
+    },
+    "session_creation_time": {
+      "average": 100,
+      "threshold": 500
+    },
+    "context_creation_time": {
+      "average": 50,
+      "threshold": 200
+    }
+  },
+  "test_results": {
+    "total_tests": 0,
+    "passed": 0,
+    "failed": 0
+  }
+}
