@@ -59,7 +59,7 @@ export class MonitoringScheduler extends EventEmitter {
       }
     }
 
-    this.logger.info('Monitoring scheduler started');
+    this.logger.debug('Monitoring scheduler started');
   }
 
   /**
@@ -77,7 +77,7 @@ export class MonitoringScheduler extends EventEmitter {
       this.timers.delete(name);
     }
 
-    this.logger.info('Monitoring scheduler stopped');
+    this.logger.debug('Monitoring scheduler stopped');
   }
 
   /**

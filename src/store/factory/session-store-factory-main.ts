@@ -94,7 +94,7 @@ export class SessionStoreFactory {
 
     await Promise.all(instanceIds.map((id) => this.destroy(id)));
 
-    this.logger.info({ count: instanceIds.length }, 'All session stores destroyed');
+    this.logger.debug({ count: instanceIds.length }, 'All session stores destroyed');
   }
 
   /**
@@ -261,7 +261,7 @@ export class SessionStoreFactory {
       storeType: instance.type,
     });
 
-    this.logger.info({ instanceId, storeType: instance.type }, 'Session store destroyed');
+    this.logger.debug({ instanceId, storeType: instance.type }, 'Session store destroyed');
   }
 
   private validateMigrationInstances(

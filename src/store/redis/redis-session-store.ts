@@ -218,7 +218,7 @@ export class RedisSessionStore implements SessionStore {
     }
 
     await this.fallbackStore.destroy();
-    this.logger.info('Redis session store destroyed');
+    this.logger.debug('Redis session store destroyed');
   }
 
   /**

@@ -220,6 +220,6 @@ export class ReplicaManager extends EventEmitter {
    */
   clear(): void {
     this.replicas.clear();
-    this.logger.info('All replicas cleared');
+    this.logger.debug('All replicas cleared');
   }
 }

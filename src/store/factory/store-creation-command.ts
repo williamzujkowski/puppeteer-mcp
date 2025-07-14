@@ -115,7 +115,7 @@ export class StoreCreationCommand {
       enableMigration: extractedConfig.enableMigration,
     });
 
-    this.logger.info(
+    this.logger.debug(
       {
         instanceId: this.instanceId,
         storeType: result.type,

@@ -111,7 +111,7 @@ export class SessionReplicationManager
       await this.syncAll();
     });
 
-    this.logger.info('Session replication started');
+    this.logger.debug('Session replication started');
   }
 
   /**
@@ -119,7 +119,7 @@ export class SessionReplicationManager
    */
   stop(): void {
     this.scheduler.stop();
-    this.logger.info('Session replication stopped');
+    this.logger.debug('Session replication stopped');
   }
 
   /**
@@ -188,6 +188,6 @@ export class SessionReplicationManager
     this.removeAllListeners();
     this.replicaManager.clear();
     this.coordinator.clearMetrics();
-    this.logger.info('Session replication manager destroyed');
+    this.logger.debug('Session replication manager destroyed');
   }
 }

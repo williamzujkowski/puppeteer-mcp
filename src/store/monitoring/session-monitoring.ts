@@ -130,7 +130,7 @@ export class SessionStoreMonitor extends EventEmitter {
    */
   start(): void {
     this.scheduler.start();
-    this.logger.info('Session store monitoring started');
+    this.logger.debug('Session store monitoring started');
   }
 
   /**
@@ -138,7 +138,7 @@ export class SessionStoreMonitor extends EventEmitter {
    */
   stop(): void {
     this.scheduler.stop();
-    this.logger.info('Session store monitoring stopped');
+    this.logger.debug('Session store monitoring stopped');
   }
 
   /**
@@ -293,6 +293,6 @@ export class SessionStoreMonitor extends EventEmitter {
     this.stop();
     this.scheduler.destroy();
     this.removeAllListeners();
-    this.logger.info('Session store monitor destroyed');
+    this.logger.debug('Session store monitor destroyed');
   }
 }

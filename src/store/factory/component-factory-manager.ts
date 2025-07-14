@@ -49,7 +49,7 @@ export class ComponentFactoryManager {
     );
 
     await monitor.start();
-    logger.info('Session store monitoring enabled');
+    logger.debug('Session store monitoring enabled');
     return monitor;
   }
 
@@ -80,7 +80,7 @@ export class ComponentFactoryManager {
       logger,
     );
 
-    logger.info('Session store replication enabled');
+    logger.debug('Session store replication enabled');
     return replication;
   }
 
@@ -92,7 +92,7 @@ export class ComponentFactoryManager {
       return undefined;
     }
 
-    logger.info('Session store migration utilities enabled');
+    logger.debug('Session store migration utilities enabled');
     return new SessionMigration(logger);
   }
 }
