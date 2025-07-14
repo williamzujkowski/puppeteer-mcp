@@ -121,7 +121,8 @@ describe('MCP Execute-in-Context Tool', () => {
       const responseData = JSON.parse(result.content[0].text);
       expect(responseData).toEqual({
         success: true,
-        result: { currentUrl: 'https://example.com' },
+        data: { currentUrl: 'https://example.com' },
+        timestamp: expect.any(String),
       });
     });
 
@@ -240,7 +241,9 @@ describe('MCP Execute-in-Context Tool', () => {
       expect(result.content[0].type).toBe('text');
 
       const responseData = JSON.parse(result.content[0].text);
-      expect(responseData.result).toBe('Not valid JSON');
+      expect(responseData.success).toBe(false);
+      expect(responseData.error).toBe('Failed to parse response');
+      expect(responseData.data).toBe('Not valid JSON');
     });
   });
 });
