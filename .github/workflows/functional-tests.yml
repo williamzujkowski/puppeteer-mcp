@@ -31,19 +31,19 @@ jobs:
           - performance
         include:
           - suite: mcp-tools
-            test-pattern: 'tests/functional/mcp-tools-*.test.ts'
+            test-pattern: 'tests/functional/mcp-tools-comprehensive.test.ts'
             timeout: 20
           - suite: browser-commands
-            test-pattern: 'tests/functional/browser-commands-*.test.ts'
+            test-pattern: 'tests/functional/browser-commands-comprehensive.test.ts'
             timeout: 25
           - suite: cross-protocol
             test-pattern: 'tests/functional/cross-protocol-*.test.ts'
             timeout: 30
           - suite: resources
-            test-pattern: 'tests/functional/resources-*.test.ts'
+            test-pattern: 'tests/functional/resources-comprehensive.test.ts'
             timeout: 15
           - suite: performance
-            test-pattern: 'tests/performance/*.test.ts'
+            test-pattern: 'tests/functional/*performance*.test.ts'
             timeout: 30
 
     steps:
