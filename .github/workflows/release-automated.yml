@@ -69,7 +69,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          npm ci --prefer-offline --no-audit
+          npm ci --prefer-offline --no-audit --legacy-peer-deps
           npm install -g conventional-changelog-cli conventional-recommended-bump standard-version
 
       - name: Configure Git
@@ -211,7 +211,7 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci --prefer-offline --no-audit
+        run: npm ci --prefer-offline --no-audit --legacy-peer-deps
 
       - name: Run full test suite
         run: |
@@ -277,7 +277,7 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
 
       - name: Install dependencies
-        run: npm ci --prefer-offline --no-audit
+        run: npm ci --prefer-offline --no-audit --legacy-peer-deps
 
       - name: Build for production
         run: npm run build
@@ -408,7 +408,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          npm ci --prefer-offline --no-audit
+          npm ci --prefer-offline --no-audit --legacy-peer-deps
           cd starlight-docs && npm install
 
       - name: Update documentation version
