@@ -58,7 +58,7 @@ export class InMemorySessionStore implements SessionStore {
       userSessionSet.add(id);
     }
 
-    this.logger.info({ sessionId: id, userId: data.userId }, 'Session created');
+    this.logger.debug({ sessionId: id, userId: data.userId }, 'Session created');
 
     // Audit log
     await logDataAccess('WRITE', `session/${id}`, {
@@ -103,7 +103,7 @@ export class InMemorySessionStore implements SessionStore {
     };
 
     this.sessions.set(id, updatedSession);
-    this.logger.info({ sessionId: id }, 'Session updated');
+    this.logger.debug({ sessionId: id }, 'Session updated');
 
     // Audit log
     await logDataAccess('WRITE', `session/${id}`, {
@@ -133,7 +133,7 @@ export class InMemorySessionStore implements SessionStore {
       }
     }
 
-    this.logger.info({ sessionId: id, userId: session.data.userId }, 'Session deleted');
+    this.logger.debug({ sessionId: id, userId: session.data.userId }, 'Session deleted');
 
     // Audit log
     await logDataAccess('DELETE', `session/${id}`, {
@@ -156,7 +156,7 @@ export class InMemorySessionStore implements SessionStore {
     }
 
     if (deletedCount > 0) {
-      this.logger.info({ count: deletedCount }, 'Expired sessions deleted');
+      this.logger.debug({ count: deletedCount }, 'Expired sessions deleted');
     }
 
     return deletedCount;
@@ -220,7 +220,7 @@ export class InMemorySessionStore implements SessionStore {
       this.cleanupInterval = undefined;
     }
 
-    this.logger.info('All sessions cleared');
+    this.logger.debug('All sessions cleared');
   }
 
   /**

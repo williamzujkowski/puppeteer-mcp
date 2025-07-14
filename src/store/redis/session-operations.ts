@@ -54,7 +54,7 @@ export class SessionOperations {
 
     await pipeline.exec();
 
-    this.logger.info({ sessionId: id, userId: data.userId, ttl }, 'Session created in Redis');
+    this.logger.debug({ sessionId: id, userId: data.userId, ttl }, 'Session created in Redis');
 
     // Audit log
     await this.logOperation('create', {
@@ -110,7 +110,7 @@ export class SessionOperations {
     // Update session with new TTL
     await client.setex(sessionKey, ttl, this.serializer.serialize(updatedSession));
 
-    this.logger.info({ sessionId: id, ttl }, 'Session updated in Redis');
+    this.logger.debug({ sessionId: id, ttl }, 'Session updated in Redis');
 
     // Audit log
     await this.logOperation('update', {
@@ -150,7 +150,7 @@ export class SessionOperations {
     const deleted = results?.[0] && results[0][1] === 1;
 
     if (deleted) {
-      this.logger.info(
+      this.logger.debug(
         { sessionId: id, userId: session.data.userId },
         'Session deleted from Redis',
       );
@@ -245,7 +245,7 @@ export class SessionOperations {
       await client.del(...allKeys);
     }
 
-    this.logger.info('All sessions cleared from Redis');
+    this.logger.debug('All sessions cleared from Redis');
   }
 
   /**
