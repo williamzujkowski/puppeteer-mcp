@@ -1,0 +1,120 @@
+{
+  "timestamp": "2025-07-14T16:40:06.321Z",
+  "environment": {
+    "nodeVersion": "v23.9.0",
+    "platform": "linux",
+    "cpus": 16,
+    "totalMemory": 67120611328
+  },
+  "summary": {
+    "healthScore": 100,
+    "performanceGrade": "A",
+    "totalAlerts": 0,
+    "anomaliesDetected": 0
+  },
+  "metrics": {
+    "mcp.tool.create-session": {
+      "count": 50,
+      "min": 33.37624000000005,
+      "max": 39.49218300000007,
+      "avg": 36.24925025999999,
+      "p50": 36.17015399999991,
+      "p95": 38.668964000000415,
+      "p99": 39.49218300000007
+    },
+    "system.cpu.usage": {
+      "count": 2,
+      "min": 6.072297046888428,
+      "max": 6.0723478255521215,
+      "avg": 6.072322436220275,
+      "p50": 6.072297046888428,
+      "p95": 6.0723478255521215,
+      "p99": 6.0723478255521215
+    },
+    "system.memory.usage": {
+      "count": 2,
+      "min": 62.76445260924785,
+      "max": 62.77143380907199,
+      "avg": 62.767943209159924,
+      "p50": 62.76445260924785,
+      "p95": 62.77143380907199,
+      "p99": 62.77143380907199
+    },
+    "system.memory.heap": {
+      "count": 2,
+      "min": 58.56351927488471,
+      "max": 60.293049476385086,
+      "avg": 59.4282843756349,
+      "p50": 58.56351927488471,
+      "p95": 60.293049476385086,
+      "p99": 60.293049476385086
+    },
+    "system.load.1m": {
+      "count": 2,
+      "min": 0.93,
+      "max": 0.93,
+      "avg": 0.93,
+      "p50": 0.93,
+      "p95": 0.93,
+      "p99": 0.93
+    },
+    "system.load.2m": {
+      "count": 2,
+      "min": 0.85,
+      "max": 0.85,
+      "avg": 0.85,
+      "p50": 0.85,
+      "p95": 0.85,
+      "p99": 0.85
+    },
+    "system.load.3m": {
+      "count": 2,
+      "min": 0.94,
+      "max": 0.94,
+      "avg": 0.94,
+      "p50": 0.94,
+      "p95": 0.94,
+      "p99": 0.94
+    },
+    "mcp.tool.list-tools": {
+      "count": 50,
+      "min": 0.15734700000029989,
+      "max": 0.7900349999999889,
+      "avg": 0.3178948600000149,
+      "p50": 0.31557999999995445,
+      "p95": 0.5989580000000387,
+      "p99": 0.7900349999999889
+    },
+    "mcp.tool.get-server-info": {
+      "count": 50,
+      "min": 0.11264500000015687,
+      "max": 0.4764780000000428,
+      "avg": 0.1793103799999517,
+      "p50": 0.14758000000028915,
+      "p95": 0.33417599999984304,
+      "p99": 0.4764780000000428
+    }
+  },
+  "slaCompliance": {},
+  "alerts": [],
+  "anomalies": [],
+  "recommendations": [],
+  "testConfig": {
+    "baseUrl": "http://localhost:3000",
+    "testDuration": "30s",
+    "warmupDuration": "5s",
+    "targetConcurrency": 10,
+    "maxSessions": 20,
+    "slaTargets": {
+      "mcp.tool.response.p95": 200,
+      "browser.command.p95": 500,
+      "session.create.p95": 2000,
+      "concurrent.throughput": 50
+    },
+    "outputDir": "/home/william/git/puppeteer-mcp/performance-results"
+  },
+  "cicd": {
+    "pass": true,
+    "failureReasons": []
+  }
+}

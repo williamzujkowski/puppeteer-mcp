@@ -1,0 +1,102 @@
+{
+  "timestamp": "2025-07-14T16:39:25.537Z",
+  "environment": {
+    "nodeVersion": "v23.9.0",
+    "platform": "linux",
+    "cpus": 16,
+    "totalMemory": 67120611328
+  },
+  "summary": {
+    "healthScore": 100,
+    "performanceGrade": "A",
+    "totalAlerts": 0,
+    "anomaliesDetected": 0
+  },
+  "metrics": {
+    "anomaly.test": {
+      "count": 21,
+      "min": 0.8190109999995911,
+      "max": 14.588776000000053,
+      "avg": 3.1480269523809037,
+      "p50": 2.6846709999999803,
+      "p95": 4.331256000000167,
+      "p99": 14.588776000000053
+    },
+    "system.cpu.usage": {
+      "count": 2,
+      "min": 6.072612131184132,
+      "max": 6.072632043899218,
+      "avg": 6.072622087541675,
+      "p50": 6.072612131184132,
+      "p95": 6.072632043899218,
+      "p99": 6.072632043899218
+    },
+    "system.memory.usage": {
+      "count": 2,
+      "min": 62.3813897811345,
+      "max": 62.39031766167885,
+      "avg": 62.385853721406676,
+      "p50": 62.3813897811345,
+      "p95": 62.39031766167885,
+      "p99": 62.39031766167885
+    },
+    "system.memory.heap": {
+      "count": 2,
+      "min": 58.164832450266914,
+      "max": 61.53267843535326,
+      "avg": 59.84875544281009,
+      "p50": 58.164832450266914,
+      "p95": 61.53267843535326,
+      "p99": 61.53267843535326
+    },
+    "system.load.1m": {
+      "count": 2,
+      "min": 1.19,
+      "max": 1.19,
+      "avg": 1.19,
+      "p50": 1.19,
+      "p95": 1.19,
+      "p99": 1.19
+    },
+    "system.load.2m": {
+      "count": 2,
+      "min": 0.88,
+      "max": 0.88,
+      "avg": 0.88,
+      "p50": 0.88,
+      "p95": 0.88,
+      "p99": 0.88
+    },
+    "system.load.3m": {
+      "count": 2,
+      "min": 0.95,
+      "max": 0.95,
+      "avg": 0.95,
+      "p50": 0.95,
+      "p95": 0.95,
+      "p99": 0.95
+    }
+  },
+  "slaCompliance": {},
+  "alerts": [],
+  "anomalies": [],
+  "recommendations": [],
+  "testConfig": {
+    "baseUrl": "http://localhost:3000",
+    "testDuration": "30s",
+    "warmupDuration": "5s",
+    "targetConcurrency": 10,
+    "maxSessions": 20,
+    "slaTargets": {
+      "mcp.tool.response.p95": 200,
+      "browser.command.p95": 500,
+      "session.create.p95": 2000,
+      "concurrent.throughput": 50
+    },
+    "outputDir": "/home/william/git/puppeteer-mcp/performance-results"
+  },
+  "cicd": {
+    "pass": true,
+    "failureReasons": []
+  }
+}

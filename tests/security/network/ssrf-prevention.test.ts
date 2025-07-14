@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 import { Browser, Page } from 'puppeteer';
 import { launchBrowser } from '../../helpers/browser-launcher.js';
+import { delay } from '../../helpers/delay.js';
 
 describe('SSRF (Server-Side Request Forgery) Prevention Tests', () => {
   let browser: Browser;
@@ -395,7 +396,7 @@ describe('SSRF (Server-Side Request Forgery) Prevention Tests', () => {
       });
 
       // Wait for any potential requests
-      await page.waitForTimeout(1000);
+      await delay(1000);
 
       // Check that no data was exfiltrated
       expect(exfiltrationAttempts.length).toBe(0);

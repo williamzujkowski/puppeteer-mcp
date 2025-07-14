@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 import { Browser, Page } from 'puppeteer';
 import { launchBrowser } from '../../helpers/browser-launcher.js';
+import { delay } from '../../helpers/delay.js';
 
 describe('Unsafe JavaScript Execution Security Tests', () => {
   let browser: Browser;
@@ -203,7 +204,7 @@ describe('Unsafe JavaScript Execution Security Tests', () => {
 
         // String execution in timers should be prevented or safe
         if (result.executed) {
-          await page.waitForTimeout(100);
+          await delay(100);
 
           // Check no alerts fired
           const alertFired = await new Promise((resolve) => {
@@ -620,7 +621,7 @@ describe('Unsafe JavaScript Execution Security Tests', () => {
         } catch {}
       });
 
-      await page.waitForTimeout(500);
+      await delay(500);
 
       // Should have CSP violations if properly configured
       if (cspHeader && cspViolations.length > 0) {

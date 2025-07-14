@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 import { Browser, Page } from 'puppeteer';
 import { launchBrowser } from '../../helpers/browser-launcher.js';
+import { delay } from '../../helpers/delay.js';
 
 describe('Authentication Bypass Security Tests', () => {
   let browser: Browser;
@@ -594,7 +595,7 @@ describe('Authentication Bypass Security Tests', () => {
         attempts.push(attempt);
 
         // Small delay between attempts
-        await page.waitForTimeout(10);
+        await delay(10);
       }
 
       // Check if rate limiting kicked in

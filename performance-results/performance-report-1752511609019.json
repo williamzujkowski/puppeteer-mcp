@@ -1,0 +1,173 @@
+{
+  "timestamp": "2025-07-14T16:46:49.018Z",
+  "environment": {
+    "nodeVersion": "v23.9.0",
+    "platform": "linux",
+    "cpus": 16,
+    "totalMemory": 67120611328
+  },
+  "summary": {
+    "healthScore": 100,
+    "performanceGrade": "A",
+    "totalAlerts": 0,
+    "anomaliesDetected": 23
+  },
+  "metrics": {
+    "system.cpu.usage": {
+      "count": 38,
+      "min": 6.088391379893473,
+      "max": 6.090127923539926,
+      "avg": 6.089925401161499,
+      "p50": 6.089978703823138,
+      "p95": 6.0901172983147625,
+      "p99": 6.090127923539926
+    },
+    "system.memory.usage": {
+      "count": 38,
+      "min": 63.82971413451307,
+      "max": 65.70261626565858,
+      "avg": 65.08077093387088,
+      "p50": 64.92336424507722,
+      "p95": 65.6952750214379,
+      "p99": 65.70261626565858
+    },
+    "system.memory.heap": {
+      "count": 38,
+      "min": 60.70900132420144,
+      "max": 97.59531816807738,
+      "avg": 86.59096446669449,
+      "p50": 91.84033635710826,
+      "p95": 95.51644285661328,
+      "p99": 97.59531816807738
+    },
+    "system.load.1m": {
+      "count": 38,
+      "min": 1.88,
+      "max": 4.21,
+      "avg": 3.422105263157894,
+      "p50": 3.5,
+      "p95": 4.21,
+      "p99": 4.21
+    },
+    "system.load.2m": {
+      "count": 38,
+      "min": 2.14,
+      "max": 2.62,
+      "avg": 2.521052631578948,
+      "p50": 2.54,
+      "p95": 2.62,
+      "p99": 2.62
+    },
+    "system.load.3m": {
+      "count": 38,
+      "min": 1.58,
+      "max": 1.74,
+      "avg": 1.7223684210526309,
+      "p50": 1.73,
+      "p95": 1.74,
+      "p99": 1.74
+    },
+    "concurrent.operation.error": {
+      "count": 1465,
+      "min": 0.33405499999935273,
+      "max": 3.6476390000007086,
+      "avg": 1.3190031720136337,
+      "p50": 1.3193059999994148,
+      "p95": 2.2200040000025183,
+      "p99": 2.563274000000092
+    }
+  },
+  "slaCompliance": {},
+  "alerts": [],
+  "anomalies": [
+    {
+      "metric": "concurrent.operation.error",
+      "timestamp": "2025-07-14T16:46:19.318Z",
+      "value": 3.1664920000002894,
+      "expectedRange": [0.1463320397633594, 2.854956320236512],
+      "severity": "medium"
+    },
+    {
+      "metric": "concurrent.operation.error",
+      "timestamp": "2025-07-14T16:46:19.625Z",
+      "value": 3.373821000001044,
+      "expectedRange": [0.05710843923820086, 2.9496487407616394],
+      "severity": "medium"
+    },
+    {
+      "metric": "concurrent.operation.error",
+      "timestamp": "2025-07-14T16:46:30.544Z",
+      "value": 0.4890789999990375,
+      "expectedRange": [0.5435919809271954, 2.6927097790730103],
+      "severity": "low"
+    },
+    {
+      "metric": "concurrent.operation.error",
+      "timestamp": "2025-07-14T16:46:31.546Z",
+      "value": 0.33864600000015344,
+      "expectedRange": [0.4035321509971377, 2.5334171890025634],
+      "severity": "low"
+    },
+    {
+      "metric": "concurrent.operation.error",
+      "timestamp": "2025-07-14T16:46:35.529Z",
+      "value": 2.1779739999983576,
+      "expectedRange": [-0.042797325769289074, 2.048024925769506],
+      "severity": "low"
+    },
+    {
+      "metric": "concurrent.operation.error",
+      "timestamp": "2025-07-14T16:46:35.635Z",
+      "value": 2.517427000002499,
+      "expectedRange": [-0.048418422497013225, 2.0522766624972038],
+      "severity": "medium"
+    },
+    {
+      "metric": "concurrent.operation.error",
+      "timestamp": "2025-07-14T16:46:42.744Z",
+      "value": 1.1339679999982764,
+      "expectedRange": [0.2862198182637385, 0.8727791617357852],
+      "severity": "high"
+    },
+    {
+      "metric": "concurrent.operation.error",
+      "timestamp": "2025-07-14T16:46:42.785Z",
+      "value": 1.1191370000015013,
+      "expectedRange": [0.26248461324113914, 0.9165052267582736],
+      "severity": "high"
+    },
+    {
+      "metric": "concurrent.operation.error",
+      "timestamp": "2025-07-14T16:46:42.806Z",
+      "value": 1.5653959999981453,
+      "expectedRange": [0.24451827858780545, 0.9472581814116499],
+      "severity": "high"
+    },
+    {
+      "metric": "concurrent.operation.error",
+      "timestamp": "2025-07-14T16:46:42.826Z",
+      "value": 1.2478760000012699,
+      "expectedRange": [0.17914028764226841, 1.0314317923571332],
+      "severity": "medium"
+    }
+  ],
+  "recommendations": [],
+  "testConfig": {
+    "baseUrl": "http://localhost:3000",
+    "testDuration": "30s",
+    "warmupDuration": "5s",
+    "targetConcurrency": 10,
+    "maxSessions": 20,
+    "slaTargets": {
+      "mcp.tool.response.p95": 200,
+      "browser.command.p95": 500,
+      "session.create.p95": 2000,
+      "concurrent.throughput": 50
+    },
+    "outputDir": "/home/william/git/puppeteer-mcp/performance-results"
+  },
+  "cicd": {
+    "pass": true,
+    "failureReasons": []
+  }
+}

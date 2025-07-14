@@ -1,0 +1,159 @@
+{
+  "timestamp": "2025-07-14T16:44:38.557Z",
+  "environment": {
+    "nodeVersion": "v23.9.0",
+    "platform": "linux",
+    "cpus": 16,
+    "totalMemory": 67120611328
+  },
+  "summary": {
+    "healthScore": 100,
+    "performanceGrade": "A",
+    "totalAlerts": 0,
+    "anomaliesDetected": 8
+  },
+  "metrics": {
+    "system.cpu.usage": {
+      "count": 38,
+      "min": 6.085057221036537,
+      "max": 6.08697687167371,
+      "avg": 6.08665529483545,
+      "p50": 6.086678404498997,
+      "p95": 6.086972533126462,
+      "p99": 6.08697687167371
+    },
+    "system.memory.usage": {
+      "count": 38,
+      "min": 64.57838068873197,
+      "max": 66.42095365630577,
+      "avg": 65.82420512121755,
+      "p50": 65.73059598698177,
+      "p95": 66.41391143200764,
+      "p99": 66.42095365630577
+    },
+    "system.memory.heap": {
+      "count": 38,
+      "min": 61.353593991126544,
+      "max": 96.51233085894242,
+      "avg": 86.79942429212227,
+      "p50": 91.74541025765835,
+      "p95": 94.94982232725789,
+      "p99": 96.51233085894242
+    },
+    "system.load.1m": {
+      "count": 38,
+      "min": 2.02,
+      "max": 4.17,
+      "avg": 3.666052631578946,
+      "p50": 3.7,
+      "p95": 4.17,
+      "p99": 4.17
+    },
+    "system.load.2m": {
+      "count": 38,
+      "min": 2.05,
+      "max": 2.55,
+      "avg": 2.455000000000001,
+      "p50": 2.46,
+      "p95": 2.55,
+      "p99": 2.55
+    },
+    "system.load.3m": {
+      "count": 38,
+      "min": 1.45,
+      "max": 1.64,
+      "avg": 1.6044736842105263,
+      "p50": 1.62,
+      "p95": 1.64,
+      "p99": 1.64
+    },
+    "concurrent.operation.error": {
+      "count": 1468,
+      "min": 0.2881779999988794,
+      "max": 11.105749000002106,
+      "avg": 1.2848459311989051,
+      "p50": 1.2522719999997207,
+      "p95": 2.232210000000123,
+      "p99": 2.6782620000012685
+    }
+  },
+  "slaCompliance": {},
+  "alerts": [],
+  "anomalies": [
+    {
+      "metric": "concurrent.operation.error",
+      "timestamp": "2025-07-14T16:44:08.551Z",
+      "value": 2.9582469999986643,
+      "expectedRange": [0.28190879558024795, 2.679901544419981],
+      "severity": "medium"
+    },
+    {
+      "metric": "concurrent.operation.error",
+      "timestamp": "2025-07-14T16:44:09.171Z",
+      "value": 3.087375000000975,
+      "expectedRange": [0.2600642596306648, 2.7948248203695836],
+      "severity": "medium"
+    },
+    {
+      "metric": "concurrent.operation.error",
+      "timestamp": "2025-07-14T16:44:09.315Z",
+      "value": 3.6595389999984036,
+      "expectedRange": [0.1991436243280722, 2.9453013556722447],
+      "severity": "medium"
+    },
+    {
+      "metric": "concurrent.operation.error",
+      "timestamp": "2025-07-14T16:44:09.663Z",
+      "value": 3.1884009999994305,
+      "expectedRange": [0.06999830643498561, 3.1350999135652327],
+      "severity": "low"
+    },
+    {
+      "metric": "concurrent.operation.error",
+      "timestamp": "2025-07-14T16:44:09.989Z",
+      "value": 3.420949000001201,
+      "expectedRange": [0.04459804020275704, 3.274008559797446],
+      "severity": "low"
+    },
+    {
+      "metric": "concurrent.operation.error",
+      "timestamp": "2025-07-14T16:44:21.852Z",
+      "value": 2.733967999996821,
+      "expectedRange": [0.19490426199555633, 2.4164861180040917],
+      "severity": "medium"
+    },
+    {
+      "metric": "concurrent.operation.error",
+      "timestamp": "2025-07-14T16:44:29.093Z",
+      "value": 11.105749000002106,
+      "expectedRange": [-0.1773708454878543, 2.173266025487934],
+      "severity": "high"
+    },
+    {
+      "metric": "concurrent.operation.error",
+      "timestamp": "2025-07-14T16:44:33.405Z",
+      "value": 1.0065099999992526,
+      "expectedRange": [0.28059053575813364, 0.8834982242423889],
+      "severity": "medium"
+    }
+  ],
+  "recommendations": [],
+  "testConfig": {
+    "baseUrl": "http://localhost:3000",
+    "testDuration": "30s",
+    "warmupDuration": "5s",
+    "targetConcurrency": 10,
+    "maxSessions": 20,
+    "slaTargets": {
+      "mcp.tool.response.p95": 200,
+      "browser.command.p95": 500,
+      "session.create.p95": 2000,
+      "concurrent.throughput": 50
+    },
+    "outputDir": "/home/william/git/puppeteer-mcp/performance-results"
+  },
+  "cicd": {
+    "pass": true,
+    "failureReasons": []
+  }
+}

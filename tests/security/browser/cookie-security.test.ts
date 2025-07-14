@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 import { Browser, Page } from 'puppeteer';
 import { launchBrowser } from '../../helpers/browser-launcher.js';
+import { delay } from '../../helpers/delay.js';
 
 describe('Cookie Security Tests', () => {
   let browser: Browser;
@@ -431,7 +432,7 @@ describe('Cookie Security Tests', () => {
       }
 
       // Wait for short expiration
-      await page.waitForTimeout(2000);
+      await delay(2000);
 
       // Check which cookies still exist
       const remainingCookies = await page.cookies();

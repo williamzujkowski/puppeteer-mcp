@@ -103,6 +103,11 @@ describe('Puppeteer-MCP Performance Test Suite', () => {
   }, 60000);
 
   afterAll(async () => {
+    // Cleanup MCP client
+    if (mcpClient) {
+      await mcpClient.cleanup();
+    }
+
     // Stop monitoring
     performanceMonitor.stop();
 
@@ -128,7 +133,7 @@ describe('Puppeteer-MCP Performance Test Suite', () => {
           name: 'create-session',
           fn: () =>
             measureToolResponse('create-session', async () => {
-              return await client.callTool({
+              return client.callTool({
                 name: 'create-session',
                 arguments: {
                   username: 'perf_test',
@@ -142,14 +147,14 @@ describe('Puppeteer-MCP Performance Test Suite', () => {
           name: 'list-tools',
           fn: () =>
             measureToolResponse('list-tools', async () => {
-              return await client.listTools();
+              return client.listTools();
             }),
         },
         {
           name: 'get-server-info',
           fn: () =>
             measureToolResponse('get-server-info', async () => {
-              return await client.callTool({
+              return client.callTool({
                 name: 'get-server-info',
                 arguments: {},
               });
@@ -224,6 +229,18 @@ describe('Puppeteer-MCP Performance Test Suite', () => {
         metrics: result.metrics,
       });
 
+      // Check if any successful requests were made
+      if (result.successfulRequests === 0) {
+        console.error('No successful requests were made during the test');
+        console.error('Total requests:', result.totalRequests);
+        console.error('Failed requests:', result.failedRequests);
+        console.error('Errors:', result.errors);
+      }
+
+      // Ensure we have metrics before asserting
+      expect(result.metrics).toBeDefined();
+      expect(result.metrics['mcp.tool.response']).toBeDefined();
+      expect(result.metrics['mcp.tool.response'].p95).toBeDefined();
       expect(result.metrics['mcp.tool.response'].p95).toBeLessThan(
         PERFORMANCE_CONFIG.slaTargets['mcp.tool.response.p95'],
       );

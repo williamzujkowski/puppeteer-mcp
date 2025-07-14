@@ -1,0 +1,93 @@
+{
+  "timestamp": "2025-07-14T18:07:57.959Z",
+  "environment": {
+    "nodeVersion": "v23.9.0",
+    "platform": "linux",
+    "cpus": 16,
+    "totalMemory": 67120611328
+  },
+  "summary": {
+    "healthScore": 100,
+    "performanceGrade": "A",
+    "totalAlerts": 0,
+    "anomaliesDetected": 0
+  },
+  "metrics": {
+    "system.cpu.usage": {
+      "count": 35,
+      "min": 6.106346445220509,
+      "max": 6.106655191025137,
+      "avg": 6.106529696798636,
+      "p50": 6.106543838642124,
+      "p95": 6.106636926904379,
+      "p99": 6.106655191025137
+    },
+    "system.memory.usage": {
+      "count": 35,
+      "min": 67.86935734150052,
+      "max": 68.08714758671395,
+      "avg": 67.94688736650069,
+      "p50": 67.90814449716687,
+      "p95": 68.08523752067815,
+      "p99": 68.08714758671395
+    },
+    "system.memory.heap": {
+      "count": 35,
+      "min": 63.548843563526816,
+      "max": 96.18299898430219,
+      "avg": 89.12938514115747,
+      "p50": 91.30596858198925,
+      "p95": 96.11996155638397,
+      "p99": 96.18299898430219
+    },
+    "system.load.1m": {
+      "count": 35,
+      "min": 0.8,
+      "max": 1.06,
+      "avg": 0.9585714285714287,
+      "p50": 0.97,
+      "p95": 1.06,
+      "p99": 1.06
+    },
+    "system.load.2m": {
+      "count": 35,
+      "min": 0.93,
+      "max": 0.99,
+      "avg": 0.9671428571428572,
+      "p50": 0.97,
+      "p95": 0.99,
+      "p99": 0.99
+    },
+    "system.load.3m": {
+      "count": 35,
+      "min": 0.96,
+      "max": 0.98,
+      "avg": 0.9728571428571428,
+      "p50": 0.97,
+      "p95": 0.98,
+      "p99": 0.98
+    }
+  },
+  "slaCompliance": {},
+  "alerts": [],
+  "anomalies": [],
+  "recommendations": [],
+  "testConfig": {
+    "baseUrl": "http://localhost:3000",
+    "testDuration": "30s",
+    "warmupDuration": "5s",
+    "targetConcurrency": 10,
+    "maxSessions": 20,
+    "slaTargets": {
+      "mcp.tool.response.p95": 200,
+      "browser.command.p95": 500,
+      "session.create.p95": 2000,
+      "concurrent.throughput": 50
+    },
+    "outputDir": "/home/william/git/puppeteer-mcp/performance-results"
+  },
+  "cicd": {
+    "pass": true,
+    "failureReasons": []
+  }
+}
