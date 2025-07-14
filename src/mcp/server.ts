@@ -27,6 +27,7 @@ import { ExecuteApiTool } from './tools/execute-api.js';
 import { SessionTools } from './tools/session-tools.js';
 import { BrowserContextTool } from './tools/browser-context.js';
 import { ExecuteInContextTool } from './tools/execute-in-context.js';
+import { ServerInfoToolImpl } from './tools/server-info.js';
 import { TOOL_DEFINITIONS } from './tools/tool-definitions.js';
 
 // Import resource handlers
@@ -53,6 +54,7 @@ export class MCPServer {
   public sessionTools: SessionTools;
   public browserContextTool: BrowserContextTool;
   private executeInContextTool: ExecuteInContextTool;
+  private serverInfoTool: ServerInfoToolImpl;
 
   // Resource handlers
   private apiCatalogResource: ApiCatalogResource;
@@ -112,6 +114,7 @@ export class MCPServer {
     this.sessionTools = new SessionTools(sessionStore);
     this.browserContextTool = new BrowserContextTool(authBridge);
     this.executeInContextTool = new ExecuteInContextTool(this.restAdapter);
+    this.serverInfoTool = new ServerInfoToolImpl();
 
     // Initialize resource handlers
     this.apiCatalogResource = new ApiCatalogResource(this.restAdapter);
@@ -229,6 +232,7 @@ export class MCPServer {
       sessionTools: this.sessionTools,
       browserContextTool: this.browserContextTool,
       executeInContextTool: this.executeInContextTool,
+      serverInfoTool: this.serverInfoTool,
     });
   }
 

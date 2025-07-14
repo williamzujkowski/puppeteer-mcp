@@ -189,7 +189,7 @@ export class LoadTestRunner extends EventEmitter {
         const latency = Date.now() - startTime;
         this.recordMetric('overall', latency);
 
-        if (result && result.metrics) {
+        if (result?.metrics) {
           for (const [metric, value] of Object.entries(result.metrics)) {
             this.recordMetric(metric, value as number);
           }
@@ -528,8 +528,33 @@ export class LoadTestRunner extends EventEmitter {
   }
 
   private async createMcpSession(credentials: any): Promise<any> {
-    // MCP implementation placeholder
-    throw new Error('MCP implementation pending');
+    // MCP implementation using the MCP client
+    try {
+      // Import the MCP client utilities
+      const { createMCPClient } = await import('../acceptance/utils/mcp-client.js');
+
+      // Create a new MCP client for this session
+      const mcpClient = await createMCPClient();
+
+      // Create a session using the create-session tool
+      const result = await mcpClient.client.callTool({
+        name: 'create-session',
+        arguments: {
+          username: credentials.username,
+          password: credentials.password,
+          duration: credentials.duration || 3600,
+        },
+      });
+
+      return {
+        sessionId: result.content?.[0]?.text ? JSON.parse(result.content[0].text).sessionId : null,
+        mcpClient,
+        credentials,
+      };
+    } catch (error) {
+      console.warn('Failed to create MCP session:', error);
+      return null;
+    }
   }
 
   /**

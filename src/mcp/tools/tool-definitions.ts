@@ -133,4 +133,13 @@ export const TOOL_DEFINITIONS = [
       required: ['sessionId'],
     },
   },
+  {
+    name: 'get-server-info',
+    title: 'Get Server Info',
+    description: 'Get basic server information including version, uptime, and status',
+    inputSchema: {
+      type: 'object',
+      properties: {},
+    },
+  },
 ];

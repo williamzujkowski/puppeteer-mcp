@@ -9,6 +9,7 @@ import type { ExecuteApiTool } from './tools/execute-api.js';
 import type { SessionTools } from './tools/session-tools.js';
 import type { BrowserContextTool } from './tools/browser-context.js';
 import type { ExecuteInContextTool } from './tools/execute-in-context.js';
+import type { ServerInfoTool } from './tools/server-info.js';
 import type {
   ExecuteApiArgs,
   CreateSessionArgs,
@@ -29,6 +30,7 @@ export async function executeTool(
     sessionTools: SessionTools;
     browserContextTool: BrowserContextTool;
     executeInContextTool: ExecuteInContextTool;
+    serverInfoTool: ServerInfoTool;
   },
 ): Promise<unknown> {
   switch (name) {
@@ -50,6 +52,8 @@ export async function executeTool(
       );
     case 'list-browser-contexts':
       return tools.browserContextTool.listBrowserContexts(args as { sessionId: string });
+    case 'get-server-info':
+      return tools.serverInfoTool.getServerInfo();
     default:
       throw new McpError(ErrorCode.MethodNotFound, `Unknown tool: ${name}`);
   }
