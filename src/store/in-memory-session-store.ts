@@ -220,7 +220,10 @@ export class InMemorySessionStore implements SessionStore {
       this.cleanupInterval = undefined;
     }
 
-    this.logger.debug('All sessions cleared');
+    // Log only in development/debug mode
+    if (this.logger.debug) {
+      this.logger.debug('All sessions cleared');
+    }
   }
 
   /**

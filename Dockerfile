@@ -12,7 +12,7 @@ WORKDIR /scan
 COPY package*.json ./
 
 # Install dependencies and run security audit
-RUN npm ci --only=production && \
+RUN npm ci --only=production --legacy-peer-deps && \
     npm audit --production --json > npm-audit.json || true && \
     npm audit --production --audit-level=high || true
 
@@ -30,7 +30,7 @@ ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 COPY package*.json ./
 
 # Install production dependencies
-RUN npm ci --only=production
+RUN npm ci --only=production --legacy-peer-deps
 
 # Stage 2: Builder
 FROM node:22-alpine AS builder
@@ -46,7 +46,7 @@ ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 COPY package*.json ./
 
 # Install all dependencies
-RUN npm ci
+RUN npm ci --legacy-peer-deps
 
 # Copy source code
 COPY . .
