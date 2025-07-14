@@ -1,13 +1,13 @@
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
-import puppeteer, { Browser, Page } from 'puppeteer';
+import { Browser, Page } from 'puppeteer';
+import { launchBrowser } from '../../helpers/browser-launcher.js';
 
 describe('Unsafe JavaScript Execution Security Tests', () => {
   let browser: Browser;
   let page: Page;
 
   beforeAll(async () => {
-    browser = await puppeteer.launch({
-      headless: true,
+    browser = await launchBrowser({
       args: ['--disable-features=IsolateOrigins,site-per-process'], // For testing cross-origin scenarios
     });
     page = await browser.newPage();
