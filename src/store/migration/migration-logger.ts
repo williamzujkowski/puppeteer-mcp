@@ -21,7 +21,7 @@ export class MigrationLogger {
    * Log session processing info
    */
   logSessionProcessingInfo(totalSessions: number, toMigrate: number): void {
-    this.logger.info(
+    this.logger.debug(
       {
         total: totalSessions,
         toMigrate,
@@ -34,14 +34,14 @@ export class MigrationLogger {
    * Log no sessions to migrate
    */
   logNoSessionsToMigrate(): void {
-    this.logger.info('No sessions to migrate');
+    this.logger.debug('No sessions to migrate');
   }
 
   /**
    * Log backup creation
    */
   logBackupCreation(total: number, backup: number): void {
-    this.logger.info({ total, backup }, 'Session backup completed');
+    this.logger.debug({ total, backup }, 'Session backup completed');
   }
 
   /**
@@ -54,27 +54,27 @@ export class MigrationLogger {
     missingSessions: string[];
     extraSessions: string[];
   }): void {
-    this.logger.info(result, 'Migration validation completed');
+    this.logger.debug(result, 'Migration validation completed');
   }
 
   /**
    * Log restore start
    */
   logRestoreStart(sessionCount: number): void {
-    this.logger.info({ sessionCount }, 'Restoring sessions from backup');
+    this.logger.debug({ sessionCount }, 'Restoring sessions from backup');
   }
 
   /**
    * Log validation start
    */
   logValidationStart(): void {
-    this.logger.info('Validating migration');
+    this.logger.debug('Validating migration');
   }
 
   /**
    * Log backup start
    */
   logBackupStart(): void {
-    this.logger.info('Creating session backup');
+    this.logger.debug('Creating session backup');
   }
 }

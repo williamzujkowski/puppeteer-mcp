@@ -47,7 +47,7 @@ export class ReplicaManager extends EventEmitter {
     this.replicas.set(id, replicaInfo);
     this.emit('replica:connected', id);
 
-    this.logger.info({ replicaId: id }, 'Replica added');
+    this.logger.debug({ replicaId: id }, 'Replica added');
   }
 
   /**
@@ -62,7 +62,7 @@ export class ReplicaManager extends EventEmitter {
     this.replicas.delete(id);
     this.emit('replica:disconnected', id);
 
-    this.logger.info({ replicaId: id }, 'Replica removed');
+    this.logger.debug({ replicaId: id }, 'Replica removed');
   }
 
   /**
@@ -142,7 +142,7 @@ export class ReplicaManager extends EventEmitter {
       this.emit('replica:failed', id);
     }
 
-    this.logger.warn(
+    this.logger.debug(
       { replicaId: id, syncErrors: replica.syncErrors, maxRetries },
       'Replica sync error recorded',
     );

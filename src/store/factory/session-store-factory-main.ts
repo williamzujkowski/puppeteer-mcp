@@ -115,7 +115,7 @@ export class SessionStoreFactory {
       toInstanceId,
     );
 
-    this.logger.info(
+    this.logger.debug(
       {
         fromInstanceId,
         toInstanceId,
@@ -131,7 +131,7 @@ export class SessionStoreFactory {
       options,
     );
 
-    this.logger.info(
+    this.logger.debug(
       {
         fromInstanceId,
         toInstanceId,

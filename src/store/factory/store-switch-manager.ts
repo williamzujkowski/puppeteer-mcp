@@ -56,7 +56,7 @@ export class StoreSwitchManager {
     newType: 'memory' | 'redis',
   ): void {
     if (instance.type === newType) {
-      this.logger.info(
+      this.logger.debug(
         { instanceId, type: newType },
         'Store type already matches, no action needed',
       );
@@ -67,7 +67,7 @@ export class StoreSwitchManager {
       throw new Error('Cannot switch to Redis store: Redis not available');
     }
 
-    this.logger.info(
+    this.logger.debug(
       {
         instanceId,
         fromType: instance.type,
@@ -175,7 +175,7 @@ export class StoreSwitchManager {
       migrateData: options.migrateData,
     });
 
-    this.logger.info(
+    this.logger.debug(
       {
         instanceId,
         newType: toType,

@@ -44,7 +44,7 @@ export class MigrationMetrics {
    * Record migration start
    */
   recordMigrationStart(_context: MigrationContext): void {
-    this.logger.info('Starting session migration');
+    this.logger.debug('Starting session migration');
   }
 
   /**
@@ -53,7 +53,7 @@ export class MigrationMetrics {
   recordMigrationCompletion(context: MigrationContext): void {
     context.stats.duration = Date.now() - context.startTime;
 
-    this.logger.info(
+    this.logger.debug(
       {
         migrated: context.stats.migratedSessions,
         failed: context.stats.failedSessions,
@@ -127,7 +127,7 @@ export class MigrationMetrics {
    * Record restore completion
    */
   recordRestoreCompletion(stats: RestoreStats): void {
-    this.logger.info(stats, 'Session restore completed');
+    this.logger.debug(stats, 'Session restore completed');
   }
 
   /**

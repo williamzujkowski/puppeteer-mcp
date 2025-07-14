@@ -35,7 +35,7 @@ export class BackupRestoreManager {
       data: sessions,
     };
 
-    this.logger.info(
+    this.logger.debug(
       {
         instanceId,
         storeType: instance.type,
@@ -72,7 +72,7 @@ export class BackupRestoreManager {
       options,
     );
 
-    this.logger.info(
+    this.logger.debug(
       {
         instanceId,
         ...stats,

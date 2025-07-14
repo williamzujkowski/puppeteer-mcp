@@ -32,7 +32,7 @@ export interface StoreSelectionStrategy {
 export class RedisSelectionStrategy implements StoreSelectionStrategy {
   selectStore(redisAvailable: boolean, logger: pino.Logger): StoreSelectionResult {
     if (redisAvailable) {
-      logger.info('Using Redis session store');
+      logger.debug('Using Redis session store');
       return {
         store: new RedisSessionStore(logger),
         type: 'redis',
@@ -53,7 +53,7 @@ export class RedisSelectionStrategy implements StoreSelectionStrategy {
  */
 export class MemorySelectionStrategy implements StoreSelectionStrategy {
   selectStore(_redisAvailable: boolean, logger: pino.Logger): StoreSelectionResult {
-    logger.info('Using in-memory session store');
+    logger.debug('Using in-memory session store');
     return {
       store: new InMemorySessionStore(logger),
       type: 'memory',
@@ -67,14 +67,14 @@ export class MemorySelectionStrategy implements StoreSelectionStrategy {
 export class AutoSelectionStrategy implements StoreSelectionStrategy {
   selectStore(redisAvailable: boolean, logger: pino.Logger): StoreSelectionResult {
     if (redisAvailable) {
-      logger.info('Auto-selected Redis session store');
+      logger.debug('Auto-selected Redis session store');
       return {
         store: new RedisSessionStore(logger),
         type: 'redis',
       };
     }
 
-    logger.info('Auto-selected in-memory session store (Redis not available)');
+    logger.debug('Auto-selected in-memory session store (Redis not available)');
     return {
       store: new InMemorySessionStore(logger),
       type: 'memory',
