@@ -42,7 +42,7 @@ jobs:
       - name: Setup benchmark environment
         run: |
           # Install benchmark dependencies
-          npm install -D benchmark microtime
+          npm install -D benchmark microtime --legacy-peer-deps
 
           # Create benchmarks directory
           mkdir -p benchmarks/results

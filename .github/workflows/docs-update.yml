@@ -51,7 +51,7 @@ jobs:
       - name: Install dependencies
         run: |
           npm ci --prefer-offline --no-audit --legacy-peer-deps
-          npm install -D typedoc typedoc-plugin-markdown @microsoft/api-extractor @microsoft/api-documenter
+          npm install -D typedoc typedoc-plugin-markdown @microsoft/api-extractor @microsoft/api-documenter --legacy-peer-deps
 
       - name: Build project
         run: npm run build
