@@ -328,9 +328,19 @@ describe('Command Injection Security Tests', () => {
 
         // Should return literal string, not evaluated result
         expect(result).toBe(payload);
-        expect(result).not.toBe('49'); // 7*7
-        expect(result).not.toContain('java.lang');
-        expect(result).not.toContain('process');
+        expect(result).not.toBe('49'); // 7*7 - should not be evaluated
+        
+        // Check that no actual code execution occurred by verifying
+        // the result is still the literal template string
+        if (payload.includes('7*7')) {
+          expect(result).not.toBe('49'); // Template should not be evaluated
+        }
+        
+        // For Java/Spring payloads, verify they weren't executed
+        if (payload.includes('java.lang')) {
+          expect(result).toBe(payload); // Should be literal, not executed
+          expect(result).not.toMatch(/^(class |object |null|\[object)/); // Not Java object
+        }
       }
     });
 
