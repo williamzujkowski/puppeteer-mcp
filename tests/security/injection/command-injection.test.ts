@@ -1,20 +1,20 @@
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
-import puppeteer, { Browser, Page } from 'puppeteer';
+import { Browser, Page } from 'puppeteer';
+import { launchBrowser } from '../../helpers/browser-launcher.js';
 
 describe('Command Injection Security Tests', () => {
   let browser: Browser;
   let page: Page;
 
   beforeAll(async () => {
-    browser = await puppeteer.launch({
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox'], // Run in sandboxed mode
-    });
+    browser = await launchBrowser();
     page = await browser.newPage();
   });
 
   afterAll(async () => {
-    await browser.close();
+    if (browser) {
+      await browser.close();
+    }
   });
 
   describe('Command Injection Prevention', () => {
