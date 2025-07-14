@@ -66,6 +66,7 @@
     "release:rollback": "node scripts/rollback-release.js",
     "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s",
     "prepare": "node -e \"try{if(!require('is-ci')) require('child_process').execSync('husky install',{stdio:'inherit'})}catch(e){}\"",
+    "postinstall": "node scripts/fix-puppeteer-debug.cjs",
     "prepublishOnly": "npm run build",
     "pre-commit": "npm run lint:fix && npm run format && npm run typecheck",
     "mcp": "node dist/mcp/start-mcp.js"
@@ -141,8 +142,8 @@
     "ora": "^8.0.1",
     "pidusage": "^3.0.2",
     "pino": "^9.7.0",
-    "puppeteer": "^24.12.0",
-    "puppeteer-core": "^24.12.0",
+    "puppeteer": "^24.12.1",
+    "puppeteer-core": "^24.12.1",
     "rate-limit-redis": "^4.2.1",
     "socks-proxy-agent": "^8.0.5",
     "table": "^6.8.1",
