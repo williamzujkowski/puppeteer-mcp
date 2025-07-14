@@ -208,8 +208,8 @@ describe('MCP Server Session Management', () => {
 
     it('should fail with invalid credentials', async () => {
       const args = {
-        username: 'demo',  // Use existing user
-        password: 'wrongpassword123',  // Wrong password
+        username: 'demo', // Use existing user
+        password: 'wrongpassword123', // Wrong password
       };
 
       const result = await (server as any).sessionTools.createSession(args);
