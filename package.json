@@ -133,7 +133,7 @@
     "@opentelemetry/semantic-conventions": "^1.29.0",
     "@opentelemetry/instrumentation-http": "^0.56.0",
     "@opentelemetry/instrumentation-express": "^0.52.0",
-    "@opentelemetry/instrumentation-grpc": "^0.56.0",
+    "@opentelemetry/instrumentation-grpc": "^0.203.0",
     "@opentelemetry/instrumentation-ioredis": "^0.51.0",
     "@opentelemetry/exporter-trace-otlp-http": "^0.56.0",
     "@opentelemetry/exporter-metrics-otlp-http": "^0.56.0",
