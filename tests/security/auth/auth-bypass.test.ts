@@ -317,17 +317,22 @@ describe('Authentication Bypass Security Tests', () => {
         for (let i = 0; i < 10; i++) {
           promises.push(
             page.evaluate((attemptId) => {
-              // Simulate login attempt
-              localStorage.setItem(`login_attempt_${attemptId}`, Date.now().toString());
+              // Simulate login attempt timestamp
+              const timestamp = Date.now();
+              localStorage.setItem(`login_attempt_${attemptId}`, timestamp.toString());
 
-              // Check if any attempt succeeded when it shouldn't
+              // Check if the page shows any authentication success indicators
+              // that shouldn't be there (since we're not providing valid credentials)
               return {
                 attemptId,
-                timestamp: Date.now(),
+                timestamp,
                 authenticated: !!(
-                  localStorage.getItem('authenticated') ||
-                  sessionStorage.getItem('authenticated') ||
-                  document.cookie.includes('authenticated')
+                  document.querySelector('.logged-in') ||
+                  document.querySelector('.auth-success') ||
+                  document.querySelector('[data-authenticated="true"]') ||
+                  document.body.classList.contains('authenticated') ||
+                  window.location.href.includes('dashboard') ||
+                  window.location.href.includes('logged-in')
                 ),
               };
             }, i),
@@ -336,7 +341,7 @@ describe('Authentication Bypass Security Tests', () => {
 
         const results = await Promise.all(promises);
 
-        // No attempt should authenticate without proper credentials
+        // No attempt should show authentication success without valid credentials
         const authenticatedAttempts = results.filter((r) => r.authenticated);
         expect(authenticatedAttempts.length).toBe(0);
       };
@@ -543,14 +548,25 @@ describe('Authentication Bypass Security Tests', () => {
       for (const attempt of escalationAttempts) {
         await attempt();
 
-        // Check if escalation succeeded
+        // Check if escalation succeeded by looking for actual privilege indicators
+        // not just the values we set, but whether the application respects them
         const hasEscalatedPrivileges = await page.evaluate(() => {
           return !!(
-            window.isAdmin === true ||
-            (window.user && window.user.role === 'admin') ||
-            window.currentUser?.isAdmin ||
-            localStorage.getItem('userRole') === 'admin' ||
-            document.body.dataset.isAdmin === 'true'
+            // Check if app actually shows admin UI elements
+            (
+              document.querySelector('.admin-panel') ||
+              document.querySelector('.admin-controls') ||
+              document.querySelector('[data-role="admin"]') ||
+              document.querySelector('.elevated-access') ||
+              document.body.classList.contains('admin-mode') ||
+              document.body.classList.contains('elevated') ||
+              // Check if URL changed to admin areas
+              window.location.href.includes('/admin') ||
+              window.location.href.includes('/superuser') ||
+              // Check if page title indicates admin access
+              document.title.toLowerCase().includes('admin') ||
+              document.title.toLowerCase().includes('dashboard')
+            )
           );
         });
 

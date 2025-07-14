@@ -7,6 +7,40 @@ import { cleanupLoggers } from '../src/utils/logger.js';
 process.env.NODE_ENV = 'test';
 process.env.LOG_LEVEL = 'error'; // Changed from 'silent' to match schema validation
 
+// Mock localStorage and sessionStorage for browser-based tests
+const mockStorage = {
+  store: new Map<string, string>(),
+  getItem(key: string): string | null {
+    return this.store.get(key) ?? null;
+  },
+  setItem(key: string, value: string): void {
+    this.store.set(key, value);
+  },
+  removeItem(key: string): void {
+    this.store.delete(key);
+  },
+  clear(): void {
+    this.store.clear();
+  },
+  get length(): number {
+    return this.store.size;
+  },
+  key(index: number): string | null {
+    const keys = Array.from(this.store.keys());
+    return keys[index] ?? null;
+  },
+};
+
+// Add to global scope for browser tests
+(global as unknown as { localStorage: typeof mockStorage }).localStorage = {
+  ...mockStorage,
+  store: new Map<string, string>(),
+};
+(global as unknown as { sessionStorage: typeof mockStorage }).sessionStorage = {
+  ...mockStorage,
+  store: new Map<string, string>(),
+};
+
 // Define __dirname for ES modules compatibility in Jest
 // Since this is the setup file, we can use process.cwd() as a base
 // The actual __dirname will be defined within each module using the conditional check
@@ -23,6 +57,14 @@ try {
 beforeEach(() => {
   jest.clearAllMocks();
   jest.clearAllTimers();
+
+  // Clear mock storage between tests
+  if (global.localStorage) {
+    global.localStorage.clear();
+  }
+  if (global.sessionStorage) {
+    global.sessionStorage.clear();
+  }
 });
 
 // Global test utilities
@@ -34,6 +76,10 @@ declare global {
       toHaveBeenCalledWithMatch(expected: unknown): R;
     }
   }
+
+  // Mock storage interfaces for browser tests
+  var localStorage: Storage;
+  var sessionStorage: Storage;
 }
 
 // Custom matchers
