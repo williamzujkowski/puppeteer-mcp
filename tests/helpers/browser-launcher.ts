@@ -24,10 +24,7 @@ export async function launchBrowser(options?: LaunchOptions): Promise<Browser> {
   const finalOptions = {
     ...defaultOptions,
     ...options,
-    args: [
-      ...(defaultOptions.args || []),
-      ...(options?.args || []),
-    ],
+    args: [...(defaultOptions.args || []), ...(options?.args || [])],
   };
 
   return puppeteer.launch(finalOptions);
