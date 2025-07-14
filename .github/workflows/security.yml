@@ -95,7 +95,7 @@ jobs:
         run: docker build -t puppeteer-mcp:security-scan .
 
       - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@0.29.0
+        uses: aquasecurity/trivy-action@0.32.0
         with:
           image-ref: 'puppeteer-mcp:security-scan'
           format: 'sarif'
