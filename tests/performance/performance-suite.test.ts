@@ -56,7 +56,7 @@ if (!existsSync(PERFORMANCE_CONFIG.outputDir)) {
 
 describe('Puppeteer-MCP Performance Test Suite', () => {
   setupTestLogging();
-  
+
   let mcpClient: MCPTestClient;
   let client: Client;
   let loadRunner: LoadTestRunner;
