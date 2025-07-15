@@ -35,28 +35,50 @@ export async function launchBrowser(
     'Launching browser with options',
   );
 
+  // Add timeout for CI environments
+  const launchTimeout = process.env.CI === 'true' ? 60000 : 30000;
+  
   let browser: Browser;
   try {
-    // Add timeout for CI environments
-    const launchTimeout = process.env.CI === 'true' ? 60000 : 30000;
     browser = await puppeteer.launch({
       ...launchOptions,
       timeout: launchTimeout,
     });
   } catch (error) {
-    logger.error(
-      {
-        error: error instanceof Error ? error.message : 'Unknown error',
-        stack: error instanceof Error ? error.stack : undefined,
-        launchOptions: {
-          executablePath: launchOptions.executablePath,
-          headless: launchOptions.headless,
-          argsCount: launchOptions.args?.length || 0,
-        },
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const diagnosticInfo = {
+      error: errorMessage,
+      stack: error instanceof Error ? error.stack : undefined,
+      launchOptions: {
+        executablePath: launchOptions.executablePath,
+        headless: launchOptions.headless,
+        argsCount: launchOptions.args?.length || 0,
+        timeout: launchTimeout,
       },
-      'Failed to launch browser',
+      environment: {
+        NODE_ENV: process.env.NODE_ENV,
+        CI: process.env.CI,
+        PUPPETEER_EXECUTABLE_PATH: process.env.PUPPETEER_EXECUTABLE_PATH,
+        PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: process.env.PUPPETEER_SKIP_CHROMIUM_DOWNLOAD,
+      },
+      system: {
+        platform: process.platform,
+        arch: process.arch,
+        nodeVersion: process.version,
+      },
+    };
+    
+    logger.error(diagnosticInfo, 'Failed to launch browser - diagnostic information');
+    
+    // Enhance error message for better debugging
+    const enhancedError = new Error(
+      `Failed to launch browser: ${errorMessage}\n` +
+      `Platform: ${process.platform}, CI: ${process.env.CI === 'true'}\n` +
+      `Executable: ${launchOptions.executablePath || 'default'}\n` +
+      `Timeout: ${launchTimeout}ms`
     );
-    throw error;
+    enhancedError.stack = error instanceof Error ? error.stack : undefined;
+    throw enhancedError;
   }
 
   // Instrument browser if telemetry is enabled

@@ -129,7 +129,7 @@ export function getDefaultLaunchOptions(): LaunchOptions {
       hasTouch: false,
     },
     ignoreDefaultArgs: false,
-    timeout: 30000,
+    timeout: process.env.CI === 'true' ? 60000 : 30000, // Longer timeout for CI
   };
 }
 
@@ -205,7 +205,7 @@ export function getEnvironmentConfig(): Partial<LaunchOptions> {
           // Additional args for CI environment
           ...(process.env.CI === 'true'
             ? [
-                '--single-process', // Run in single process mode in CI
+                // Remove --single-process as it can cause issues
                 '--disable-dev-tools', // Disable devtools in CI
                 '--disable-software-rasterizer',
                 '--disable-translate',
@@ -218,12 +218,21 @@ export function getEnvironmentConfig(): Partial<LaunchOptions> {
                 '--mute-audio',
                 '--no-default-browser-check',
                 '--no-pings',
+                // Add more stability flags for CI
+                '--disable-background-networking',
+                '--disable-background-timer-throttling',
+                '--disable-renderer-backgrounding',
+                '--disable-features=site-per-process',
+                '--disable-ipc-flooding-protection',
+                '--disable-backgrounding-occluded-windows',
               ]
             : []),
         ],
         handleSIGINT: false,
         handleSIGTERM: false,
         handleSIGHUP: false,
+        // Increase timeout for CI
+        timeout: process.env.CI === 'true' ? 60000 : 30000,
         ...(process.env.CI === 'true' ? { dumpio: true } : {}), // Enable browser logs in CI
       };
 

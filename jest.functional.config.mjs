@@ -65,7 +65,7 @@ export default {
   },
   coverageDirectory: '<rootDir>/coverage',
   coverageReporters: ['text', 'lcov', 'html'],
-  testTimeout: 30000, // Longer timeout for functional tests
+  testTimeout: process.env.CI === 'true' ? 60000 : 30000, // Longer timeout for CI
   setupFilesAfterEnv: ['<rootDir>/tests/setup-integration.ts'],
-  maxWorkers: 2, // Limit concurrency for functional tests
+  maxWorkers: process.env.CI === 'true' ? 1 : 2, // Single worker in CI to reduce resource contention
 };
