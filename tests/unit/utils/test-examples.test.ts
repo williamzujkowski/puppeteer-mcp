@@ -146,7 +146,7 @@ describe('Testing Best Practices Examples', () => {
       const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
 
       const logMessage = (msg: string): void => {
-        // eslint-disable-next-line no-console
+         
         console.log(`Message: ${msg}`);
       };
 

@@ -635,7 +635,7 @@ export class ChaosTestRunner {
     }
 
     // Calculate averages
-    for (const scenario of Object.values(scenarios) as any[]) {
+    for (const scenario of Object.values(scenarios)) {
       scenario.averageRecoveryTime = scenario.totalRecoveryTime / scenario.runs;
       delete scenario.totalRecoveryTime;
     }

@@ -114,12 +114,14 @@ describe('Prototype Pollution Security Tests', () => {
 
       for (const test of prototypePollutionTests) {
         const result = await test();
-        
+
         // For static pages without protection, expect pollution to succeed
         // This documents the vulnerability that should be addressed by app-level protection
         if (!result.protectionDetected) {
           expect(result.polluted).toBe(true); // Vulnerability exists
-          console.warn('Prototype pollution vulnerability detected - implement app-level protection');
+          console.warn(
+            'Prototype pollution vulnerability detected - implement app-level protection',
+          );
         } else {
           expect(result.polluted).toBe(false); // Protection is working
         }
@@ -636,8 +638,8 @@ describe('Prototype Pollution Security Tests', () => {
             const proxy = new Proxy({}, handler);
 
             // Attempt to pollute through proxy
-            (proxy as any).__proto__ = { role: 'admin' };
-            const proto = (proxy as any).__proto__;
+            (proxy).__proto__ = { role: 'admin' };
+            const proto = (proxy).__proto__;
 
             // Check if prototype was polluted
             const test: any = {};

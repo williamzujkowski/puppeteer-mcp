@@ -268,7 +268,7 @@ describe('Cookie Security Tests', () => {
         if (request.type === 'same_site') {
           // In same-site context, all cookies should be available
           expect(request.cookies).toContain('strict_cookie');
-          expect(request.cookies).toContain('lax_cookie'); 
+          expect(request.cookies).toContain('lax_cookie');
           expect(request.cookies).toContain('none_cookie');
         }
       }

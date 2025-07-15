@@ -61,13 +61,19 @@ describe('Path Traversal Security Tests', () => {
 
           // Check if system files were accessed (test environment behavior)
           const content = await page.content();
-          
-          if (content.includes('root:') || content.includes('Administrator:') || content.includes('/bin/bash')) {
+
+          if (
+            content.includes('root:') ||
+            content.includes('Administrator:') ||
+            content.includes('/bin/bash')
+          ) {
             // Path traversal succeeded in test environment - document this
             console.warn(`WARNING: Path traversal succeeded in test environment for: ${payload}`);
-            console.warn('This indicates a development environment with broader file access than production');
+            console.warn(
+              'This indicates a development environment with broader file access than production',
+            );
             console.warn('Production browsers should block file:// access from web contexts');
-            
+
             // In test environment, this might succeed due to Puppeteer permissions
             expect(content).toMatch(/root:|Administrator:|\/bin\/bash/);
           } else {
@@ -78,7 +84,9 @@ describe('Path Traversal Security Tests', () => {
           }
         } catch (error: any) {
           // Navigation should fail or be blocked
-          expect(error.message).toMatch(/Navigation|Protocol|ERR_ACCESS_DENIED|ERR_FILE_NOT_FOUND|ERR_INVALID_URL/);
+          expect(error.message).toMatch(
+            /Navigation|Protocol|ERR_ACCESS_DENIED|ERR_FILE_NOT_FOUND|ERR_INVALID_URL/,
+          );
         }
       }
     });

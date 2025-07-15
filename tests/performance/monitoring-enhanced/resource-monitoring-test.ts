@@ -108,7 +108,7 @@ export class ResourceMonitoringTest {
   }
 
   private async monitorNetworkMetrics(): Promise<void> {
-    let lastNetworkStats = { received: 0, sent: 0 };
+    const lastNetworkStats = { received: 0, sent: 0 };
 
     while (this.isMonitoring) {
       try {
