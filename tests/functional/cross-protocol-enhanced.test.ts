@@ -14,7 +14,8 @@ import {
 } from '../framework/cross-protocol-test-runner.js';
 import { createMCPServer } from '../../src/mcp/server.js';
 import { createApp, sessionStore, browserPool } from '../../src/server.js';
-import { createLogger } from '../../src/server/service-registry.js';
+import { createLogger, createServerConfig } from '../../src/server/service-registry.js';
+import { startWebSocketServer } from '../../src/server/websocket-server.js';
 import type { Application } from 'express';
 import * as http from 'http';
 import type { MCPServer } from '../../src/mcp/server.js';
@@ -945,11 +946,16 @@ describe('Enhanced Cross-Protocol Integration Tests', () => {
     try {
       // Create Express app with required dependencies
       const logger = createLogger();
+      const serverConfig = createServerConfig();
       app = createApp(logger, sessionStore, browserPool);
 
       // Start HTTP server for REST and WebSocket endpoints
       httpServer = http.createServer(app);
       const port = parseInt(testPort, 10);
+      
+      // Create WebSocket server BEFORE starting HTTP server
+      startWebSocketServer(logger, sessionStore, httpServer, serverConfig);
+      
       await new Promise<void>((resolve) => {
         httpServer.listen(port, () => {
           console.log(`Test HTTP server started on port ${port}`);
