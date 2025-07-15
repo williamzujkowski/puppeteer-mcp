@@ -7,7 +7,7 @@ export const TestDataUrls = {
   /**
    * Basic HTML page with common elements
    */
-  basicPage: (title = 'Test Page') => 
+  basicPage: (title = 'Test Page') =>
     `data:text/html,<!DOCTYPE html>
     <html>
     <head>
@@ -33,7 +33,7 @@ export const TestDataUrls = {
   /**
    * Login form page
    */
-  loginPage: () => 
+  loginPage: () =>
     `data:text/html,<!DOCTYPE html>
     <html>
     <head>
@@ -76,7 +76,7 @@ export const TestDataUrls = {
   /**
    * E-commerce product page
    */
-  productPage: () => 
+  productPage: () =>
     `data:text/html,<!DOCTYPE html>
     <html>
     <head>
@@ -111,7 +111,7 @@ export const TestDataUrls = {
   /**
    * Dynamic content page with AJAX simulation
    */
-  dynamicPage: () => 
+  dynamicPage: () =>
     `data:text/html,<!DOCTYPE html>
     <html>
     <head>
@@ -143,7 +143,7 @@ export const TestDataUrls = {
   /**
    * Form with various input types
    */
-  formPage: () => 
+  formPage: () =>
     `data:text/html,<!DOCTYPE html>
     <html>
     <head>
@@ -186,7 +186,7 @@ export const TestDataUrls = {
   /**
    * Table with sortable data
    */
-  tablePage: () => 
+  tablePage: () =>
     `data:text/html,<!DOCTYPE html>
     <html>
     <head>
@@ -221,7 +221,7 @@ export const TestDataUrls = {
   /**
    * Modal dialog test page
    */
-  modalPage: () => 
+  modalPage: () =>
     `data:text/html,<!DOCTYPE html>
     <html>
     <head>
@@ -268,7 +268,7 @@ export const TestDataUrls = {
   /**
    * Image gallery for screenshot tests
    */
-  galleryPage: () => 
+  galleryPage: () =>
     `data:text/html,<!DOCTYPE html>
     <html>
     <head>

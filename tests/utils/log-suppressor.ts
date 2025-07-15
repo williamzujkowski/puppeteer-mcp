@@ -11,7 +11,7 @@ const logLevels = ['log', 'info', 'warn', 'error', 'debug'];
  */
 export function suppressLogs() {
   if (process.env.CI || process.env.SUPPRESS_TEST_LOGS === 'true') {
-    logLevels.forEach(level => {
+    logLevels.forEach((level) => {
       console[level] = () => {};
     });
   }
@@ -21,7 +21,7 @@ export function suppressLogs() {
  * Restore console output
  */
 export function restoreLogs() {
-  logLevels.forEach(level => {
+  logLevels.forEach((level) => {
     console[level] = originalConsole[level];
   });
 }
@@ -33,7 +33,7 @@ export function setupTestLogging() {
   beforeAll(() => {
     suppressLogs();
   });
-  
+
   afterAll(() => {
     restoreLogs();
   });

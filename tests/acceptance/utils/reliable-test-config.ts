@@ -61,27 +61,27 @@ export const RELIABLE_TEST_TARGETS: TestTargets = {
   },
   apis: {
     // For API tests, use mock JSON responses
-    httpbin: createJsonDataUrl({ 
+    httpbin: createJsonDataUrl({
       origin: '127.0.0.1',
       url: 'http://localhost/get',
       args: {},
-      headers: {}
+      headers: {},
     }),
     jsonplaceholder: createJsonDataUrl([
       { id: 1, title: 'Test Post 1', body: 'This is a test post', userId: 1 },
-      { id: 2, title: 'Test Post 2', body: 'Another test post', userId: 1 }
+      { id: 2, title: 'Test Post 2', body: 'Another test post', userId: 1 },
     ]),
     reqres: createJsonDataUrl({
       data: [
         { id: 1, email: 'test1@example.com', first_name: 'John', last_name: 'Doe' },
-        { id: 2, email: 'test2@example.com', first_name: 'Jane', last_name: 'Smith' }
-      ]
+        { id: 2, email: 'test2@example.com', first_name: 'Jane', last_name: 'Smith' },
+      ],
     }),
     worldbank: createJsonDataUrl({
       countries: [
         { id: 'USA', name: 'United States' },
-        { id: 'GBR', name: 'United Kingdom' }
-      ]
+        { id: 'GBR', name: 'United Kingdom' },
+      ],
     }),
   },
   testing: {
@@ -171,7 +171,7 @@ export function getTestTargets(): TestTargets {
   if (process.env.CI || process.env.USE_DATA_URLS === 'true') {
     return RELIABLE_TEST_TARGETS;
   }
-  
+
   // Otherwise, import and use the original external URLs
   // This allows developers to test against real sites locally if needed
   try {
