@@ -952,10 +952,10 @@ describe('Enhanced Cross-Protocol Integration Tests', () => {
       // Start HTTP server for REST and WebSocket endpoints
       httpServer = http.createServer(app);
       const port = parseInt(testPort, 10);
-      
+
       // Create WebSocket server BEFORE starting HTTP server
       startWebSocketServer(logger, sessionStore, httpServer, serverConfig);
-      
+
       await new Promise<void>((resolve) => {
         httpServer.listen(port, () => {
           console.log(`Test HTTP server started on port ${port}`);
