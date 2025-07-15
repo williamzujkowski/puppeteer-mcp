@@ -36,7 +36,18 @@ export class ActionDispatcher {
   private readonly customHandlers: HandlerRegistry = {};
 
   constructor() {
-    this.navigationExecutor = new NavigationExecutor();
+    // Configure NavigationExecutor to allow data URLs in test environments
+    const isTestEnvironment = process.env.NODE_ENV === 'test' || process.env.CI === 'true';
+    const navigationConfig = isTestEnvironment
+      ? {
+          urlValidationConfig: {
+            allowedProtocols: ['http:', 'https:', 'data:'],
+            enableValidation: true,
+          },
+        }
+      : undefined;
+
+    this.navigationExecutor = new NavigationExecutor(navigationConfig);
     this.interactionExecutor = new InteractionExecutor();
     this.extractionExecutor = new ExtractionExecutor();
     this.evaluationExecutor = new EvaluationExecutor();

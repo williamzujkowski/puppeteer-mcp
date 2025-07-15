@@ -576,6 +576,7 @@ export class WebSocketTestClient {
         body: JSON.stringify({
           username: 'websocket-test-user',
           password: 'test-password-123',
+          roles: ['user'], // Add roles for proper session creation
         }),
       });
 
@@ -584,7 +585,14 @@ export class WebSocketTestClient {
       }
 
       const sessionData = await response.json();
-      return sessionData.accessToken || sessionData.token || sessionData.sessionId;
+      // Check multiple possible token fields from the response
+      const token = sessionData.accessToken || sessionData.token || sessionData.data?.accessToken || sessionData.data?.token || sessionData.sessionId;
+      
+      if (!token) {
+        throw new Error(`No valid token found in session response: ${JSON.stringify(sessionData)}`);
+      }
+      
+      return token;
     } catch (error) {
       throw new Error(
         `Failed to create valid session for WebSocket auth: ${error instanceof Error ? error.message : 'Unknown error'}`,
