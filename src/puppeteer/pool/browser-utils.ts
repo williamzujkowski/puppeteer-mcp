@@ -37,7 +37,7 @@ export async function launchBrowser(
 
   // Add timeout for CI environments
   const launchTimeout = process.env.CI === 'true' ? 60000 : 30000;
-  
+
   let browser: Browser;
   try {
     browser = await puppeteer.launch({
@@ -67,15 +67,15 @@ export async function launchBrowser(
         nodeVersion: process.version,
       },
     };
-    
+
     logger.error(diagnosticInfo, 'Failed to launch browser - diagnostic information');
-    
+
     // Enhance error message for better debugging
     const enhancedError = new Error(
       `Failed to launch browser: ${errorMessage}\n` +
-      `Platform: ${process.platform}, CI: ${process.env.CI === 'true'}\n` +
-      `Executable: ${launchOptions.executablePath || 'default'}\n` +
-      `Timeout: ${launchTimeout}ms`
+        `Platform: ${process.platform}, CI: ${process.env.CI === 'true'}\n` +
+        `Executable: ${launchOptions.executablePath || 'default'}\n` +
+        `Timeout: ${launchTimeout}ms`,
     );
     enhancedError.stack = error instanceof Error ? error.stack : undefined;
     throw enhancedError;
