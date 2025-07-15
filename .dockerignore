@@ -62,6 +62,7 @@ docker-compose*.yml
 # Scripts (except those needed at runtime)
 scripts/
 !scripts/docker-entrypoint.sh
+!scripts/fix-puppeteer-debug.cjs
 
 # Temporary files
 tmp/
