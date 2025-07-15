@@ -546,6 +546,26 @@ export class WebSocketTestClient {
     const testPort = process.env.TEST_SERVER_PORT || process.env.PORT || '3000';
     const createSessionUrl = `http://localhost:${testPort}/api/v1/sessions/dev-create`;
 
+    // Wait for server to be ready with retries
+    let retries = 5;
+    while (retries > 0) {
+      try {
+        // First check if server is healthy
+        const healthResponse = await fetch(`http://localhost:${testPort}/health`);
+        if (healthResponse.ok) {
+          break; // Server is ready
+        }
+      } catch (error) {
+        // Server not ready yet
+      }
+      retries--;
+      if (retries > 0) {
+        await new Promise((resolve) => setTimeout(resolve, 2000)); // Wait 2 seconds before retry
+      } else {
+        throw new Error('Server failed to become ready after 5 attempts');
+      }
+    }
+
     try {
       const response = await fetch(createSessionUrl, {
         method: 'POST',

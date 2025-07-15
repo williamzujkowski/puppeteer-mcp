@@ -74,7 +74,30 @@ export async function launchNewBrowser(
   healthMonitor: BrowserHealthMonitor,
   onHealthCheckFailed: (browserId: string) => void,
 ): Promise<{ browser: Browser; instance: InternalBrowserInstance }> {
-  const result = await launchBrowser(options);
+  // In CI, add retry logic for browser launch
+  let result;
+  if (process.env.CI === 'true') {
+    let retries = 3;
+    let lastError: Error | null = null;
+    while (retries > 0) {
+      try {
+        result = await launchBrowser(options);
+        break; // Success
+      } catch (error) {
+        lastError = error as Error;
+        retries--;
+        if (retries > 0) {
+          // Wait before retry
+          await new Promise((resolve) => setTimeout(resolve, 2000));
+        }
+      }
+    }
+    if (!result) {
+      throw lastError || new Error('Failed to launch browser after retries');
+    }
+  } else {
+    result = await launchBrowser(options);
+  }
 
   // Create internal instance with additional state
   const internalInstance: InternalBrowserInstance = {

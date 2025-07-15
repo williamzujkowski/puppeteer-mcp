@@ -147,6 +147,11 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
 
+      - name: Install Chrome
+        uses: browser-actions/setup-chrome@latest
+        with:
+          chrome-version: stable
+
       - name: Install dependencies
         run: npm ci --prefer-offline --no-audit --legacy-peer-deps
 
@@ -158,6 +163,7 @@ jobs:
         env:
           JEST_JUNIT_OUTPUT_DIR: ./test-results
           JEST_JUNIT_OUTPUT_NAME: junit-unit-${{ matrix.node-version }}.xml
+          PUPPETEER_EXECUTABLE_PATH: /usr/bin/google-chrome-stable
 
       - name: Run integration tests
         run: npm run test:integration -- --ci --reporters=default --reporters=jest-junit
@@ -165,6 +171,7 @@ jobs:
           JEST_JUNIT_OUTPUT_DIR: ./test-results
           JEST_JUNIT_OUTPUT_NAME: junit-integration-${{ matrix.node-version }}.xml
           REDIS_URL: redis://localhost:6379
+          PUPPETEER_EXECUTABLE_PATH: /usr/bin/google-chrome-stable
 
       - name: Upload test results
         if: always()

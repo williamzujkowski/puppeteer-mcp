@@ -198,10 +198,33 @@ export function getEnvironmentConfig(): Partial<LaunchOptions> {
     case 'test':
       return {
         headless: true,
-        args: [...SECURITY_BROWSER_ARGS, '--disable-extensions', '--disable-default-apps'],
+        args: [
+          ...SECURITY_BROWSER_ARGS,
+          '--disable-extensions',
+          '--disable-default-apps',
+          // Additional args for CI environment
+          ...(process.env.CI === 'true'
+            ? [
+                '--single-process', // Run in single process mode in CI
+                '--disable-dev-tools', // Disable devtools in CI
+                '--disable-software-rasterizer',
+                '--disable-translate',
+                '--disable-extensions-except',
+                '--disable-features=TranslateUI',
+                '--disable-ipc-flooding-protection',
+                '--disable-default-apps',
+                '--disable-sync',
+                '--metrics-recording-only',
+                '--mute-audio',
+                '--no-default-browser-check',
+                '--no-pings',
+              ]
+            : []),
+        ],
         handleSIGINT: false,
         handleSIGTERM: false,
         handleSIGHUP: false,
+        ...(process.env.CI === 'true' ? { dumpio: true } : {}), // Enable browser logs in CI
       };
 
     case 'development':

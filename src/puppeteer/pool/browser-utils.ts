@@ -30,13 +30,19 @@ export async function launchBrowser(
       executablePath: launchOptions.executablePath,
       headless: launchOptions.headless,
       args: launchOptions.args?.slice(0, 5), // Log first 5 args to avoid clutter
+      isCI: process.env.CI === 'true',
     },
     'Launching browser with options',
   );
 
   let browser: Browser;
   try {
-    browser = await puppeteer.launch(launchOptions);
+    // Add timeout for CI environments
+    const launchTimeout = process.env.CI === 'true' ? 60000 : 30000;
+    browser = await puppeteer.launch({
+      ...launchOptions,
+      timeout: launchTimeout,
+    });
   } catch (error) {
     logger.error(
       {
