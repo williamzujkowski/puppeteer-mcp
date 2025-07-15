@@ -40,7 +40,7 @@ export class ActionDispatcher {
     const isTestEnvironment = process.env.NODE_ENV === 'test' || process.env.CI === 'true';
     const navigationConfig = isTestEnvironment
       ? {
-          urlValidationConfig: {
+          urlValidation: {
             allowedProtocols: ['http:', 'https:', 'data:'],
             enableValidation: true,
           },

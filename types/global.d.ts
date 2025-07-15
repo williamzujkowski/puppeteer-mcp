@@ -7,5 +7,4 @@ declare namespace Express {
   }
 }
 
-// Declare __dirname for ES modules compatibility with Jest
-declare const __dirname: string;
+// __dirname is handled by Node.js types
