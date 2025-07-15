@@ -17,6 +17,8 @@ import { createApp, sessionStore, browserPool } from '../../src/server.js';
 import { createLogger } from '../../src/server/service-registry.js';
 import type { Application } from 'express';
 import * as http from 'http';
+import { TestDataUrls } from '../utils/test-data-urls.js';
+import { setupTestLogging } from '../utils/log-suppressor.js';
 
 /**
  * Cross-protocol test configuration
@@ -219,7 +221,7 @@ const browserContextSuite: TestSuite = {
           },
           body: {
             action: 'navigate',
-            params: { url: 'https://example.com' },
+            params: { url: TestDataUrls.basicPage() },
           },
         });
 
@@ -252,7 +254,7 @@ const browserContextSuite: TestSuite = {
         const mcpResult = await clients.mcp.callTool('execute-in-context', {
           contextId: grpcResult.contextId,
           command: 'navigate',
-          parameters: { url: 'https://example.com' },
+          parameters: { url: TestDataUrls.basicPage() },
         });
 
         const executeData = JSON.parse(mcpResult.content[0].text);
@@ -423,6 +425,8 @@ const performanceSuite: TestSuite = {
 };
 
 describe('Cross-Protocol Consistency Tests', () => {
+  setupTestLogging();
+  
   let runner: CrossProtocolTestRunner;
   let mcpServer: MCPServer;
   let app: Application;

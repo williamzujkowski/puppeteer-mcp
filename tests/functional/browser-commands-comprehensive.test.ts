@@ -9,6 +9,9 @@ import { MCPServer, createMCPServer } from '../../src/mcp/server.js';
 import type { ToolResponse } from '../../src/mcp/types/tool-types.js';
 import * as fs from 'fs/promises';
 import * as path from 'path';
+import { getTestTargets } from '../acceptance/utils/reliable-test-config.js';
+import { TestDataUrls } from '../utils/test-data-urls.js';
+import { setupTestLogging } from '../utils/log-suppressor.js';
 
 /**
  * Mock MCP client for testing
@@ -52,11 +55,14 @@ class MockMCPClient {
 }
 
 describe('Browser Commands Comprehensive Functional Tests', () => {
+  setupTestLogging();
+  
   let mcpServer: MCPServer;
   let mcpClient: MockMCPClient;
   const testSessions: Map<string, any> = new Map();
   const testContexts: Map<string, any> = new Map();
   let primarySessionId: string;
+  const TEST_TARGETS = getTestTargets();
   let primaryContextId: string;
 
   beforeAll(async () => {
@@ -126,7 +132,7 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
         const result = await mcpClient.callTool('execute-in-context', {
           contextId: primaryContextId,
           command: 'navigate',
-          parameters: { url: 'https://example.com' },
+          parameters: { url: TestDataUrls.basicPage() },
         });
 
         const executeData = JSON.parse(result.content[0].text);
@@ -142,7 +148,7 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
             contextId: primaryContextId,
             command: 'navigate',
             parameters: {
-              url: 'https://example.com',
+              url: TestDataUrls.basicPage(),
               waitUntil,
             },
           });
@@ -169,7 +175,7 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
           contextId: primaryContextId,
           command: 'navigate',
           parameters: {
-            url: 'https://httpstat.us/200?sleep=60000', // Slow response
+            url: TestDataUrls.dynamicPage(), // Dynamic content for timeout test
             timeout: 1000, // 1 second timeout
           },
         });
@@ -188,7 +194,7 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
         await mcpClient.callTool('execute-in-context', {
           contextId: primaryContextId,
           command: 'navigate',
-          parameters: { url: 'https://example.com' },
+          parameters: { url: TestDataUrls.basicPage() },
         });
       });
 
@@ -620,7 +626,7 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
         await mcpClient.callTool('execute-in-context', {
           contextId: primaryContextId,
           command: 'navigate',
-          parameters: { url: 'https://example.com' },
+          parameters: { url: TestDataUrls.basicPage() },
         });
       });
 
@@ -684,7 +690,7 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
         await mcpClient.callTool('execute-in-context', {
           contextId: primaryContextId,
           command: 'navigate',
-          parameters: { url: 'https://example.com' },
+          parameters: { url: TestDataUrls.basicPage() },
         });
       });
 
@@ -740,7 +746,7 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
         await mcpClient.callTool('execute-in-context', {
           contextId: primaryContextId,
           command: 'navigate',
-          parameters: { url: 'https://example.com' },
+          parameters: { url: TestDataUrls.basicPage() },
         });
       });
 
@@ -1147,7 +1153,7 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
         await mcpClient.callTool('execute-in-context', {
           contextId: primaryContextId,
           command: 'navigate',
-          parameters: { url: 'https://example.com' },
+          parameters: { url: TestDataUrls.basicPage() },
         });
       });
 
@@ -1339,7 +1345,7 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
       const result = await mcpClient.callTool('execute-in-context', {
         contextId: tempContextId,
         command: 'navigate',
-        parameters: { url: 'https://example.com' },
+        parameters: { url: TestDataUrls.basicPage() },
       });
 
       const executeData = JSON.parse(result.content[0].text);

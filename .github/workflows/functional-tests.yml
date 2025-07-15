@@ -43,7 +43,7 @@ jobs:
             test-pattern: 'tests/functional/resources-comprehensive.test.ts'
             timeout: 15
           - suite: performance
-            test-pattern: 'tests/functional/*performance*.test.ts'
+            test-pattern: 'tests/performance/performance-suite.test.ts'
             timeout: 30
 
     steps:
