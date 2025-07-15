@@ -16,8 +16,9 @@ export NO_COLOR=1
 export PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=false
 export PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome-stable
 
-# Run tests with optimized settings and coverage for CI
-npm run test:coverage -- \
+# Run tests with optimized settings and no coverage to avoid Puppeteer conflicts
+npm run test -- \
+  --no-coverage \
   --ci \
   --maxWorkers=2 \
   --maxConcurrency=4 \
