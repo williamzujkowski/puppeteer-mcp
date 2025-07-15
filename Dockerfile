@@ -8,8 +8,9 @@
 FROM node:22-alpine AS security-scan
 WORKDIR /scan
 
-# Copy package files for scanning
+# Copy package files and scripts for scanning
 COPY package*.json ./
+COPY scripts/ ./scripts/
 
 # Install dependencies and run security audit
 RUN npm ci --only=production --legacy-peer-deps && \
@@ -26,8 +27,9 @@ RUN apk add --no-cache python3 make g++
 # Skip Puppeteer Chromium download
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 
-# Copy package files
+# Copy package files and scripts
 COPY package*.json ./
+COPY scripts/ ./scripts/
 
 # Install production dependencies
 RUN npm ci --only=production --legacy-peer-deps
@@ -42,8 +44,9 @@ RUN apk add --no-cache python3 make g++
 # Skip Puppeteer Chromium download
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 
-# Copy package files
+# Copy package files and scripts
 COPY package*.json ./
+COPY scripts/ ./scripts/
 
 # Install all dependencies
 RUN npm ci --legacy-peer-deps
