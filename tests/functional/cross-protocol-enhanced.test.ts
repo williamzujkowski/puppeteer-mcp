@@ -14,7 +14,8 @@ import {
 } from '../framework/cross-protocol-test-runner.js';
 import { createMCPServer } from '../../src/mcp/server.js';
 import { createApp, sessionStore, browserPool } from '../../src/server.js';
-import { createLogger, createServerConfig } from '../../src/server/service-registry.js';
+import { createLogger } from '../../src/server/service-registry.js';
+import { createServerConfig } from '../../src/server/server-config.js';
 import { startWebSocketServer } from '../../src/server/websocket-server.js';
 import type { Application } from 'express';
 import * as http from 'http';
