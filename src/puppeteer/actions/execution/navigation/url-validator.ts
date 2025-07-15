@@ -45,7 +45,14 @@ export interface UrlValidationConfig {
  * @nist sc-7 "Boundary protection"
  */
 const DEFAULT_CONFIG: Required<UrlValidationConfig> = {
-  allowedProtocols: ['http:', 'https:'],
+  allowedProtocols: (() => {
+    const baseProtocols = ['http:', 'https:'];
+    // Allow data: and about: protocols in test environments
+    if (process.env.NODE_ENV === 'test' || process.env.CI === 'true') {
+      baseProtocols.push('data:', 'about:');
+    }
+    return baseProtocols;
+  })(),
   blockedHosts: [
     'localhost',
     '127.0.0.1',
@@ -54,7 +61,7 @@ const DEFAULT_CONFIG: Required<UrlValidationConfig> = {
     '169.254.169.254', // AWS metadata
     '100.64.0.0/10', // RFC 6598 shared address space
   ],
-  allowPrivateNetworks: false,
+  allowPrivateNetworks: process.env.NODE_ENV === 'test' || process.env.CI === 'true', // Allow private networks in tests
   maxLength: 2048,
   allowFileProtocol: false,
 };

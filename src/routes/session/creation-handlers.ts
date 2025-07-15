@@ -71,6 +71,7 @@ export class SessionCreationHandlerFactory {
           userId: finalUserId,
           username,
           roles,
+          token: tokens.accessToken, // Add token field for WebSocket authentication
           ...tokens,
         }),
       );

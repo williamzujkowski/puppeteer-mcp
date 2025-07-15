@@ -93,11 +93,11 @@ jobs:
           echo "TLS_ENABLED=false" >> $GITHUB_ENV
           echo "TEST_SERVER_PORT=8443" >> $GITHUB_ENV
           echo "ALLOWED_ORIGINS=http://localhost:8443,https://localhost:8443,ws://localhost:8443" >> $GITHUB_ENV
-          
+
           # Additional CI-specific settings
           echo "PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=false" >> $GITHUB_ENV
           echo "CI=true" >> $GITHUB_ENV
-          
+
           # Debug information
           echo "Environment setup complete. Key variables:"
           echo "NODE_ENV=$NODE_ENV"
@@ -137,16 +137,13 @@ jobs:
             npm test -- "${{ matrix.custom-path }}" \
               --json \
               --outputFile=test-results/${{ matrix.suite }}-results.json \
-              --coverage \
-              --coverageDirectory=coverage/${{ matrix.suite }}
+              --no-coverage
           else
-            # Run functional tests with pattern
+            # Run functional tests with pattern (coverage disabled in jest config)
             npm run test:functional -- \
               --testPathPattern="${{ matrix.test-pattern }}" \
               --json \
-              --outputFile=test-results/${{ matrix.suite }}-results.json \
-              --coverage \
-              --coverageDirectory=coverage/${{ matrix.suite }}
+              --outputFile=test-results/${{ matrix.suite }}-results.json
           fi
         timeout-minutes: ${{ matrix.timeout }}
 
@@ -171,13 +168,14 @@ jobs:
             services.log
           retention-days: 30
 
-      - name: Upload coverage to Codecov
-        if: matrix.suite != 'performance'
-        uses: codecov/codecov-action@v4
-        with:
-          directory: coverage/${{ matrix.suite }}
-          flags: functional-${{ matrix.suite }}
-          fail_ci_if_error: false
+      # Coverage disabled for functional tests to avoid Puppeteer conflicts
+      # - name: Upload coverage to Codecov
+      #   if: matrix.suite != 'performance'
+      #   uses: codecov/codecov-action@v4
+      #   with:
+      #     directory: coverage/${{ matrix.suite }}
+      #     flags: functional-${{ matrix.suite }}
+      #     fail_ci_if_error: false
 
       - name: Comment PR with results
         if: github.event_name == 'pull_request' && always()

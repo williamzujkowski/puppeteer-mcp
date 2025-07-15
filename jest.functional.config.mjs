@@ -48,21 +48,8 @@ export default {
   ],
   roots: ['<rootDir>/src', '<rootDir>/tests'],
   testMatch: ['**/tests/functional/**/*.+(ts|tsx|js)'],
-  collectCoverageFrom: [
-    'src/**/*.{ts,tsx}',
-    '!src/**/*.d.ts',
-    '!src/**/index.ts',
-    '!src/grpc/generated/**',
-  ],
-  // Relaxed coverage thresholds for functional tests
-  coverageThreshold: {
-    global: {
-      branches: 5,
-      functions: 5,
-      lines: 5,
-      statements: 5,
-    },
-  },
+  // Disable coverage collection for functional tests to avoid conflicts with Puppeteer
+  collectCoverage: false,
   coverageDirectory: '<rootDir>/coverage',
   coverageReporters: ['text', 'lcov', 'html'],
   testTimeout: process.env.CI === 'true' ? 60000 : 30000, // Longer timeout for CI
