@@ -28,6 +28,8 @@ import {
   cleanupMCPSession,
   MCPTestClient,
 } from '../acceptance/utils/mcp-client.js';
+import { TestDataUrls } from '../utils/test-data-urls.js';
+import { setupTestLogging } from '../utils/log-suppressor.js';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 
 // Test configuration
@@ -53,6 +55,8 @@ if (!existsSync(PERFORMANCE_CONFIG.outputDir)) {
 }
 
 describe('Puppeteer-MCP Performance Test Suite', () => {
+  setupTestLogging();
+  
   let mcpClient: MCPTestClient;
   let client: Client;
   let loadRunner: LoadTestRunner;
@@ -257,7 +261,7 @@ describe('Puppeteer-MCP Performance Test Suite', () => {
             name: 'navigate',
             fn: () =>
               measureBrowserCommand('navigate', async () => {
-                await mcpNavigate(client, contextId, 'https://example.com');
+                await mcpNavigate(client, contextId, TestDataUrls.basicPage());
               }),
           },
           {
@@ -294,7 +298,7 @@ describe('Puppeteer-MCP Performance Test Suite', () => {
           const results = [];
 
           // Initial navigation for consistent state
-          await mcpNavigate(client, contextId, 'https://example.com');
+          await mcpNavigate(client, contextId, TestDataUrls.basicPage());
 
           // Measure command execution
           for (let i = 0; i < 20; i++) {
@@ -339,7 +343,7 @@ describe('Puppeteer-MCP Performance Test Suite', () => {
             session = await createMCPSession(client);
 
             // Execute workflow
-            await mcpNavigate(client, session.contextId, 'https://example.com');
+            await mcpNavigate(client, session.contextId, TestDataUrls.basicPage());
             await mcpGetContent(client, session.contextId);
             await mcpScreenshot(client, session.contextId);
 
@@ -395,7 +399,7 @@ describe('Puppeteer-MCP Performance Test Suite', () => {
           try {
             // Simulate concurrent browser operations
             const contextId = session.contextId;
-            await mcpNavigate(client, contextId, 'https://example.com');
+            await mcpNavigate(client, contextId, TestDataUrls.basicPage());
             await mcpGetContent(client, contextId);
 
             const latency = performance.now() - startTime;
@@ -497,7 +501,7 @@ describe('Puppeteer-MCP Performance Test Suite', () => {
 
           try {
             // Simulate realistic user behavior
-            await mcpNavigate(client, session.contextId, 'https://example.com');
+            await mcpNavigate(client, session.contextId, TestDataUrls.basicPage());
             await new Promise((resolve) => setTimeout(resolve, 1000)); // Think time
             await mcpGetContent(client, session.contextId);
             await new Promise((resolve) => setTimeout(resolve, 500));
