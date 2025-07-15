@@ -45,7 +45,7 @@ jest.mock('../../../../src/utils/logger.js', () => ({
 
 describe('Rate Limiter', () => {
   let mockReq: Partial<Request>;
-   
+
   let mockRes: Partial<Response>;
 
   beforeEach(() => {

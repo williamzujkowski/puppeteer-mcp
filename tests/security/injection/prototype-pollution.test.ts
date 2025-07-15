@@ -638,8 +638,8 @@ describe('Prototype Pollution Security Tests', () => {
             const proxy = new Proxy({}, handler);
 
             // Attempt to pollute through proxy
-            (proxy).__proto__ = { role: 'admin' };
-            const proto = (proxy).__proto__;
+            proxy.__proto__ = { role: 'admin' };
+            const proto = proxy.__proto__;
 
             // Check if prototype was polluted
             const test: any = {};

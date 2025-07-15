@@ -146,7 +146,6 @@ describe('Testing Best Practices Examples', () => {
       const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
 
       const logMessage = (msg: string): void => {
-         
         console.log(`Message: ${msg}`);
       };
 
