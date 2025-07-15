@@ -69,7 +69,11 @@
     "postinstall": "node scripts/fix-puppeteer-debug.cjs",
     "prepublishOnly": "npm run build",
     "pre-commit": "npm run lint:fix && npm run format && npm run typecheck",
-    "mcp": "node dist/mcp/start-mcp.js"
+    "mcp": "node dist/mcp/start-mcp.js",
+    "test:fast": "jest --no-coverage --maxWorkers=50% --bail",
+    "test:ci": "./scripts/test-ci-optimized.sh",
+    "test:reliable": "USE_DATA_URLS=true jest --no-coverage --maxWorkers=2",
+    "test:debug": "jest --no-coverage --verbose --runInBand"
   },
   "keywords": [
     "mcp",
