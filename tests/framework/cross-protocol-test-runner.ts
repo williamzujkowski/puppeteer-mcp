@@ -586,12 +586,17 @@ export class WebSocketTestClient {
 
       const sessionData = await response.json();
       // Check multiple possible token fields from the response
-      const token = sessionData.accessToken || sessionData.token || sessionData.data?.accessToken || sessionData.data?.token || sessionData.sessionId;
-      
+      const token =
+        sessionData.accessToken ||
+        sessionData.token ||
+        sessionData.data?.accessToken ||
+        sessionData.data?.token ||
+        sessionData.sessionId;
+
       if (!token) {
         throw new Error(`No valid token found in session response: ${JSON.stringify(sessionData)}`);
       }
-      
+
       return token;
     } catch (error) {
       throw new Error(
