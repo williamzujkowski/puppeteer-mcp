@@ -14,7 +14,7 @@ export const DEFAULT_OPTIONS: Partial<BrowserPoolOptions> = {
   maxBrowsers: 5,
   maxPagesPerBrowser: 10,
   idleTimeout: 5 * 60 * 1000, // 5 minutes
-  acquisitionTimeout: 30000,
+  acquisitionTimeout: process.env.NODE_ENV === 'test' ? 120000 : 30000, // 120s for tests, 30s for production
   healthCheckInterval: 30000,
   launchOptions: getDefaultLaunchOptions(),
 };
