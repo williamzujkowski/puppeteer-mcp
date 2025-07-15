@@ -91,11 +91,11 @@ export class NavigationValidator extends BaseValidator {
 
       // Check for dangerous protocols
       const isDangerousProtocol = DANGEROUS_PROTOCOLS.some((protocol) => url.protocol === protocol);
-      
+
       // Allow data: URLs in test environments
       const isTestEnvironment = process.env.NODE_ENV === 'test' || process.env.CI === 'true';
       const isDataUrl = url.protocol === 'data:';
-      
+
       if (isDangerousProtocol && !(isTestEnvironment && isDataUrl)) {
         this.addError(
           errors,
