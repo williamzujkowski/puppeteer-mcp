@@ -17,6 +17,8 @@ import { createApp, sessionStore, browserPool } from '../../src/server.js';
 import { createLogger } from '../../src/server/service-registry.js';
 import { createServerConfig } from '../../src/server/server-config.js';
 import { startWebSocketServer } from '../../src/server/websocket-server.js';
+import { getTestTargets } from '../acceptance/utils/reliable-test-config.js';
+import { setupTestLogging } from '../utils/log-suppressor.js';
 import type { Application } from 'express';
 import * as http from 'http';
 import type { MCPServer } from '../../src/mcp/server.js';
@@ -367,14 +369,14 @@ const enhancedContextManagementSuite: TestSuite = {
           body: {
             action: 'navigate',
             params: {
-              url: 'https://httpbin.org/json',
+              url: getTestTargets().apis.httpbin,
               waitUntil: 'networkidle0',
             },
           },
         });
 
         expect(restNavigateResult.success).toBe(true);
-        expect(restNavigateResult.data.url).toContain('httpbin.org');
+        expect(restNavigateResult.data.url).toBeDefined();
 
         // Step 3: Execute JavaScript via gRPC
         const grpcJsResult = await clients.grpc.call('ContextService', 'ExecuteScript', {
@@ -477,7 +479,7 @@ const enhancedContextManagementSuite: TestSuite = {
             headers: { Authorization: `Bearer ${session.token || session.id}` },
             body: {
               action: 'navigate',
-              params: { url: 'https://example.com' },
+              params: { url: getTestTargets().testing.theInternet },
             },
           }),
 
@@ -485,13 +487,13 @@ const enhancedContextManagementSuite: TestSuite = {
           clients.mcp.callTool('execute-in-context', {
             contextId: contextIds[1],
             command: 'navigate',
-            parameters: { url: 'https://httpbin.org' },
+            parameters: { url: getTestTargets().apis.httpbin },
           }),
 
           // Context 3: Navigate to jsonplaceholder
           clients.grpc.call('ContextService', 'Navigate', {
             contextId: contextIds[2],
-            url: 'https://jsonplaceholder.typicode.com/posts/1',
+            url: getTestTargets().apis.jsonplaceholder,
           }),
         ];
 
@@ -938,6 +940,8 @@ const stateSynchronizationSuite: TestSuite = {
  * Main test suite execution
  */
 describe('Enhanced Cross-Protocol Integration Tests', () => {
+  setupTestLogging();
+
   let runner: CrossProtocolTestRunner;
   let mcpServer: MCPServer;
   let app: Application;

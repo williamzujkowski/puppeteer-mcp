@@ -15,7 +15,8 @@ import {
   mcpGetContent,
   mcpScreenshot,
 } from '../utils/mcp-client.js';
-import { TEST_TARGETS, TEST_CONFIG, TEST_CREDENTIALS } from '../utils/test-config.js';
+import { getTestTargets, TEST_CONFIG, TEST_CREDENTIALS } from '../utils/reliable-test-config.js';
+const TEST_TARGETS = getTestTargets();
 import {
   retryOperation,
   validateUrl,
