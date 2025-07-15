@@ -37,14 +37,15 @@ jobs:
             test-pattern: 'tests/functional/browser-commands-comprehensive.test.ts'
             timeout: 25
           - suite: cross-protocol
-            test-pattern: 'tests/functional/cross-protocol-*.test.ts'
+            test-pattern: 'cross-protocol'
             timeout: 30
           - suite: resources
             test-pattern: 'tests/functional/resources-comprehensive.test.ts'
             timeout: 15
           - suite: performance
-            test-pattern: 'tests/performance/performance-suite.test.ts'
+            test-pattern: ''
             timeout: 30
+            custom-path: 'tests/performance/performance-suite.test.ts'
 
     steps:
       - name: Checkout repository
@@ -109,12 +110,22 @@ jobs:
       - name: Run functional tests
         id: test
         run: |
-          npm run test:functional -- \
-            --testPathPattern="${{ matrix.test-pattern }}" \
-            --json \
-            --outputFile=test-results/${{ matrix.suite }}-results.json \
-            --coverage \
-            --coverageDirectory=coverage/${{ matrix.suite }}
+          if [ -n "${{ matrix.custom-path }}" ]; then
+            # Run specific test file directly for performance tests
+            npm test -- "${{ matrix.custom-path }}" \
+              --json \
+              --outputFile=test-results/${{ matrix.suite }}-results.json \
+              --coverage \
+              --coverageDirectory=coverage/${{ matrix.suite }}
+          else
+            # Run functional tests with pattern
+            npm run test:functional -- \
+              --testPathPattern="${{ matrix.test-pattern }}" \
+              --json \
+              --outputFile=test-results/${{ matrix.suite }}-results.json \
+              --coverage \
+              --coverageDirectory=coverage/${{ matrix.suite }}
+          fi
         timeout-minutes: ${{ matrix.timeout }}
 
       - name: Generate test report
