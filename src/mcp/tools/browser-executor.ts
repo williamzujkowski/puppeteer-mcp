@@ -304,12 +304,37 @@ export class BrowserExecutor {
   private createCookieAction(command: string, parameters?: Record<string, unknown>): BrowserAction {
     const operation = this.determineCookieOperation(command, parameters);
 
+    // Handle individual cookie parameters
+    let cookies: any[] | undefined;
+    let names: string[] | undefined;
+    let cookieName: string | undefined;
+
+    if (parameters?.name && typeof parameters.name === 'string') {
+      cookieName = parameters.name;
+      cookies = [
+        {
+          name: parameters.name,
+          value: parameters.value as string,
+          domain: parameters.domain as string,
+          path: parameters.path as string,
+          secure: parameters.secure as boolean,
+          httpOnly: parameters.httpOnly as boolean,
+          sameSite: parameters.sameSite as 'Strict' | 'Lax' | 'None',
+        },
+      ];
+    }
+
+    if (parameters?.names && Array.isArray(parameters.names)) {
+      names = parameters.names;
+    }
+
     return {
       type: 'cookie',
       pageId: '',
       operation,
-      cookies: parameters?.cookies as any[] | undefined,
-      names: parameters?.names as string[] | undefined,
+      cookies: cookies || (parameters?.cookies as any[] | undefined),
+      names: names,
+      cookieName, // Add cookieName for specific cookie lookup
     };
   }
 
@@ -323,6 +348,11 @@ export class BrowserExecutor {
     // Check if operation is explicitly provided in parameters
     if (parameters?.operation && typeof parameters.operation === 'string') {
       return this.validateCookieOperation(parameters.operation);
+    }
+
+    // Also check for 'action' parameter (for backward compatibility)
+    if (parameters?.action && typeof parameters.action === 'string') {
+      return this.validateCookieOperation(parameters.action);
     }
 
     // Determine operation from command string

@@ -42,7 +42,7 @@ async function executeCookieOperation(
     case 'set':
       return handleSetCookies(action, page, context);
     case 'get':
-      return handleGetCookies(page, context);
+      return handleGetCookies(page, context, action.cookieName);
     case 'delete':
       return handleDeleteCookies(action, page, context);
     case 'clear':

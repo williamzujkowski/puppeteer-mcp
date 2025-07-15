@@ -75,6 +75,9 @@ export interface CookieAction extends BaseBrowserAction {
 
   /** Cookie names for delete operations */
   names?: string[];
+
+  /** Specific cookie name for get operations */
+  cookieName?: string;
 }
 
 /**

@@ -47,13 +47,28 @@ export async function handleSetCookies(
  * Handle get cookies operation
  * @param page - Puppeteer page instance
  * @param context - Action execution context
- * @returns Current cookies
+ * @param cookieName - Optional specific cookie name to retrieve
+ * @returns Current cookies or specific cookie
  */
 export async function handleGetCookies(
   page: Page,
   context: ActionContext,
-): Promise<{ cookies: Cookie[] }> {
+  cookieName?: string,
+): Promise<{ cookies: Cookie[] } | Cookie | null> {
   const cookies = await page.cookies();
+
+  if (cookieName) {
+    const specificCookie = cookies.find((cookie) => cookie.name === cookieName);
+
+    logger.info('Specific cookie retrieved', {
+      sessionId: context.sessionId,
+      contextId: context.contextId,
+      cookieName,
+      found: !!specificCookie,
+    });
+
+    return specificCookie || null;
+  }
 
   logger.info('Cookies retrieved successfully', {
     sessionId: context.sessionId,

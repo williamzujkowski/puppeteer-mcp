@@ -1165,7 +1165,6 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
             action: 'set',
             name: 'test-cookie',
             value: 'test-value',
-            domain: 'example.com',
           },
         });
 
@@ -1182,7 +1181,6 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
             action: 'set',
             name: 'test-cookie',
             value: 'test-value',
-            domain: 'example.com',
           },
         });
 
@@ -1214,7 +1212,6 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
             action: 'set',
             name: 'specific-cookie',
             value: 'specific-value',
-            domain: 'example.com',
           },
         });
 
@@ -1245,7 +1242,6 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
             action: 'set',
             name: 'delete-me',
             value: 'temp-value',
-            domain: 'example.com',
           },
         });
 
@@ -1285,7 +1281,6 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
             action: 'set',
             name: 'cookie1',
             value: 'value1',
-            domain: 'example.com',
           },
         });
 
@@ -1296,7 +1291,6 @@ describe('Browser Commands Comprehensive Functional Tests', () => {
             action: 'set',
             name: 'cookie2',
             value: 'value2',
-            domain: 'example.com',
           },
         });
 
