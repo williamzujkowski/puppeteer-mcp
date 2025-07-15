@@ -16,15 +16,17 @@ export NO_COLOR=1
 export PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=false
 export PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome-stable
 
-# Run tests with optimized settings
-npm test -- \
-  --no-coverage \
+# Run tests with optimized settings and coverage for CI
+npm run test:coverage -- \
+  --ci \
   --maxWorkers=2 \
   --maxConcurrency=4 \
-  --bail=1 \
+  --bail=false \
   --verbose=false \
-  --silent=true \
-  --testTimeout=15000 \
-  --forceExit
+  --silent=false \
+  --testTimeout=30000 \
+  --forceExit \
+  --reporters=default \
+  --reporters=jest-junit
 
 echo "✅ CI tests completed"

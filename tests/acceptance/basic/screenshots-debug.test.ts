@@ -10,7 +10,8 @@ import {
   cleanupMCPSession,
   mcpNavigate,
 } from '../utils/mcp-client.js';
-import { TEST_TARGETS } from '../utils/test-config.js';
+import { getTestTargets } from '../utils/reliable-test-config.js';
+const TEST_TARGETS = getTestTargets();
 import type { MCPTestClient, MCPSessionInfo } from '../utils/mcp-client.js';
 
 describe('Screenshot Debug Test', () => {

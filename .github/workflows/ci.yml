@@ -19,6 +19,8 @@ env:
   NODE_ENV: test
   CI: true
   FORCE_COLOR: 3
+  USE_DATA_URLS: true
+  SUPPRESS_TEST_LOGS: true
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -152,7 +154,7 @@ jobs:
         run: npm run build
 
       - name: Run unit tests with coverage
-        run: npm run test:coverage -- --ci --reporters=default --reporters=jest-junit
+        run: npm run test:ci
         env:
           JEST_JUNIT_OUTPUT_DIR: ./test-results
           JEST_JUNIT_OUTPUT_NAME: junit-unit-${{ matrix.node-version }}.xml

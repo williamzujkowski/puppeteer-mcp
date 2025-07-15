@@ -11,7 +11,8 @@ import {
   mcpNavigate,
   mcpCookie,
 } from '../utils/mcp-client.js';
-import { TEST_TARGETS, TEST_CONFIG } from '../utils/test-config.js';
+import { getTestTargets, TEST_CONFIG } from '../utils/reliable-test-config.js';
+const TEST_TARGETS = getTestTargets();
 import {
   retryOperation,
   validateUrl,
