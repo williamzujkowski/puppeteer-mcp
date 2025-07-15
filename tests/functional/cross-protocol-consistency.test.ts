@@ -426,7 +426,7 @@ const performanceSuite: TestSuite = {
 
 describe('Cross-Protocol Consistency Tests', () => {
   setupTestLogging();
-  
+
   let runner: CrossProtocolTestRunner;
   let mcpServer: MCPServer;
   let app: Application;

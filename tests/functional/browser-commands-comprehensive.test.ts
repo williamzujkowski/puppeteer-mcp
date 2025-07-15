@@ -56,7 +56,7 @@ class MockMCPClient {
 
 describe('Browser Commands Comprehensive Functional Tests', () => {
   setupTestLogging();
-  
+
   let mcpServer: MCPServer;
   let mcpClient: MockMCPClient;
   const testSessions: Map<string, any> = new Map();
