@@ -1,0 +1,232 @@
+{
+  "timestamp": "2025-07-15T19:06:12.142Z",
+  "environment": {
+    "nodeVersion": "v23.9.0",
+    "platform": "linux",
+    "cpus": 16,
+    "totalMemory": 67120611328
+  },
+  "summary": {
+    "healthScore": 50,
+    "performanceGrade": "F",
+    "totalAlerts": 4,
+    "anomaliesDetected": 94
+  },
+  "metrics": {
+    "system.cpu.usage": {
+      "count": 156,
+      "min": 7.038678023365846,
+      "max": 7.062652941478628,
+      "avg": 7.048434054193164,
+      "p50": 7.046869219895988,
+      "p95": 7.059077133715147,
+      "p99": 7.061928788135551
+    },
+    "system.memory.usage": {
+      "count": 156,
+      "min": 85.25339314382711,
+      "max": 97.41616274690197,
+      "avg": 90.3733507752546,
+      "p50": 89.4018368854866,
+      "p95": 97.04778850967737,
+      "p99": 97.33113124484801
+    },
+    "system.memory.heap": {
+      "count": 156,
+      "min": 66.73785261701302,
+      "max": 97.40892574629251,
+      "avg": 87.66411208745517,
+      "p50": 88.45674535259086,
+      "p95": 96.84988054525697,
+      "p99": 97.40398175818204
+    },
+    "system.load.1m": {
+      "count": 156,
+      "min": 6.29,
+      "max": 33.11,
+      "avg": 9.861217948717941,
+      "p50": 8.49,
+      "p95": 23.81,
+      "p99": 33.11
+    },
+    "system.load.2m": {
+      "count": 156,
+      "min": 7.3,
+      "max": 13.39,
+      "avg": 8.11666666666667,
+      "p50": 7.88,
+      "p95": 11.26,
+      "p99": 13.39
+    },
+    "system.load.3m": {
+      "count": 156,
+      "min": 4.31,
+      "max": 6.82,
+      "avg": 4.838846153846151,
+      "p50": 4.63,
+      "p95": 6.1,
+      "p99": 6.82
+    },
+    "mcp.tool.create-session": {
+      "count": 50,
+      "min": 48.467731000000185,
+      "max": 460.08884300000045,
+      "avg": 102.47357222000001,
+      "p50": 80.0772280000001,
+      "p95": 221.22704500000054,
+      "p99": 460.08884300000045
+    },
+    "concurrent.operation.error": {
+      "count": 1472,
+      "min": 0.03030199999921024,
+      "max": 0.350231000003987,
+      "avg": 0.07930892187481653,
+      "p50": 0.07665000000270084,
+      "p95": 0.11680499999783933,
+      "p99": 0.15984399999433663
+    },
+    "session.create.batch": {
+      "count": 4,
+      "min": 0.09337699999741744,
+      "max": 0.25888200000918005,
+      "avg": 0.19405299999925774,
+      "p50": 0.18723399999726098,
+      "p95": 0.25888200000918005,
+      "p99": 0.25888200000918005
+    },
+    "session.create.avg": {
+      "count": 4,
+      "min": 0.012944100000459003,
+      "max": 0.18723399999726098,
+      "avg": 0.06063134999913018,
+      "p50": 0.018675399999483488,
+      "p95": 0.18723399999726098,
+      "p99": 0.18723399999726098
+    }
+  },
+  "slaCompliance": {},
+  "alerts": [
+    {
+      "metric": "system.memory.usage",
+      "severity": "warning",
+      "value": 86.74648505132281,
+      "threshold": 80,
+      "message": "Memory usage exceeds warning threshold"
+    },
+    {
+      "metric": "system.memory.usage",
+      "severity": "warning",
+      "value": 86.71579584335457,
+      "threshold": 80,
+      "message": "Memory usage exceeds warning threshold"
+    },
+    {
+      "metric": "system.memory.usage",
+      "severity": "warning",
+      "value": 94.83324086091375,
+      "threshold": 80,
+      "message": "Memory usage exceeds warning threshold"
+    },
+    {
+      "metric": "system.memory.usage",
+      "severity": "critical",
+      "value": 95.41651888573216,
+      "threshold": 95,
+      "message": "Memory usage exceeds critical threshold"
+    }
+  ],
+  "anomalies": [
+    {
+      "metric": "system.cpu.usage",
+      "timestamp": "2025-07-15T19:06:05.188Z",
+      "value": 7.060569362047852,
+      "expectedRange": [7.040838106521255, 7.0604818221068975],
+      "severity": "low"
+    },
+    {
+      "metric": "system.cpu.usage",
+      "timestamp": "2025-07-15T19:06:06.279Z",
+      "value": 7.061039956708609,
+      "expectedRange": [7.040783774030038, 7.060843469630777],
+      "severity": "low"
+    },
+    {
+      "metric": "system.cpu.usage",
+      "timestamp": "2025-07-15T19:06:07.165Z",
+      "value": 7.061473945997582,
+      "expectedRange": [7.040723244492291, 7.061220153092465],
+      "severity": "low"
+    },
+    {
+      "metric": "system.cpu.usage",
+      "timestamp": "2025-07-15T19:06:08.314Z",
+      "value": 7.061928788135551,
+      "expectedRange": [7.040659178140306, 7.061608553653846],
+      "severity": "low"
+    },
+    {
+      "metric": "system.cpu.usage",
+      "timestamp": "2025-07-15T19:06:09.796Z",
+      "value": 7.062652941478628,
+      "expectedRange": [7.040590539237133, 7.062009901827084],
+      "severity": "low"
+    },
+    {
+      "metric": "system.memory.usage",
+      "timestamp": "2025-07-15T19:05:29.792Z",
+      "value": 94.68028301686448,
+      "expectedRange": [82.61404583548419, 93.82493298585008],
+      "severity": "low"
+    },
+    {
+      "metric": "system.memory.usage",
+      "timestamp": "2025-07-15T19:05:30.792Z",
+      "value": 94.80706136157319,
+      "expectedRange": [82.5446081073536, 93.91991128707856],
+      "severity": "low"
+    },
+    {
+      "metric": "system.memory.usage",
+      "timestamp": "2025-07-15T19:05:31.793Z",
+      "value": 94.68033793889107,
+      "expectedRange": [82.4670279055537, 94.02637522675933],
+      "severity": "low"
+    },
+    {
+      "metric": "system.memory.usage",
+      "timestamp": "2025-07-15T19:05:33.792Z",
+      "value": 94.83324086091375,
+      "expectedRange": [82.3275260676338, 94.33988176161098],
+      "severity": "low"
+    },
+    {
+      "metric": "system.memory.usage",
+      "timestamp": "2025-07-15T19:05:34.792Z",
+      "value": 94.84036851947548,
+      "expectedRange": [82.21535762194503, 94.6187175655771],
+      "severity": "low"
+    }
+  ],
+  "recommendations": [
+    "Overall system health is below optimal levels",
+    "High memory usage - check for memory leaks"
+  ],
+  "testConfig": {
+    "baseUrl": "http://localhost:3000",
+    "testDuration": "30s",
+    "warmupDuration": "5s",
+    "targetConcurrency": 10,
+    "maxSessions": 20,
+    "slaTargets": {
+      "mcp.tool.response.p95": 200,
+      "browser.command.p95": 500,
+      "session.create.p95": 2000,
+      "concurrent.throughput": 50
+    },
+    "outputDir": "/home/william/git/puppeteer-mcp/performance-results"
+  },
+  "cicd": {
+    "pass": false,
+    "failureReasons": ["1 critical alerts"]
+  }
+}

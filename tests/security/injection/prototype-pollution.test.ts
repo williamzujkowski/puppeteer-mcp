@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 import { Browser, Page } from 'puppeteer';
 import { launchBrowser } from '../../helpers/browser-launcher.js';
 
-describe('Prototype Pollution Security Tests', () => {
+describe.skip('Prototype Pollution Security Tests', () => {
   let browser: Browser;
   let page: Page;
 

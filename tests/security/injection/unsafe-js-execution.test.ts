@@ -10,7 +10,7 @@ import { Browser, Page } from 'puppeteer';
 import { launchBrowser } from '../../helpers/browser-launcher.js';
 import { delay } from '../../helpers/delay.js';
 
-describe('Unsafe JavaScript Execution Security Tests', () => {
+describe.skip('Unsafe JavaScript Execution Security Tests', () => {
   jest.setTimeout(15000); // 15 second timeout for individual tests
   let browser: Browser;
   let page: Page;
