@@ -52,7 +52,12 @@ export default {
   collectCoverage: false,
   coverageDirectory: '<rootDir>/coverage',
   coverageReporters: ['text', 'lcov', 'html'],
-  testTimeout: process.env.CI === 'true' ? 60000 : 30000, // Longer timeout for CI
+  testTimeout: process.env.CI === 'true' ? 120000 : 60000, // 2 minutes for CI, 1 minute locally for Puppeteer tests
   setupFilesAfterEnv: ['<rootDir>/tests/setup-integration.ts'],
   maxWorkers: process.env.CI === 'true' ? 1 : 2, // Single worker in CI to reduce resource contention
+  // Optimize test execution for stability
+  bail: process.env.CI === 'true' ? 5 : false, // Stop after 5 failures in CI to save time
+  forceExit: true, // Force exit to prevent hanging processes
+  detectOpenHandles: process.env.CI !== 'true', // Only detect open handles locally to avoid CI noise
+  verbose: process.env.CI === 'true', // More verbose output in CI for debugging
 };
