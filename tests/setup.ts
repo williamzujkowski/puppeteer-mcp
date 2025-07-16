@@ -184,7 +184,7 @@ afterAll(async () => {
   // Clean up browser pool if it exists
   try {
     const { browserPool } = await import('../src/server.js');
-    if (browserPool) {
+    if (browserPool && typeof browserPool.shutdown === 'function') {
       await browserPool.shutdown();
     }
   } catch {

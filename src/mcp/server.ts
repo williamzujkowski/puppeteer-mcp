@@ -263,7 +263,7 @@ export class MCPServer {
 
     // Clean up the browser pool
     const { browserPool } = await import('../server.js');
-    if (browserPool) {
+    if (browserPool && typeof browserPool.shutdown === 'function') {
       await browserPool.shutdown();
     }
 
