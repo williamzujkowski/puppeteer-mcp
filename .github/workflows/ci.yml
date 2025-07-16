@@ -459,11 +459,11 @@ jobs:
           # Run container and check health
           docker run -d --name test-container \
             -p 3000:8443 \
-            -e NODE_ENV=production \
+            -e NODE_ENV=development \
             puppeteer-mcp:ci
             
-          # Wait for startup
-          sleep 10
+          # Wait for startup and browser pool initialization
+          sleep 20
 
           # Check health endpoint
           curl -f http://localhost:3000/health || exit 1
