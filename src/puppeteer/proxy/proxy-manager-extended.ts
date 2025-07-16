@@ -18,8 +18,18 @@ export class ExtendedProxyManager extends ProxyManager {
   /**
    * Initialize proxy manager (alias for initializePool)
    */
-  async initialize(config: ContextProxyConfig & { proxies: any[] }): Promise<void> {
-    return this.initializePool(config);
+  async initialize(config: any): Promise<void> {
+    // Transform config to ProxyPoolConfig format
+    const poolConfig = {
+      proxies: config.proxies || [],
+      strategy: config.strategy || 'round-robin',
+      healthCheckInterval: config.healthCheckInterval || 300000,
+      healthCheckEnabled: config.healthCheckEnabled !== false,
+      failoverEnabled: config.failoverEnabled !== false,
+      failoverThreshold: config.failoverThreshold || 3,
+      maxConcurrentChecks: config.maxConcurrentChecks || 5,
+    };
+    return this.initializePool(poolConfig);
   }
 
   /**
@@ -67,22 +77,19 @@ export class ExtendedProxyManager extends ProxyManager {
   } {
     // Get pool stats from base class
     const poolStats = this.getPoolStats();
-    
-    // Create basic proxy metrics
-    const proxies: ProxyMetrics[] = [{
-      proxyId: 'test-proxy',
-      host: 'localhost',
-      port: 8080,
-      protocol: 'http',
-      requests: poolStats.totalRequests,
-      successes: Math.floor(poolStats.totalRequests * poolStats.successRate),
-      failures: Math.floor(poolStats.totalRequests * (1 - poolStats.successRate)),
-      averageResponseTime: poolStats.averageResponseTime,
-      successRate: poolStats.successRate,
-      isHealthy: poolStats.healthy > 0,
-      lastUsed: Date.now(),
-      tags: ['test']
-    }];
+
+    // Create basic proxy metrics matching ProxyMetrics interface
+    const proxies: ProxyMetrics[] = [
+      {
+        proxyId: 'test-proxy',
+        requestCount: poolStats.totalRequests,
+        successCount: Math.floor(poolStats.totalRequests * poolStats.successRate),
+        failureCount: Math.floor(poolStats.totalRequests * (1 - poolStats.successRate)),
+        averageResponseTime: poolStats.averageResponseTime,
+        totalBandwidth: 0,
+        lastUsed: new Date(),
+      },
+    ];
 
     return {
       proxies,
@@ -95,31 +102,36 @@ export class ExtendedProxyManager extends ProxyManager {
    */
   getHealthStatus(): ProxyHealthStatus[] {
     const poolStats = this.getPoolStats();
-    
-    return [{
-      proxyId: 'test-proxy',
-      isHealthy: poolStats.healthy > 0,
-      healthy: poolStats.healthy > 0, // Add for backwards compatibility
-      lastCheck: Date.now(),
-      lastChecked: new Date(), // Add for backwards compatibility
-      responseTime: poolStats.averageResponseTime,
-      errorCount: poolStats.totalRequests - Math.floor(poolStats.totalRequests * poolStats.successRate),
-      consecutiveFailures: 0
-    }];
+
+    return [
+      {
+        proxyId: 'test-proxy',
+        healthy: poolStats.healthy > 0,
+        lastChecked: new Date(),
+        responseTime: poolStats.averageResponseTime,
+        errorCount:
+          poolStats.totalRequests - Math.floor(poolStats.totalRequests * poolStats.successRate),
+        successCount: Math.floor(poolStats.totalRequests * poolStats.successRate),
+        consecutiveFailures: 0,
+      },
+    ];
   }
 
   /**
    * Rotate proxy for context (compatibility method)
    */
-  async rotateProxy(contextId: string, reason: 'manual' | 'error' | 'scheduled' = 'manual'): Promise<void> {
+  async rotateProxy(
+    contextId: string,
+    reason: 'manual' | 'error' | 'scheduled' = 'manual',
+  ): Promise<void> {
     // Get current proxy for context
     const currentProxyId = this.contextProxyMap.get(contextId);
-    
+
     // Simple rotation - just assign a different proxy
     const allProxies = Array.from(this.contextProxyMap.values());
     const availableProxies = ['proxy-1', 'proxy-2', 'test-proxy'];
-    const nextProxy = availableProxies.find(p => p !== currentProxyId) || 'proxy-rotated';
-    
+    const nextProxy = availableProxies.find((p) => p !== currentProxyId) || 'proxy-rotated';
+
     this.contextProxyMap.set(contextId, nextProxy);
   }
 
