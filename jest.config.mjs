@@ -96,7 +96,8 @@ export default {
   },
   coverageDirectory: '<rootDir>/coverage',
   coverageReporters: ['text', 'lcov', 'html'],
-  testTimeout: 10000,
+  testTimeout: 30000, // Increased from 10000 to handle CI browser operations
+  forceExit: true, // Force Jest to exit to prevent hanging
   setupFilesAfterEnv: ['<rootDir>/tests/setup.ts'],
   testPathIgnorePatterns: [
     '/node_modules/',

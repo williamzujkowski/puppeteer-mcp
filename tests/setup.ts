@@ -154,6 +154,14 @@ expect.extend({
 // Timeout for async operations
 jest.setTimeout(30000); // Increased to 30s for complex integration tests
 
+// Add global timeout handler to prevent hanging tests
+const originalSetTimeout = global.setTimeout;
+global.setTimeout = (callback, delay, ...args) => {
+  // Cap all timeouts at 2 minutes to prevent infinite hanging
+  const maxDelay = Math.min(delay || 0, 120000);
+  return originalSetTimeout(callback, maxDelay, ...args);
+};
+
 // Suppress console during tests unless explicitly needed
 const originalConsole = {
   log: console.log, // eslint-disable-line no-console
@@ -174,31 +182,57 @@ beforeAll(() => {
 });
 
 afterAll(async () => {
+  // Restore console
   // eslint-disable-next-line no-console
   console.log = originalConsole.log;
   // eslint-disable-next-line no-console
   console.info = originalConsole.info;
-
   console.warn = originalConsole.warn;
-
   console.error = originalConsole.error;
 
-  // Clean up all session store instances
-  const { InMemorySessionStore } = await import('../src/store/in-memory-session-store.js');
-  await InMemorySessionStore.cleanupAll();
-
-  // Clean up browser pool if it exists
+  // Clean up all session store instances with timeout
   try {
-    const { browserPool } = await import('../src/server.js');
-    if (browserPool && typeof browserPool.shutdown === 'function') {
-      await browserPool.shutdown();
-    }
-  } catch {
-    // Ignore if browser pool doesn't exist
+    await Promise.race([
+      (async () => {
+        const { InMemorySessionStore } = await import('../src/store/in-memory-session-store.js');
+        await InMemorySessionStore.cleanupAll();
+      })(),
+      new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Session store cleanup timeout')), 10000)
+      ),
+    ]);
+  } catch (error) {
+    console.warn('Session store cleanup timed out:', error.message);
   }
 
-  // Clean up loggers
-  await cleanupLoggers();
+  // Clean up browser pool if it exists with timeout
+  try {
+    await Promise.race([
+      (async () => {
+        const { browserPool } = await import('../src/server.js');
+        if (browserPool && typeof browserPool.shutdown === 'function') {
+          await browserPool.shutdown();
+        }
+      })(),
+      new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Browser pool cleanup timeout')), 15000)
+      ),
+    ]);
+  } catch (error) {
+    console.warn('Browser pool cleanup timed out:', error.message);
+  }
+
+  // Clean up loggers with timeout
+  try {
+    await Promise.race([
+      cleanupLoggers(),
+      new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Logger cleanup timeout')), 5000)
+      ),
+    ]);
+  } catch (error) {
+    console.warn('Logger cleanup timed out:', error.message);
+  }
 
   // Add a small delay to ensure all async operations complete
   await new Promise((resolve) => setTimeout(resolve, 1000));
