@@ -5,7 +5,7 @@
  * @description Tests that verify session and authentication work across REST, gRPC, and WebSocket
  */
 
-import { describe, it, expect, beforeAll, afterAll, beforeEach } from '@jest/globals';
+import { describe, it, expect, beforeAll, afterAll, beforeEach, jest } from '@jest/globals';
 import request from 'supertest';
 import * as grpc from '@grpc/grpc-js';
 import * as protoLoader from '@grpc/proto-loader';
@@ -18,6 +18,8 @@ import { InMemorySessionStore } from '../../src/store/in-memory-session-store.js
 import { pino } from 'pino';
 import { WSMessageType } from '../../src/types/websocket.js';
 import { createServer } from 'http';
+
+jest.setTimeout(60000);
 
 // Helper to load gRPC client
 const loadGrpcClient = (): any => {

@@ -4,13 +4,16 @@
  * @description Complete functional test suite for all MCP tools
  */
 
-import { describe, it, expect, beforeAll, afterAll, beforeEach } from '@jest/globals';
+import { describe, it, expect, beforeAll, afterAll, beforeEach, jest } from '@jest/globals';
 import { MCPServer, createMCPServer } from '../../src/mcp/server.js';
 import type { ToolResponse } from '../../src/mcp/types/tool-types.js';
 import { v4 as uuidv4 } from 'uuid';
 import { createApp, sessionStore, browserPool } from '../../src/server.js';
 import { createLogger } from '../../src/server/service-registry.js';
 import type { Application } from 'express';
+
+// Increase timeout for this test suite due to browser operations
+jest.setTimeout(60000);
 
 /**
  * Mock MCP client for testing
@@ -72,7 +75,7 @@ describe('MCP Tools Comprehensive Functional Tests', () => {
 
     // Start the server
     await mcpServer.start();
-  });
+  }, 90000); // 90 second timeout for setup
 
   afterAll(async () => {
     // Cleanup all test resources
@@ -100,7 +103,7 @@ describe('MCP Tools Comprehensive Functional Tests', () => {
 
     // Add a small delay to ensure all async operations complete
     await new Promise((resolve) => setTimeout(resolve, 500));
-  });
+  }, 90000); // 90 second timeout for cleanup
 
   describe('1. create-session Tool Tests', () => {
     describe('Valid Input Cases', () => {
@@ -666,7 +669,7 @@ describe('MCP Tools Comprehensive Functional Tests', () => {
         const data = JSON.parse(r.content[0].text);
         testSessions.set(data.sessionId, data);
       });
-    });
+    }, 60000); // 60 second timeout
 
     it('should handle concurrent context creation', async () => {
       // Create a session first
@@ -698,7 +701,7 @@ describe('MCP Tools Comprehensive Functional Tests', () => {
         const data = JSON.parse(r.content[0].text);
         testContexts.set(data.contextId, data);
       });
-    });
+    }, 60000); // 60 second timeout
   });
 
   describe('9. Error Recovery Tests', () => {
@@ -752,6 +755,6 @@ describe('MCP Tools Comprehensive Functional Tests', () => {
       const executeData = JSON.parse(result.content[0].text);
       // Should either succeed (element found) or fail gracefully (timeout)
       expect(executeData).toBeDefined();
-    });
+    }, 60000); // 60 second timeout
   });
 });

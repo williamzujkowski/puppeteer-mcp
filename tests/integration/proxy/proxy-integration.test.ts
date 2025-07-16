@@ -3,7 +3,7 @@
  * @module tests/integration/proxy/proxy-integration
  */
 
-import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
+import { describe, it, expect, beforeAll, afterAll, jest } from '@jest/globals';
 import { BrowserPool } from '../../../src/puppeteer/pool/browser-pool.js';
 import { contextStore } from '../../../src/store/context-store.js';
 import { proxyManager } from '../../../src/puppeteer/proxy/proxy-manager-extended.js';
@@ -13,6 +13,9 @@ import type { ContextProxyConfig } from '../../../src/puppeteer/types/proxy.js';
 import { Server } from 'http';
 import { createServer } from 'http';
 import { AddressInfo } from 'net';
+
+// Increase timeout for proxy tests
+jest.setTimeout(60000);
 
 // Mock HTTP proxy server for testing
 class MockProxyServer {

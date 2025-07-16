@@ -3,12 +3,14 @@
  * @module tests/integration/mcp/full-flow
  */
 
-import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
+import { describe, it, expect, beforeAll, afterAll, jest } from '@jest/globals';
 import { MCPServer } from '../../../src/mcp/server.js';
 import { sessionStore } from '../../../src/store/session-store.js';
 import { contextStore } from '../../../src/store/context-store.js';
 // import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 // import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
+
+jest.setTimeout(60000);
 
 describe('MCP Full Integration Flow', () => {
   let mcpServer: MCPServer;

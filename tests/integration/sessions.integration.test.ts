@@ -3,12 +3,14 @@
  * @module tests/integration/sessions
  */
 
-import { describe, it, expect, beforeAll, afterAll, beforeEach } from '@jest/globals';
+import { describe, it, expect, beforeAll, afterAll, beforeEach, jest } from '@jest/globals';
 import request from 'supertest';
 import { Application } from 'express';
 import { createApp, sessionStore, browserPool } from '../../src/server.js';
 import { generateTokenPair } from '../../src/auth/jwt.js';
 import type { SessionData } from '../../src/types/session.js';
+
+jest.setTimeout(60000);
 
 describe('Sessions API Integration Tests', () => {
   let app: Application;

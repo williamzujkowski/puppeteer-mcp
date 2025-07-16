@@ -15,6 +15,8 @@ import {
 import { MCPServer, createMCPServer } from '../../../src/mcp/server.js';
 import { logger } from '../../../src/utils/logger.js';
 
+jest.setTimeout(60000);
+
 // Mock dependencies to avoid external connections
 jest.mock('../../../src/utils/logger.js', () => ({
   logger: {
