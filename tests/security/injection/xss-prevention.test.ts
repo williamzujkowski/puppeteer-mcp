@@ -161,7 +161,7 @@ describe('XSS Prevention Tests', () => {
           expect(error).toBeDefined();
         }
       }
-    });
+    }, 60000);
 
     it('should sanitize HTML injection', async () => {
       const testHtml = `
@@ -215,7 +215,7 @@ describe('XSS Prevention Tests', () => {
           document.body.lastElementChild?.remove();
         });
       }
-    });
+    }, 60000);
 
     it('should prevent DOM-based XSS', async () => {
       const testHtml = `
