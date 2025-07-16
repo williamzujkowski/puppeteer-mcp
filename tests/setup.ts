@@ -67,6 +67,12 @@ beforeEach(() => {
   }
 });
 
+// Add afterEach to help with cleanup
+afterEach(async () => {
+  // Small delay to allow async operations to settle
+  await new Promise((resolve) => setTimeout(resolve, 100));
+});
+
 // Global test utilities
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -195,5 +201,10 @@ afterAll(async () => {
   await cleanupLoggers();
 
   // Add a small delay to ensure all async operations complete
-  await new Promise((resolve) => setTimeout(resolve, 500));
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+  
+  // Force garbage collection if available
+  if (global.gc) {
+    global.gc();
+  }
 });

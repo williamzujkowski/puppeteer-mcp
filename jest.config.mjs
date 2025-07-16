@@ -9,6 +9,8 @@ export default {
     'node-fetch': '<rootDir>/tests/__mocks__/node-fetch.js',
     'socks-proxy-agent': '<rootDir>/tests/__mocks__/socks-proxy-agent.js',
     'https-proxy-agent': '<rootDir>/tests/__mocks__/https-proxy-agent.js',
+    // Mock Puppeteer debug to prevent dynamic import errors
+    'puppeteer-core/src/common/Debug': '<rootDir>/tests/__mocks__/puppeteer-debug.js',
     // Handle .js extensions first for path aliases
     '^@core/(.*)\\.js$': '<rootDir>/src/core/$1',
     '^@store/(.*)\\.js$': '<rootDir>/src/store/$1',
