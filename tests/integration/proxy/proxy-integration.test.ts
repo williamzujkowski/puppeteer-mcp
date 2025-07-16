@@ -6,7 +6,7 @@
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 import { BrowserPool } from '../../../src/puppeteer/pool/browser-pool.js';
 import { contextStore } from '../../../src/store/context-store.js';
-import { proxyManager } from '../../../src/puppeteer/proxy/proxy-manager.js';
+import { proxyManager } from '../../../src/puppeteer/proxy/proxy-manager-extended.js';
 import { proxyMonitor } from '../../../src/puppeteer/proxy/proxy-monitoring.js';
 import { createProxyBrowserContext } from '../../../src/puppeteer/proxy/proxy-context-integration.js';
 import type { ContextProxyConfig } from '../../../src/puppeteer/types/proxy.js';
