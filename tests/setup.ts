@@ -193,7 +193,7 @@ afterAll(async () => {
 
   // Clean up loggers
   await cleanupLoggers();
-  
+
   // Add a small delay to ensure all async operations complete
   await new Promise((resolve) => setTimeout(resolve, 500));
 });
