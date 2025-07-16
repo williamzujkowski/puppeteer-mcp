@@ -261,6 +261,12 @@ export class MCPServer {
       await sessionStore.destroy();
     }
 
+    // Clean up the browser pool
+    const { browserPool } = await import('../server.js');
+    if (browserPool) {
+      await browserPool.shutdown();
+    }
+
     logger.info({
       msg: 'MCP server stopped',
       timestamp: new Date().toISOString(),

@@ -95,7 +95,11 @@ describe('MCP Tools Comprehensive Functional Tests', () => {
       }
     }
 
+    // Stop the server and wait for all resources to clean up
     await mcpServer.stop();
+
+    // Add a small delay to ensure all async operations complete
+    await new Promise((resolve) => setTimeout(resolve, 500));
   });
 
   describe('1. create-session Tool Tests', () => {
