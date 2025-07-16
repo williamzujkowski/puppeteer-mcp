@@ -21,21 +21,41 @@ import {
   handleCommandFailure,
 } from './commands.js';
 
-// Get package.json info
+// Get package.json info - try multiple paths for different installation types
 const currentFile = fileURLToPath(import.meta.url);
 const currentDir = dirname(currentFile);
-const packageJsonPath = join(currentDir, '../../package.json');
 
-let packageInfo: PackageInfo;
-try {
-  packageInfo = JSON.parse(readFileSync(packageJsonPath, 'utf8')) as PackageInfo;
-} catch {
-  packageInfo = {
+function findPackageJson(): PackageInfo {
+  const possiblePaths = [
+    join(currentDir, '../../package.json'), // Local development/build
+    join(currentDir, '../package.json'), // Alternative local structure
+    join(currentDir, 'package.json'), // Same directory
+    join(currentDir, '../../../package.json'), // Global npm install structure
+    join(process.cwd(), 'package.json'), // Working directory
+  ];
+
+  for (const path of possiblePaths) {
+    try {
+      const content = readFileSync(path, 'utf8');
+      const pkg = JSON.parse(content) as PackageInfo;
+      // Verify this is actually the puppeteer-mcp package
+      if (pkg.name === 'puppeteer-mcp') {
+        return pkg;
+      }
+    } catch {
+      // Continue to next path
+    }
+  }
+
+  // Fallback to hardcoded values
+  return {
     name: 'puppeteer-mcp',
-    version: '1.0.14',
+    version: '1.1.2',
     description: 'AI-enabled browser automation platform',
   };
 }
+
+const packageInfo: PackageInfo = findPackageJson();
 
 /**
  * Process command-line arguments
