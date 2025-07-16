@@ -8,7 +8,9 @@ export const TEST_DATA_URLS = {
    * Basic HTML page for navigation testing
    * Replaces: https://williamzujkowski.github.io/paperclips/index2.html
    */
-  basicTestPage: 'data:text/html;charset=utf-8,' + encodeURIComponent(`
+  basicTestPage:
+    'data:text/html;charset=utf-8,' +
+    encodeURIComponent(`
     <!DOCTYPE html>
     <html lang="en">
     <head>
@@ -31,7 +33,9 @@ export const TEST_DATA_URLS = {
   /**
    * HTML page with form for injection testing
    */
-  formTestPage: 'data:text/html;charset=utf-8,' + encodeURIComponent(`
+  formTestPage:
+    'data:text/html;charset=utf-8,' +
+    encodeURIComponent(`
     <!DOCTYPE html>
     <html>
     <head><title>Form Test Page</title></head>
@@ -50,7 +54,9 @@ export const TEST_DATA_URLS = {
   /**
    * JavaScript file for script injection testing
    */
-  maliciousScript: 'data:text/javascript;charset=utf-8,' + encodeURIComponent(`
+  maliciousScript:
+    'data:text/javascript;charset=utf-8,' +
+    encodeURIComponent(`
     console.log("test-malicious-script");
     window.testMaliciousExecuted = true;
   `),
@@ -58,7 +64,9 @@ export const TEST_DATA_URLS = {
   /**
    * CSS file for style injection testing
    */
-  maliciousCSS: 'data:text/css;charset=utf-8,' + encodeURIComponent(`
+  maliciousCSS:
+    'data:text/css;charset=utf-8,' +
+    encodeURIComponent(`
     body { background: red !important; }
     .test-malicious { display: none; }
   `),
@@ -66,21 +74,27 @@ export const TEST_DATA_URLS = {
   /**
    * JSON response for AJAX testing
    */
-  jsonResponse: 'data:application/json;charset=utf-8,' + encodeURIComponent(`
+  jsonResponse:
+    'data:application/json;charset=utf-8,' +
+    encodeURIComponent(`
     {"status": "success", "data": "test-data", "timestamp": "2025-01-01T00:00:00Z"}
   `),
 
   /**
    * JSONP response for callback testing
    */
-  jsonpResponse: 'data:application/javascript;charset=utf-8,' + encodeURIComponent(`
+  jsonpResponse:
+    'data:application/javascript;charset=utf-8,' +
+    encodeURIComponent(`
     callback({"results": ["test1", "test2"], "status": "ok"});
   `),
 
   /**
    * XML response for parsing testing
    */
-  xmlResponse: 'data:application/xml;charset=utf-8,' + encodeURIComponent(`
+  xmlResponse:
+    'data:application/xml;charset=utf-8,' +
+    encodeURIComponent(`
     <?xml version="1.0" encoding="UTF-8"?>
     <response>
       <status>success</status>
@@ -96,7 +110,9 @@ export const TEST_DATA_URLS = {
   /**
    * Redirect simulation (uses meta refresh)
    */
-  redirectPage: 'data:text/html;charset=utf-8,' + encodeURIComponent(`
+  redirectPage:
+    'data:text/html;charset=utf-8,' +
+    encodeURIComponent(`
     <!DOCTYPE html>
     <html>
     <head>
@@ -115,7 +131,7 @@ export const TEST_DATA_URLS = {
  */
 export const MOCK_DOMAINS = {
   evil: 'http://evil.test.invalid',
-  malicious: 'https://malicious.test.invalid', 
+  malicious: 'https://malicious.test.invalid',
   external: 'http://external.test.invalid',
   redirect: 'http://redirect.test.invalid',
 } as const;

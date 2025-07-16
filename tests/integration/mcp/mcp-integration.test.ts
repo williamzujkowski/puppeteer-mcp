@@ -244,14 +244,18 @@ describe('MCP Server Integration Tests', () => {
       const catalogResource = response.resources.find((r: any) => r.uri === 'api://catalog');
       expect(catalogResource).toBeDefined();
       expect(catalogResource.name).toBe('api-catalog');
-      expect(catalogResource.description).toBe('Complete catalog of available APIs across all protocols');
+      expect(catalogResource.description).toBe(
+        'Complete catalog of available APIs across all protocols',
+      );
       expect(catalogResource.mimeType).toBe('application/json');
 
       // Verify health resource
       const healthResource = response.resources.find((r: any) => r.uri === 'api://health');
       expect(healthResource).toBeDefined();
       expect(healthResource.name).toBe('system-health');
-      expect(healthResource.description).toBe('Current system health and status including browser pool');
+      expect(healthResource.description).toBe(
+        'Current system health and status including browser pool',
+      );
       expect(healthResource.mimeType).toBe('application/json');
     });
   });
