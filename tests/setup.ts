@@ -181,6 +181,19 @@ afterAll(async () => {
   const { InMemorySessionStore } = await import('../src/store/in-memory-session-store.js');
   await InMemorySessionStore.cleanupAll();
 
+  // Clean up browser pool if it exists
+  try {
+    const { browserPool } = await import('../src/server.js');
+    if (browserPool) {
+      await browserPool.shutdown();
+    }
+  } catch {
+    // Ignore if browser pool doesn't exist
+  }
+
   // Clean up loggers
   await cleanupLoggers();
+  
+  // Add a small delay to ensure all async operations complete
+  await new Promise((resolve) => setTimeout(resolve, 500));
 });
