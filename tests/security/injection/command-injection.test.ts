@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 import { Browser, Page } from 'puppeteer';
 import { launchBrowser } from '../../helpers/browser-launcher.js';
+import { TEST_DATA_URLS } from '../utils/data-urls.js';
 
 describe('Command Injection Security Tests', () => {
   let browser: Browser;
@@ -19,7 +20,7 @@ describe('Command Injection Security Tests', () => {
 
   describe('Command Injection Prevention', () => {
     it('should prevent command injection through evaluate', async () => {
-      await page.goto('https://williamzujkowski.github.io/paperclips/index2.html');
+      await page.goto(TEST_DATA_URLS.basicTestPage);
 
       const commandInjectionPayloads = [
         '; ls -la',
@@ -101,7 +102,7 @@ describe('Command Injection Security Tests', () => {
     });
 
     it('should prevent process spawning', async () => {
-      await page.goto('https://williamzujkowski.github.io/paperclips/index2.html');
+      await page.goto(TEST_DATA_URLS.basicTestPage);
 
       const processSpawnAttempts = [
         'require("child_process").exec("whoami")',
@@ -217,7 +218,7 @@ describe('Command Injection Security Tests', () => {
     });
 
     it('should prevent shell metacharacter injection', async () => {
-      await page.goto('https://williamzujkowski.github.io/paperclips/index2.html');
+      await page.goto(TEST_DATA_URLS.basicTestPage);
 
       const shellMetacharacters = [
         '$()',
@@ -292,7 +293,7 @@ describe('Command Injection Security Tests', () => {
     });
 
     it('should prevent template injection', async () => {
-      await page.goto('https://williamzujkowski.github.io/paperclips/index2.html');
+      await page.goto(TEST_DATA_URLS.basicTestPage);
 
       const templateInjectionPayloads = [
         '{{7*7}}',
@@ -345,7 +346,7 @@ describe('Command Injection Security Tests', () => {
     });
 
     it('should prevent code injection through Function constructor', async () => {
-      await page.goto('https://williamzujkowski.github.io/paperclips/index2.html');
+      await page.goto(TEST_DATA_URLS.basicTestPage);
 
       const functionInjectionPayloads = [
         'return process.exit()',
