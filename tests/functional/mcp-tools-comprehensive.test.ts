@@ -53,8 +53,8 @@ class MockMCPClient {
   }
 }
 
-// TODO: Fix these tests - they expect thrown errors but MCP returns error content
-describe.skip('MCP Tools Comprehensive Functional Tests', () => {
+// Fixed: Updated error handling expectations to match MCP protocol behavior
+describe('MCP Tools Comprehensive Functional Tests', () => {
   let mcpServer: MCPServer;
   let mcpClient: MockMCPClient;
   let app: Application;
@@ -298,15 +298,20 @@ describe.skip('MCP Tools Comprehensive Functional Tests', () => {
     it('should handle non-existent session deletion', async () => {
       const nonExistentId = uuidv4();
 
-      await expect(
-        mcpClient.callTool('delete-session', {
-          sessionId: nonExistentId,
-        }),
-      ).rejects.toThrow();
+      const result = await mcpClient.callTool('delete-session', {
+        sessionId: nonExistentId,
+      });
+      const responseData = JSON.parse(result.content[0].text);
+      expect(responseData.success).toBe(false);
+      expect(responseData.error).toBeDefined();
     });
 
     it('should reject missing sessionId', async () => {
-      await expect(mcpClient.callTool('delete-session', {})).rejects.toThrow();
+      const result = await mcpClient.callTool('delete-session', {});
+      const responseData = JSON.parse(result.content[0].text);
+      expect(responseData.success).toBe(false);
+      expect(responseData.error).toBeDefined();
+      expect(responseData.error).toContain('sessionId');
     });
   });
 
@@ -377,37 +382,44 @@ describe.skip('MCP Tools Comprehensive Functional Tests', () => {
 
     describe('Invalid Input Cases', () => {
       it('should reject invalid sessionId', async () => {
-        await expect(
-          mcpClient.callTool('create-browser-context', {
-            sessionId: uuidv4(), // Non-existent session
-          }),
-        ).rejects.toThrow();
+        const result = await mcpClient.callTool('create-browser-context', {
+          sessionId: uuidv4(), // Non-existent session
+        });
+        const responseData = JSON.parse(result.content[0].text);
+        expect(responseData.success).toBe(false);
+        expect(responseData.error).toBeDefined();
       });
 
       it('should reject missing sessionId', async () => {
-        await expect(mcpClient.callTool('create-browser-context', {})).rejects.toThrow();
+        const result = await mcpClient.callTool('create-browser-context', {});
+        const responseData = JSON.parse(result.content[0].text);
+        expect(responseData.success).toBe(false);
+        expect(responseData.error).toBeDefined();
+        expect(responseData.error).toContain('sessionId');
       });
 
       it('should reject invalid viewport dimensions', async () => {
-        await expect(
-          mcpClient.callTool('create-browser-context', {
-            sessionId: validSessionId,
-            options: {
-              viewport: { width: -1, height: 1080 },
-            },
-          }),
-        ).rejects.toThrow();
+        const result = await mcpClient.callTool('create-browser-context', {
+          sessionId: validSessionId,
+          options: {
+            viewport: { width: -1, height: 1080 },
+          },
+        });
+        const responseData = JSON.parse(result.content[0].text);
+        expect(responseData.success).toBe(false);
+        expect(responseData.error).toBeDefined();
       });
 
       it('should reject viewport dimensions exceeding limits', async () => {
-        await expect(
-          mcpClient.callTool('create-browser-context', {
-            sessionId: validSessionId,
-            options: {
-              viewport: { width: 10000, height: 10000 }, // Too large
-            },
-          }),
-        ).rejects.toThrow();
+        const result = await mcpClient.callTool('create-browser-context', {
+          sessionId: validSessionId,
+          options: {
+            viewport: { width: 10000, height: 10000 }, // Too large
+          },
+        });
+        const responseData = JSON.parse(result.content[0].text);
+        expect(responseData.success).toBe(false);
+        expect(responseData.error).toBeDefined();
       });
     });
   });
