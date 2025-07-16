@@ -202,7 +202,7 @@ afterAll(async () => {
 
   // Add a small delay to ensure all async operations complete
   await new Promise((resolve) => setTimeout(resolve, 1000));
-  
+
   // Force garbage collection if available
   if (global.gc) {
     global.gc();
