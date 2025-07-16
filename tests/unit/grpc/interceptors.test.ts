@@ -65,45 +65,33 @@ describe('gRPC Interceptors', () => {
     const createInterceptor = (): any => authInterceptor(logger, sessionStore);
 
     beforeEach(async () => {
-      // Create a test session
+      // Create a test session with correct SessionData format
       await sessionStore.create({
-        id: 'test-session',
-        data: {
-          userId: 'test-user',
-          username: 'testuser',
-          roles: ['user'],
-          metadata: {},
-          createdAt: new Date().toISOString(),
-          expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24 hours
-        },
-        lastAccessedAt: new Date().toISOString(),
+        userId: 'test-user',
+        username: 'testuser',
+        roles: ['user'],
+        metadata: {},
+        createdAt: new Date().toISOString(),
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24 hours
       });
     });
 
-    it.skip('should authenticate successfully with valid token', async () => {
-      // TODO: Fix session store issue - session is not persisting between creation and retrieval
-      // This appears to be a complex issue with the in-memory session store in test environment
-      // All other auth tests pass (error cases), only the success case fails
-
-      // Create session inline to ensure it exists
-      await sessionStore.create({
-        id: 'test-session-inline',
-        data: {
-          userId: 'test-user',
-          username: 'testuser',
-          roles: ['user'],
-          metadata: {},
-          createdAt: new Date().toISOString(),
-          expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24 hours
-        },
-        lastAccessedAt: new Date().toISOString(),
+    it('should authenticate successfully with valid token', async () => {
+      // Create a session and get the generated ID
+      const sessionId = await sessionStore.create({
+        userId: 'test-user',
+        username: 'testuser',
+        roles: ['user'],
+        metadata: {},
+        createdAt: new Date().toISOString(),
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24 hours
       });
 
       mockCall.metadata.set('authorization', 'Bearer valid-token');
 
-      // Mock JWT verification with inline session ID
+      // Mock JWT verification to return the actual session ID
       (verifyToken as jest.Mock).mockResolvedValue({
-        sessionId: 'test-session-inline',
+        sessionId,
         sub: 'test-user',
         username: 'testuser',
         roles: ['user'],
@@ -113,13 +101,9 @@ describe('gRPC Interceptors', () => {
       const interceptor = createInterceptor();
       await interceptor(mockCall, mockCallback, mockNext);
 
-      // Check if callback was called instead of next
-      if (mockCallback.mock.calls.length > 0) {
-        const error = mockCallback.mock.calls[0][0];
-        throw new Error(`Expected success but got error: ${error?.message ?? String(error)}`);
-      }
-
+      // Verify successful authentication
       expect(mockNext).toHaveBeenCalledWith(mockCall, mockCallback);
+      expect(mockCallback).not.toHaveBeenCalled();
       expect(mockCall.session).toBeDefined();
       expect(mockCall.userId).toBe('test-user');
       expect(mockCall.username).toBe('testuser');
@@ -156,23 +140,19 @@ describe('gRPC Interceptors', () => {
     });
 
     it('should reject request with expired session', async () => {
-      // Create expired session
-      await sessionStore.create({
-        id: 'expired-session',
-        data: {
-          userId: 'test-user',
-          username: 'testuser',
-          roles: ['user'],
-          metadata: {},
-          createdAt: new Date().toISOString(),
-          expiresAt: new Date(Date.now() - 1000).toISOString(), // Expired
-        },
-        lastAccessedAt: new Date().toISOString(),
+      // Create expired session with correct SessionData format
+      const expiredSessionId = await sessionStore.create({
+        userId: 'test-user',
+        username: 'testuser',
+        roles: ['user'],
+        metadata: {},
+        createdAt: new Date().toISOString(),
+        expiresAt: new Date(Date.now() - 1000).toISOString(), // Expired
       });
 
       mockCall.metadata.set('authorization', 'Bearer valid-token');
       (verifyToken as jest.Mock).mockResolvedValue({
-        sessionId: 'expired-session',
+        sessionId: expiredSessionId,
         sub: 'test-user',
         username: 'testuser',
         roles: ['user'],
