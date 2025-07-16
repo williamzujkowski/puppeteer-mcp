@@ -28,6 +28,24 @@ jest.mock('../../../src/utils/logger.js', () => ({
       child: jest.fn(),
     })),
   },
+  createLogger: jest.fn(() => ({
+    info: jest.fn(),
+    error: jest.fn(),
+    warn: jest.fn(),
+    debug: jest.fn(),
+    trace: jest.fn(),
+    fatal: jest.fn(),
+    child: jest.fn(() => ({
+      info: jest.fn(),
+      error: jest.fn(),
+      warn: jest.fn(),
+      debug: jest.fn(),
+      trace: jest.fn(),
+      fatal: jest.fn(),
+      child: jest.fn(),
+    })),
+  })),
+  createChildLogger: jest.fn(),
 }));
 
 jest.mock('../../../src/mcp/auth/user-service.js', () => ({
@@ -134,12 +152,12 @@ describe('MCP Server Integration Tests', () => {
   });
 
   describe('Tool Registration', () => {
-    it('should register all 6 tools', async () => {
+    it('should register all 9 tools', async () => {
       const listToolsHandler = mockHandlers.get('listTools');
       expect(listToolsHandler).toBeDefined();
 
       const response = await listToolsHandler({});
-      expect(response.tools).toHaveLength(6);
+      expect(response.tools).toHaveLength(9);
 
       const toolNames = response.tools.map((tool: { name: string }) => tool.name);
       expect(toolNames).toEqual([
@@ -149,6 +167,9 @@ describe('MCP Server Integration Tests', () => {
         'delete-session',
         'create-browser-context',
         'execute-in-context',
+        'close-browser-context',
+        'list-browser-contexts',
+        'get-server-info',
       ]);
     });
 
@@ -222,15 +243,15 @@ describe('MCP Server Integration Tests', () => {
       // Verify API catalog resource
       const catalogResource = response.resources.find((r: any) => r.uri === 'api://catalog');
       expect(catalogResource).toBeDefined();
-      expect(catalogResource.name).toBe('API Catalog');
-      expect(catalogResource.description).toBe('Complete catalog of available APIs');
+      expect(catalogResource.name).toBe('api-catalog');
+      expect(catalogResource.description).toBe('Complete catalog of available APIs across all protocols');
       expect(catalogResource.mimeType).toBe('application/json');
 
       // Verify health resource
       const healthResource = response.resources.find((r: any) => r.uri === 'api://health');
       expect(healthResource).toBeDefined();
-      expect(healthResource.name).toBe('System Health');
-      expect(healthResource.description).toBe('Current system health and status');
+      expect(healthResource.name).toBe('system-health');
+      expect(healthResource.description).toBe('Current system health and status including browser pool');
       expect(healthResource.mimeType).toBe('application/json');
     });
   });
