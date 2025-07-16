@@ -77,9 +77,9 @@ describe('MCP Tools Comprehensive Functional Tests', () => {
       // Start the server with timeout protection
       await Promise.race([
         mcpServer.start(),
-        new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('MCP server start timeout')), 60000)
-        ),
+        new Promise<void>((_, reject) => {
+          setTimeout(() => reject(new Error('MCP server start timeout')), 60000);
+        }),
       ]);
     } catch (error) {
       console.error('Failed to start MCP server:', error.message);

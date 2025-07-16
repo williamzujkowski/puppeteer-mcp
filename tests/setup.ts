@@ -158,7 +158,7 @@ jest.setTimeout(30000); // Increased to 30s for complex integration tests
 const originalSetTimeout = global.setTimeout;
 global.setTimeout = (callback, delay, ...args) => {
   // Cap all timeouts at 2 minutes to prevent infinite hanging
-  const maxDelay = Math.min(delay || 0, 120000);
+  const maxDelay = Math.min(delay ?? 0, 120000);
   return originalSetTimeout(callback, maxDelay, ...args);
 };
 

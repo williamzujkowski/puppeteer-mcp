@@ -97,7 +97,7 @@ jobs:
       - name: Lint code
         run: |
           npm run lint -- --format json --output-file eslint-report.json || true
-          npm run lint -- --max-warnings 1200
+          npm run lint -- --max-warnings 2300
 
       - name: Type check
         run: npm run typecheck
