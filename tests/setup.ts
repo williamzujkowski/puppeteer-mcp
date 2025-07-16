@@ -197,8 +197,8 @@ afterAll(async () => {
         const { InMemorySessionStore } = await import('../src/store/in-memory-session-store.js');
         await InMemorySessionStore.cleanupAll();
       })(),
-      new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Session store cleanup timeout')), 10000)
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Session store cleanup timeout')), 10000),
       ),
     ]);
   } catch (error) {
@@ -214,8 +214,8 @@ afterAll(async () => {
           await browserPool.shutdown();
         }
       })(),
-      new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Browser pool cleanup timeout')), 15000)
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Browser pool cleanup timeout')), 15000),
       ),
     ]);
   } catch (error) {
@@ -226,8 +226,8 @@ afterAll(async () => {
   try {
     await Promise.race([
       cleanupLoggers(),
-      new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Logger cleanup timeout')), 5000)
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Logger cleanup timeout')), 5000),
       ),
     ]);
   } catch (error) {

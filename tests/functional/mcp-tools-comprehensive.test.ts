@@ -89,7 +89,7 @@ describe('MCP Tools Comprehensive Functional Tests', () => {
 
   afterAll(async () => {
     // Cleanup all test resources with timeout protection
-    
+
     // Close all browser contexts with timeout
     const contextCleanupPromises = Array.from(testContexts.keys()).map(async (contextId) => {
       try {
@@ -98,8 +98,8 @@ describe('MCP Tools Comprehensive Functional Tests', () => {
             contextId,
             sessionId: testContexts.get(contextId).sessionId,
           }),
-          new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Context cleanup timeout')), 10000)
+          new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('Context cleanup timeout')), 10000),
           ),
         ]);
       } catch (error) {
@@ -111,8 +111,8 @@ describe('MCP Tools Comprehensive Functional Tests', () => {
     try {
       await Promise.race([
         Promise.allSettled(contextCleanupPromises),
-        new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('All context cleanup timeout')), 30000)
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('All context cleanup timeout')), 30000),
         ),
       ]);
     } catch (error) {
@@ -124,8 +124,8 @@ describe('MCP Tools Comprehensive Functional Tests', () => {
       try {
         await Promise.race([
           mcpClient.callTool('delete-session', { sessionId }),
-          new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Session cleanup timeout')), 5000)
+          new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('Session cleanup timeout')), 5000),
           ),
         ]);
       } catch (error) {
@@ -136,8 +136,8 @@ describe('MCP Tools Comprehensive Functional Tests', () => {
     try {
       await Promise.race([
         Promise.allSettled(sessionCleanupPromises),
-        new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('All session cleanup timeout')), 20000)
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('All session cleanup timeout')), 20000),
         ),
       ]);
     } catch (error) {
@@ -148,8 +148,8 @@ describe('MCP Tools Comprehensive Functional Tests', () => {
     try {
       await Promise.race([
         mcpServer.stop(),
-        new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Server stop timeout')), 30000)
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Server stop timeout')), 30000),
         ),
       ]);
     } catch (error) {
@@ -499,8 +499,8 @@ describe('MCP Tools Comprehensive Functional Tests', () => {
             username: 'executeuser',
             password: 'testpass123',
           }),
-          new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Session creation timeout')), 30000)
+          new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('Session creation timeout')), 30000),
           ),
         ]);
         const sessionData = JSON.parse(sessionResult.content[0].text);
@@ -511,8 +511,8 @@ describe('MCP Tools Comprehensive Functional Tests', () => {
           mcpClient.callTool('create-browser-context', {
             sessionId: validSessionId,
           }),
-          new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Browser context creation timeout')), 45000)
+          new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('Browser context creation timeout')), 45000),
           ),
         ]);
         const contextData = JSON.parse(contextResult.content[0].text);
