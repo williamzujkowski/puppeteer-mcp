@@ -1,4 +1,4 @@
-# Puppeteer MCP
+# I found a better option - playwright - and Microsoft has a MCP of it already. Please check out https://github.com/microsoft/playwright-mcp if you're trying this sort of thing.
 
 [![npm version](https://img.shields.io/npm/v/puppeteer-mcp.svg)](https://www.npmjs.com/package/puppeteer-mcp)
 [![npm downloads](https://img.shields.io/npm/dm/puppeteer-mcp.svg)](https://www.npmjs.com/package/puppeteer-mcp)
